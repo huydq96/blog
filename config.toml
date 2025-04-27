@@ -1,4 +1,4 @@
-baseURL = 'https://huydq96.github.io/'
+baseURL = 'https://huydq96.github.io/blog/'
 canonifyURLs = false
 relativeURLs = true
 languageCode = 'en-us'
@@ -8,7 +8,7 @@ enableRobotsTXT = true
 publishDir = "docs"
 
 [server]
-baseURL = 'https://huydq96.github.io/'
+baseURL = 'https://huydq96.github.io/blog/'
 
 [pagination]
 pagerSize = 10
@@ -33,21 +33,21 @@ locale = "en"
 [[menu.main]]
 identifier = 'blog'
 name = 'Blog'
-url = '/blog/posts/'
+url = '/posts/'
 weight = 10
 [[menu.main]]
 identifier = 'categories'
 name = 'Categories'
-url = '/blog/categories/'
+url = '/categories/'
 weight = 20
 [[menu.main]]
 identifier = 'tags'
 name = 'Tags'
-url = '/blog/tags/'
+url = '/tags/'
 weight = 30
 
 [permalinks]
-posts = '/blog/posts/:slug/'
+posts = '/posts/:slug/'
 
 [build]
 noJSConfigInAssets = true
