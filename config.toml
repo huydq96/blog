@@ -1,4 +1,4 @@
-baseURL = 'https://huydq96.github.io/blog/'
+baseURL = 'https://huydq96.github.io/'
 canonifyURLs = false
 relativeURLs = true
 languageCode = 'en-us'
@@ -8,7 +8,7 @@ enableRobotsTXT = true
 publishDir = "docs"
 
 [server]
-baseURL = 'https://huydq96.github.io/blog/'
+baseURL = 'https://huydq96.github.io/'
 
 [pagination]
 pagerSize = 10
@@ -22,12 +22,6 @@ ShowReadingTime = true
 ShowToc = true
 ShowComments = false
 comments = false  # Enable comments in Hugo
-
-[params.remark42]
-host = "https://huydq96.github.io/blog/comments"
-site_id = "localhost-site"
-theme = "light"
-locale = "en"
 
 [menu]
 [[menu.main]]
