@@ -1,4 +1,4 @@
-baseURL = 'https://huydq96.github.io/'
+baseURL = 'https://huydq96.github.io/blog/'
 canonifyURLs = false
 relativeURLs = true
 languageCode = 'en-us'
@@ -8,7 +8,7 @@ enableRobotsTXT = true
 publishDir = "docs"
 
 [server]
-baseURL = 'https://huydq96.github.io/'
+baseURL = 'https://huydq96.github.io/blog/'
 
 [pagination]
 pagerSize = 10
