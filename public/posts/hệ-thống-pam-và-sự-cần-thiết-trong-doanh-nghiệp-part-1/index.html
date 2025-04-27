@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Hệ thống PAM và sự cần thiết trong doanh nghiệp (Part 1) | Huy Dang Blog</title>
+<meta name="keywords" content="pam, devops">
+<meta name="description" content="Hệ thống PAM và sự cần thiết trong doanh nghiệp hiện đại (Part 1)">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="http://localhost:1313/posts/h%E1%BB%87-th%E1%BB%91ng-pam-v%C3%A0-s%E1%BB%B1-c%E1%BA%A7n-thi%E1%BA%BFt-trong-doanh-nghi%E1%BB%87p-part-1/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.f49d66caae9ea0fd43f21f29e71a8d3e284517ed770f2aa86fa012953ad3c9ef.css" integrity="sha256-9J1myq6eoP1D8h8p5xqNPihFF&#43;13Dyqob6ASlTrTye8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/h%E1%BB%87-th%E1%BB%91ng-pam-v%C3%A0-s%E1%BB%B1-c%E1%BA%A7n-thi%E1%BA%BFt-trong-doanh-nghi%E1%BB%87p-part-1/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="Blog">
+                    <span>Blog</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/categories/" title="Categories">
+                    <span>Categories</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="Tags">
+                    <span>Tags</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Hệ thống PAM và sự cần thiết trong doanh nghiệp (Part 1)
+    </h1>
+    <div class="post-description">
+      Hệ thống PAM và sự cần thiết trong doanh nghiệp hiện đại (Part 1)
+    </div>
+    <div class="post-meta"><span title='2025-04-15 14:41:44 +0700 +07'>April 15, 2025</span>&nbsp;·&nbsp;18 min&nbsp;·&nbsp;Huy Dang Quang
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#h%e1%bb%87-th%e1%bb%91ng-pam-v%c3%a0-s%e1%bb%b1-c%e1%ba%a7n-thi%e1%ba%bft-trong-doanh-nghi%e1%bb%87p-hi%e1%bb%87n-%c4%91%e1%ba%a1i" aria-label="Hệ thống PAM và sự cần thiết trong doanh nghiệp hiện đại">Hệ thống PAM và sự cần thiết trong doanh nghiệp hiện đại</a><ul>
+                        
+                <li>
+                    <a href="#1-pam-l%c3%a0-g%c3%ac-v%c3%a0-v%c3%ac-sao-n%c3%b3-quan-tr%e1%bb%8dng" aria-label="1. PAM là gì và vì sao nó quan trọng?">1. PAM là gì và vì sao nó quan trọng?</a></li>
+                <li>
+                    <a href="#2-ki%e1%ba%bfn-tr%c3%bac-h%e1%bb%87-th%e1%bb%91ng-pam--ho%e1%ba%a1t-%c4%91%e1%bb%99ng-ra-sao" aria-label="2. Kiến trúc hệ thống PAM – hoạt động ra sao?">2. Kiến trúc hệ thống PAM – hoạt động ra sao?</a></li>
+                <li>
+                    <a href="#3-t%e1%ba%a1i-sao-doanh-nghi%e1%bb%87p-c%e1%ba%a7n-pam" aria-label="3. Tại sao doanh nghiệp cần PAM?">3. Tại sao doanh nghiệp cần PAM?</a></li>
+                <li>
+                    <a href="#4-c%c3%a1c-gi%e1%ba%a3i-ph%c3%a1p-pam-tr%c3%aan-th%e1%bb%8b-tr%c6%b0%e1%bb%9dng" aria-label="4. Các giải pháp PAM trên thị trường">4. Các giải pháp PAM trên thị trường</a><ul>
+                        
+                <li>
+                    <a href="#41-gi%e1%ba%a3i-ph%c3%a1p-pam-c%e1%ba%a5p-doanh-nghi%e1%bb%87p-enterprise" aria-label="4.1 Giải pháp PAM cấp doanh nghiệp (Enterprise)">4.1 Giải pháp PAM cấp doanh nghiệp (Enterprise)</a></li>
+                <li>
+                    <a href="#42-gi%e1%ba%a3i-ph%c3%a1p-pam-m%c3%a3-ngu%e1%bb%93n-m%e1%bb%9f-v%c3%a0-mi%e1%bb%85n-ph%c3%ad" aria-label="4.2 Giải pháp PAM mã nguồn mở và miễn phí">4.2 Giải pháp PAM mã nguồn mở và miễn phí</a></li></ul>
+                </li>
+                <li>
+                    <a href="#5-best-practices-khi-tri%e1%bb%83n-khai-pam" aria-label="5. Best Practices khi triển khai PAM">5. Best Practices khi triển khai PAM</a></li>
+                <li>
+                    <a href="#6-t%c3%a0i-nguy%c3%aan-tham-kh%e1%ba%a3o" aria-label="6. Tài nguyên tham khảo">6. Tài nguyên tham khảo</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="hệ-thống-pam-và-sự-cần-thiết-trong-doanh-nghiệp-hiện-đại">Hệ thống PAM và sự cần thiết trong doanh nghiệp hiện đại<a hidden class="anchor" aria-hidden="true" href="#hệ-thống-pam-và-sự-cần-thiết-trong-doanh-nghiệp-hiện-đại">#</a></h1>
+<h2 id="1-pam-là-gì-và-vì-sao-nó-quan-trọng">1. PAM là gì và vì sao nó quan trọng?<a hidden class="anchor" aria-hidden="true" href="#1-pam-là-gì-và-vì-sao-nó-quan-trọng">#</a></h2>
+<p><strong>PAM (Privileged Access Management)</strong> – Quản lý truy cập đặc quyền – là tập hợp các giải pháp và quy trình nhằm kiểm soát các tài khoản có quyền hạn cao trong hệ thống CNTT. Nói cách khác, PAM giúp doanh nghiệp quản lý ai có <strong>quyền truy cập cao nhất</strong> (ví dụ: admin, root) và theo dõi họ làm gì khi sử dụng những quyền đó​. Mục tiêu là <strong>thu hẹp “bề mặt tấn công”</strong> của hệ thống bằng cách đảm bảo người dùng chỉ có quyền tối thiểu cần thiết, từ đó giảm thiểu rủi ro từ cả tấn công bên ngoài lẫn đe dọa nội bộ.</p>
+<p>Tại sao PAM lại quan trọng? Hãy hình dung tài khoản quản trị hệ thống như <em>“chìa khóa vạn năng”</em> mở cửa toàn bộ dữ liệu quan trọng của doanh nghiệp. Nếu những chìa khóa này rơi vào tay kẻ xấu, hậu quả sẽ rất nghiêm trọng – kẻ tấn công có thể đánh cắp dữ liệu, phá hoại hệ thống, cài malware hoặc tống tiền. Thống kê cho thấy <strong>có tới 80% vi phạm bảo mật liên quan đến việc lạm dụng tài khoản đặc quyền</strong>​, chứng tỏ rằng việc bảo vệ các tài khoản admin, root là vô cùng cấp thiết.</p>
+<p><img loading="lazy" src="../../images/pam-1.png"></p>
+<p><em>Một báo cáo của Forrester cho thấy ít nhất <strong>80%</strong> vi phạm dữ liệu có liên quan đến tài khoản đặc quyền​. Điều này nhấn mạnh tầm quan trọng của việc bảo vệ các tài khoản quản trị trong mọi tổ chức.</em></p>
+<p>Ngoài ra, theo các chuyên gia, PAM hiện được coi là <strong>một trong những biện pháp an ninh quan trọng nhất</strong> để giảm thiểu rủi ro và đáp ứng yêu cầu tuân thủ​. Nhiều vụ tấn công lớn xuất phát từ việc kẻ xấu lợi dụng mật khẩu admin yếu hoặc bị lộ. Thực tế, nếu mật khẩu <em>root</em> của quản trị viên bị rò rỉ, doanh nghiệp có thể trả giá bằng cả hệ thống của mình. Vì vậy, triển khai PAM giống như dựng thêm một <em>“lớp cửa an ninh”</em> bảo vệ những chìa khóa quan trọng nhất của hệ thống.</p>
+<h2 id="2-kiến-trúc-hệ-thống-pam--hoạt-động-ra-sao">2. Kiến trúc hệ thống PAM – hoạt động ra sao?<a hidden class="anchor" aria-hidden="true" href="#2-kiến-trúc-hệ-thống-pam--hoạt-động-ra-sao">#</a></h2>
+<p>Một hệ thống PAM hoàn chỉnh thường bao gồm các thành phần chính sau, phối hợp với nhau để kiểm soát truy cập đặc quyền:</p>
+<ul>
+<li>
+<p><strong>Vault (Két an toàn):</strong> Thành phần lưu trữ <strong>mật khẩu, khóa và tài khoản đặc quyền</strong> một cách tập trung và mã hóa. Vault đảm bảo chỉ những người/phần mềm được cấp phép mới có thể lấy mật khẩu khi cần, đồng thời hỗ trợ tự động <strong>đổi mật khẩu định kỳ</strong> để giảm nguy cơ lộ thông tin​.</p>
+</li>
+<li>
+<p><strong>Quản lý phiên (Session Management):</strong> Theo dõi và kiểm soát <strong>các phiên làm việc đặc quyền</strong>. Thành phần này có thể ghi lại thao tác trong phiên (quay video màn hình hoặc log các lệnh) và giám sát thời gian thực để phát hiện hành vi bất thường​. Nhờ đó, mọi hành động của admin đều để lại dấu vết để phục vụ audit sau này.</p>
+</li>
+<li>
+<p><strong>Cổng truy cập (Access Gateway):</strong> Đây là <strong>điểm truy cập duy nhất</strong> (thường là một máy chủ proxy hoặc jump server) mà qua đó người dùng đặc quyền phải đăng nhập để vào hệ thống đích. Cổng này đóng vai trò trung gian, sử dụng thông tin từ Vault để đăng nhập vào máy chủ đích, <strong>ẩn mật khẩu thực</strong> khỏi người dùng. Nó cũng có thể chặn/cho phép các lệnh dựa trên chính sách.</p>
+</li>
+<li>
+<p><strong>Luồng phê duyệt (Approval Workflow):</strong> Cơ chế yêu cầu <strong>phê duyệt truy cập</strong> đối với những hành động nhạy cảm. Ví dụ, nếu một kỹ sư muốn truy cập một server quan trọng ngoài giờ làm việc, hệ thống PAM có thể yêu cầu quản lý duyệt yêu cầu đó trước khi cấp quyền. Chỉ khi có sự chấp thuận cần thiết (qua email, portal, v.v.), Vault/Cổng truy cập mới mở quyền truy cập cho người dùng.</p>
+</li>
+<li>
+<p><strong>Giám sát &amp; Audit:</strong> Toàn bộ hoạt động của tài khoản đặc quyền được <strong>ghi log chi tiết</strong>: ai truy cập gì, lúc nào, thực hiện lệnh gì. Hệ thống PAM thường tích hợp sẵn báo cáo và cảnh báo, giúp dễ dàng audit định kỳ hoặc điều tra khi có sự cố. Dữ liệu audit này cũng hỗ trợ doanh nghiệp đáp ứng các tiêu chuẩn tuân thủ (compliance) về bảo mật.</p>
+</li>
+</ul>
+<p>Một sơ đồ kiến trúc PAM mẫu có thể hình dung như sau:</p>
+<p><img loading="lazy" src="https://www.securden.com/images/securden-pam-architecture.png"></p>
+<h2 id="3-tại-sao-doanh-nghiệp-cần-pam">3. Tại sao doanh nghiệp cần PAM?<a hidden class="anchor" aria-hidden="true" href="#3-tại-sao-doanh-nghiệp-cần-pam">#</a></h2>
+<p>Triển khai PAM mang lại nhiều lợi ích thiết thực cho doanh nghiệp, đặc biệt trong bối cảnh an ninh mạng phức tạp hiện nay:</p>
+<ul>
+<li>
+<p><strong>Bảo vệ tài khoản quan trọng (admin/root):</strong> PAM đảm bảo những tài khoản <em>“nhạy cảm”</em> nhất như root, admin, tài khoản dịch vụ được bảo vệ nhiều lớp. Mật khẩu admin có thể đặt rất phức tạp và lưu trong vault, chỉ check-out khi cần và tự động thay đổi sau mỗi lần sử dụng. Điều này ngăn chặn việc <strong>chia sẻ tràn lan mật khẩu quản trị</strong> hoặc để mật khẩu mặc định.</p>
+</li>
+<li>
+<p><strong>Theo dõi và audit mọi hành vi đặc quyền:</strong> Mọi thao tác thực hiện bởi tài khoản đặc quyền đều được ghi lại. Từ việc ai đăng nhập, đăng nhập lúc nào, tới các lệnh đã thực thi trên hệ thống – tất cả đều có log và/hoặc video. Điều này phục vụ việc audit nội bộ và đáp ứng điều tra khi có sự cố bảo mật. Nhân viên IT cũng ý thức hơn vì biết rằng <strong>họ đang bị giám sát</strong>, giảm thiểu nguy cơ lạm dụng.</p>
+</li>
+<li>
+<p><strong>Đáp ứng yêu cầu tuân thủ (compliance):</strong> Nhiều tiêu chuẩn như <strong>ISO 27001, NIST, PCI-DSS</strong>&hellip; đều yêu cầu kiểm soát chặt chẽ tài khoản quản trị. PAM giúp doanh nghiệp thực hiện các biện pháp như nguyên tắc <em>least privilege</em>, phân tách nhiệm vụ, quản lý mật khẩu&hellip; một cách hệ thống. Thậm chí, <strong>các hãng bảo hiểm an ninh mạng</strong> hiện nay còn yêu cầu doanh nghiệp phải có PAM thì mới cấp bảo hiểm. Triển khai PAM do đó không chỉ để bảo mật mà còn để <strong>tuân thủ quy định ngành</strong> và tránh chế tài.</p>
+</li>
+<li>
+<p><strong>Khắc phục tình trạng “quyền quá rộng” (over-permission):</strong> Nhiều tổ chức cấp quyền admin tràn lan cho nhân viên “cho tiện”, hoặc không thu hồi quyền khi nhân viên đổi vị trí. Hệ quả là người dùng có nhiều quyền hơn mức cần thiết, làm tăng rủi ro nếu tài khoản đó bị xâm nhập. PAM giúp thực thi nguyên tắc <strong>Least Privilege</strong> – chỉ cấp đúng quyền cần dùng – nhờ đó giảm đáng kể <strong>bề mặt tấn công</strong> của hệ thống. Nếu chẳng may một tài khoản user bị hack, thiệt hại cũng sẽ được giới hạn vì tài khoản đó không có quyền admin.</p>
+</li>
+</ul>
+<p><img loading="lazy" src="../../images/pam-2.png"></p>
+<p><em>Biểu đồ minh họa: Thực thi nguyên tắc <strong>Least Privilege</strong> (ít quyền) giúp giảm thiểu rủi ro bảo mật so với tình trạng <strong>Over-Permission</strong> (cấp quá nhiều quyền). Khi người dùng có quyền hạn càng nhiều, <strong>mức độ rủi ro</strong> tiềm ẩn cho hệ thống càng cao. Ngược lại, giới hạn quyền ở mức tối thiểu giúp thu hẹp cửa tấn công của hacker.</em></p>
+<ul>
+<li><strong>Chức năng ghi và <strong>replay</strong> phiên làm việc:</strong> Đây là tính năng nổi bật của nhiều giải pháp PAM. Mỗi phiên SSH, RDP của admin đều có thể được quay phim hoặc ghi lại từng lệnh. Nếu xảy ra sự cố (ví dụ xóa nhầm dữ liệu), quản lý có thể <strong>phát lại phiên</strong> để xem chuyện gì đã diễn ra. Điều này không chỉ hữu ích cho bảo mật mà còn cho mục đích huấn luyện (rút kinh nghiệm) và pháp lý (bằng chứng khi cần).</li>
+</ul>
+<p>Tóm lại, PAM đem đến <strong>sự kiểm soát</strong> mà trước đây doanh nghiệp không có đối với tài khoản đặc quyền. Thay vì tin tưởng mù quáng rằng admin sẽ không mắc lỗi hay bị hack, giờ đây hệ thống có cơ chế giám sát và hạn chế để giảm thiểu tối đa thiệt hại nếu rủi ro xảy ra.</p>
+<h2 id="4-các-giải-pháp-pam-trên-thị-trường">4. Các giải pháp PAM trên thị trường<a hidden class="anchor" aria-hidden="true" href="#4-các-giải-pháp-pam-trên-thị-trường">#</a></h2>
+<p>Hiện nay có nhiều giải pháp PAM từ các nhà cung cấp lớn đến các công cụ nguồn mở. Mỗi loại đều có ưu nhược điểm riêng, phù hợp với nhu cầu và ngân sách khác nhau của doanh nghiệp. Dưới đây là tổng quan về một số lựa chọn phổ biến:</p>
+<h3 id="41-giải-pháp-pam-cấp-doanh-nghiệp-enterprise">4.1 Giải pháp PAM cấp doanh nghiệp (Enterprise)<a hidden class="anchor" aria-hidden="true" href="#41-giải-pháp-pam-cấp-doanh-nghiệp-enterprise">#</a></h3>
+<p>Những giải pháp này thường do các hãng bảo mật lớn cung cấp, tích hợp đầy đủ tính năng và hỗ trợ dành cho tổ chức quy mô lớn:</p>
+<ul>
+<li>
+<p><strong>CyberArk:</strong> Được xem như “ông lớn” dẫn đầu thị trường PAM. CyberArk có tính năng toàn diện, bao quát từ quản lý mật khẩu, quản lý phiên, tới phân tích rủi ro. Ưu điểm là <strong>bảo mật rất cao, tính năng phong phú và đã được kiểm chứng</strong> bởi nhiều doanh nghiệp lớn​. Tuy nhiên, nhược điểm là <strong>chi phí đầu tư cao</strong> và <strong>triển khai phức tạp</strong>, đòi hỏi đội ngũ vận hành có kỹ năng chuyên sâu.</p>
+</li>
+<li>
+<p><strong>BeyondTrust:</strong> Giải pháp PAM của BeyondTrust (trước đây gồm các sản phẩm như PowerBroker, Avecto…) nổi bật với <strong>giao diện thân thiện và tính năng phân tích mối đe dọa</strong>. BeyondTrust cung cấp các module từ quản lý mật khẩu, quản lý phiên đến quản lý đặc quyền trên endpoint. Ưu điểm: <strong>dễ sử dụng, khả năng mở rộng tốt và tích hợp được nhiều môi trường</strong>. Nhược điểm: giá thành vẫn cao và một số tính năng phân tích nâng cao có thể chưa bằng giải pháp khác.</p>
+</li>
+<li>
+<p><strong>Thycotic/Delinea:</strong> Thycotic (sát nhập với Centrify và đổi tên thành Delinea) tập trung vào sự <strong>đơn giản và linh hoạt</strong>. Sản phẩm <strong>Secret Server</strong> của họ nổi tiếng dễ triển khai, giao diện web trực quan. Ưu điểm: <strong>dễ sử dụng, tích hợp tốt với AD và các hệ thống sẵn có, tính năng linh hoạt</strong> Nhược điểm: khả năng báo cáo và giao diện quản trị có thể chưa sâu như CyberArk; ngoài ra sau sáp nhập, chiến lược sản phẩm có chút thay đổi cần thời gian hoàn thiện.</p>
+</li>
+<li>
+<p><strong>One Identity (Quest):</strong> Giải pháp One Identity Safeguard cung cấp bộ tính năng PAM kết hợp với quản lý danh tính. Ưu điểm: <strong>kiểm soát truy cập dựa trên vai trò (RBAC) chặt chẽ và tùy biến cao</strong>, phù hợp cho tổ chức lớn có yêu cầu phức tạp​. Nhược điểm: việc triển khai và vận hành One Identity <strong>đòi hỏi tài nguyên đáng kể</strong>, cần máy chủ Windows và chuyên gia có kinh nghiệm; chi phí bản quyền và dịch vụ cũng không nhỏ.</p>
+</li>
+</ul>
+<h3 id="42-giải-pháp-pam-mã-nguồn-mở-và-miễn-phí">4.2 Giải pháp PAM mã nguồn mở và miễn phí<a hidden class="anchor" aria-hidden="true" href="#42-giải-pháp-pam-mã-nguồn-mở-và-miễn-phí">#</a></h3>
+<p>Bên cạnh các giải pháp thương mại, nhiều doanh nghiệp (đặc biệt là doanh nghiệp vừa và nhỏ, đội ngũ DevOps) quan tâm đến các công cụ <strong>nguồn mở</strong> hoặc <strong>freemium</strong> để triển khai PAM với chi phí tiết kiệm. Một số cái tên tiêu biểu:</p>
+<ul>
+<li>
+<p><strong>HashiCorp Vault:</strong> Vault là một công cụ nguồn mở nổi tiếng để quản lý bí mật (secrets). Về PAM, Vault đóng vai trò như một <strong>vault lưu trữ mật khẩu, khóa API</strong>&hellip; đồng thời cung cấp cơ chế <strong>tạo thông tin đăng nhập tạm thời</strong>. Ưu điểm: <strong>miễn phí (bản Community), bảo mật cao, cộng đồng lớn</strong>, có thể tạo ra mật khẩu, token, chứng chỉ SSH <strong>dùng một lần</strong> rồi tự thu hồi – rất hữu ích cho mô hình Just-In-Time. Nhược điểm: Vault <strong>không tích hợp sẵn quản lý phiên</strong> hay giao diện cho người dùng cuối; cần kết hợp thêm công cụ khác (ví dụ Boundary) để có đầy đủ tính năng PAM.</p>
+</li>
+<li>
+<p><strong>HashiCorp Boundary:</strong> Boundary là dự án mã nguồn mở mới (ra mắt 2020) của HashiCorp nhằm cung cấp giải pháp <strong>truy cập từ xa Zero Trust</strong> thay thế VPN và jump host. Boundary hoạt động như một <strong>proxy</strong> cho phép người dùng kết nối đến máy chủ nội bộ một cách an toàn mà không lộ mạng bên trong. Ưu điểm: <strong>hiện đại, triển khai khá dễ</strong>, tích hợp tốt với Vault để tự động lấy thông tin đăng nhập khi mở phiên. Nhược điểm: Vì còn mới, <strong>tính năng chưa đầy đủ</strong> – chẳng hạn <strong>ghi lại phiên</strong> chỉ vừa được phát triển; ngoài ra cần thời gian làm quen do kiến trúc khác biệt so với PAM truyền thống.</p>
+</li>
+<li>
+<p><strong>StrongDM:</strong> StrongDM là giải pháp thương mại nhưng hay được so sánh như một hướng tiếp cận PAM hiện đại (<em>Infrastructure Access Platform</em>). Công cụ này không mã nguồn mở, nhưng <strong>triển khai rất nhanh</strong> dưới dạng dịch vụ cloud, cho phép quản lý tập trung quyền truy cập <strong>cơ sở dữ liệu, server, Kubernetes</strong> v.v. Ưu điểm: <strong>dễ dùng, giao diện đẹp, hợp nhất nhiều loại tài nguyên</strong>; phù hợp cho đội DevOps nhỏ muốn có giải pháp “all-in-one” không phải tự lắp ghép. Nhược điểm: do không phải open-source nên <strong>tốn phí bản quyền theo người dùng</strong>, và việc tin tưởng một dịch vụ bên thứ ba quản lý truy cập có thể là điểm cân nhắc về bảo mật.</p>
+</li>
+<li>
+<p><strong>Mamori (M4PAM):</strong> Mamori.io cung cấp giải pháp PAM miễn phí (bản Self-hosted) hướng tới <strong>quản lý truy cập cấp ứng dụng và cơ sở dữ liệu</strong>. Mamori triển khai on-premise trên Linux (có sẵn dạng Docker container) nên khá dễ cài đặt. Ưu điểm: <strong>miễn phí, giải pháp tất-cả-trong-một</strong> (bao gồm quản lý tài khoản, tích hợp LDAP, MFA, ghi phiên, quản lý truy cập database ở cấp trường dữ liệu). Đặc biệt, Mamori <strong>không lưu mật khẩu</strong> mà xác thực người dùng dựa trên danh tính có sẵn (SSO) kết hợp 2FA​. Nhược điểm: công ty mới nên <strong>ít người biết</strong>, cộng đồng nhỏ; tài liệu còn hạn chế và một số tính năng chuyên sâu có thể không đầy đủ như các giải pháp lâu năm.</p>
+</li>
+<li>
+<p><strong>JumpServer:</strong> Đây là một dự án <strong>mã nguồn mở hoàn toàn</strong> về PAM (gốc từ Trung Quốc, giao diện tiếng Anh/Trung). JumpServer cung cấp một cổng jump host để quản lý phiên SSH, RDP của người dùng, kèm theo quản lý tài khoản và vault cơ bản. Ưu điểm: <strong>miễn phí 100%, cộng đồng phát triển tích cực</strong>, đáp ứng được các nhu cầu PAM căn bản (quản lý tài khoản, phân quyền, ghi phiên). Nhược điểm: tài liệu và giao diện của JumpServer <strong>chưa thân thiện</strong> như sản phẩm thương mại; hỗ trợ tiếng Anh có nhưng không nhiều, và tính năng nâng cao còn hạn chế.</p>
+</li>
+</ul>
+<p>Để giúp so sánh trực quan, bảng dưới đây tóm tắt một số ưu nhược điểm của các giải pháp PAM đã đề cập:</p>
+<table>
+<thead>
+<tr>
+<th>Giải pháp</th>
+<th style="text-align:center">Loại hình</th>
+<th>Ưu điểm chính</th>
+<th style="text-align:center">Nhược điểm chính</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CyberArk</strong></td>
+<td style="text-align:center">Enterprise</td>
+<td>Tính năng toàn diện, bảo mật cao, phù hợp tổ chức lớn</td>
+<td style="text-align:center">Chi phí cao, triển khai phức tạp, cần chuyên gia vận hành</td>
+</tr>
+<tr>
+<td><strong>BeyondTrust</strong></td>
+<td style="text-align:center">Enterprise</td>
+<td>Giao diện thân thiện, quản lý phiên mạnh, tích hợp môi trường đa dạng</td>
+<td style="text-align:center">Giá thành cao, một số phân tích nâng cao chưa bằng đối thủ</td>
+</tr>
+<tr>
+<td><strong>Delinea (Thycotic)</strong></td>
+<td style="text-align:center">Enterprise</td>
+<td>Dễ sử dụng, linh hoạt, tích hợp tốt hệ thống sẵn có</td>
+<td style="text-align:center">Khả năng báo cáo hạn chế, cần cải thiện hỗ trợ khách hàng</td>
+</tr>
+<tr>
+<td><strong>One Identity</strong></td>
+<td style="text-align:center">Enterprise</td>
+<td>Kiểm soát truy cập theo vai trò chặt chẽ, tùy biến cao</td>
+<td style="text-align:center">Đòi hỏi tài nguyên lớn, cấu hình và duy trì phức tạp</td>
+</tr>
+<tr>
+<td><strong>HashiCorp Vault</strong></td>
+<td style="text-align:center">Open Source</td>
+<td>Miễn phí, quản lý bí mật xuất sắc, cộng đồng lớn</td>
+<td style="text-align:center">Không có chức năng ghi phiên tích hợp, phải dùng kèm công cụ khác</td>
+</tr>
+<tr>
+<td><strong>HashiCorp Boundary</strong></td>
+<td style="text-align:center">Enterprise</td>
+<td>Mô hình Zero Trust hiện đại, dễ triển khai</td>
+<td style="text-align:center">Còn mới, tính năng chưa đầy đủ (ví dụ: ghi phiên đang phát triển)</td>
+</tr>
+<tr>
+<td><strong>StrongDM</strong></td>
+<td style="text-align:center">SaaS (Cloud)</td>
+<td>Triển khai nhanh, giao diện đơn giản, hợp nhất truy cập DB &amp; server</td>
+<td style="text-align:center">Thương mại (không mở mã nguồn), tốn phí theo số người dùng</td>
+</tr>
+<tr>
+<td><strong>Mamori</strong></td>
+<td style="text-align:center">Freemium</td>
+<td>Miễn phí self-hosted, all-in-one (kết hợp 2FA, SSO, ghi phiên, quản lý DB)</td>
+<td style="text-align:center">Công ty mới, ít phổ biến, cộng đồng nhỏ, tính năng hạn chế</td>
+</tr>
+<tr>
+<td><strong>JumpServer</strong></td>
+<td style="text-align:center">Open Source</td>
+<td>Mã nguồn mở hoàn toàn, tính năng PAM cơ bản, cộng đồng Trung Quốc phát triển</td>
+<td style="text-align:center">Tài liệu chủ yếu tiếng Trung, UI chưa bóng bẩy, thiếu tính năng nâng cao</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-best-practices-khi-triển-khai-pam">5. Best Practices khi triển khai PAM<a hidden class="anchor" aria-hidden="true" href="#5-best-practices-khi-triển-khai-pam">#</a></h2>
+<p>Để việc triển khai và vận hành PAM hiệu quả, doanh nghiệp nên tuân theo một số <strong>best practices (thực tiễn tốt nhất)</strong> sau:</p>
+<ul>
+<li>
+<p><strong>Bắt buộc sử dụng MFA cho tài khoản đặc quyền:</strong> Mật khẩu thôi là chưa đủ an toàn cho admin. Luôn kích hoạt <strong>xác thực đa yếu tố</strong> (ví dụ: OTP, token, vân tay) khi đăng nhập vào hệ thống PAM cũng như khi đăng nhập vào các máy chủ quan trọng​. Điều này đảm bảo rằng dù mật khẩu có bị lộ, hacker cũng khó có thể đăng nhập được nếu không có yếu tố thứ hai.</p>
+</li>
+<li>
+<p><strong>Ưu tiên dùng chứng chỉ/khóa thay vì mật khẩu:</strong> Sử dụng cặp <strong>SSH key, chứng chỉ số</strong> hoặc các hình thức credential tạm thời thay vì mật khẩu tĩnh cho tài khoản đặc quyền. Ví dụ: dùng SSH certificate với hạn 5 phút cho mỗi phiên kết nối (như ví dụ Vault ở trên) hoặc khóa SSH riêng cho từng người dùng quản trị. Mật khẩu tĩnh nếu phải dùng thì nên đặt phức tạp và xoay vòng thường xuyên.</p>
+</li>
+<li>
+<p><strong>Cấp quyền hạn chế theo nguyên tắc Just-In-Time:</strong> Không duy trì quyền admin thường trực cho người dùng nếu không cần. Thay vào đó, áp dụng mô hình <strong>Just-In-Time (JIT)</strong> – chỉ cấp quyền admin hoặc truy cập đặc biệt <em>khi có yêu cầu và được phê duyệt</em>, trong khoảng thời gian giới hạn​[. Sau khi hết thời gian hoặc xong công việc, quyền sẽ được thu hồi. Cách làm này đảm bảo giảm thiểu “đặc quyền dư thừa” và nguy cơ lạm dụng.</p>
+</li>
+<li>
+<p><strong>Ghi và giám sát tất cả phiên đặc quyền:</strong> Đảm bảo hệ thống PAM của bạn <strong>kích hoạt tính năng session recording</strong> cho các kết nối RDP/SSH và log đầy đủ câu lệnh thực thi. Bố trí <strong>giám sát thời gian thực</strong> (hoặc định kỳ xem log) để kịp thời phát hiện hành vi đáng ngờ – ví dụ: ai đó chạy lệnh xóa nhiều dữ liệu hoặc tải về nhiều file nhạy cảm. Việc giám sát chặt sẽ tạo tính răn đe và nhanh chóng phát hiện sự cố trước khi quá muộn.</p>
+</li>
+<li>
+<p><strong>Không dùng chung hoặc lạm dụng tài khoản root:</strong> Tuyệt đối <strong>tránh chia sẻ</strong> một tài khoản root/admin cho nhiều người. Thay vào đó, cấp cho mỗi quản trị viên một tài khoản riêng (được quản lý qua PAM) để đảm bảo <strong>tính phân trách nhiệm</strong> và dễ audit. Tài khoản root nên được vault quản lý và chỉ check-out khi thật cần thiết. Ngoài ra, hạn chế đăng nhập thẳng bằng root; thay vào đó, dùng cơ chế <em>sudo</em> để nâng quyền khi cần (vẫn cho phép log lại lệnh).</p>
+</li>
+</ul>
+<p>Ngoài ra, một số best practices khác như <strong>thường xuyên review lại quyền hạn</strong> của tài khoản (đảm bảo nhân viên nghỉ việc hoặc đổi vai trò sẽ bị thu hồi quyền kịp thời), cập nhật bản vá cho hệ thống PAM và hệ thống liên quan, đào tạo nhân viên về nhận thức bảo mật&hellip; cũng rất quan trọng để xây dựng một môi trường an toàn xung quanh PAM. Mục tiêu cuối cùng là tạo ra một kiến trúc <strong>Zero Trust</strong> cho truy cập đặc quyền: luôn giả định rủi ro và chỉ trao quyền tối thiểu, giám sát tối đa.</p>
+<h2 id="6-tài-nguyên-tham-khảo">6. Tài nguyên tham khảo<a hidden class="anchor" aria-hidden="true" href="#6-tài-nguyên-tham-khảo">#</a></h2>
+<ul>
+<li>
+<p><strong>NIST SP 1800-18 (Draft)</strong> – <em>Privileged Account Management for the Financial Services Sector:</em> Hướng dẫn thực tiễn về PAM từ Viện Tiêu chuẩn và Công nghệ Mỹ (NIST)​<a href="https://www.nccoe.nist.gov/financial-services/privileged-account-management#:~:text=Privileged%20accounts%20provide%20elevated%2C%20often,policies%20for%20privileged%20account%20use">nccoe.nist.gov</a>​<a href="https://www.nccoe.nist.gov/financial-services/privileged-account-management#:~:text=Project%20Abstract">nccoe.nist.gov</a>. (Tài liệu giải thích kiến trúc PAM mẫu và cách triển khai các thành phần vault, audit, v.v.)</p>
+</li>
+<li>
+<p><strong>CIS Critical Security Control #6 – Access Control Management:</strong> Bộ kiểm soát an ninh số 6 của CIS nhấn mạnh việc quản lý tài khoản và quyền hạn, bao gồm tài khoản quản trị​<a href="https://www.cisecurity.org/controls/access-control-management#:~:text=Use%20processes%20and%20tools%20to,for%20enterprise%20assets%20and%20software">cisecurity.org</a>. (Tham khảo để đảm bảo giải pháp PAM phù hợp với các kiểm soát an ninh khuyến nghị)</p>
+</li>
+<li>
+<p><strong>CyberArk PAM</strong> – Trang chủ: <a href="https://www.cyberark.com">https://www.cyberark.com</a> (Giải pháp PAM hàng đầu thị trường với nhiều tài nguyên, whitepaper về PAM)</p>
+</li>
+<li>
+<p><strong>BeyondTrust Privileged Access Management:</strong> <a href="https://www.beyondtrust.com">https://www.beyondtrust.com</a> (Thông tin về các sản phẩm PAM của BeyondTrust, bao gồm Password Safe, Privileged Remote Access&hellip;)</p>
+</li>
+<li>
+<p><strong>Delinea (Thycotic) Secret Server:</strong> <a href="https://delinea.com">https://delinea.com</a> (Giải pháp quản lý tài khoản đặc quyền và mật khẩu doanh nghiệp)</p>
+</li>
+<li>
+<p><strong>One Identity Safeguard:</strong> <a href="https://www.oneidentity.com/products/privileged-access-management/">https://www.oneidentity.com/products/privileged-access-management/</a> (Nền tảng PAM kết hợp quản lý danh tính của One Identity)</p>
+</li>
+<li>
+<p><strong>HashiCorp Vault:</strong> <a href="https://www.vaultproject.io">https://www.vaultproject.io</a> (Tài liệu và hướng dẫn về Vault – công cụ quản lý bí mật, thường dùng trong DevOps và có thể mở rộng cho PAM)</p>
+</li>
+<li>
+<p><strong>HashiCorp Boundary:</strong> <a href="https://www.boundaryproject.io">https://www.boundaryproject.io</a> (Thông tin về Boundary – giải pháp proxy zero trust nguồn mở)</p>
+</li>
+<li>
+<p><strong>Mamori.io PAM:</strong> <a href="https://www.mamori.io">https://www.mamori.io</a> (Trang chủ Mamori, bao gồm documentation cài đặt và các video hướng dẫn tích hợp PAM với DB)</p>
+</li>
+<li>
+<p><strong>StrongDM Platform:</strong> <a href="https://www.strongdm.com">https://www.strongdm.com</a> (Tìm hiểu giải pháp quản lý hạ tầng thay thế PAM truyền thống, tài nguyên blog về PAM hiện đại)</p>
+</li>
+<li>
+<p><strong>JumpServer Project:</strong> <a href="https://github.com/jumpserver/jumpserver">https://github.com/jumpserver/jumpserver</a> (Repo GitHub của dự án JumpServer – PAM nguồn mở, kèm hướng dẫn cài đặt)</p>
+</li>
+</ul>
+<p><em>(Ngoài ra, nhiều whitepaper từ Gartner, Forrester về PAM, cũng như các tiêu chuẩn như ISO/IEC 27002:2022 mục liên quan đến quản lý truy cập đặc quyền, có thể được tham khảo để hiểu rõ hơn yêu cầu và xu hướng PAM.)</em></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/pam/">Pam</a></li>
+      <li><a href="http://localhost:1313/tags/devops/">Devops</a></li>
+    </ul>
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Hệ thống PAM và sự cần thiết trong doanh nghiệp (Part 1) on x"
+            href="https://x.com/intent/tweet/?text=H%e1%bb%87%20th%e1%bb%91ng%20PAM%20v%c3%a0%20s%e1%bb%b1%20c%e1%ba%a7n%20thi%e1%ba%bft%20trong%20doanh%20nghi%e1%bb%87p%20%28Part%201%29&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fh%25E1%25BB%2587-th%25E1%25BB%2591ng-pam-v%25C3%25A0-s%25E1%25BB%25B1-c%25E1%25BA%25A7n-thi%25E1%25BA%25BFt-trong-doanh-nghi%25E1%25BB%2587p-part-1%2f&amp;hashtags=pam%2cdevops">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Hệ thống PAM và sự cần thiết trong doanh nghiệp (Part 1) on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fh%25E1%25BB%2587-th%25E1%25BB%2591ng-pam-v%25C3%25A0-s%25E1%25BB%25B1-c%25E1%25BA%25A7n-thi%25E1%25BA%25BFt-trong-doanh-nghi%25E1%25BB%2587p-part-1%2f&amp;title=H%e1%bb%87%20th%e1%bb%91ng%20PAM%20v%c3%a0%20s%e1%bb%b1%20c%e1%ba%a7n%20thi%e1%ba%bft%20trong%20doanh%20nghi%e1%bb%87p%20%28Part%201%29&amp;summary=H%e1%bb%87%20th%e1%bb%91ng%20PAM%20v%c3%a0%20s%e1%bb%b1%20c%e1%ba%a7n%20thi%e1%ba%bft%20trong%20doanh%20nghi%e1%bb%87p%20%28Part%201%29&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2fh%25E1%25BB%2587-th%25E1%25BB%2591ng-pam-v%25C3%25A0-s%25E1%25BB%25B1-c%25E1%25BA%25A7n-thi%25E1%25BA%25BFt-trong-doanh-nghi%25E1%25BB%2587p-part-1%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Hệ thống PAM và sự cần thiết trong doanh nghiệp (Part 1) on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2fh%25E1%25BB%2587-th%25E1%25BB%2591ng-pam-v%25C3%25A0-s%25E1%25BB%25B1-c%25E1%25BA%25A7n-thi%25E1%25BA%25BFt-trong-doanh-nghi%25E1%25BB%2587p-part-1%2f&title=H%e1%bb%87%20th%e1%bb%91ng%20PAM%20v%c3%a0%20s%e1%bb%b1%20c%e1%ba%a7n%20thi%e1%ba%bft%20trong%20doanh%20nghi%e1%bb%87p%20%28Part%201%29">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Hệ thống PAM và sự cần thiết trong doanh nghiệp (Part 1) on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2fh%25E1%25BB%2587-th%25E1%25BB%2591ng-pam-v%25C3%25A0-s%25E1%25BB%25B1-c%25E1%25BA%25A7n-thi%25E1%25BA%25BFt-trong-doanh-nghi%25E1%25BB%2587p-part-1%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Hệ thống PAM và sự cần thiết trong doanh nghiệp (Part 1) on whatsapp"
+            href="https://api.whatsapp.com/send?text=H%e1%bb%87%20th%e1%bb%91ng%20PAM%20v%c3%a0%20s%e1%bb%b1%20c%e1%ba%a7n%20thi%e1%ba%bft%20trong%20doanh%20nghi%e1%bb%87p%20%28Part%201%29%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2fh%25E1%25BB%2587-th%25E1%25BB%2591ng-pam-v%25C3%25A0-s%25E1%25BB%25B1-c%25E1%25BA%25A7n-thi%25E1%25BA%25BFt-trong-doanh-nghi%25E1%25BB%2587p-part-1%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Hệ thống PAM và sự cần thiết trong doanh nghiệp (Part 1) on telegram"
+            href="https://telegram.me/share/url?text=H%e1%bb%87%20th%e1%bb%91ng%20PAM%20v%c3%a0%20s%e1%bb%b1%20c%e1%ba%a7n%20thi%e1%ba%bft%20trong%20doanh%20nghi%e1%bb%87p%20%28Part%201%29&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fh%25E1%25BB%2587-th%25E1%25BB%2591ng-pam-v%25C3%25A0-s%25E1%25BB%25B1-c%25E1%25BA%25A7n-thi%25E1%25BA%25BFt-trong-doanh-nghi%25E1%25BB%2587p-part-1%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Hệ thống PAM và sự cần thiết trong doanh nghiệp (Part 1) on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=H%e1%bb%87%20th%e1%bb%91ng%20PAM%20v%c3%a0%20s%e1%bb%b1%20c%e1%ba%a7n%20thi%e1%ba%bft%20trong%20doanh%20nghi%e1%bb%87p%20%28Part%201%29&u=http%3a%2f%2flocalhost%3a1313%2fposts%2fh%25E1%25BB%2587-th%25E1%25BB%2591ng-pam-v%25C3%25A0-s%25E1%25BB%25B1-c%25E1%25BA%25A7n-thi%25E1%25BA%25BFt-trong-doanh-nghi%25E1%25BB%2587p-part-1%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="http://localhost:1313/">Huy Dang Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,76 @@
+baseURL = 'https://huydq96.github.io/blog/'
+canonifyURLs = false
+relativeURLs = true
+languageCode = 'en-us'
+title = 'Huy Dang Blog'
+theme = 'default'
+enableRobotsTXT = true
+
+[server]
+baseURL = 'https://huydq96.github.io/blog/'
+
+[pagination]
+pagerSize = 10
+
+[params]
+description = 'Where I save and share anything I like about tech.'
+author = 'huydq96'
+defaultTheme = 'light'
+ShowShareButtons = true
+ShowReadingTime = true
+ShowToc = true
+ShowComments = false
+comments = false  # Enable comments in Hugo
+
+[params.remark42]
+host = "https://huydq96.github.io/blog/comments"
+site_id = "localhost-site"
+theme = "light"
+locale = "en"
+
+[menu]
+[[menu.main]]
+identifier = 'blog'
+name = 'Blog'
+url = '/posts/'
+weight = 10
+[[menu.main]]
+identifier = 'categories'
+name = 'Categories'
+url = '/categories/'
+weight = 20
+[[menu.main]]
+identifier = 'tags'
+name = 'Tags'
+url = '/tags/'
+weight = 30
+
+[permalinks]
+posts = '/posts/:slug/'
+
+[build]
+noJSConfigInAssets = true
+useResourceCacheWhen = 'fallback'
+[build.buildStats]
+disableClasses = false
+disableIDs = false
+disableTags = false
+enable = false
+[[build.cacheBusters]]
+source = '(postcss|tailwind)\.config\.js'
+target = '(css|styles|scss|sass)'
+[build.minify]
+disableHTML = false
+publishDir = "docs"
+
+[outputs]
+home = ['html']
+page = ['html']
+section = ['html']
+taxonomy = ['html']
+term = ['html']
+
+[taxonomies]
+category = 'categories'
+series = 'series'
+tag = 'tags'

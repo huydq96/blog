@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://huydq96.github.io/blog/sitemap.xml
