@@ -1,4 +1,4 @@
-baseURL = 'https://huydq96.github.io/blog/'
+baseURL = 'https://huydq96.github.io/'
 canonifyURLs = false
 relativeURLs = true
 languageCode = 'en-us'
