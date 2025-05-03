@@ -42,6 +42,8 @@ weight = 30
 
 [permalinks]
 posts = '/blog/posts/:slug/'
+categories = '/blog/categories/:slug/'
+tags = '/blog/tags/:slug/'
 
 [build]
 noJSConfigInAssets = true
