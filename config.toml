@@ -1,4 +1,4 @@
-baseURL = 'https://huydq96.github.io/'
+baseURL = 'https://huydq96.github.io/blog/'
 canonifyURLs = false
 relativeURLs = true
 languageCode = 'en-us'
@@ -27,21 +27,21 @@ comments = false  # Enable comments in Hugo
 [[menu.main]]
 identifier = 'blog'
 name = 'Blog'
-url = '/posts/'
+url = '/blog/posts/'
 weight = 10
 [[menu.main]]
 identifier = 'categories'
 name = 'Categories'
-url = '/categories/'
+url = '/blog/categories/'
 weight = 20
 [[menu.main]]
 identifier = 'tags'
 name = 'Tags'
-url = '/tags/'
+url = '/blog/tags/'
 weight = 30
 
 [permalinks]
-posts = '/posts/:slug/'
+posts = '/blog/posts/:slug/'
 
 [build]
 noJSConfigInAssets = true
