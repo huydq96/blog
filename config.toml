@@ -27,21 +27,21 @@ comments = false  # Enable comments in Hugo
 [[menu.main]]
 identifier = 'blog'
 name = 'Blog'
-url = '/blog/posts/'
+url = '/posts/'
 weight = 10
 [[menu.main]]
 identifier = 'categories'
 name = 'Categories'
-url = '/blog/categories/'
+url = '/categories/'
 weight = 20
 [[menu.main]]
 identifier = 'tags'
 name = 'Tags'
-url = '/blog/tags/'
+url = '/tags/'
 weight = 30
 
 [permalinks]
-posts = '/blog/posts/:slug/'
+posts = '/posts/:slug/'
 
 [build]
 noJSConfigInAssets = true
