@@ -1,4 +1,4 @@
-baseURL = 'https://huydq96.github.io/'
+baseURL = 'https://blog.huydang.dev/'
 canonifyURLs = false
 relativeURLs = true
 languageCode = 'en-us'
@@ -8,7 +8,7 @@ enableRobotsTXT = true
 publishDir = "docs"
 
 [server]
-baseURL = 'https://huydq96.github.io/'
+baseURL = 'https://blog.huydang.dev/'
 
 [pagination]
 pagerSize = 10
@@ -27,23 +27,23 @@ comments = false  # Enable comments in Hugo
 [[menu.main]]
 identifier = 'blog'
 name = 'Blog'
-url = '/blog/posts/'
+url = '/posts/'
 weight = 10
 [[menu.main]]
 identifier = 'categories'
 name = 'Categories'
-url = '/blog/categories/'
+url = '/categories/'
 weight = 20
 [[menu.main]]
 identifier = 'tags'
 name = 'Tags'
-url = '/blog/tags/'
+url = '/tags/'
 weight = 30
 
 [permalinks]
-posts = '/blog/posts/:slug/'
-categories = '/blog/categories/:slug/'
-tags = '/blog/tags/:slug/'
+posts = '/posts/:slug/'
+categories = '/categories/:slug/'
+tags = '/tags/:slug/'
 
 [build]
 noJSConfigInAssets = true
