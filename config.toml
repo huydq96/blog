@@ -3,7 +3,7 @@ canonifyURLs = false
 relativeURLs = true
 languageCode = 'en-us'
 title = 'Huy Dang Blog'
-theme = 'default'
+theme = 'hugo-PaperModX'
 enableRobotsTXT = true
 publishDir = "docs"
 
@@ -18,8 +18,11 @@ description = 'Where I save and share anything I like about tech.'
 author = 'huydq96'
 defaultTheme = 'light'
 ShowShareButtons = true
+ShowCodeCopyButtons = true
 ShowReadingTime = true
 ShowToc = true
+TocSide = 'right'
+TocOpen = true
 ShowComments = false
 comments = false  # Enable comments in Hugo
 
@@ -94,3 +97,17 @@ term = ['html']
 category = 'categories'
 series = 'series'
 tag = 'tags'
+
+
+[markup.goldmark.renderer]
+unsafe = true
+
+[markup.highlight]
+style = "dracula"
+lineNos = true
+lineNumbersInTable = true
+noClasses = false
+hl_Lines = ""
+lineNoStart = 1
+tabWidth = 4
+guessSyntax = true

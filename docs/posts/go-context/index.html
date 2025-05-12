@@ -10,40 +10,20 @@
 <meta name="description" content="Context Package trong Go: ngữ nghĩa và cách sử dụng">
 <meta name="author" content="Huy Dang Quang">
 <link rel="canonical" href="https://blog.huydang.dev/posts/go-context/">
-<link crossorigin="anonymous" href="../../assets/css/stylesheet.f49d66caae9ea0fd43f21f29e71a8d3e284517ed770f2aa86fa012953ad3c9ef.css" integrity="sha256-9J1myq6eoP1D8h8p5xqNPihFF&#43;13Dyqob6ASlTrTye8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://blog.huydang.dev/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="https://blog.huydang.dev/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://blog.huydang.dev/favicon-32x32.png">
 <link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
-<link rel="mask-icon" href="https://blog.huydang.dev/safari-pinned-tab.svg">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
 <link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/go-context/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
 
-    </style>
-</noscript>
-  
-
-<meta property="og:url" content="https://blog.huydang.dev/posts/go-context/">
-  <meta property="og:site_name" content="Huy Dang Blog">
-  <meta property="og:title" content="Go Context">
-  <meta property="og:description" content="Context Package trong Go: ngữ nghĩa và cách sử dụng">
-  <meta property="og:locale" content="en-us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-04-26T11:00:00+07:00">
-    <meta property="article:modified_time" content="2025-04-26T11:00:00+07:00">
-    <meta property="article:tag" content="Golang">
-    <meta property="article:tag" content="Coding">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Go Context">
-<meta name="twitter:description" content="Context Package trong Go: ngữ nghĩa và cách sử dụng">
+<meta name="twitter:title" content="Go Context | Huy Dang Blog" />
+<meta name="twitter:description" content="Context Package trong Go: ngữ nghĩa và cách sử dụng" />
+<meta property="og:title" content="Go Context | Huy Dang Blog" />
+<meta property="og:description" content="Context Package trong Go: ngữ nghĩa và cách sử dụng" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/go-context/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2025-04-26T11:00:00&#43;07:00" />
+  <meta property="article:modified_time" content="2025-04-26T11:00:00&#43;07:00" />
 
 
 <script type="application/ld+json">
@@ -70,14 +50,13 @@
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "Go Context",
+  "headline": "Go Context | Huy Dang Blog",
   "name": "Go Context",
   "description": "Context Package trong Go: ngữ nghĩa và cách sử dụng",
   "keywords": [
     "golang", "coding"
   ],
-  "articleBody": "Context Package Được giới thiệu từ năm 2014, Context package vẫn là một thành phần then chốt trong lập trình Go, cho phép quản lý hiệu quả dữ liệu theo phạm vi yêu cầu, thời hạn và tín hiệu hủy bỏ. Khi hệ sinh thái Go tiếp tục phát triển, việc hiểu rõ ngữ nghĩa của Context package là vô cùng quan trọng để xây dựng phần mềm đáng tin cậy và dễ bảo trì.\nGiới thiệu Go cung cấp từ khóa go để tạo goroutine, nhưng lại không có từ khóa hoặc hỗ trợ trực tiếp nào để kết thúc goroutine. Trong một dịch vụ thực tế, khả năng đặt thời gian chờ và kết thúc goroutine là rất quan trọng để duy trì sự ổn định và hoạt động của dịch vụ.\nContext package được Go team cung cấp như một giải pháp cho vấn đề này, đã được viết và giới thiệu bởi Sameer Ajmani vào năm 2014 tại hội nghị Gotham Go. Bạn có thể tham khảo thêm về chủ đề này:\nSlide Deck: https://talks.golang.org/2014/gotham-context.slide#1 Blog Post: https://blog.golang.org/context Sử dụng Context Tạo context khi có request đến server Thời điểm tốt nhất để tạo Context là càng sớm càng tốt trong quá trình xử lý một request hoặc task. Làm việc với Context sớm trong chu kỳ phát triển sẽ buộc bạn phải thiết kế các API nhận Context làm tham số đầu tiên. Ngay cả khi bạn không chắc chắn 100% một hàm có cần Context hay không, việc xóa Context khỏi một vài hàm dễ hơn nhiều so với việc cố gắng thêm Context sau này.\nTừ phiên bản Go 1.7, http.Request đã chứa một context (đọc thêm).\nTheo quy ước trong Go, tên biến ctx thường được sử dụng cho tất cả các giá trị context. Vì Context là một interface, không nên sử dụng con trỏ. Mọi hàm chấp nhận Context nên nhận bản sao riêng của giá trị interface.\ntype Context interface { Deadline() (deadline time.Time, ok bool) Done() \u003c-chan struct{} Err() error Value(key any) any } Các lệnh gọi đi server bên ngoài nên chấp nhận một Context Ý tưởng đằng sau điều này là các lệnh gọi cấp cao hơn cần cho các lệnh gọi cấp thấp hơn biết họ sẵn sàng chờ bao lâu. Một ví dụ tuyệt vời về điều này là với gói http và những thay đổi trong phiên bản 1.7 đối với phương thức Do để tôn trọng timeouts trên một request.\n// Sample code that implements a web request with a context // that is used to timeout the request if it takes too long. package main import ( \"context\" \"io\" \"log\" \"net/http\" \"os\" \"time\" ) func main() { // Create a new request. req, err := http.NewRequest(\"GET\", \"REQUEST_URL\", nil) if err != nil { log.Println(\"ERROR:\", err) return } // Create a context with a timeout of 30 seconds. ctx, cancel := context.WithTimeout(req.Context(), 30*time.Second) defer cancel() // Bind the new context into the request. req = req.WithContext(ctx) // Make the request and return any error. // Do will handle the context level timeout. resp, err := http.DefaultClient.Do(req) if err != nil { log.Println(\"ERROR:\", err) return } // Close the response body on the return. defer resp.Body.Close() // Write the response to stdout. io.Copy(os.Stdout, resp.Body) } Không lưu trữ Context bên trong một kiểu struct Truyền Context một cách tường minh cho mỗi hàm cần nó.\nVề cơ bản, bất kỳ hàm nào thực hiện I/O đều nên chấp nhận một giá trị Context làm tham số đầu tiên và tôn trọng mọi timeout hoặc deadline được cấu hình bởi người gọi.\n// ví dụ một số method của net.Resolver LookupHost(ctx context.Context, host string) (addrs []string, err error) LookupIPAddr(ctx context.Context, host string) ([]net.IPAddr, error) LookupIP(ctx context.Context, network string, host string) ([]net.IP, error) LookupNetIP(ctx context.Context, network string, host string) ([]netip.Addr, error) Chuỗi các lệnh gọi hàm phải lan truyền Context giữa chúng Đây là một quy tắc quan trọng vì Context dựa trên request hoặc task. Bạn muốn Context và mọi thay đổi được thực hiện đối với nó trong quá trình xử lý request hoặc task được lan truyền và tôn trọng.\n// Handler func (u *User) List(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error { ctx, span := trace.StartSpan(ctx, \"handlers.User.List\") defer span.End() users, err := user.List(ctx, u.db) if err != nil { return err } return web.Respond(ctx, w, users, http.StatusOK) } // Repository func List(ctx context.Context, db *sqlx.DB) ([]User, error) { ctx, span := trace.StartSpan(ctx, \"internal.user.List\") defer span.End() users := []User{} const q = `SELECT * FROM users` if err := db.SelectContext(ctx, \u0026users, q); err != nil { return nil, errors.Wrap(err, \"selecting users\") } return users, nil } Nếu một giá trị Context cấp cao nhất mới được tạo, bất kỳ thông tin Context hiện có nào từ một lệnh gọi cấp cao hơn liên quan đến request sẽ bị mất.\nThay thế Context bằng cách sử dụng WithCancel, WithDeadline, WithTimeout hoặc WithValue Vì mỗi hàm có thể thêm/sửa Context cho nhu cầu cụ thể của chúng, và những thay đổi đó không ảnh hưởng đến bất kỳ hàm nào đã được gọi trước đó, Context sử dụng ngữ nghĩa giá trị. Điều này có nghĩa là bất kỳ thay đổi nào đối với giá trị Context sẽ tạo ra một giá trị Context mới, sau đó được truyền đi.\n// Sample code to show how to use the WithTimeout function // of the Context package. package main import ( \"context\" \"fmt\" \"time\" ) type data struct { UserID string } func main() { // Set a duration. duration := 150 * time.Millisecond // Create a context that is both manually cancellable and will signal // a cancel at the specified duration. ctx, cancel := context.WithTimeout(context.Background(), duration) defer cancel() // Create a channel to received a signal that work is done. ch := make(chan data, 1) // Ask the goroutine to do some work for us. go func() { // Simulate work. time.Sleep(50 * time.Millisecond) // Report the work is done. ch \u003c- data{\"123\"} }() // Wait for the work to finish. If it takes too long move on. select { case d := \u003c-ch: fmt.Println(\"work complete\", d) case \u003c-ctx.Done(): fmt.Println(\"work cancelled\") } } Điều cực kỳ quan trọng là bất kỳ hàm cancel nào được trả về từ hàm With phải được thực thi trước khi hàm đó trả về. Đây là lý do tại sao quy tắc là sử dụng từ khóa defer ngay sau lệnh gọi With. Không làm như vậy sẽ gây ra rò rỉ bộ nhớ trong chương trình.\nKhi một Context bị hủy, tất cả các Context được sinh ra từ nó cũng bị hủy // Sample program to show when a Context is canceled, all Contexts // derived from it are also canceled. package main import ( \"context\" \"fmt\" \"sync\" ) // Need a key type. type myKey int // Need a key value. const key myKey = 0 func main() { // Create a Context that can be cancelled. ctx, cancel := context.WithCancel(context.Background()) defer cancel() // Use the Waitgroup for orchestration. var wg sync.WaitGroup wg.Add(10) // Create ten goroutines that will derive a Context from // the one created above. for i := 0; i \u003c 10; i++ { go func(id int) { defer wg.Done() // Derive a new Context for this goroutine from the Context // owned by the main function. ctx := context.WithValue(ctx, key, id) // Wait until the Context is cancelled. \u003c-ctx.Done() fmt.Println(\"Cancelled:\", id) }(i) } // Cancel the Context and any derived Context's as well. cancel() wg.Wait() } Khi hàm cancel được gọi, tất cả mười goroutine sẽ được bỏ chặn và in ra rằng chúng đã bị hủy.\nĐiều này cũng cho thấy rằng cùng một Context có thể được truyền cho các hàm chạy trong các goroutine khác nhau. Một Context an toàn để sử dụng đồng thời bởi nhiều goroutine.\nKhông truyền Context là nil, ngay cả khi một hàm cho phép Truyền một context TODO nếu bạn không chắc chắn về việc sử dụng Context nào.\nBạn biết mình cần một Context nhưng không chắc nó sẽ đến từ đâu. Bạn biết mình không có trách nhiệm tạo Context cấp cao nhất, vì vậy việc sử dụng hàm Background là không thể. Bạn cần một Context cấp cao nhất tạm thời cho đến khi tìm ra Context thực tế đến từ đâu. Đây là lúc bạn nên sử dụng hàm TODO thay vì hàm Background.\nChỉ sử dụng context values cho dữ liệu có phạm vi request di chuyển qua các process và API, không dùng để truyền các tham số tùy chọn cho hàm Không sử dụng giá trị Context để truyền dữ liệu vào một hàm khi dữ liệu đó là bắt buộc để hàm thực thi code của nó thành công. Nói cách khác, một hàm phải có khả năng thực thi logic của nó với một giá trị Context trống. Trong trường hợp một hàm yêu cầu thông tin phải có trong Context, nếu thông tin đó bị thiếu, chương trình sẽ bị lỗi và báo hiệu ứng dụng ngừng hoạt động.\nTheo nguyên tắc chung, bạn nên tuân theo thứ tự này khi di chuyển dữ liệu trong chương trình của mình:\nTruyền dữ liệu làm tham số hàm: Đây là cách rõ ràng nhất để di chuyển dữ liệu trong chương trình mà không cần ẩn nó. Truyền dữ liệu thông qua receiver: Nếu hàm cần dữ liệu không thể thay đổi signature, thì hãy sử dụng một phương thức và truyền dữ liệu thông qua receiver. Bài viết tham khảo https://www.ardanlabs.com/blog/2019/09/context-package-semantics-in-go.html https://goatspeed.substack.com/p/putting-context-into-context ",
-  "wordCount" : "1613",
+  "wordCount" : "1786",
   "inLanguage": "en",
   "datePublished": "2025-04-26T11:00:00+07:00",
   "dateModified": "2025-04-26T11:00:00+07:00",
@@ -99,28 +78,99 @@
   }
 }
 </script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
 </head>
 
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.body.classList.add('dark');
-    }
+      }
+  }
+}
 
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
 </script>
 
 <header class="header">
     <nav class="nav">
         <div class="logo">
             <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -134,43 +184,46 @@
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                     </svg>
                 </button>
-            </div>
+            </span>
         </div>
         <ul id="menu">
             <li>
-                <a href="https://blog.huydang.dev/posts/" title="Posts">
-                    <span>Posts</span>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
                 </a>
             </li>
             <li>
-                <a href="https://blog.huydang.dev/categories/" title="Categories">
-                    <span>Categories</span>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
                 </a>
             </li>
             <li>
-                <a href="https://blog.huydang.dev/tags/" title="Tags">
-                    <span>Tags</span>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
                 </a>
             </li>
         </ul>
     </nav>
 </header>
-<main class="main">
+<main class="main post">
 
 <article class="post-single">
   <header class="post-header">
-    
-    <h1 class="post-title entry-hint-parent">
-      Go Context
-    </h1>
-    <div class="post-description">
-      Context Package trong Go: ngữ nghĩa và cách sử dụng
-    </div>
-    <div class="post-meta"><span title='2025-04-26 11:00:00 +0700 +07'>April 26, 2025</span>&nbsp;·&nbsp;8 min&nbsp;·&nbsp;Huy Dang Quang
+    <h1 class="post-title">Go Context</h1>
+    <div class="post-description">Context Package trong Go: ngữ nghĩa và cách sử dụng</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>April 26, 2025</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/coding/">Coding</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>9 min</span></span>
 
-</div>
-  </header> <div class="toc">
-    <details >
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
         <summary accesskey="c" title="(Alt + C)">
             <span class="details">Table of Contents</span>
         </summary>
@@ -211,218 +264,427 @@
     </details>
 </div>
 
-  <div class="post-content"><h1 id="context-package">Context Package<a hidden class="anchor" aria-hidden="true" href="#context-package">#</a></h1>
+  <div class="post-content"><h1 id="context-package">Context Package<a hidden class="anchor" aria-hidden="true" href="#context-package">¶</a></h1>
 <p>Được giới thiệu từ năm 2014, Context package vẫn là một thành phần then chốt trong lập trình Go, cho phép quản lý hiệu quả dữ liệu theo phạm vi yêu cầu, thời hạn và tín hiệu hủy bỏ. Khi hệ sinh thái Go tiếp tục phát triển, việc hiểu rõ ngữ nghĩa của Context package là vô cùng quan trọng để xây dựng phần mềm đáng tin cậy và dễ bảo trì.</p>
-<h2 id="giới-thiệu">Giới thiệu<a hidden class="anchor" aria-hidden="true" href="#giới-thiệu">#</a></h2>
+<h2 id="giới-thiệu">Giới thiệu<a hidden class="anchor" aria-hidden="true" href="#giới-thiệu">¶</a></h2>
 <p>Go cung cấp từ khóa <code>go</code> để tạo <strong>goroutine</strong>, nhưng lại không có từ khóa hoặc hỗ trợ trực tiếp nào để kết thúc goroutine. Trong một dịch vụ thực tế, khả năng đặt thời gian chờ và kết thúc goroutine là rất quan trọng để duy trì sự ổn định và hoạt động của dịch vụ.</p>
 <p><strong>Context package</strong> được Go team cung cấp như một giải pháp cho vấn đề này, đã được viết và giới thiệu bởi Sameer Ajmani vào năm 2014 tại hội nghị Gotham Go. Bạn có thể tham khảo thêm về chủ đề này:</p>
 <ul>
 <li>Slide Deck: <a href="https://talks.golang.org/2014/gotham-context.slide#1">https://talks.golang.org/2014/gotham-context.slide#1</a></li>
 <li>Blog Post: <a href="https://blog.golang.org/context">https://blog.golang.org/context</a></li>
 </ul>
-<h1 id="sử-dụng-context">Sử dụng Context<a hidden class="anchor" aria-hidden="true" href="#sử-dụng-context">#</a></h1>
-<h2 id="tạo-context-khi-có-request-đến-server">Tạo context khi có request đến server<a hidden class="anchor" aria-hidden="true" href="#tạo-context-khi-có-request-đến-server">#</a></h2>
+<h1 id="sử-dụng-context">Sử dụng Context<a hidden class="anchor" aria-hidden="true" href="#sử-dụng-context">¶</a></h1>
+<h2 id="tạo-context-khi-có-request-đến-server">Tạo context khi có request đến server<a hidden class="anchor" aria-hidden="true" href="#tạo-context-khi-có-request-đến-server">¶</a></h2>
 <p>Thời điểm tốt nhất để tạo Context là càng sớm càng tốt trong quá trình xử lý một request hoặc task. Làm việc với Context sớm trong chu kỳ phát triển sẽ buộc bạn phải thiết kế các API nhận Context làm tham số đầu tiên. Ngay cả khi bạn không chắc chắn 100% một hàm có cần Context hay không, việc xóa Context khỏi một vài hàm dễ hơn nhiều so với việc cố gắng thêm Context sau này.</p>
 <p>Từ phiên bản <strong>Go 1.7</strong>, <code>http.Request</code> đã chứa một context <a href="https://website-name.com">(đọc thêm)</a>.</p>
 <p>Theo quy ước trong Go, tên biến <code>ctx</code> thường được sử dụng cho tất cả các giá trị context. Vì <code>Context</code> là một interface, không nên sử dụng con trỏ. Mọi hàm chấp nhận Context nên nhận bản sao riêng của giá trị interface.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Context</span> <span style="color:#66d9ef">interface</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Deadline</span>() (<span style="color:#a6e22e">deadline</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Time</span>, <span style="color:#a6e22e">ok</span> <span style="color:#66d9ef">bool</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Done</span>() <span style="color:#f92672">&lt;-</span><span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">struct</span>{}
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Err</span>() <span style="color:#66d9ef">error</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">Value</span>(<span style="color:#a6e22e">key</span> <span style="color:#a6e22e">any</span>) <span style="color:#a6e22e">any</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="các-lệnh-gọi-đi-server-bên-ngoài-nên-chấp-nhận-một-context">Các lệnh gọi đi server bên ngoài nên chấp nhận một Context<a hidden class="anchor" aria-hidden="true" href="#các-lệnh-gọi-đi-server-bên-ngoài-nên-chấp-nhận-một-context">#</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Context</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Deadline</span><span class="p">()</span> <span class="p">(</span><span class="nx">deadline</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Time</span><span class="p">,</span> <span class="nx">ok</span> <span class="kt">bool</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Done</span><span class="p">()</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Err</span><span class="p">()</span> <span class="kt">error</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Value</span><span class="p">(</span><span class="nx">key</span> <span class="nx">any</span><span class="p">)</span> <span class="nx">any</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="các-lệnh-gọi-đi-server-bên-ngoài-nên-chấp-nhận-một-context">Các lệnh gọi đi server bên ngoài nên chấp nhận một Context<a hidden class="anchor" aria-hidden="true" href="#các-lệnh-gọi-đi-server-bên-ngoài-nên-chấp-nhận-một-context">¶</a></h2>
 <p>Ý tưởng đằng sau điều này là các lệnh gọi cấp cao hơn cần cho các lệnh gọi cấp thấp hơn biết họ sẵn sàng chờ bao lâu. Một ví dụ tuyệt vời về điều này là với gói http và những thay đổi trong phiên bản 1.7 đối với phương thức <code>Do</code> để tôn trọng timeouts trên một request.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Sample code that implements a web request with a context
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// that is used to timeout the request if it takes too long.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;context&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;io&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;log&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net/http&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;os&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Create a new request.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewRequest</span>(<span style="color:#e6db74">&#34;GET&#34;</span>, <span style="color:#e6db74">&#34;REQUEST_URL&#34;</span>, <span style="color:#66d9ef">nil</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;ERROR:&#34;</span>, <span style="color:#a6e22e">err</span>)
-</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Create a context with a timeout of 30 seconds.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">cancel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WithTimeout</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Context</span>(), <span style="color:#ae81ff">30</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">cancel</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Bind the new context into the request.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">req</span> = <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">WithContext</span>(<span style="color:#a6e22e">ctx</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Make the request and return any error.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// Do will handle the context level timeout.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">resp</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">DefaultClient</span>.<span style="color:#a6e22e">Do</span>(<span style="color:#a6e22e">req</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;ERROR:&#34;</span>, <span style="color:#a6e22e">err</span>)
-</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Close the response body on the return.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Body</span>.<span style="color:#a6e22e">Close</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Write the response to stdout.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">Copy</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdout</span>, <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Body</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="không-lưu-trữ-context-bên-trong-một-kiểu-struct">Không lưu trữ Context bên trong một kiểu struct<a hidden class="anchor" aria-hidden="true" href="#không-lưu-trữ-context-bên-trong-một-kiểu-struct">#</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Sample code that implements a web request with a context
+</span></span></span><span class="line"><span class="cl"><span class="c1">// that is used to timeout the request if it takes too long.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kn">package</span> <span class="nx">main</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;context&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;io&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;log&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;net/http&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;os&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;time&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Create a new request.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">req</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">http</span><span class="p">.</span><span class="nf">NewRequest</span><span class="p">(</span><span class="s">&#34;GET&#34;</span><span class="p">,</span> <span class="s">&#34;REQUEST_URL&#34;</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">log</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;ERROR:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Create a context with a timeout of 30 seconds.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">ctx</span><span class="p">,</span> <span class="nx">cancel</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nf">WithTimeout</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nf">Context</span><span class="p">(),</span> <span class="mi">30</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nf">cancel</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Bind the new context into the request.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">req</span> <span class="p">=</span> <span class="nx">req</span><span class="p">.</span><span class="nf">WithContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Make the request and return any error.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// Do will handle the context level timeout.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">resp</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">DefaultClient</span><span class="p">.</span><span class="nf">Do</span><span class="p">(</span><span class="nx">req</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">log</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;ERROR:&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Close the response body on the return.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">defer</span> <span class="nx">resp</span><span class="p">.</span><span class="nx">Body</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Write the response to stdout.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">io</span><span class="p">.</span><span class="nf">Copy</span><span class="p">(</span><span class="nx">os</span><span class="p">.</span><span class="nx">Stdout</span><span class="p">,</span> <span class="nx">resp</span><span class="p">.</span><span class="nx">Body</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="không-lưu-trữ-context-bên-trong-một-kiểu-struct">Không lưu trữ Context bên trong một kiểu struct<a hidden class="anchor" aria-hidden="true" href="#không-lưu-trữ-context-bên-trong-một-kiểu-struct">¶</a></h2>
 <p>Truyền Context một cách tường minh cho mỗi hàm cần nó.</p>
 <p>Về cơ bản, bất kỳ hàm nào thực hiện I/O đều nên chấp nhận một giá trị Context làm tham số đầu tiên và tôn trọng mọi timeout hoặc deadline được cấu hình bởi người gọi.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// ví dụ một số method của net.Resolver
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">LookupHost</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">host</span> <span style="color:#66d9ef">string</span>) (<span style="color:#a6e22e">addrs</span> []<span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">LookupIPAddr</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">host</span> <span style="color:#66d9ef">string</span>) ([]<span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">IPAddr</span>, <span style="color:#66d9ef">error</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">LookupIP</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">network</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">host</span> <span style="color:#66d9ef">string</span>) ([]<span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">IP</span>, <span style="color:#66d9ef">error</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">LookupNetIP</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">network</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">host</span> <span style="color:#66d9ef">string</span>) ([]<span style="color:#a6e22e">netip</span>.<span style="color:#a6e22e">Addr</span>, <span style="color:#66d9ef">error</span>)
-</span></span></code></pre></div><h2 id="chuỗi-các-lệnh-gọi-hàm-phải-lan-truyền-context-giữa-chúng">Chuỗi các lệnh gọi hàm phải lan truyền Context giữa chúng<a hidden class="anchor" aria-hidden="true" href="#chuỗi-các-lệnh-gọi-hàm-phải-lan-truyền-context-giữa-chúng">#</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ví dụ một số method của net.Resolver
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nf">LookupHost</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">host</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">addrs</span> <span class="p">[]</span><span class="kt">string</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nf">LookupIPAddr</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">host</span> <span class="kt">string</span><span class="p">)</span> <span class="p">([]</span><span class="nx">net</span><span class="p">.</span><span class="nx">IPAddr</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nf">LookupIP</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">network</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">host</span> <span class="kt">string</span><span class="p">)</span> <span class="p">([]</span><span class="nx">net</span><span class="p">.</span><span class="nx">IP</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nf">LookupNetIP</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">network</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">host</span> <span class="kt">string</span><span class="p">)</span> <span class="p">([]</span><span class="nx">netip</span><span class="p">.</span><span class="nx">Addr</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="chuỗi-các-lệnh-gọi-hàm-phải-lan-truyền-context-giữa-chúng">Chuỗi các lệnh gọi hàm phải lan truyền Context giữa chúng<a hidden class="anchor" aria-hidden="true" href="#chuỗi-các-lệnh-gọi-hàm-phải-lan-truyền-context-giữa-chúng">¶</a></h2>
 <p>Đây là một quy tắc quan trọng vì Context dựa trên request hoặc task. Bạn muốn Context và mọi thay đổi được thực hiện đối với nó trong quá trình xử lý request hoặc task được lan truyền và tôn trọng.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Handler
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">u</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">User</span>) <span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>, <span style="color:#a6e22e">params</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span> {
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">span</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">trace</span>.<span style="color:#a6e22e">StartSpan</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;handlers.User.List&#34;</span>)
-</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">span</span>.<span style="color:#a6e22e">End</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">users</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">db</span>)
-</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-</span></span><span style="display:flex;"><span>         <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
-</span></span><span style="display:flex;"><span>     }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">web</span>.<span style="color:#a6e22e">Respond</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">users</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// Repository
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">List</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>, <span style="color:#a6e22e">db</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">sqlx</span>.<span style="color:#a6e22e">DB</span>) ([]<span style="color:#a6e22e">User</span>, <span style="color:#66d9ef">error</span>) {
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">span</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">trace</span>.<span style="color:#a6e22e">StartSpan</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#e6db74">&#34;internal.user.List&#34;</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">span</span>.<span style="color:#a6e22e">End</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">users</span> <span style="color:#f92672">:=</span> []<span style="color:#a6e22e">User</span>{}
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">q</span> = <span style="color:#e6db74">`SELECT * FROM users`</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">SelectContext</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">users</span>, <span style="color:#a6e22e">q</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Wrap</span>(<span style="color:#a6e22e">err</span>, <span style="color:#e6db74">&#34;selecting users&#34;</span>)
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">users</span>, <span style="color:#66d9ef">nil</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Nếu một giá trị Context cấp cao nhất mới được tạo, bất kỳ thông tin Context hiện có nào từ một lệnh gọi cấp cao hơn liên quan đến request sẽ bị mất.</p>
-<h2 id="thay-thế-context-bằng-cách-sử-dụng-withcancel-withdeadline-withtimeout-hoặc-withvalue">Thay thế Context bằng cách sử dụng WithCancel, WithDeadline, WithTimeout hoặc WithValue<a hidden class="anchor" aria-hidden="true" href="#thay-thế-context-bằng-cách-sử-dụng-withcancel-withdeadline-withtimeout-hoặc-withvalue">#</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Handler
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">u</span> <span class="o">*</span><span class="nx">User</span><span class="p">)</span> <span class="nf">List</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">w</span> <span class="nx">http</span><span class="p">.</span><span class="nx">ResponseWriter</span><span class="p">,</span> <span class="nx">r</span> <span class="o">*</span><span class="nx">http</span><span class="p">.</span><span class="nx">Request</span><span class="p">,</span> <span class="nx">params</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">     <span class="nx">ctx</span><span class="p">,</span> <span class="nx">span</span> <span class="o">:=</span> <span class="nx">trace</span><span class="p">.</span><span class="nf">StartSpan</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;handlers.User.List&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">     <span class="k">defer</span> <span class="nx">span</span><span class="p">.</span><span class="nf">End</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">     <span class="nx">users</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">user</span><span class="p">.</span><span class="nf">List</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">u</span><span class="p">.</span><span class="nx">db</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">     <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">         <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">     <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">     <span class="k">return</span> <span class="nx">web</span><span class="p">.</span><span class="nf">Respond</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">w</span><span class="p">,</span> <span class="nx">users</span><span class="p">,</span> <span class="nx">http</span><span class="p">.</span><span class="nx">StatusOK</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Repository
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">List</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">db</span> <span class="o">*</span><span class="nx">sqlx</span><span class="p">.</span><span class="nx">DB</span><span class="p">)</span> <span class="p">([]</span><span class="nx">User</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">ctx</span><span class="p">,</span> <span class="nx">span</span> <span class="o">:=</span> <span class="nx">trace</span><span class="p">.</span><span class="nf">StartSpan</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;internal.user.List&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nx">span</span><span class="p">.</span><span class="nf">End</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">users</span> <span class="o">:=</span> <span class="p">[]</span><span class="nx">User</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">const</span> <span class="nx">q</span> <span class="p">=</span> <span class="s">`SELECT * FROM users`</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">db</span><span class="p">.</span><span class="nf">SelectContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">users</span><span class="p">,</span> <span class="nx">q</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">Wrap</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="s">&#34;selecting users&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">users</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nếu một giá trị Context cấp cao nhất mới được tạo, bất kỳ thông tin Context hiện có nào từ một lệnh gọi cấp cao hơn liên quan đến request sẽ bị mất.</p>
+<h2 id="thay-thế-context-bằng-cách-sử-dụng-withcancel-withdeadline-withtimeout-hoặc-withvalue">Thay thế Context bằng cách sử dụng WithCancel, WithDeadline, WithTimeout hoặc WithValue<a hidden class="anchor" aria-hidden="true" href="#thay-thế-context-bằng-cách-sử-dụng-withcancel-withdeadline-withtimeout-hoặc-withvalue">¶</a></h2>
 <p>Vì mỗi hàm có thể thêm/sửa Context cho nhu cầu cụ thể của chúng, và những thay đổi đó không ảnh hưởng đến bất kỳ hàm nào đã được gọi trước đó, Context sử dụng ngữ nghĩa giá trị. Điều này có nghĩa là bất kỳ thay đổi nào đối với giá trị Context sẽ tạo ra một giá trị Context mới, sau đó được truyền đi.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Sample code to show how to use the WithTimeout function
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// of the Context package.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;context&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">data</span> <span style="color:#66d9ef">struct</span> {
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">UserID</span> <span style="color:#66d9ef">string</span>
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Set a duration.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">duration</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">150</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Create a context that is both manually cancellable and will signal
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// a cancel at the specified duration.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">cancel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WithTimeout</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#a6e22e">duration</span>)
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">cancel</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Create a channel to received a signal that work is done.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ch</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">data</span>, <span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Ask the goroutine to do some work for us.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Simulate work.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">50</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// Report the work is done.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">ch</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">data</span>{<span style="color:#e6db74">&#34;123&#34;</span>}
-</span></span><span style="display:flex;"><span>	}()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Wait for the work to finish. If it takes too long move on.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">select</span> {
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">d</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ch</span>:
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;work complete&#34;</span>, <span style="color:#a6e22e">d</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>():
-</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;work cancelled&#34;</span>)
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Điều cực kỳ quan trọng là bất kỳ hàm <strong>cancel</strong> nào được trả về từ hàm <strong>With</strong> phải được thực thi trước khi hàm đó trả về. Đây là lý do tại sao quy tắc là sử dụng từ khóa <code>defer</code> ngay sau lệnh gọi <strong>With</strong>. Không làm như vậy sẽ gây ra rò rỉ bộ nhớ trong chương trình.</p>
-<h2 id="khi-một-context-bị-hủy-tất-cả-các-context-được-sinh-ra-từ-nó-cũng-bị-hủy">Khi một Context bị hủy, tất cả các Context được sinh ra từ nó cũng bị hủy<a hidden class="anchor" aria-hidden="true" href="#khi-một-context-bị-hủy-tất-cả-các-context-được-sinh-ra-từ-nó-cũng-bị-hủy">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Sample program to show when a Context is canceled, all Contexts
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// derived from it are also canceled.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;context&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;sync&#34;</span>
-</span></span><span style="display:flex;"><span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// Need a key type.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">myKey</span> <span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// Need a key value.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">key</span> <span style="color:#a6e22e">myKey</span> = <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Create a Context that can be cancelled.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">cancel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WithCancel</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>())
-</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">cancel</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Use the Waitgroup for orchestration.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">10</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Create ten goroutines that will derive a Context from
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// the one created above.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">10</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
-</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">id</span> <span style="color:#66d9ef">int</span>) {
-</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// Derive a new Context for this goroutine from the Context
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#75715e">// owned by the main function.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WithValue</span>(<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">id</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>			<span style="color:#75715e">// Wait until the Context is cancelled.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>			<span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Done</span>()
-</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Cancelled:&#34;</span>, <span style="color:#a6e22e">id</span>)
-</span></span><span style="display:flex;"><span>		}(<span style="color:#a6e22e">i</span>)
-</span></span><span style="display:flex;"><span>	}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// Cancel the Context and any derived Context&#39;s as well.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cancel</span>()
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Khi hàm <code>cancel</code> được gọi, tất cả mười goroutine sẽ được bỏ chặn và in ra rằng chúng đã bị hủy.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Sample code to show how to use the WithTimeout function
+</span></span></span><span class="line"><span class="cl"><span class="c1">// of the Context package.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kn">package</span> <span class="nx">main</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;context&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;fmt&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;time&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">data</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">UserID</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Set a duration.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">duration</span> <span class="o">:=</span> <span class="mi">150</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Millisecond</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Create a context that is both manually cancellable and will signal
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// a cancel at the specified duration.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">ctx</span><span class="p">,</span> <span class="nx">cancel</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nf">WithTimeout</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nf">Background</span><span class="p">(),</span> <span class="nx">duration</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nf">cancel</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Create a channel to received a signal that work is done.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">data</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Ask the goroutine to do some work for us.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="c1">// Simulate work.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">time</span><span class="p">.</span><span class="nf">Sleep</span><span class="p">(</span><span class="mi">50</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Millisecond</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">		<span class="c1">// Report the work is done.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">ch</span> <span class="o">&lt;-</span> <span class="nx">data</span><span class="p">{</span><span class="s">&#34;123&#34;</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Wait for the work to finish. If it takes too long move on.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">select</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">case</span> <span class="nx">d</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">ch</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;work complete&#34;</span><span class="p">,</span> <span class="nx">d</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">case</span> <span class="o">&lt;-</span><span class="nx">ctx</span><span class="p">.</span><span class="nf">Done</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;work cancelled&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Điều cực kỳ quan trọng là bất kỳ hàm <strong>cancel</strong> nào được trả về từ hàm <strong>With</strong> phải được thực thi trước khi hàm đó trả về. Đây là lý do tại sao quy tắc là sử dụng từ khóa <code>defer</code> ngay sau lệnh gọi <strong>With</strong>. Không làm như vậy sẽ gây ra rò rỉ bộ nhớ trong chương trình.</p>
+<h2 id="khi-một-context-bị-hủy-tất-cả-các-context-được-sinh-ra-từ-nó-cũng-bị-hủy">Khi một Context bị hủy, tất cả các Context được sinh ra từ nó cũng bị hủy<a hidden class="anchor" aria-hidden="true" href="#khi-một-context-bị-hủy-tất-cả-các-context-được-sinh-ra-từ-nó-cũng-bị-hủy">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Sample program to show when a Context is canceled, all Contexts
+</span></span></span><span class="line"><span class="cl"><span class="c1">// derived from it are also canceled.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kn">package</span> <span class="nx">main</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;context&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;fmt&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;sync&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Need a key type.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">myKey</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Need a key value.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">const</span> <span class="nx">key</span> <span class="nx">myKey</span> <span class="p">=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Create a Context that can be cancelled.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">ctx</span><span class="p">,</span> <span class="nx">cancel</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nf">WithCancel</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nf">Background</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nf">cancel</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Use the Waitgroup for orchestration.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="kd">var</span> <span class="nx">wg</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">WaitGroup</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">wg</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Create ten goroutines that will derive a Context from
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// the one created above.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="nx">id</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">defer</span> <span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">			<span class="c1">// Derive a new Context for this goroutine from the Context
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>			<span class="c1">// owned by the main function.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>			<span class="nx">ctx</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nf">WithValue</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">id</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">			<span class="c1">// Wait until the Context is cancelled.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>			<span class="o">&lt;-</span><span class="nx">ctx</span><span class="p">.</span><span class="nf">Done</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;Cancelled:&#34;</span><span class="p">,</span> <span class="nx">id</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}(</span><span class="nx">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// Cancel the Context and any derived Context&#39;s as well.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nf">cancel</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">wg</span><span class="p">.</span><span class="nf">Wait</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Khi hàm <code>cancel</code> được gọi, tất cả mười goroutine sẽ được bỏ chặn và in ra rằng chúng đã bị hủy.</p>
 <p>Điều này cũng cho thấy rằng cùng một Context có thể được truyền cho các hàm chạy trong các goroutine khác nhau. Một Context an toàn để sử dụng đồng thời bởi nhiều goroutine.</p>
-<h2 id="không-truyền-context-là-nil-ngay-cả-khi-một-hàm-cho-phép">Không truyền Context là nil, ngay cả khi một hàm cho phép<a hidden class="anchor" aria-hidden="true" href="#không-truyền-context-là-nil-ngay-cả-khi-một-hàm-cho-phép">#</a></h2>
+<h2 id="không-truyền-context-là-nil-ngay-cả-khi-một-hàm-cho-phép">Không truyền Context là nil, ngay cả khi một hàm cho phép<a hidden class="anchor" aria-hidden="true" href="#không-truyền-context-là-nil-ngay-cả-khi-một-hàm-cho-phép">¶</a></h2>
 <p>Truyền một context <code>TODO</code> nếu bạn không chắc chắn về việc sử dụng Context nào.</p>
 <p>Bạn biết mình cần một Context nhưng không chắc nó sẽ đến từ đâu. Bạn biết mình không có trách nhiệm tạo Context cấp cao nhất, vì vậy việc sử dụng hàm <code>Background</code> là không thể. Bạn cần một Context cấp cao nhất tạm thời cho đến khi tìm ra Context thực tế đến từ đâu. Đây là lúc bạn nên sử dụng hàm <code>TODO</code> thay vì hàm <code>Background</code>.</p>
-<h2 id="chỉ-sử-dụng-context-values-cho-dữ-liệu-có-phạm-vi-request-di-chuyển-qua-các-process-và-api-không-dùng-để-truyền-các-tham-số-tùy-chọn-cho-hàm">Chỉ sử dụng context values cho dữ liệu có phạm vi request di chuyển qua các process và API, không dùng để truyền các tham số tùy chọn cho hàm<a hidden class="anchor" aria-hidden="true" href="#chỉ-sử-dụng-context-values-cho-dữ-liệu-có-phạm-vi-request-di-chuyển-qua-các-process-và-api-không-dùng-để-truyền-các-tham-số-tùy-chọn-cho-hàm">#</a></h2>
+<h2 id="chỉ-sử-dụng-context-values-cho-dữ-liệu-có-phạm-vi-request-di-chuyển-qua-các-process-và-api-không-dùng-để-truyền-các-tham-số-tùy-chọn-cho-hàm">Chỉ sử dụng context values cho dữ liệu có phạm vi request di chuyển qua các process và API, không dùng để truyền các tham số tùy chọn cho hàm<a hidden class="anchor" aria-hidden="true" href="#chỉ-sử-dụng-context-values-cho-dữ-liệu-có-phạm-vi-request-di-chuyển-qua-các-process-và-api-không-dùng-để-truyền-các-tham-số-tùy-chọn-cho-hàm">¶</a></h2>
 <p>Không sử dụng giá trị Context để truyền dữ liệu vào một hàm khi dữ liệu đó là bắt buộc để hàm thực thi code của nó thành công. Nói cách khác, một hàm phải có khả năng thực thi logic của nó với một giá trị Context trống. Trong trường hợp một hàm yêu cầu thông tin phải có trong Context, nếu thông tin đó bị thiếu, chương trình sẽ bị lỗi và báo hiệu ứng dụng ngừng hoạt động.</p>
 <p>Theo nguyên tắc chung, bạn nên tuân theo thứ tự này khi di chuyển dữ liệu trong chương trình của mình:</p>
 <ul>
 <li>Truyền dữ liệu làm tham số hàm: Đây là cách rõ ràng nhất để di chuyển dữ liệu trong chương trình mà không cần ẩn nó.</li>
 <li>Truyền dữ liệu thông qua receiver: Nếu hàm cần dữ liệu không thể thay đổi signature, thì hãy sử dụng một phương thức và truyền dữ liệu thông qua receiver.</li>
 </ul>
-<h2 id="bài-viết-tham-khảo">Bài viết tham khảo<a hidden class="anchor" aria-hidden="true" href="#bài-viết-tham-khảo">#</a></h2>
+<h2 id="bài-viết-tham-khảo">Bài viết tham khảo<a hidden class="anchor" aria-hidden="true" href="#bài-viết-tham-khảo">¶</a></h2>
 <ul>
 <li><a href="https://www.ardanlabs.com/blog/2019/09/context-package-semantics-in-go.html">https://www.ardanlabs.com/blog/2019/09/context-package-semantics-in-go.html</a></li>
 <li><a href="https://goatspeed.substack.com/p/putting-context-into-context">https://goatspeed.substack.com/p/putting-context-into-context</a></li>
@@ -432,151 +694,222 @@
   </div>
 
   <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://blog.huydang.dev/tags/golang/">Golang</a></li>
-      <li><a href="https://blog.huydang.dev/tags/coding/">Coding</a></li>
-    </ul>
-
-<ul class="share-buttons">
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Go Context on x"
-            href="https://x.com/intent/tweet/?text=Go%20Context&amp;url=https%3a%2f%2fblog.huydang.dev%2fposts%2fgo-context%2f&amp;hashtags=golang%2ccoding">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Go Context on linkedin"
-            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fblog.huydang.dev%2fposts%2fgo-context%2f&amp;title=Go%20Context&amp;summary=Go%20Context&amp;source=https%3a%2f%2fblog.huydang.dev%2fposts%2fgo-context%2f">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Go Context on reddit"
-            href="https://reddit.com/submit?url=https%3a%2f%2fblog.huydang.dev%2fposts%2fgo-context%2f&title=Go%20Context">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Go Context on facebook"
-            href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fblog.huydang.dev%2fposts%2fgo-context%2f">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Go Context on whatsapp"
-            href="https://api.whatsapp.com/send?text=Go%20Context%20-%20https%3a%2f%2fblog.huydang.dev%2fposts%2fgo-context%2f">
-            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Go Context on telegram"
-            href="https://telegram.me/share/url?text=Go%20Context&amp;url=https%3a%2f%2fblog.huydang.dev%2fposts%2fgo-context%2f">
-            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
-                <path
-                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
-            </svg>
-        </a>
-    </li>
-    <li>
-        <a target="_blank" rel="noopener noreferrer" aria-label="share Go Context on ycombinator"
-            href="https://news.ycombinator.com/submitlink?t=Go%20Context&u=https%3a%2f%2fblog.huydang.dev%2fposts%2fgo-context%2f">
-            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
-                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
-                <path
-                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
-            </svg>
-        </a>
-    </li>
-</ul>
-
   </footer>
+    <div class="comments-separator"></div>
 </article>
     </main>
     
 <footer class="footer">
-        <span>&copy; 2025 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span> · 
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
+  <span>&copy; 2025 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
 </footer>
 <a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
-        <path d="M12 6H0l6-6z" />
-    </svg>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
 </a>
 
 <script>
-    let menu = document.getElementById('menu')
-    if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
     }
 
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
         });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
     });
 
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
 </script>
-<script>
-    var mybutton = document.getElementById("top-link");
-    window.onscroll = function () {
-        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
-            mybutton.style.visibility = "visible";
-            mybutton.style.opacity = "1";
-        } else {
-            mybutton.style.visibility = "hidden";
-            mybutton.style.opacity = "0";
-        }
-    };
 
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
-            localStorage.setItem("pref-theme", 'light');
-        } else {
-            document.body.classList.add('dark');
-            localStorage.setItem("pref-theme", 'dark');
-        }
-    })
 
-</script>
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
 
 </body>
 

@@ -1,5 +1,5 @@
 +++
-date = '2025-05-4T22:00:00+07:00'
+date = '2025-05-04T22:00:00+07:00'
 draft = false
 title = 'Solid in Go'
 author = 'Huy Dang Quang'
