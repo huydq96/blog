@@ -49,6 +49,24 @@ Mức cách ly xác định các quy tắc cho những thay đổi nào là hi�
 - **Không có bảo đảm về tính nhất quán**: Vì các thay đổi chưa được commit có thể bị rollback, dữ liệu đọc được ở mức cách ly này có thể không chính xác hoặc không đáng tin cậy.
 - **Hiệu suất cao**: Mức cách ly này có thể cải thiện hiệu suất vì nó ít tốn kém về mặt tài nguyên và khóa dữ liệu so với các mức cách ly cao hơn.
 
+Ví dụ có 2 transaction đang chạy đồng thời:
+
+```sql
+--- Transaction 1
+START TRANSACTION;
+UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;
+-- Transaction 1 chưa COMMIT
+
+
+--- Transaction 2
+START TRANSACTION;
+SELECT balance FROM accounts WHERE account_id = 1;
+-- Transaction 2 đọc được dữ liệu chưa được commit từ Transaction 1
+COMMIT;
+```
+
+Trong ví dụ này, transaction 2 có thể đọc số dư tài khoản đã bị giảm 100 mặc dù transaction 1 chưa được commit. Nếu sau đó transaction 1 bị rollback, transaction 2 đã đọc dữ liệu không chính xác.
+
 ### READ COMMITTED
 
 Ở mức cách ly này, một transaction chỉ có thể đọc các thay đổi đã được commit bởi các transaction khác. Điều này giúp tránh được các vấn đề liên quan đến dirty read (đọc dữ liệu “bẩn”), đảm bảo rằng các dữ liệu đọc được luôn nhất quán và đáng tin cậy.
@@ -57,6 +75,23 @@ Mức cách ly xác định các quy tắc cho những thay đổi nào là hi�
 - **Không có dirty read**: Transaction chỉ có thể đọc các dữ liệu đã được commit, do đó tránh được việc đọc dữ liệu không nhất quán.
 - **Non-repeatable read**: có thể xảy ra hiện tượng non-repeatable read, nghĩa là dữ liệu có thể thay đổi giữa các lần đọc trong cùng một giao dịch nếu một transaction khác commit thay đổi dữ liệu đó.
 - **Hiệu suất tốt**: Cân bằng giữa hiệu suất và tính nhất quán, phù hợp cho nhiều ứng dụng.
+
+Ví dụ có 2 transaction đang chạy đồng thời:
+
+```sql
+--- Transaction 1
+START TRANSACTION;
+UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;
+-- Transaction 1 chưa COMMIT
+
+
+--- Transaction 2
+START TRANSACTION;
+SELECT balance FROM accounts WHERE account_id = 1;
+COMMIT;
+```
+
+Trong ví dụ này, Transaction 2 sẽ không thấy số dư tài khoản đã bị giảm 100 bởi Transaction 1 vì Transaction 1 chưa được commit. Transaction 2 sẽ chỉ đọc dữ liệu đã được commit trước đó.
 
 ### REPEATABLE READ
 
@@ -69,6 +104,26 @@ Mức cách ly xác định các quy tắc cho những thay đổi nào là hi�
 - **Sử dụng MVCC (Multiversion Concurrency Control)**: MySQL sử dụng MVCC để đảm bảo các transaction đọc có thể thấy trạng thái nhất quán của dữ liệu.
 - Hiệu suất sẽ giảm hơn so với hai mức cách ly bên trên.
 
+Ví dụ có 2 transaction đang chạy đồng thời:
+
+```sql
+--- Transaction 1
+START TRANSACTION;
+SELECT balance FROM accounts WHERE account_id = 1;
+-- Transaction 1 đọc số dư tài khoản lần đầu
+UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;
+-- Transaction 1 chưa COMMIT
+
+--- Transaction 2
+START TRANSACTION;
+SELECT balance FROM accounts WHERE account_id = 1;
+-- Transaction 2 đọc số dư tài khoản, thấy số dư trước khi Transaction 1 cập
+nhật
+COMMIT;
+```
+
+Trong ví dụ này, Transaction 2 sẽ thấy số dư ban đầu của tài khoản trước khi Transaction 1 cập nhật. Ngay cả khi Transaction 1 commit thay đổi, Transaction 2 cũng sẽ không thấy thay đổi đó nếu nó thực hiện lại truy vấn.
+
 ### SERIALIZABLE
 
 SERIALIZABLE là mức cách ly cao nhất trong các mức cách ly của cơ sở dữ liệu. Ở mức cách ly này, mỗi giao dịch được thực hiện một cách tuần tự, không có transaction nào có thể nhìn thấy các thay đổi của giao dịch khác cho đến khi transaction đó hoàn thành. Điều này đảm bảo rằng không có phantom read, non-repeatable read hay dirty read.
@@ -80,6 +135,25 @@ SERIALIZABLE là mức cách ly cao nhất trong các mức cách ly của cơ s
 - **Khóa toàn bộ các hàng dữ liệu**: Mỗi transaction sẽ khóa các dãy dữ liệu nó truy cập, ngăn chặn các transaction khác thay đổi dữ liệu trong các hàng đó.
 - Hiệu suất của SERIALIZABLE sẽ là thấp nhất trong bốn loại cách ly được đề cập ở đây.
 
+Ví dụ có 2 transaction đang chạy đồng thời:
+
+```sql
+--- Transaction 1
+START TRANSACTION;
+SELECT balance FROM accounts WHERE account_id = 1 FOR UPDATE;
+-- Transaction 1 khóa tài khoản 1 để tránh các thay đổi từ các giao dịch khác
+UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;
+COMMIT;
+
+
+--- Transaction 2
+START TRANSACTION;
+SELECT balance FROM accounts WHERE account_id = 1;
+-- Transaction 2 sẽ bị chặn lại cho đến khi Transaction 1 hoàn thành
+COMMIT;
+```
+
+Trong ví dụ này, Transaction 2 sẽ bị chặn lại cho đến khi Transaction 1 hoàn thành và commit. Điều này đảm bảo rằng Transaction 2 sẽ không thấy bất kỳ thay đổi nào từ Transaction 1 cho đến khi Transaction 1 hoàn tất.
 
 ## Deadlocks
 

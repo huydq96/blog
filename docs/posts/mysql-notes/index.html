@@ -56,7 +56,7 @@
   "keywords": [
     "database", "mysql"
   ],
-  "wordCount" : "1546",
+  "wordCount" : "2025",
   "inLanguage": "en",
   "datePublished": "2025-05-07T23:25:08+07:00",
   "dateModified": "2025-05-07T23:25:08+07:00",
@@ -217,7 +217,7 @@ function toggleThemeListener() {
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
   <span class="post-tags"><a href="https://blog.huydang.dev/tags/database/">Database</a><a href="https://blog.huydang.dev/tags/mysql/">Mysql</a></span></span><span class="meta-item">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
-  <span>8 min</span></span>
+  <span>10 min</span></span>
 
       
       
@@ -290,6 +290,36 @@ số ràng buộc phổ biến như <code>PRIMARY KEY</code>, <code>FOREIGN KEY<
 <li><strong>Không có bảo đảm về tính nhất quán</strong>: Vì các thay đổi chưa được commit có thể bị rollback, dữ liệu đọc được ở mức cách ly này có thể không chính xác hoặc không đáng tin cậy.</li>
 <li><strong>Hiệu suất cao</strong>: Mức cách ly này có thể cải thiện hiệu suất vì nó ít tốn kém về mặt tài nguyên và khóa dữ liệu so với các mức cách ly cao hơn.</li>
 </ul>
+<p>Ví dụ có 2 transaction đang chạy đồng thời:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="c1">--- Transaction 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">START</span><span class="w"> </span><span class="k">TRANSACTION</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">UPDATE</span><span class="w"> </span><span class="n">accounts</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- Transaction 1 chưa COMMIT
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">--- Transaction 2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">START</span><span class="w"> </span><span class="k">TRANSACTION</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">accounts</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- Transaction 2 đọc được dữ liệu chưa được commit từ Transaction 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">COMMIT</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Trong ví dụ này, transaction 2 có thể đọc số dư tài khoản đã bị giảm 100 mặc dù transaction 1 chưa được commit. Nếu sau đó transaction 1 bị rollback, transaction 2 đã đọc dữ liệu không chính xác.</p>
 <h3 id="read-committed">READ COMMITTED<a hidden class="anchor" aria-hidden="true" href="#read-committed">¶</a></h3>
 <p>Ở mức cách ly này, một transaction chỉ có thể đọc các thay đổi đã được commit bởi các transaction khác. Điều này giúp tránh được các vấn đề liên quan đến dirty read (đọc dữ liệu “bẩn”), đảm bảo rằng các dữ liệu đọc được luôn nhất quán và đáng tin cậy.</p>
 <p><strong>Đặc điểm:</strong></p>
@@ -298,6 +328,34 @@ số ràng buộc phổ biến như <code>PRIMARY KEY</code>, <code>FOREIGN KEY<
 <li><strong>Non-repeatable read</strong>: có thể xảy ra hiện tượng non-repeatable read, nghĩa là dữ liệu có thể thay đổi giữa các lần đọc trong cùng một giao dịch nếu một transaction khác commit thay đổi dữ liệu đó.</li>
 <li><strong>Hiệu suất tốt</strong>: Cân bằng giữa hiệu suất và tính nhất quán, phù hợp cho nhiều ứng dụng.</li>
 </ul>
+<p>Ví dụ có 2 transaction đang chạy đồng thời:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="c1">--- Transaction 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">START</span><span class="w"> </span><span class="k">TRANSACTION</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">UPDATE</span><span class="w"> </span><span class="n">accounts</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- Transaction 1 chưa COMMIT
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">--- Transaction 2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">START</span><span class="w"> </span><span class="k">TRANSACTION</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">accounts</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">COMMIT</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Trong ví dụ này, Transaction 2 sẽ không thấy số dư tài khoản đã bị giảm 100 bởi Transaction 1 vì Transaction 1 chưa được commit. Transaction 2 sẽ chỉ đọc dữ liệu đã được commit trước đó.</p>
 <h3 id="repeatable-read">REPEATABLE READ<a hidden class="anchor" aria-hidden="true" href="#repeatable-read">¶</a></h3>
 <p>Đây là mức cách ly mặc định trong MySQL và được coi là một trong những mức cách ly mạnh mẽ nhất. Ở mức cách ly này, một transaction sẽ thấy cùng một tập hợp dữ liệu nếu nó đọc cùng một truy vấn nhiều lần trong suốt quá trình thực thi, ngay cả khi các transaction khác đã thay đổi dữ liệu đó và commit các thay đổi của chúng. <code>REPEATABLE READ</code> ngăn chặn cả <strong>dirty read</strong> và <strong>non-repeatable read</strong>.</p>
 <p><strong>Đặc điểm:</strong></p>
@@ -308,6 +366,40 @@ số ràng buộc phổ biến như <code>PRIMARY KEY</code>, <code>FOREIGN KEY<
 <li><strong>Sử dụng MVCC (Multiversion Concurrency Control)</strong>: MySQL sử dụng MVCC để đảm bảo các transaction đọc có thể thấy trạng thái nhất quán của dữ liệu.</li>
 <li>Hiệu suất sẽ giảm hơn so với hai mức cách ly bên trên.</li>
 </ul>
+<p>Ví dụ có 2 transaction đang chạy đồng thời:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="c1">--- Transaction 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">START</span><span class="w"> </span><span class="k">TRANSACTION</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">accounts</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- Transaction 1 đọc số dư tài khoản lần đầu
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">UPDATE</span><span class="w"> </span><span class="n">accounts</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- Transaction 1 chưa COMMIT
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">--- Transaction 2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">START</span><span class="w"> </span><span class="k">TRANSACTION</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">accounts</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- Transaction 2 đọc số dư tài khoản, thấy số dư trước khi Transaction 1 cập
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">nhật</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">COMMIT</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Trong ví dụ này, Transaction 2 sẽ thấy số dư ban đầu của tài khoản trước khi Transaction 1 cập nhật. Ngay cả khi Transaction 1 commit thay đổi, Transaction 2 cũng sẽ không thấy thay đổi đó nếu nó thực hiện lại truy vấn.</p>
 <h3 id="serializable">SERIALIZABLE<a hidden class="anchor" aria-hidden="true" href="#serializable">¶</a></h3>
 <p>SERIALIZABLE là mức cách ly cao nhất trong các mức cách ly của cơ sở dữ liệu. Ở mức cách ly này, mỗi giao dịch được thực hiện một cách tuần tự, không có transaction nào có thể nhìn thấy các thay đổi của giao dịch khác cho đến khi transaction đó hoàn thành. Điều này đảm bảo rằng không có phantom read, non-repeatable read hay dirty read.</p>
 <p><strong>Đặc điểm:</strong></p>
@@ -318,6 +410,40 @@ số ràng buộc phổ biến như <code>PRIMARY KEY</code>, <code>FOREIGN KEY<
 <li><strong>Khóa toàn bộ các hàng dữ liệu</strong>: Mỗi transaction sẽ khóa các dãy dữ liệu nó truy cập, ngăn chặn các transaction khác thay đổi dữ liệu trong các hàng đó.</li>
 <li>Hiệu suất của SERIALIZABLE sẽ là thấp nhất trong bốn loại cách ly được đề cập ở đây.</li>
 </ul>
+<p>Ví dụ có 2 transaction đang chạy đồng thời:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="c1">--- Transaction 1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">START</span><span class="w"> </span><span class="k">TRANSACTION</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">accounts</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">FOR</span><span class="w"> </span><span class="k">UPDATE</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- Transaction 1 khóa tài khoản 1 để tránh các thay đổi từ các giao dịch khác
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">UPDATE</span><span class="w"> </span><span class="n">accounts</span><span class="w"> </span><span class="k">SET</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">COMMIT</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">--- Transaction 2
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">START</span><span class="w"> </span><span class="k">TRANSACTION</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">SELECT</span><span class="w"> </span><span class="n">balance</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">accounts</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">account_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">-- Transaction 2 sẽ bị chặn lại cho đến khi Transaction 1 hoàn thành
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">COMMIT</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Trong ví dụ này, Transaction 2 sẽ bị chặn lại cho đến khi Transaction 1 hoàn thành và commit. Điều này đảm bảo rằng Transaction 2 sẽ không thấy bất kỳ thay đổi nào từ Transaction 1 cho đến khi Transaction 1 hoàn tất.</p>
 <h2 id="deadlocks">Deadlocks<a hidden class="anchor" aria-hidden="true" href="#deadlocks">¶</a></h2>
 <p>Deadlocks (Khoá chết) xảy ra khi hai hoặc nhiều transaction đồng thời giữ các khóa trên một tập hợp tài nguyên và mỗi transaction chờ đợi một khóa đang được giữ bởi một transaction khác trong tập
 hợp đó (Transaction A đợi Transaction B, nhưng B cũng lại đợi A). Điều này tạo ra một vòng lặp phụ thuộc mà không thể giải quyết được, và tất cả các transaction liên quan sẽ chờ đợi vô thời hạn trừ khi có biện pháp can thiệp để giải quyết tình trạng này.</p>
