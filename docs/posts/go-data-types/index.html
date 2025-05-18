@@ -56,7 +56,7 @@
   "keywords": [
     "golang", "coding"
   ],
-  "wordCount" : "617",
+  "wordCount" : "673",
   "inLanguage": "en",
   "datePublished": "2025-05-18T10:26:21+07:00",
   "dateModified": "2025-05-18T10:26:21+07:00",
@@ -217,7 +217,7 @@ function toggleThemeListener() {
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
   <span class="post-tags"><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/coding/">Coding</a></span></span><span class="meta-item">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
-  <span>3 min</span></span>
+  <span>4 min</span></span>
 
       
       
@@ -322,15 +322,35 @@ function toggleThemeListener() {
 <p>Ví dụ in ra từng ký tự Unicode cùng vị trí và mã code point</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
 </span></code></pre></td>
 <td class="lntd">
 <pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="k">for</span> <span class="nx">index</span><span class="p">,</span> <span class="nx">runeValue</span> <span class="o">:=</span> <span class="k">range</span> <span class="s">&#34;hello, 世界&#34;</span> <span class="p">{</span>
 </span></span><span class="line"><span class="cl">    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%d -&gt; %#U\n&#34;</span><span class="p">,</span> <span class="nx">index</span><span class="p">,</span> <span class="nx">runeValue</span><span class="p">)</span>
 </span></span><span class="line"><span class="cl"><span class="p">}</span>
-</span></span></code></pre></td></tr></table>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// 0 -&gt; U+0068 &#39;h&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 1 -&gt; U+0065 &#39;e&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 2 -&gt; U+006C &#39;l&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 3 -&gt; U+006C &#39;l&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 4 -&gt; U+006F &#39;o&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 5 -&gt; U+002C &#39;,&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 6 -&gt; U+0020 &#39; &#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 7 -&gt; U+4E16 &#39;世&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 10 -&gt; U+754C &#39;界&#39;
+</span></span></span></code></pre></td></tr></table>
 </div>
 </div>
 

@@ -57,4 +57,14 @@ Ví dụ in ra từng ký tự Unicode cùng vị trí và mã code point
 for index, runeValue := range "hello, 世界" {
     fmt.Printf("%d -> %#U\n", index, runeValue)
 }
+
+// 0 -> U+0068 'h'
+// 1 -> U+0065 'e'
+// 2 -> U+006C 'l'
+// 3 -> U+006C 'l'
+// 4 -> U+006F 'o'
+// 5 -> U+002C ','
+// 6 -> U+0020 ' '
+// 7 -> U+4E16 '世'
+// 10 -> U+754C '界'
 ```
