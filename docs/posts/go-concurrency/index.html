@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Go Concurrency | Huy Dang Blog</title>
+<meta name="keywords" content="golang, coding, concurrency">
+<meta name="description" content="Một số khái niệm về concurrency trong Go">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/go-concurrency/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/go-concurrency/">
+
+<meta name="twitter:title" content="Go Concurrency | Huy Dang Blog" />
+<meta name="twitter:description" content="Một số khái niệm về concurrency trong Go" />
+<meta property="og:title" content="Go Concurrency | Huy Dang Blog" />
+<meta property="og:description" content="Một số khái niệm về concurrency trong Go" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/go-concurrency/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2025-05-18T13:39:54&#43;07:00" />
+  <meta property="article:modified_time" content="2025-05-18T13:39:54&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Go Concurrency",
+      "item": "https://blog.huydang.dev/posts/go-concurrency/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Go Concurrency | Huy Dang Blog",
+  "name": "Go Concurrency",
+  "description": "Một số khái niệm về concurrency trong Go",
+  "keywords": [
+    "golang", "coding", "concurrency"
+  ],
+  "wordCount" : "2230",
+  "inLanguage": "en",
+  "datePublished": "2025-05-18T13:39:54+07:00",
+  "dateModified": "2025-05-18T13:39:54+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/go-concurrency/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Go Concurrency</h1>
+    <div class="post-description">Một số khái niệm về concurrency trong Go</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>May 18, 2025</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/coding/">Coding</a><a href="https://blog.huydang.dev/tags/concurrency/">Concurrency</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>11 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#goroutine" aria-label="Goroutine">Goroutine</a><ul>
+                        
+                <li>
+                    <a href="#c%c6%a1-ch%e1%ba%bf-ho%e1%ba%a1t-%c4%91%e1%bb%99ng" aria-label="Cơ chế hoạt động">Cơ chế hoạt động</a></li>
+                <li>
+                    <a href="#c%c6%a1-ch%e1%ba%bf-giao-ti%e1%ba%bfp-v%c3%a0-%c4%91%e1%bb%93ng-b%e1%bb%99" aria-label="Cơ chế giao tiếp và đồng bộ">Cơ chế giao tiếp và đồng bộ</a></li>
+                <li>
+                    <a href="#c%c3%a1c-v%e1%ba%a5n-%c4%91%e1%bb%81-th%c6%b0%e1%bb%9dng-g%e1%ba%b7p" aria-label="Các vấn đề thường gặp">Các vấn đề thường gặp</a><ul>
+                        
+                <li>
+                    <a href="#deadlock" aria-label="Deadlock">Deadlock</a></li>
+                <li>
+                    <a href="#cpu-v%c3%a0-memory-optimization" aria-label="CPU và Memory Optimization">CPU và Memory Optimization</a></li>
+                <li>
+                    <a href="#nh%e1%bb%afng-l%e1%bb%97i-ph%e1%bb%95-bi%e1%ba%bfn" aria-label="Những lỗi phổ biến">Những lỗi phổ biến</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#channels" aria-label="Channels">Channels</a><ul>
+                        
+                <li>
+                    <a href="#nguy%c3%aan-l%c3%bd-ho%e1%ba%a1t-%c4%91%e1%bb%99ng" aria-label="Nguyên lý hoạt động">Nguyên lý hoạt động</a></li>
+                <li>
+                    <a href="#buffered-vs-unbuffered-channels" aria-label="buffered vs unbuffered channels">buffered vs unbuffered channels</a><ul>
+                        
+                <li>
+                    <a href="#t%e1%bb%95ng-quan" aria-label="Tổng quan">Tổng quan</a></li>
+                <li>
+                    <a href="#s%e1%bb%ad-d%e1%bb%a5ng-th%e1%bb%b1c-t%e1%ba%bf" aria-label="Sử dụng thực tế">Sử dụng thực tế</a></li>
+                <li>
+                    <a href="#c%c3%a1c-v%e1%ba%a5n-%c4%91%e1%bb%81-th%c6%b0%e1%bb%9dng-g%e1%ba%b7p-1" aria-label="Các vấn đề thường gặp">Các vấn đề thường gặp</a><ul>
+                        
+                <li>
+                    <a href="#deadlock-v%e1%bb%9bi-unbuffered-channel" aria-label="Deadlock với Unbuffered Channel">Deadlock với Unbuffered Channel</a></li>
+                <li>
+                    <a href="#buffer-overflow-v%e1%bb%9bi-buffered-channel" aria-label="Buffer Overflow với Buffered Channel">Buffer Overflow với Buffered Channel</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#%c4%91%e1%bb%93ng-b%e1%bb%99-h%c3%b3a-v%c3%a0-qu%e1%ba%a3n-l%c3%bd-lu%e1%bb%93ng" aria-label="Đồng bộ hóa và quản lý luồng">Đồng bộ hóa và quản lý luồng</a><ul>
+                        
+                <li>
+                    <a href="#waitgroup-cho-%c4%91%e1%bb%93ng-b%e1%bb%99" aria-label="WaitGroup cho đồng bộ">WaitGroup cho đồng bộ</a></li>
+                <li>
+                    <a href="#select-statement" aria-label="Select statement">Select statement</a></li></ul>
+                </li>
+                <li>
+                    <a href="#c%c3%a1c-m%c3%b4-h%c3%acnh-thi%e1%ba%bft-k%e1%ba%bf-ph%e1%bb%95-bi%e1%ba%bfn" aria-label="Các mô hình thiết kế phổ biến">Các mô hình thiết kế phổ biến</a><ul>
+                        
+                <li>
+                    <a href="#fan-outfan-in" aria-label="Fan-out/Fan-in">Fan-out/Fan-in</a></li>
+                <li>
+                    <a href="#pipeline" aria-label="Pipeline">Pipeline</a></li>
+                <li>
+                    <a href="#worker-pool" aria-label="Worker Pool">Worker Pool</a></li></ul>
+                </li>
+                <li>
+                    <a href="#c%c3%a1c-v%e1%ba%a5n-%c4%91%e1%bb%81-th%c6%b0%e1%bb%9dng-g%e1%ba%b7p-2" aria-label="Các vấn đề thường gặp">Các vấn đề thường gặp</a><ul>
+                        
+                <li>
+                    <a href="#ph%c3%b2ng-tr%c3%a1nh-deadlock" aria-label="Phòng tránh deadlock">Phòng tránh deadlock</a></li>
+                <li>
+                    <a href="#qu%e1%ba%a3n-l%c3%bd-t%c3%a0i-nguy%c3%aan" aria-label="Quản lý tài nguyên">Quản lý tài nguyên</a></li>
+                <li>
+                    <a href="#channel-vs-mutex" aria-label="Channel vs Mutex">Channel vs Mutex</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#race-condition" aria-label="Race Condition">Race Condition</a><ul>
+                        
+                <li>
+                    <a href="#nguy%c3%aan-nh%c3%a2n-ph%e1%bb%95-bi%e1%ba%bfn" aria-label="Nguyên nhân phổ biến">Nguyên nhân phổ biến</a></li>
+                <li>
+                    <a href="#gi%e1%ba%a3i-ph%c3%a1p-ph%c3%b2ng-tr%c3%a1nh" aria-label="Giải pháp phòng tránh">Giải pháp phòng tránh</a><ul>
+                        
+                <li>
+                    <a href="#s%e1%bb%ad-d%e1%bb%a5ng-mutex" aria-label="Sử dụng Mutex"><strong>Sử dụng Mutex</strong></a></li>
+                <li>
+                    <a href="#atomic-operations" aria-label="Atomic Operations"><strong>Atomic Operations</strong></a></li>
+                <li>
+                    <a href="#channel-synchronization" aria-label="Channel Synchronization"><strong>Channel Synchronization</strong></a></li></ul>
+                </li>
+                <li>
+                    <a href="#m%e1%ba%abu-thi%e1%ba%bft-k%e1%ba%bf-an-to%c3%a0n" aria-label="Mẫu thiết kế an toàn">Mẫu thiết kế an toàn</a><ul>
+                        
+                <li>
+                    <a href="#pipeline-x%e1%bb%ad-l%c3%bd-d%e1%bb%af-li%e1%bb%87u-qua-nhi%e1%bb%81u-giai-%c4%91o%e1%ba%a1n" aria-label="Pipeline: Xử lý dữ liệu qua nhiều giai đoạn"><strong>Pipeline</strong>: Xử lý dữ liệu qua nhiều giai đoạn</a></li>
+                <li>
+                    <a href="#fan-outfan-in-ph%c3%a2n-t%c3%a1n-v%c3%a0-t%e1%bb%95ng-h%e1%bb%a3p-task" aria-label="Fan-out/Fan-in: Phân tán và tổng hợp task"><strong>Fan-out/Fan-in</strong>: Phân tán và tổng hợp task</a></li>
+                <li>
+                    <a href="#errgroup-qu%e1%ba%a3n-l%c3%bd-nh%c3%b3m-goroutine-v%e1%bb%9bi-error-handling" aria-label="errgroup: Quản lý nhóm goroutine với error handling"><strong>errgroup</strong>: Quản lý nhóm goroutine với error handling</a></li>
+                <li>
+                    <a href="#atomicvalue-l%c6%b0u-tr%e1%bb%af-gi%c3%a1-tr%e1%bb%8b-an-to%c3%a0n" aria-label="atomic.Value: Lưu trữ giá trị an toàn"><strong>atomic.Value</strong>: Lưu trữ giá trị an toàn</a></li>
+                <li>
+                    <a href="#c%c3%b4ng-c%e1%bb%a5-h%e1%bb%97-tr%e1%bb%a3" aria-label="Công cụ hỗ trợ">Công cụ hỗ trợ</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="goroutine">Goroutine<a hidden class="anchor" aria-hidden="true" href="#goroutine">¶</a></h1>
+<p><code>Goroutine</code> là một trong những tính năng đặc biệt và mạnh mẽ nhất của ngôn ngữ lập trình Go, cho phép lập trình đồng thời (concurrency) được thực hiện một cách đơn giản và hiệu quả.</p>
+<p>Về bản chất, Goroutine là các hàm hoặc phương thức được thực thi một cách độc lập và đồng thời nhưng vẫn có thể kết nối với nhau. Đây là một <strong>lightweight thread of execution</strong> được quản lý bởi <strong>Go runtime</strong> và cho phép viết mã bất đồng bộ (asynchronous) theo cách đồng bộ (synchronous).</p>
+<h2 id="cơ-chế-hoạt-động">Cơ chế hoạt động<a hidden class="anchor" aria-hidden="true" href="#cơ-chế-hoạt-động">¶</a></h2>
+<p>Cơ chế của Goroutine khá đơn giản: một function tồn tại một cách đa luồng với các Goroutine khác trên cùng một không gian bộ nhớ. Go có bộ điều khiển quản lý các Goroutine rồi phân phối chúng vào các bộ xử lý logic và gắn mỗi bộ xử lý logic này với một thread hệ thống được tạo ra trước đó để thực thi các Goroutine này. Nói cách khác, mỗi <strong>thread hệ thống sẽ xử lý một nhóm Goroutine được điều phối thông qua bộ xử lý logic</strong>.</p>
+<p>Go runtime sử dụng mô hình M:N scheduler, có nghĩa là nó <strong>multiplexes M goroutines onto N OS threads</strong>. Nhiệm vụ chính của Go scheduler là phân phối các Goroutine trên các thread và core có sẵn một cách hiệu quả. Với bộ điều khiển quản lý tác vụ đồng thời và cơ chế bộ xử lý logic, những khó khăn, phức tạp khi khai báo thread Go đã xử lý hết giúp lập trình viên.</p>
+<h2 id="cơ-chế-giao-tiếp-và-đồng-bộ">Cơ chế giao tiếp và đồng bộ<a hidden class="anchor" aria-hidden="true" href="#cơ-chế-giao-tiếp-và-đồng-bộ">¶</a></h2>
+<p>Về mặt giao tiếp, Goroutine có thể giao tiếp an toàn với nhau thông qua các <code>Channel</code>. Các channel hỗ trợ <strong>mutex lock</strong> vì thế tránh được các lỗi liên quan tới cùng ghi và đọc lên vùng dữ liệu chia sẻ (<strong>data race</strong>). Goroutine có thể được ánh xạ và hoạt động trên nhiều OS threads thay vì ánh xạ 1:1 như Thread truyền thống.</p>
+<p>Go áp dụng triết lý <strong>&ldquo;Do not communicate by sharing memory; instead, share memory by communicating&rdquo;</strong> (Đừng giao tiếp bằng cách chia sẻ bộ nhớ; thay vào đó, hãy chia sẻ bộ nhớ bằng cách giao tiếp).</p>
+<h2 id="các-vấn-đề-thường-gặp">Các vấn đề thường gặp<a hidden class="anchor" aria-hidden="true" href="#các-vấn-đề-thường-gặp">¶</a></h2>
+<h3 id="deadlock">Deadlock<a hidden class="anchor" aria-hidden="true" href="#deadlock">¶</a></h3>
+<p><strong>Deadlock</strong> là một vấn đề phổ biến khi sử dụng Goroutine. Deadlock xảy ra khi một nhóm Goroutine đang đợi nhau và không ai trong số đó có thể tiến hành. Các nguyên nhân phổ biến gây deadlock bao gồm:</p>
+<ul>
+<li>Quên gọi <code>wg.Done()</code> trong <code>WaitGroup</code></li>
+<li>Sử dụng số lượng <code>wg.Add()</code> không chính xác</li>
+<li>Gửi dữ liệu vào channel mà không có Goroutine nào nhận</li>
+</ul>
+<h3 id="cpu-và-memory-optimization">CPU và Memory Optimization<a hidden class="anchor" aria-hidden="true" href="#cpu-và-memory-optimization">¶</a></h3>
+<p>Go mặc định sử dụng <strong>1 CPU core</strong>. Để sử dụng nhiều CPU cho xử lý song song (<strong>parallel processing</strong>), cần gọi <code>runtime.GOMAXPROCS(CPU_count)</code>. GOMAXPROCS chỉ định số lượng tối đa processors có thể được sử dụng bởi Go runtime.</p>
+<p>Từ Go 1.5, <strong>GOMAXPROCS</strong> có default là <strong>&ldquo;số lượng logical CPUs có sẵn&rdquo;</strong>. Điều này hoạt động tốt cho single-tenant systems nhưng có thể cần điều chỉnh cho multi-tenant systems với isolation như container orchestration systems.</p>
+<h3 id="những-lỗi-phổ-biến">Những lỗi phổ biến<a hidden class="anchor" aria-hidden="true" href="#những-lỗi-phổ-biến">¶</a></h3>
+<ul>
+<li><strong>Race Conditions</strong>: Nhiều Goroutine truy cập cùng một vùng dữ liệu mà không có synchronization</li>
+<li><strong>Memory Leaks</strong>: Goroutine chạy vô tận hoặc không được cleanup đúng cách</li>
+<li><strong>Channel Deadlocks</strong>: Gửi hoặc nhận dữ liệu từ channel mà không có corresponding operation</li>
+</ul>
+<p>Để tránh các vấn đề này, nên sử dụng channel khi các Goroutine cần giao tiếp với nhau và mutex lock khi chỉ một Goroutine truy cập vào phần code quan trọng.</p>
+<h1 id="channels">Channels<a hidden class="anchor" aria-hidden="true" href="#channels">¶</a></h1>
+<p><code>Channels</code> là một trong những tính năng cốt lõi của Golang để xử lý đồng thời (concurrency) và giao tiếp giữa các goroutine. Với thiết kế đơn giản nhưng hiệu quả, channels giúp quản lý luồng dữ liệu an toàn giữa các tiến trình đồng thời mà không cần dùng đến locks hay mutexes.</p>
+<p>Channel trong Go là một cơ chế giao tiếp có kiểu dữ liệu (typed conduit), cho phép truyền nhận giá trị giữa các goroutine thông qua toán tử <code>&lt;-</code>. Có ba loại channel chính:</p>
+<ul>
+<li><strong>Bidirectional</strong>: <code>chan T</code> (vừa gửi vừa nhận)</li>
+<li><strong>Send-only</strong>: <code>chan&lt;- T</code> (chỉ gửi)</li>
+<li><strong>Receive-only</strong>: <code>&lt;-chan T</code> (chỉ nhận)</li>
+</ul>
+<p>Ví dụ khởi tạo channel:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">unbuffered</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span>      <span class="c1">// Unbuffered
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">buffered</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">string</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>  <span class="c1">// Buffered capacity 5
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="nguyên-lý-hoạt-động">Nguyên lý hoạt động<a hidden class="anchor" aria-hidden="true" href="#nguyên-lý-hoạt-động">¶</a></h2>
+<p>Channel hoạt động như hàng đợi <strong>FIFO (First-In-First-Out)</strong>. Đối với <strong>unbuffered channel</strong>, thao tác gửi/nhận sẽ block cho đến khi có goroutine khác sẵn sàng thực hiện thao tác ngược lại. <strong>Buffered channel</strong> cho phép lưu trữ nhiều giá trị đến khi đầy buffer mới block.</p>
+<h2 id="buffered-vs-unbuffered-channels">buffered vs unbuffered channels<a hidden class="anchor" aria-hidden="true" href="#buffered-vs-unbuffered-channels">¶</a></h2>
+<h3 id="tổng-quan">Tổng quan<a hidden class="anchor" aria-hidden="true" href="#tổng-quan">¶</a></h3>
+<ol>
+<li>Unbuffered Channels</li>
+</ol>
+<ul>
+<li>Gửi dữ liệu (send operation) sẽ block cho đến khi có goroutine khác nhận dữ liệu</li>
+<li>Nhận dữ liệu (receive operation) block cho đến khi có dữ liệu được gửi</li>
+<li>Hoạt động theo cơ chế rendezvous - giao tiếp trực tiếp giữa sender và receiver</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span> <span class="c1">// Unbuffered
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span> <span class="nx">ch</span> <span class="o">&lt;-</span> <span class="mi">42</span> <span class="p">}()</span>
+</span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="o">&lt;-</span><span class="nx">ch</span><span class="p">)</span> <span class="c1">// Output: 42
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="2">
+<li>Buffered Channels</li>
+</ol>
+<ul>
+<li>Cho phép lưu trữ capacity giá trị trước khi block sender</li>
+<li>Sender chỉ block khi buffer đầy</li>
+<li>Receiver block khi buffer rỗng</li>
+<li>Hoạt động như hàng đợi FIFO</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">string</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="c1">// Buffered capacity 3
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">ch</span> <span class="o">&lt;-</span> <span class="s">&#34;A&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">ch</span> <span class="o">&lt;-</span> <span class="s">&#34;B&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="o">&lt;-</span><span class="nx">ch</span><span class="p">)</span> <span class="c1">// Output: A
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>So sánh</p>
+<table>
+<thead>
+<tr>
+<th>Đặc điểm</th>
+<th>Unbuffered Channel</th>
+<th>Buffered Channel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Khởi tạo</td>
+<td><code>make(chan T)</code></td>
+<td><code>make(chan T, capacity)</code></td>
+</tr>
+<tr>
+<td>Block sender</td>
+<td>Khi không có receiver</td>
+<td>Khi buffer đầy</td>
+</tr>
+<tr>
+<td>Block receiver</td>
+<td>Khi không có dữ liệu</td>
+<td>Khi buffer rỗng</td>
+</tr>
+<tr>
+<td>Đồng bộ</td>
+<td>Hoàn toàn đồng bộ</td>
+<td>Bán đồng bộ</td>
+</tr>
+<tr>
+<td>Hiệu suất</td>
+<td>Thấp hơn do block thường xuyên</td>
+<td>Cao hơn nhờ buffer</td>
+</tr>
+<tr>
+<td>Sử dụng bộ nhớ</td>
+<td>Không cần buffer</td>
+<td>Cần cấp phát buffer</td>
+</tr>
+<tr>
+<td>Phù hợp</td>
+<td>Giao tiếp trực tiếp</td>
+<td>Xử lý burst traffic</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sử-dụng-thực-tế">Sử dụng thực tế<a hidden class="anchor" aria-hidden="true" href="#sử-dụng-thực-tế">¶</a></h3>
+<ol>
+<li>Unbuffered Channel - Đồng bộ hóa chặt</li>
+</ol>
+<p>Phối hợp thời gian giữa các goroutines</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">done</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{})</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">worker</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Xử lý công việc
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nb">close</span><span class="p">(</span><span class="nx">done</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">go</span> <span class="nf">worker</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="o">&lt;-</span><span class="nx">done</span> <span class="c1">// Block cho đến khi worker hoàn thành
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ol start="2">
+<li>Buffered Channel - Xử lý tải biến động</li>
+</ol>
+<p>Hệ thống queue xử lý request</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">const</span> <span class="nx">maxRequests</span> <span class="p">=</span> <span class="mi">100</span>
+</span></span><span class="line"><span class="cl"><span class="nx">requests</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">Request</span><span class="p">,</span> <span class="nx">maxRequests</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Producer
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">req</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">incoming</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">requests</span> <span class="o">&lt;-</span> <span class="nx">req</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Consumer
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">5</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">req</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">requests</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nf">process</span><span class="p">(</span><span class="nx">req</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="các-vấn-đề-thường-gặp-1">Các vấn đề thường gặp<a hidden class="anchor" aria-hidden="true" href="#các-vấn-đề-thường-gặp-1">¶</a></h3>
+<h4 id="deadlock-với-unbuffered-channel">Deadlock với Unbuffered Channel<a hidden class="anchor" aria-hidden="true" href="#deadlock-với-unbuffered-channel">¶</a></h4>
+<p><strong>Nguyên nhân</strong>: Gửi/nhận không cân bằng</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">ch</span> <span class="o">&lt;-</span> <span class="mi">42</span> <span class="c1">// Block vĩnh viễn
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="o">&lt;-</span><span class="nx">ch</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Giải pháp</strong>:</p>
+<ul>
+<li>Luôn đảm bảo có goroutine receiver</li>
+<li>Sử dụng select với timeout</li>
+</ul>
+<h4 id="buffer-overflow-với-buffered-channel">Buffer Overflow với Buffered Channel<a hidden class="anchor" aria-hidden="true" href="#buffer-overflow-với-buffered-channel">¶</a></h4>
+<p><strong>Nguyên nhân</strong>: Producer nhanh hơn consumer</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">100</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ch</span> <span class="o">&lt;-</span> <span class="nx">i</span> <span class="c1">// Block khi buffer đầy
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Giải pháp</strong>:</p>
+<ul>
+<li>Giám sát len(ch) và cap(ch)</li>
+<li>Sử dụng backpressure pattern</li>
+</ul>
+<h2 id="đồng-bộ-hóa-và-quản-lý-luồng">Đồng bộ hóa và quản lý luồng<a hidden class="anchor" aria-hidden="true" href="#đồng-bộ-hóa-và-quản-lý-luồng">¶</a></h2>
+<h3 id="waitgroup-cho-đồng-bộ">WaitGroup cho đồng bộ<a hidden class="anchor" aria-hidden="true" href="#waitgroup-cho-đồng-bộ">¶</a></h3>
+<p>Package <code>sync</code> cung cấp <code>WaitGroup</code> để đợi nhiều goroutine hoàn thành:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">wg</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">WaitGroup</span>
+</span></span><span class="line"><span class="cl"><span class="nx">wg</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Xử lý
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">wg</span><span class="p">.</span><span class="nf">Wait</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="select-statement">Select statement<a hidden class="anchor" aria-hidden="true" href="#select-statement">¶</a></h3>
+<p><code>select</code> cho phép xử lý nhiều channel đồng thời, thường dùng cho:</p>
+<ul>
+<li>Timeout</li>
+<li>Non-blocking operations</li>
+<li>Xử lý nhiều nguồn dữ liệu</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="k">select</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="nx">msg</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">ch1</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">msg</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="o">&lt;-</span><span class="nx">time</span><span class="p">.</span><span class="nf">After</span><span class="p">(</span><span class="mi">1</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;Timeout&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">default</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Non-blocking
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="các-mô-hình-thiết-kế-phổ-biến">Các mô hình thiết kế phổ biến<a hidden class="anchor" aria-hidden="true" href="#các-mô-hình-thiết-kế-phổ-biến">¶</a></h2>
+<h3 id="fan-outfan-in">Fan-out/Fan-in<a hidden class="anchor" aria-hidden="true" href="#fan-outfan-in">¶</a></h3>
+<p>Phân tách công việc thành các task nhỏ (fan-out) và tổng hợp kết quả (fan-in):</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">fanOut</span><span class="p">(</span><span class="nx">in</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">out</span> <span class="p">[]</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">in</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">ch</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">out</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">ch</span> <span class="o">&lt;-</span> <span class="nx">i</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">fanIn</span><span class="p">(</span><span class="nx">inputs</span> <span class="o">...&lt;-</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kt">int</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">merged</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Merge logic
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">return</span> <span class="nx">merged</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="pipeline">Pipeline<a hidden class="anchor" aria-hidden="true" href="#pipeline">¶</a></h3>
+<p>Xử lý dữ liệu qua nhiều giai đoạn:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">pipeline</span><span class="p">(</span><span class="nx">input</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kt">int</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">stage1</span> <span class="o">:=</span> <span class="nf">processStage</span><span class="p">(</span><span class="nx">input</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">stage2</span> <span class="o">:=</span> <span class="nf">processStage</span><span class="p">(</span><span class="nx">stage1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">stage2</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="worker-pool">Worker Pool<a hidden class="anchor" aria-hidden="true" href="#worker-pool">¶</a></h3>
+<p>Quản lý nhóm worker xử lý task từ job queue</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">worker</span><span class="p">(</span><span class="nx">id</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">jobs</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">results</span> <span class="kd">chan</span><span class="o">&lt;-</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">j</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">jobs</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">results</span> <span class="o">&lt;-</span> <span class="nx">j</span><span class="o">*</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="các-vấn-đề-thường-gặp-2">Các vấn đề thường gặp<a hidden class="anchor" aria-hidden="true" href="#các-vấn-đề-thường-gặp-2">¶</a></h2>
+<h3 id="phòng-tránh-deadlock">Phòng tránh deadlock<a hidden class="anchor" aria-hidden="true" href="#phòng-tránh-deadlock">¶</a></h3>
+<p>Các nguyên nhân gây deadlock phổ biến:</p>
+<ul>
+<li>Gửi vào unbuffered channel không có receiver</li>
+<li>Đọc từ channel rỗng</li>
+<li>Quên đóng channel khi dùng range</li>
+</ul>
+<p>Giải pháp:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Sử dụng timeout
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">select</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="nx">res</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">ch</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">res</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="o">&lt;-</span><span class="nx">time</span><span class="p">.</span><span class="nf">After</span><span class="p">(</span><span class="mi">1</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;Timeout&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Sử dụng channel kết hợp context
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">cancel</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nf">WithTimeout</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nf">Background</span><span class="p">(),</span> <span class="mi">1</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">defer</span> <span class="nf">cancel</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">select</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="o">&lt;-</span><span class="nx">ctx</span><span class="p">.</span><span class="nf">Done</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Err</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="nx">res</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">ch</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Xử lý res
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="quản-lý-tài-nguyên">Quản lý tài nguyên<a hidden class="anchor" aria-hidden="true" href="#quản-lý-tài-nguyên">¶</a></h3>
+<ul>
+<li>Đóng channel đúng cách: Chỉ đóng từ phía <strong>sender</strong>, sử dụng <code>defer close(ch)</code></li>
+<li>Tránh nil channels: Luôn khởi tạo channel với <code>make</code></li>
+<li>Sử dụng buffer hợp lý: Ưu tiên buffer nhỏ (3-5) trừ trường hợp cần xử lý burst traffic</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Đúng
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="nx">ch</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Sai: panic
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">ch</span> <span class="kd">chan</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl"><span class="nx">ch</span> <span class="o">&lt;-</span> <span class="mi">42</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="channel-vs-mutex">Channel vs Mutex<a hidden class="anchor" aria-hidden="true" href="#channel-vs-mutex">¶</a></h3>
+<ul>
+<li>Dùng channel khi cần giao tiếp giữa các goroutine</li>
+<li>Dùng mutex khi cần truy cập shared resource</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Channel approach
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">counter</span><span class="p">(</span><span class="nx">ch</span> <span class="kd">chan</span><span class="o">&lt;-</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">ch</span> <span class="o">&lt;-</span> <span class="nx">i</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Mutex approach
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">mu</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">count</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">increment</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">count</span><span class="o">++</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="race-condition">Race Condition<a hidden class="anchor" aria-hidden="true" href="#race-condition">¶</a></h1>
+<p><strong>Race condition</strong> xảy ra khi <strong>hai hoặc nhiều goroutine cùng truy cập vào một vùng nhớ chia sẻ</strong>, trong đó ít nhất một truy cập là ghi (write). Kết quả của chương trình phụ thuộc vào thứ tự thực thi không xác định của các goroutine.</p>
+<p>Ví dụ:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">counter</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">increment</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">counter</span><span class="o">++</span> <span class="c1">// Không an toàn khi chạy đồng thời
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Khi hai goroutine gọi increment(), giá trị counter có thể tăng 1 thay vì 2 do cả hai cùng đọc giá trị ban đầu</p>
+<h2 id="nguyên-nhân-phổ-biến">Nguyên nhân phổ biến<a hidden class="anchor" aria-hidden="true" href="#nguyên-nhân-phổ-biến">¶</a></h2>
+<ul>
+<li><strong>Capture variable trong closure</strong>: Biến vòng lặp bị capture bởi goroutine</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">i</span><span class="p">)</span> <span class="c1">// In ra giá trị không xác định
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>Shared state không được bảo vệ</strong>: Truy cập map, slice hoặc struct từ nhiều goroutine</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">m</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">int</span><span class="p">]</span><span class="kt">int</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span> <span class="nx">m</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="p">=</span> <span class="mi">1</span> <span class="p">}()</span>
+</span></span><span class="line"><span class="cl"><span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span> <span class="nx">m</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="p">=</span> <span class="mi">2</span> <span class="p">}()</span> <span class="c1">// Data race khi truy cập đồng thời
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>Sử dụng biến toàn cục</strong>: Các goroutine thay đổi biến global mà không đồng bộ.</li>
+</ul>
+<h2 id="giải-pháp-phòng-tránh">Giải pháp phòng tránh<a hidden class="anchor" aria-hidden="true" href="#giải-pháp-phòng-tránh">¶</a></h2>
+<h3 id="sử-dụng-mutex"><strong>Sử dụng Mutex</strong><a hidden class="anchor" aria-hidden="true" href="#sử-dụng-mutex">¶</a></h3>
+<p><code>sync.Mutex</code> cung cấp cơ chế lock/unlock để bảo vệ critical section:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">mu</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">counter</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">safeIncrement</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">counter</span><span class="o">++</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Lưu ý:</p>
+<ul>
+<li>Luôn unlock bằng defer</li>
+<li>Sử dụng RWMutex cho trường hợp read-heavy</li>
+</ul>
+<h3 id="atomic-operations"><strong>Atomic Operations</strong><a hidden class="anchor" aria-hidden="true" href="#atomic-operations">¶</a></h3>
+<p>Package <code>sync/atomic</code> cung cấp các thao tác atomic:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">counter</span> <span class="kt">int64</span>
+</span></span><span class="line"><span class="cl"><span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">counter</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="c1">// Tăng giá trị an toàn
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="channel-synchronization"><strong>Channel Synchronization</strong><a hidden class="anchor" aria-hidden="true" href="#channel-synchronization">¶</a></h3>
+<p>Sử dụng channel để đồng bộ hóa:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">ch</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Xử lý
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">ch</span> <span class="o">&lt;-</span> <span class="nx">result</span>
+</span></span><span class="line"><span class="cl"><span class="p">}()</span>
+</span></span><span class="line"><span class="cl"><span class="nx">result</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="nx">ch</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Mô hình worker pool với channel:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">jobs</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">Job</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">results</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">Result</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Worker
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">job</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">jobs</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">results</span> <span class="o">&lt;-</span> <span class="nf">process</span><span class="p">(</span><span class="nx">job</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="mẫu-thiết-kế-an-toàn">Mẫu thiết kế an toàn<a hidden class="anchor" aria-hidden="true" href="#mẫu-thiết-kế-an-toàn">¶</a></h2>
+<h3 id="pipeline-xử-lý-dữ-liệu-qua-nhiều-giai-đoạn"><strong>Pipeline</strong>: Xử lý dữ liệu qua nhiều giai đoạn<a hidden class="anchor" aria-hidden="true" href="#pipeline-xử-lý-dữ-liệu-qua-nhiều-giai-đoạn">¶</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">pipeline</span><span class="p">(</span><span class="nx">in</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kt">int</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">out</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">n</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">in</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">out</span> <span class="o">&lt;-</span> <span class="nx">n</span><span class="o">*</span><span class="mi">2</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">close</span><span class="p">(</span><span class="nx">out</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">out</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="fan-outfan-in-phân-tán-và-tổng-hợp-task"><strong>Fan-out/Fan-in</strong>: Phân tán và tổng hợp task<a hidden class="anchor" aria-hidden="true" href="#fan-outfan-in-phân-tán-và-tổng-hợp-task">¶</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">fanOut</span><span class="p">(</span><span class="nx">in</span> <span class="o">&lt;-</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">workers</span> <span class="kt">int</span><span class="p">)</span> <span class="p">[]</span><span class="o">&lt;-</span><span class="kd">chan</span> <span class="kt">int</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">outs</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="o">&lt;-</span><span class="kd">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">workers</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">workers</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">outs</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="p">=</span> <span class="nf">process</span><span class="p">(</span><span class="nx">in</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">outs</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="errgroup-quản-lý-nhóm-goroutine-với-error-handling"><strong>errgroup</strong>: Quản lý nhóm goroutine với error handling<a hidden class="anchor" aria-hidden="true" href="#errgroup-quản-lý-nhóm-goroutine-với-error-handling">¶</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">g</span><span class="p">,</span> <span class="nx">ctx</span> <span class="o">:=</span> <span class="nx">errgroup</span><span class="p">.</span><span class="nf">WithContext</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nf">Background</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl"><span class="nx">g</span><span class="p">.</span><span class="nf">Go</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Xử lý
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">})</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">g</span><span class="p">.</span><span class="nf">Wait</span><span class="p">();</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Xử lý lỗi
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="atomicvalue-lưu-trữ-giá-trị-an-toàn"><strong>atomic.Value</strong>: Lưu trữ giá trị an toàn<a hidden class="anchor" aria-hidden="true" href="#atomicvalue-lưu-trữ-giá-trị-an-toàn">¶</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">config</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">Value</span>
+</span></span><span class="line"><span class="cl"><span class="nx">config</span><span class="p">.</span><span class="nf">Store</span><span class="p">(</span><span class="nx">newConfig</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">current</span> <span class="o">:=</span> <span class="nx">config</span><span class="p">.</span><span class="nf">Load</span><span class="p">().(</span><span class="nx">Config</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="công-cụ-hỗ-trợ">Công cụ hỗ trợ<a hidden class="anchor" aria-hidden="true" href="#công-cụ-hỗ-trợ">¶</a></h3>
+<p><strong>Go Race Detector</strong>: Công cụ tích hợp sẵn trong Go toolchain:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">go run -race main.go  <span class="c1"># Chạy với race detector</span>
+</span></span><span class="line"><span class="cl">go <span class="nb">test</span> -race ./...   <span class="c1"># Kiểm tra test cases</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2025 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a>
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>
