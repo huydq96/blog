@@ -14,35 +14,35 @@ Trong thế giới của các hệ quản trị cơ sở dữ liệu, MySQL luô
 
 Bài blog này sẽ đi sâu vào cách hoạt động của Index trong MySQL, các loại Index phổ biến và những chiến lược để tạo ra các Index hiệu suất cao, giúp tăng tốc độ truy vấn và cải thiện hiệu năng tổng thể của hệ thống.
 
-Nội dung đươc lấy từ EBook [MySQL cho người đi làm](https://huynt.dev/products/mysql-cho-nguoi-di-lam).
+Nội dung được lấy từ EBook [MySQL cho người đi làm](https://huynt.dev/products/mysql-cho-nguoi-di-lam).
 
 
-## Index trong MySQL là gì?
+# Index trong MySQL là gì?
 
 Cách dễ nhất để hiểu Index trong MySQL là liên tưởng đến mục lục của một cuốn sách. Khi bạn muốn tìm một chương cụ thể, bạn không cần đọc toàn bộ cuốn sách từ đầu đến cuối. Thay vào đó, bạn tra cứu trong mục lục để biết số trang và nhảy trực tiếp đến đó.
 
 Trong MySQL, Index hoạt động tương tự. Nó là một cấu trúc dữ liệu giúp MySQL tìm kiếm kết quả của truy vấn một cách nhanh chóng. Thay vì phải quét toàn bộ bảng (**full table scan**), Index cho phép storage engine tìm đến các hàng (rows) chứa dữ liệu cần thiết một cách hiệu quả hơn.
 
-### Cấu Trúc của Index
+## Cấu Trúc của Index
 
 Một Index chứa các giá trị từ một hoặc nhiều cột trong một bảng. Khi bạn tạo Index trên nhiều cột (Index đa cột), **thứ tự của các cột là rất quan trọng**. MySQL chỉ có thể tìm kiếm hiệu quả theo thứ tự **từ trái sang phải** của các cột được định nghĩa trong Index. Việc tạo Index trên hai cột (col1, col2) khác với việc tạo hai Index đơn lẻ (col1) và (col2).
 
-### Lợi ích của Index
+## Lợi ích của Index
 
 - **Tăng tốc độ truy vấn**: Index giúp MySQL tìm kiếm và truy xuất dữ liệu nhanh hơn nhiều so với việc quét toàn bộ bảng.
 - **Tối ưu hóa hiệu suất**: Giúp giảm tải hệ thống bằng cách giảm số lượng hàng cần phải đọc và xử lý.
 
-### Hạn chế của Index
+## Hạn chế của Index
 
 - **Tốn không gian lưu trữ**: Index cần không gian lưu trữ bổ sung để lưu trữ cấu trúc dữ liệu của chúng.
 - **Tăng thời gian Insert, Update, Delete**: Các thao tác ghi dữ liệu (INSERT, UPDATE, DELETE) có thể chậm hơn vì MySQL cũng phải cập nhật Index.
 
 
-## Các loại Index chính trong MySQL
+# Các loại Index chính trong MySQL
 
 Index được triển khai ở tầng **storage engine**, không phải ở lớp SQL, do đó việc hỗ trợ và triển khai có thể khác nhau giữa các engine. Dưới đây là một số loại Index chính:
 
-### B-Tree Indexes:
+## B-Tree Indexes:
 
 - Là loại Index phổ biến nhất, thường được ngầm hiểu khi nói đến Index nói chung. Hầu hết các storage engine hỗ trợ loại này.
 - **Cách hoạt động**: Sử dụng cấu trúc dữ liệu B-tree (Balance Tree) để lưu trữ dữ liệu theo thứ tự. Các giá trị được sắp xếp và mỗi trang lá cách đều nhau từ gốc. Cấu trúc cây này giúp nhanh chóng tìm được giá trị cần tìm mà không cần Full-Scan.
@@ -60,7 +60,7 @@ Index được triển khai ở tầng **storage engine**, không phải ở l�
     - Chi phí cập nhật Index
     - Không hiệu quả cho các cột có ít sự đa dạng (tính selective thấp).
 
-### Hash Indexes:
+## Hash Indexes:
 
 - Sử dụng cấu trúc dữ liệu bảng băm (hash). Đặc biệt hiệu quả cho các truy vấn tìm kiếm chính xác (so sánh bằng).
 - **Cách hoạt động**: Chuyển đổi giá trị Index thành số hash, sử dụng số hash này để tìm kiếm nhanh chóng.
@@ -73,7 +73,7 @@ Index được triển khai ở tầng **storage engine**, không phải ở l�
     - Chủ yếu chỉ hỗ trợ bởi storage engine MEMORY trong MySQL (không dùng với InnoDB)
 - Bonus: InnoDB có tính năng Adaptive Hash Index (AHI). AHI tự động tạo các hash Index dựa trên các truy vấn thường xuyên, cải thiện khả năng tìm kiếm nhanh chóng cho B-tree Index. Quá trình này hoàn toàn tự động.
 
-### Full-text Indexes
+## Full-text Indexes
 
 - Loại Index đặc biệt được thiết kế để tìm kiếm từ khóa trong văn bản thay vì so sánh trực tiếp giá trị. Hữu ích cho các ứng dụng cần tìm kiếm phức tạp trong các trường văn bản dài.
 - **Cách hoạt động**: Tạo danh sách các từ xuất hiện trong văn bản và lưu trữ vị trí của chúng. Sử dụng Index này để tìm kiếm từ khóa khi có truy vấn. Hỗ trợ các tính năng như từ chặn (stop words), từ gốc (stemming), tìm kiếm Boolean.
@@ -89,7 +89,7 @@ Index được triển khai ở tầng **storage engine**, không phải ở l�
     - Yêu cầu cấu hình đặc biệt
 
 
-## Chiến lược tạo Index hiệu suất cao
+# Chiến lược tạo Index hiệu suất cao
 
 Để tạo ra một Index "tốt", bạn có thể tham khảo hệ thống đánh giá Index ba sao (three-star index) trong cuốn sách **Relational Database Index Design and the Optimizers** (tác giả *Tapio Lahdenmaki* và *Mike Leach*)
 
@@ -151,7 +151,7 @@ SELECT category_id, price FROM products WHERE category_id = 10 ORDER BY price;
 ```
 
 
-## Chiến lược chọn index
+# Chiến lược chọn index
 
 - **Hiểu rõ dữ liệu và truy vấn**: Phân tích cách dữ liệu được sử dụng và các truy vấn phổ biến để xác định cột cần Index và loại Index phù hợp.
 - **Index các cột thường xuyên truy vấn**: Tạo Index trên các cột xuất hiện trong điều kiện **WHERE**, **JOIN**, **ORDER BY**, và **GROUP BY**.

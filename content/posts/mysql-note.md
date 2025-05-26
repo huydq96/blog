@@ -10,10 +10,10 @@ description = 'Một số nội dung về MySQL'
 
 # Tổng quan
 Đây là một số note về MySQL.
-Nội dung đươc lấy từ EBook [MySQL cho người đi làm](https://huynt.dev/products/mysql-cho-nguoi-di-lam).
+Nội dung được lấy từ EBook [MySQL cho người đi làm](https://huynt.dev/products/mysql-cho-nguoi-di-lam).
 
 
-## Có nên sử dụng ràng buộc (Constraint) ở tầng cơ sở dữ liệu ?
+# Có nên sử dụng ràng buộc (Constraint) ở tầng cơ sở dữ liệu ?
 
 Ràng buộc (**constraints**) trong cơ sở dữ liệu là các quy tắc được áp dụng trên các bảng để đảm bảo
 tính toàn vẹn và nhất quán của dữ liệu. Một
@@ -28,7 +28,7 @@ Không nhất thiết phải cài đặt ràng buộc `FOREIGN KEY`. Một số 
 Do vậy trong thực tế không cần bắt buộc triển khai ràng buộc `FOREIGN KEY`. Ta có thể chấp nhận việc dư thừa dữ liệu để đảm bảo tính linh hoạt của cơ sở dữ liệu.
 
 
-## Tính chất ACID
+# Tính chất ACID
 
 - **Atomicity (Tính Nguyên Tử)**: Transaction phải hoạt động như một đơn vị công việc không thể chia nhỏ, toàn bộ giao dịch hoặc được áp dụng hoàn toàn hoặc sẽ không thành công toàn bộ
 - **Consistency (Tính Nhất Quán)**: Tính nhất quán đảm bảo rằng một transaction sẽ đưa cơ sở dữ liệu từ một trạng thái nhất quán này sang một trạng thái nhất quán khác. Tính nhất quán duy trì các ràng buộc toàn vẹn dữ liệu, như ràng buộc khóa chính, khóa ngoại, hoặc các ràng buộc không null.
@@ -36,11 +36,11 @@ Do vậy trong thực tế không cần bắt buộc triển khai ràng buộc `
 - **Durability (Tính Bền Vững)**: Tính bền vững đảm bảo rằng một khi transaction đã được commit, các thay đổi của nó sẽ được lưu trữ vĩnh viễn, ngay cả khi hệ thống gặp sự cố ngay sau đó.
 
 
-## Các mức cách ly (Isolation level)
+# Các mức cách ly (Isolation level)
 
 Mức cách ly xác định các quy tắc cho những thay đổi nào là hiển thị và không hiển thị bên trong và bên ngoài một transaction. Điều này là quan trọng, vì nó có thể ảnh hưởng đến tinh chính xác và cả hiệu suất của một transaction.
 
-### READ UNCOMMITTED
+## READ UNCOMMITTED
 
 Đây là mức cách ly thấp nhất trong các mức cách ly của cơ sở dữ liệu. Ở mức này, các transaction có thể đọc các thay đổi chưa được commit từ các transaction khác. Điều này có nghĩa là một transaction có thể thấy dữ liệu bị thay đổi bởi một transaction khác, ngay cả khi transaction đó chưa hoàn thành và commit.
 
@@ -67,7 +67,7 @@ COMMIT;
 
 Trong ví dụ này, transaction 2 có thể đọc số dư tài khoản đã bị giảm 100 mặc dù transaction 1 chưa được commit. Nếu sau đó transaction 1 bị rollback, transaction 2 đã đọc dữ liệu không chính xác.
 
-### READ COMMITTED
+## READ COMMITTED
 
 Ở mức cách ly này, một transaction chỉ có thể đọc các thay đổi đã được commit bởi các transaction khác. Điều này giúp tránh được các vấn đề liên quan đến dirty read (đọc dữ liệu “bẩn”), đảm bảo rằng các dữ liệu đọc được luôn nhất quán và đáng tin cậy.
 
@@ -93,7 +93,7 @@ COMMIT;
 
 Trong ví dụ này, Transaction 2 sẽ không thấy số dư tài khoản đã bị giảm 100 bởi Transaction 1 vì Transaction 1 chưa được commit. Transaction 2 sẽ chỉ đọc dữ liệu đã được commit trước đó.
 
-### REPEATABLE READ
+## REPEATABLE READ
 
 Đây là mức cách ly mặc định trong MySQL và được coi là một trong những mức cách ly mạnh mẽ nhất. Ở mức cách ly này, một transaction sẽ thấy cùng một tập hợp dữ liệu nếu nó đọc cùng một truy vấn nhiều lần trong suốt quá trình thực thi, ngay cả khi các transaction khác đã thay đổi dữ liệu đó và commit các thay đổi của chúng. `REPEATABLE READ` ngăn chặn cả **dirty read** và **non-repeatable read**.
 
@@ -124,7 +124,7 @@ COMMIT;
 
 Trong ví dụ này, Transaction 2 sẽ thấy số dư ban đầu của tài khoản trước khi Transaction 1 cập nhật. Ngay cả khi Transaction 1 commit thay đổi, Transaction 2 cũng sẽ không thấy thay đổi đó nếu nó thực hiện lại truy vấn.
 
-### SERIALIZABLE
+## SERIALIZABLE
 
 SERIALIZABLE là mức cách ly cao nhất trong các mức cách ly của cơ sở dữ liệu. Ở mức cách ly này, mỗi giao dịch được thực hiện một cách tuần tự, không có transaction nào có thể nhìn thấy các thay đổi của giao dịch khác cho đến khi transaction đó hoàn thành. Điều này đảm bảo rằng không có phantom read, non-repeatable read hay dirty read.
 
@@ -155,7 +155,7 @@ COMMIT;
 
 Trong ví dụ này, Transaction 2 sẽ bị chặn lại cho đến khi Transaction 1 hoàn thành và commit. Điều này đảm bảo rằng Transaction 2 sẽ không thấy bất kỳ thay đổi nào từ Transaction 1 cho đến khi Transaction 1 hoàn tất.
 
-## Deadlocks
+# Deadlocks
 
 Deadlocks (Khoá chết) xảy ra khi hai hoặc nhiều transaction đồng thời giữ các khóa trên một tập hợp tài nguyên và mỗi transaction chờ đợi một khóa đang được giữ bởi một transaction khác trong tập
 hợp đó (Transaction A đợi Transaction B, nhưng B cũng lại đợi A). Điều này tạo ra một vòng lặp phụ thuộc mà không thể giải quyết được, và tất cả các transaction liên quan sẽ chờ đợi vô thời hạn trừ khi có biện pháp can thiệp để giải quyết tình trạng này.

@@ -230,8 +230,7 @@ function toggleThemeListener() {
 
         <div class="inner"><ul>
                 <li>
-                    <a href="#t%e1%bb%95ng-quan" aria-label="Tổng quan">Tổng quan</a><ul>
-                        
+                    <a href="#t%e1%bb%95ng-quan" aria-label="Tổng quan">Tổng quan</a></li>
                 <li>
                     <a href="#c%c3%b3-n%c3%aan-s%e1%bb%ad-d%e1%bb%a5ng-r%c3%a0ng-bu%e1%bb%99c-constraint-%e1%bb%9f-t%e1%ba%a7ng-c%c6%a1-s%e1%bb%9f-d%e1%bb%af-li%e1%bb%87u-" aria-label="Có nên sử dụng ràng buộc (Constraint) ở tầng cơ sở dữ liệu ?">Có nên sử dụng ràng buộc (Constraint) ở tầng cơ sở dữ liệu ?</a></li>
                 <li>
@@ -252,16 +251,14 @@ function toggleThemeListener() {
                     <a href="#deadlocks" aria-label="Deadlocks">Deadlocks</a>
                 </li>
             </ul>
-            </li>
-            </ul>
         </div>
     </details>
 </div>
 
   <div class="post-content"><h1 id="tổng-quan">Tổng quan<a hidden class="anchor" aria-hidden="true" href="#tổng-quan">¶</a></h1>
 <p>Đây là một số note về MySQL.
-Nội dung đươc lấy từ EBook <a href="https://huynt.dev/products/mysql-cho-nguoi-di-lam">MySQL cho người đi làm</a>.</p>
-<h2 id="có-nên-sử-dụng-ràng-buộc-constraint-ở-tầng-cơ-sở-dữ-liệu-">Có nên sử dụng ràng buộc (Constraint) ở tầng cơ sở dữ liệu ?<a hidden class="anchor" aria-hidden="true" href="#có-nên-sử-dụng-ràng-buộc-constraint-ở-tầng-cơ-sở-dữ-liệu-">¶</a></h2>
+Nội dung được lấy từ EBook <a href="https://huynt.dev/products/mysql-cho-nguoi-di-lam">MySQL cho người đi làm</a>.</p>
+<h1 id="có-nên-sử-dụng-ràng-buộc-constraint-ở-tầng-cơ-sở-dữ-liệu-">Có nên sử dụng ràng buộc (Constraint) ở tầng cơ sở dữ liệu ?<a hidden class="anchor" aria-hidden="true" href="#có-nên-sử-dụng-ràng-buộc-constraint-ở-tầng-cơ-sở-dữ-liệu-">¶</a></h1>
 <p>Ràng buộc (<strong>constraints</strong>) trong cơ sở dữ liệu là các quy tắc được áp dụng trên các bảng để đảm bảo
 tính toàn vẹn và nhất quán của dữ liệu. Một
 số ràng buộc phổ biến như <code>PRIMARY KEY</code>, <code>FOREIGN KEY</code>, <code>UNIQUE</code>,&hellip;</p>
@@ -273,16 +270,16 @@ số ràng buộc phổ biến như <code>PRIMARY KEY</code>, <code>FOREIGN KEY<
 <li><strong>Khó khăn trong phát triển và kiểm tra</strong>: Trong quá trình phát triển, ràng buộc <code>FOREIGN KEY</code> có thể làm cho việc nhập dữ liệu thử nghiệm trở nên khó khăn hơn, vì bạn phải đảm bảo rằng tất cả các mối quan hệ tham chiếu đều hợp lệ.</li>
 </ul>
 <p>Do vậy trong thực tế không cần bắt buộc triển khai ràng buộc <code>FOREIGN KEY</code>. Ta có thể chấp nhận việc dư thừa dữ liệu để đảm bảo tính linh hoạt của cơ sở dữ liệu.</p>
-<h2 id="tính-chất-acid">Tính chất ACID<a hidden class="anchor" aria-hidden="true" href="#tính-chất-acid">¶</a></h2>
+<h1 id="tính-chất-acid">Tính chất ACID<a hidden class="anchor" aria-hidden="true" href="#tính-chất-acid">¶</a></h1>
 <ul>
 <li><strong>Atomicity (Tính Nguyên Tử)</strong>: Transaction phải hoạt động như một đơn vị công việc không thể chia nhỏ, toàn bộ giao dịch hoặc được áp dụng hoàn toàn hoặc sẽ không thành công toàn bộ</li>
 <li><strong>Consistency (Tính Nhất Quán)</strong>: Tính nhất quán đảm bảo rằng một transaction sẽ đưa cơ sở dữ liệu từ một trạng thái nhất quán này sang một trạng thái nhất quán khác. Tính nhất quán duy trì các ràng buộc toàn vẹn dữ liệu, như ràng buộc khóa chính, khóa ngoại, hoặc các ràng buộc không null.</li>
 <li><strong>Isolation (Tính Cách Ly)</strong>: Tính cách ly đảm bảo rằng các transaction đồng thời không ảnh hưởng lẫn nhau. Các thay đổi được thực hiện bởi một transaction chưa hoàn tất sẽ không hiển thị cho các giao dịch khác.</li>
 <li><strong>Durability (Tính Bền Vững)</strong>: Tính bền vững đảm bảo rằng một khi transaction đã được commit, các thay đổi của nó sẽ được lưu trữ vĩnh viễn, ngay cả khi hệ thống gặp sự cố ngay sau đó.</li>
 </ul>
-<h2 id="các-mức-cách-ly-isolation-level">Các mức cách ly (Isolation level)<a hidden class="anchor" aria-hidden="true" href="#các-mức-cách-ly-isolation-level">¶</a></h2>
+<h1 id="các-mức-cách-ly-isolation-level">Các mức cách ly (Isolation level)<a hidden class="anchor" aria-hidden="true" href="#các-mức-cách-ly-isolation-level">¶</a></h1>
 <p>Mức cách ly xác định các quy tắc cho những thay đổi nào là hiển thị và không hiển thị bên trong và bên ngoài một transaction. Điều này là quan trọng, vì nó có thể ảnh hưởng đến tinh chính xác và cả hiệu suất của một transaction.</p>
-<h3 id="read-uncommitted">READ UNCOMMITTED<a hidden class="anchor" aria-hidden="true" href="#read-uncommitted">¶</a></h3>
+<h2 id="read-uncommitted">READ UNCOMMITTED<a hidden class="anchor" aria-hidden="true" href="#read-uncommitted">¶</a></h2>
 <p>Đây là mức cách ly thấp nhất trong các mức cách ly của cơ sở dữ liệu. Ở mức này, các transaction có thể đọc các thay đổi chưa được commit từ các transaction khác. Điều này có nghĩa là một transaction có thể thấy dữ liệu bị thay đổi bởi một transaction khác, ngay cả khi transaction đó chưa hoàn thành và commit.</p>
 <p><strong>Đặc điểm:</strong></p>
 <ul>
@@ -320,7 +317,7 @@ số ràng buộc phổ biến như <code>PRIMARY KEY</code>, <code>FOREIGN KEY<
 </span></span></span></code></pre></td></tr></table>
 </div>
 </div><p>Trong ví dụ này, transaction 2 có thể đọc số dư tài khoản đã bị giảm 100 mặc dù transaction 1 chưa được commit. Nếu sau đó transaction 1 bị rollback, transaction 2 đã đọc dữ liệu không chính xác.</p>
-<h3 id="read-committed">READ COMMITTED<a hidden class="anchor" aria-hidden="true" href="#read-committed">¶</a></h3>
+<h2 id="read-committed">READ COMMITTED<a hidden class="anchor" aria-hidden="true" href="#read-committed">¶</a></h2>
 <p>Ở mức cách ly này, một transaction chỉ có thể đọc các thay đổi đã được commit bởi các transaction khác. Điều này giúp tránh được các vấn đề liên quan đến dirty read (đọc dữ liệu “bẩn”), đảm bảo rằng các dữ liệu đọc được luôn nhất quán và đáng tin cậy.</p>
 <p><strong>Đặc điểm:</strong></p>
 <ul>
@@ -356,7 +353,7 @@ số ràng buộc phổ biến như <code>PRIMARY KEY</code>, <code>FOREIGN KEY<
 </span></span></span></code></pre></td></tr></table>
 </div>
 </div><p>Trong ví dụ này, Transaction 2 sẽ không thấy số dư tài khoản đã bị giảm 100 bởi Transaction 1 vì Transaction 1 chưa được commit. Transaction 2 sẽ chỉ đọc dữ liệu đã được commit trước đó.</p>
-<h3 id="repeatable-read">REPEATABLE READ<a hidden class="anchor" aria-hidden="true" href="#repeatable-read">¶</a></h3>
+<h2 id="repeatable-read">REPEATABLE READ<a hidden class="anchor" aria-hidden="true" href="#repeatable-read">¶</a></h2>
 <p>Đây là mức cách ly mặc định trong MySQL và được coi là một trong những mức cách ly mạnh mẽ nhất. Ở mức cách ly này, một transaction sẽ thấy cùng một tập hợp dữ liệu nếu nó đọc cùng một truy vấn nhiều lần trong suốt quá trình thực thi, ngay cả khi các transaction khác đã thay đổi dữ liệu đó và commit các thay đổi của chúng. <code>REPEATABLE READ</code> ngăn chặn cả <strong>dirty read</strong> và <strong>non-repeatable read</strong>.</p>
 <p><strong>Đặc điểm:</strong></p>
 <ul>
@@ -400,7 +397,7 @@ số ràng buộc phổ biến như <code>PRIMARY KEY</code>, <code>FOREIGN KEY<
 </span></span></span></code></pre></td></tr></table>
 </div>
 </div><p>Trong ví dụ này, Transaction 2 sẽ thấy số dư ban đầu của tài khoản trước khi Transaction 1 cập nhật. Ngay cả khi Transaction 1 commit thay đổi, Transaction 2 cũng sẽ không thấy thay đổi đó nếu nó thực hiện lại truy vấn.</p>
-<h3 id="serializable">SERIALIZABLE<a hidden class="anchor" aria-hidden="true" href="#serializable">¶</a></h3>
+<h2 id="serializable">SERIALIZABLE<a hidden class="anchor" aria-hidden="true" href="#serializable">¶</a></h2>
 <p>SERIALIZABLE là mức cách ly cao nhất trong các mức cách ly của cơ sở dữ liệu. Ở mức cách ly này, mỗi giao dịch được thực hiện một cách tuần tự, không có transaction nào có thể nhìn thấy các thay đổi của giao dịch khác cho đến khi transaction đó hoàn thành. Điều này đảm bảo rằng không có phantom read, non-repeatable read hay dirty read.</p>
 <p><strong>Đặc điểm:</strong></p>
 <ul>
@@ -444,7 +441,7 @@ số ràng buộc phổ biến như <code>PRIMARY KEY</code>, <code>FOREIGN KEY<
 </span></span></span></code></pre></td></tr></table>
 </div>
 </div><p>Trong ví dụ này, Transaction 2 sẽ bị chặn lại cho đến khi Transaction 1 hoàn thành và commit. Điều này đảm bảo rằng Transaction 2 sẽ không thấy bất kỳ thay đổi nào từ Transaction 1 cho đến khi Transaction 1 hoàn tất.</p>
-<h2 id="deadlocks">Deadlocks<a hidden class="anchor" aria-hidden="true" href="#deadlocks">¶</a></h2>
+<h1 id="deadlocks">Deadlocks<a hidden class="anchor" aria-hidden="true" href="#deadlocks">¶</a></h1>
 <p>Deadlocks (Khoá chết) xảy ra khi hai hoặc nhiều transaction đồng thời giữ các khóa trên một tập hợp tài nguyên và mỗi transaction chờ đợi một khóa đang được giữ bởi một transaction khác trong tập
 hợp đó (Transaction A đợi Transaction B, nhưng B cũng lại đợi A). Điều này tạo ra một vòng lặp phụ thuộc mà không thể giải quyết được, và tất cả các transaction liên quan sẽ chờ đợi vô thời hạn trừ khi có biện pháp can thiệp để giải quyết tình trạng này.</p>
 <p>Để giải quyết vấn đề này, các hệ thống cơ sở dữ liệu triển khai các dạng phát hiện và thời gian chờ deadlock khác nhau. Ví dụ như storage engine nổi tiếng của MySQL là InnoDB: Nó có khả năng phát
