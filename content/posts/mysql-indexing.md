@@ -93,7 +93,9 @@ Index được triển khai ở tầng **storage engine**, không phải ở l�
 
 Để tạo ra một Index "tốt", bạn có thể tham khảo hệ thống đánh giá Index ba sao (three-star index) trong cuốn sách **Relational Database Index Design and the Optimizers** (tác giả *Tapio Lahdenmaki* và *Mike Leach*)
 
-1. **Các hàng liên quan nằm gần nhau (Adjacent Rows)**: Index nên sắp xếp dữ liệu sao cho các hàng có giá trị liên quan nằm gần nhau, giảm số lượng trang dữ liệu cần đọc.
+## Các hàng liên quan nằm gần nhau (Adjacent Rows)
+
+Index nên sắp xếp dữ liệu sao cho các hàng có giá trị liên quan nằm gần nhau, giảm số lượng trang dữ liệu cần đọc.
 
 ```sql
 CREATE TABLE orders (
@@ -114,7 +116,9 @@ SELECT * FROM orders WHERE customer_id = 123;
 ```
 
 
-2. **Các hàng được sắp xếp theo thứ tự truy vấn yêu cầu (Sorted Rows)**: Index nên sắp xếp dữ liệu theo thứ tự mà truy vấn cần (ví dụ: trong mệnh đề ORDER BY), giúp MySQL không phải thực hiện sắp xếp dữ liệu tạm thời.
+## Các hàng được sắp xếp theo thứ tự truy vấn yêu cầu (Sorted Rows)
+
+Index nên sắp xếp dữ liệu theo thứ tự mà truy vấn cần (ví dụ: trong mệnh đề ORDER BY), giúp MySQL không phải thực hiện sắp xếp dữ liệu tạm thời.
 
 ```sql
 CREATE TABLE employees (
@@ -132,7 +136,9 @@ Ví dụ Index trên **last_name** và **first_name** giúp sắp xếp các hà
 SELECT * FROM employees ORDER BY last_name, first_name;
 ```
 
-3. **Index bao gồm tất cả các cột cần thiết cho truy vấn (Covering Index)**: Index nên chứa tất cả các cột mà truy vấn SELECT yêu cầu. MySQL có thể lấy dữ liệu trực tiếp từ Index mà không cần truy cập vào bảng chính, giảm I/O
+## Index bao gồm tất cả các cột cần thiết cho truy vấn (Covering Index)
+
+Index nên chứa tất cả các cột mà truy vấn SELECT yêu cầu. MySQL có thể lấy dữ liệu trực tiếp từ Index mà không cần truy cập vào bảng chính, giảm I/O
 
 ```sql
 CREATE TABLE products (

@@ -252,7 +252,15 @@ function toggleThemeListener() {
                     <a href="#full-text-indexes" aria-label="Full-text Indexes">Full-text Indexes</a></li></ul>
                 </li>
                 <li>
-                    <a href="#chi%e1%ba%bfn-l%c6%b0%e1%bb%a3c-t%e1%ba%a1o-index-hi%e1%bb%87u-su%e1%ba%a5t-cao" aria-label="Chiến lược tạo Index hiệu suất cao">Chiến lược tạo Index hiệu suất cao</a></li>
+                    <a href="#chi%e1%ba%bfn-l%c6%b0%e1%bb%a3c-t%e1%ba%a1o-index-hi%e1%bb%87u-su%e1%ba%a5t-cao" aria-label="Chiến lược tạo Index hiệu suất cao">Chiến lược tạo Index hiệu suất cao</a><ul>
+                        
+                <li>
+                    <a href="#c%c3%a1c-h%c3%a0ng-li%c3%aan-quan-n%e1%ba%b1m-g%e1%ba%a7n-nhau-adjacent-rows" aria-label="Các hàng liên quan nằm gần nhau (Adjacent Rows)">Các hàng liên quan nằm gần nhau (Adjacent Rows)</a></li>
+                <li>
+                    <a href="#c%c3%a1c-h%c3%a0ng-%c4%91%c6%b0%e1%bb%a3c-s%e1%ba%afp-x%e1%ba%bfp-theo-th%e1%bb%a9-t%e1%bb%b1-truy-v%e1%ba%a5n-y%c3%aau-c%e1%ba%a7u-sorted-rows" aria-label="Các hàng được sắp xếp theo thứ tự truy vấn yêu cầu (Sorted Rows)">Các hàng được sắp xếp theo thứ tự truy vấn yêu cầu (Sorted Rows)</a></li>
+                <li>
+                    <a href="#index-bao-g%e1%bb%93m-t%e1%ba%a5t-c%e1%ba%a3-c%c3%a1c-c%e1%bb%99t-c%e1%ba%a7n-thi%e1%ba%bft-cho-truy-v%e1%ba%a5n-covering-index" aria-label="Index bao gồm tất cả các cột cần thiết cho truy vấn (Covering Index)">Index bao gồm tất cả các cột cần thiết cho truy vấn (Covering Index)</a></li></ul>
+                </li>
                 <li>
                     <a href="#chi%e1%ba%bfn-l%c6%b0%e1%bb%a3c-ch%e1%bb%8dn-index" aria-label="Chiến lược chọn index">Chiến lược chọn index</a>
                 </li>
@@ -351,9 +359,8 @@ function toggleThemeListener() {
 </ul>
 <h1 id="chiến-lược-tạo-index-hiệu-suất-cao">Chiến lược tạo Index hiệu suất cao<a hidden class="anchor" aria-hidden="true" href="#chiến-lược-tạo-index-hiệu-suất-cao">¶</a></h1>
 <p>Để tạo ra một Index &ldquo;tốt&rdquo;, bạn có thể tham khảo hệ thống đánh giá Index ba sao (three-star index) trong cuốn sách <strong>Relational Database Index Design and the Optimizers</strong> (tác giả <em>Tapio Lahdenmaki</em> và <em>Mike Leach</em>)</p>
-<ol>
-<li><strong>Các hàng liên quan nằm gần nhau (Adjacent Rows)</strong>: Index nên sắp xếp dữ liệu sao cho các hàng có giá trị liên quan nằm gần nhau, giảm số lượng trang dữ liệu cần đọc.</li>
-</ol>
+<h2 id="các-hàng-liên-quan-nằm-gần-nhau-adjacent-rows">Các hàng liên quan nằm gần nhau (Adjacent Rows)<a hidden class="anchor" aria-hidden="true" href="#các-hàng-liên-quan-nằm-gần-nhau-adjacent-rows">¶</a></h2>
+<p>Index nên sắp xếp dữ liệu sao cho các hàng có giá trị liên quan nằm gần nhau, giảm số lượng trang dữ liệu cần đọc.</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -385,9 +392,8 @@ trang dữ liệu cần đọc.</p>
 <pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="k">WHERE</span><span class="w"> </span><span class="n">customer_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">123</span><span class="p">;</span><span class="w">
 </span></span></span></code></pre></td></tr></table>
 </div>
-</div><ol start="2">
-<li><strong>Các hàng được sắp xếp theo thứ tự truy vấn yêu cầu (Sorted Rows)</strong>: Index nên sắp xếp dữ liệu theo thứ tự mà truy vấn cần (ví dụ: trong mệnh đề ORDER BY), giúp MySQL không phải thực hiện sắp xếp dữ liệu tạm thời.</li>
-</ol>
+</div><h2 id="các-hàng-được-sắp-xếp-theo-thứ-tự-truy-vấn-yêu-cầu-sorted-rows">Các hàng được sắp xếp theo thứ tự truy vấn yêu cầu (Sorted Rows)<a hidden class="anchor" aria-hidden="true" href="#các-hàng-được-sắp-xếp-theo-thứ-tự-truy-vấn-yêu-cầu-sorted-rows">¶</a></h2>
+<p>Index nên sắp xếp dữ liệu theo thứ tự mà truy vấn cần (ví dụ: trong mệnh đề ORDER BY), giúp MySQL không phải thực hiện sắp xếp dữ liệu tạm thời.</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -417,9 +423,8 @@ trang dữ liệu cần đọc.</p>
 <pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">employees</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">last_name</span><span class="p">,</span><span class="w"> </span><span class="n">first_name</span><span class="p">;</span><span class="w">
 </span></span></span></code></pre></td></tr></table>
 </div>
-</div><ol start="3">
-<li><strong>Index bao gồm tất cả các cột cần thiết cho truy vấn (Covering Index)</strong>: Index nên chứa tất cả các cột mà truy vấn SELECT yêu cầu. MySQL có thể lấy dữ liệu trực tiếp từ Index mà không cần truy cập vào bảng chính, giảm I/O</li>
-</ol>
+</div><h2 id="index-bao-gồm-tất-cả-các-cột-cần-thiết-cho-truy-vấn-covering-index">Index bao gồm tất cả các cột cần thiết cho truy vấn (Covering Index)<a hidden class="anchor" aria-hidden="true" href="#index-bao-gồm-tất-cả-các-cột-cần-thiết-cho-truy-vấn-covering-index">¶</a></h2>
+<p>Index nên chứa tất cả các cột mà truy vấn SELECT yêu cầu. MySQL có thể lấy dữ liệu trực tiếp từ Index mà không cần truy cập vào bảng chính, giảm I/O</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
