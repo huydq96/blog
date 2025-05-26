@@ -1,7 +1,7 @@
 +++
 date = '2025-05-26T14:07:01+07:00'
 draft = false
-title = 'Mysql Indexing'
+title = 'MySQL Indexing'
 author = 'Huy Dang Quang'
 categories = ["MySQL"]
 tags = ["mysql", "indexing"]
