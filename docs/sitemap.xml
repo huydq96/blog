@@ -3,7 +3,28 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://blog.huydang.dev/categories/</loc>
-    <lastmod>2025-05-18T13:39:54+07:00</lastmod>
+    <lastmod>2025-05-26T09:40:49+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/go-interview-p1/</loc>
+    <lastmod>2025-05-26T09:40:49+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/golang/</loc>
+    <lastmod>2025-05-26T09:40:49+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/golang/</loc>
+    <lastmod>2025-05-26T09:40:49+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/</loc>
+    <lastmod>2025-05-26T09:40:49+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/interview/</loc>
+    <lastmod>2025-05-26T09:40:49+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/</loc>
+    <lastmod>2025-05-26T09:40:49+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2025-05-26T09:40:49+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/coding/</loc>
     <lastmod>2025-05-18T13:39:54+07:00</lastmod>
@@ -12,21 +33,6 @@
     <lastmod>2025-05-18T13:39:54+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/go-concurrency/</loc>
-    <lastmod>2025-05-18T13:39:54+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/golang/</loc>
-    <lastmod>2025-05-18T13:39:54+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/categories/golang/</loc>
-    <lastmod>2025-05-18T13:39:54+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/</loc>
-    <lastmod>2025-05-18T13:39:54+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/posts/</loc>
-    <lastmod>2025-05-18T13:39:54+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/</loc>
     <lastmod>2025-05-18T13:39:54+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/go-data-types/</loc>
