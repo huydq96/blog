@@ -2,28 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://blog.huydang.dev/posts/apache-kafka-p1/</loc>
-    <lastmod>2025-05-27T14:21:38+07:00</lastmod>
+    <loc>https://blog.huydang.dev/posts/apache-kafka-p2/</loc>
+    <lastmod>2025-05-27T16:09:22+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/</loc>
-    <lastmod>2025-05-27T14:21:38+07:00</lastmod>
+    <lastmod>2025-05-27T16:09:22+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/</loc>
-    <lastmod>2025-05-27T14:21:38+07:00</lastmod>
+    <lastmod>2025-05-27T16:09:22+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/interview/</loc>
+    <lastmod>2025-05-27T16:09:22+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/kafka/</loc>
-    <lastmod>2025-05-27T14:21:38+07:00</lastmod>
+    <lastmod>2025-05-27T16:09:22+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/kafka/</loc>
-    <lastmod>2025-05-27T14:21:38+07:00</lastmod>
+    <lastmod>2025-05-27T16:09:22+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/message-queue/</loc>
-    <lastmod>2025-05-27T14:21:38+07:00</lastmod>
+    <lastmod>2025-05-27T16:09:22+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/</loc>
-    <lastmod>2025-05-27T14:21:38+07:00</lastmod>
+    <lastmod>2025-05-27T16:09:22+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2025-05-27T16:09:22+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/apache-kafka-p1/</loc>
     <lastmod>2025-05-27T14:21:38+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/indexing/</loc>
@@ -45,9 +51,6 @@
     <lastmod>2025-05-26T09:40:49+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/golang/</loc>
-    <lastmod>2025-05-26T09:40:49+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/interview/</loc>
     <lastmod>2025-05-26T09:40:49+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/coding/</loc>

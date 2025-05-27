@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Apache Kafka P2 | Huy Dang Blog</title>
+<meta name="keywords" content="kafka, message queue, interview">
+<meta name="description" content="Một số câu hỏi phỏng vấn liên quan đến Kafka">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/apache-kafka-p2/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/apache-kafka-p2/">
+
+<meta name="twitter:title" content="Apache Kafka P2 | Huy Dang Blog" />
+<meta name="twitter:description" content="Một số câu hỏi phỏng vấn liên quan đến Kafka" />
+<meta property="og:title" content="Apache Kafka P2 | Huy Dang Blog" />
+<meta property="og:description" content="Một số câu hỏi phỏng vấn liên quan đến Kafka" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/apache-kafka-p2/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2025-05-27T16:09:22&#43;07:00" />
+  <meta property="article:modified_time" content="2025-05-27T16:09:22&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Apache Kafka P2",
+      "item": "https://blog.huydang.dev/posts/apache-kafka-p2/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Apache Kafka P2 | Huy Dang Blog",
+  "name": "Apache Kafka P2",
+  "description": "Một số câu hỏi phỏng vấn liên quan đến Kafka",
+  "keywords": [
+    "kafka", "message queue", "interview"
+  ],
+  "wordCount" : "3311",
+  "inLanguage": "en",
+  "datePublished": "2025-05-27T16:09:22+07:00",
+  "dateModified": "2025-05-27T16:09:22+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/apache-kafka-p2/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Apache Kafka P2</h1>
+    <div class="post-description">Một số câu hỏi phỏng vấn liên quan đến Kafka</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>May 27, 2025</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/kafka/">Kafka</a><a href="https://blog.huydang.dev/tags/message-queue/">Message Queue</a><a href="https://blog.huydang.dev/tags/interview/">Interview</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>16 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#c%c3%b3-th%e1%bb%83-s%e1%bb%ad-d%e1%bb%a5ng-kafka-m%c3%a0-kh%c3%b4ng-c%e1%ba%a7n-zookeeper-kh%c3%b4ng-" aria-label="Có thể sử dụng Kafka mà không cần ZooKeeper không ?">Có thể sử dụng Kafka mà không cần ZooKeeper không ?</a><ul>
+                        
+                <li>
+                    <a href="#ch%e1%bb%a9c-n%c4%83ng-c%e1%bb%91t-l%c3%b5i-c%e1%bb%a7a-zookeeper" aria-label="Chức năng cốt lõi của ZooKeeper">Chức năng cốt lõi của ZooKeeper</a></li>
+                <li>
+                    <a href="#nh%e1%bb%afng-th%c3%a1ch-th%e1%bb%a9c-v%e1%bb%9bi-zookeeper" aria-label="Những thách thức với ZooKeeper">Những thách thức với ZooKeeper</a></li>
+                <li>
+                    <a href="#gi%e1%bb%9bi-thi%e1%bb%87u-v%e1%bb%81-ch%e1%ba%bf-%c4%91%e1%bb%99-kraft" aria-label="Giới thiệu về chế độ KRaft">Giới thiệu về chế độ KRaft</a></li>
+                <li>
+                    <a href="#c%c6%a1-ch%e1%ba%bf-ho%e1%ba%a1t-%c4%91%e1%bb%99ng-c%e1%bb%a7a-kraft" aria-label="Cơ chế hoạt động của KRaft">Cơ chế hoạt động của KRaft</a></li>
+                <li>
+                    <a href="#k%e1%ba%bft-lu%e1%ba%adn" aria-label="Kết luận">Kết luận</a></li></ul>
+                </li>
+                <li>
+                    <a href="#vai-tr%c3%b2-c%e1%bb%a7a-offset-trong-kafka-l%c3%a0-g%c3%ac-" aria-label="Vai trò của offset trong Kafka là gì ?">Vai trò của offset trong Kafka là gì ?</a><ul>
+                        
+                <li>
+                    <a href="#%c4%91%e1%bb%8bnh-danh-v%c3%a0-kh%c3%b3a-ch%c3%adnh" aria-label="Định danh và Khóa chính">Định danh và Khóa chính</a></li>
+                <li>
+                    <a href="#theo-d%c3%b5i-v%e1%bb%8b-tr%c3%ad-%c4%91%e1%bb%8dc-c%e1%bb%a7a-consumer" aria-label="Theo dõi vị trí đọc của Consumer">Theo dõi vị trí đọc của Consumer</a></li>
+                <li>
+                    <a href="#cam-k%e1%ba%bft-offset-committing-offsets" aria-label="Cam kết Offset (Committing Offsets)">Cam kết Offset (Committing Offsets)</a></li>
+                <li>
+                    <a href="#l%c6%b0u-tr%e1%bb%af-offset-consumer" aria-label="Lưu trữ Offset Consumer">Lưu trữ Offset Consumer</a></li>
+                <li>
+                    <a href="#ki%e1%bb%83m-so%c3%a1t-%c4%91%e1%ba%a3m-b%e1%ba%a3o-ph%c3%a2n-ph%e1%bb%91i-delivery-guarantees" aria-label="Kiểm soát Đảm bảo Phân phối (Delivery Guarantees)">Kiểm soát Đảm bảo Phân phối (Delivery Guarantees)</a></li>
+                <li>
+                    <a href="#di-chuy%e1%bb%83n-trong-log-v%c3%a0-x%e1%bb%ad-l%c3%bd-l%e1%ba%a1i" aria-label="Di chuyển trong Log và Xử lý lại">Di chuyển trong Log và Xử lý lại</a></li>
+                <li>
+                    <a href="#offset-trong-ph%c3%a2n-v%c3%b9ng" aria-label="Offset trong Phân vùng">Offset trong Phân vùng</a></li>
+                <li>
+                    <a href="#qu%e1%ba%a3n-l%c3%bd-offset-khi-l%e1%bb%97i-ho%e1%ba%b7c-rebalance" aria-label="Quản lý Offset khi lỗi hoặc Rebalance">Quản lý Offset khi lỗi hoặc Rebalance</a></li>
+                <li>
+                    <a href="#k%e1%ba%bft-lu%e1%ba%adn-1" aria-label="Kết luận">Kết luận</a></li></ul>
+                </li>
+                <li>
+                    <a href="#t%e1%ba%a7m-quan-tr%e1%bb%8dng-c%e1%bb%a7a-replications-trong-kafka" aria-label="Tầm quan trọng của Replications trong Kafka">Tầm quan trọng của Replications trong Kafka</a><ul>
+                        
+                <li>
+                    <a href="#%c4%91%e1%ba%a3m-b%e1%ba%a3o-%c4%91%e1%bb%99-b%e1%bb%81n-d%e1%bb%af-li%e1%bb%87u" aria-label="Đảm bảo Độ bền Dữ liệu">Đảm bảo Độ bền Dữ liệu</a></li>
+                <li>
+                    <a href="#%c4%91%e1%ba%a3m-b%e1%ba%a3o-t%c3%adnh-s%e1%ba%b5n-s%c3%a0ng-d%e1%bb%af-li%e1%bb%87u" aria-label="Đảm bảo Tính sẵn sàng Dữ liệu">Đảm bảo Tính sẵn sàng Dữ liệu</a></li>
+                <li>
+                    <a href="#%c4%91%e1%ba%a3m-b%e1%ba%a3o-t%c3%adnh-ch%e1%bb%8bu-l%e1%bb%97i-fault-tolerance" aria-label="Đảm bảo tính chịu lỗi (Fault Tolerance)">Đảm bảo tính chịu lỗi (Fault Tolerance)</a></li>
+                <li>
+                    <a href="#h%e1%bb%97-tr%e1%bb%a3-kh%e1%ba%a3-n%c4%83ng-m%e1%bb%9f-r%e1%bb%99ng-%c4%91%e1%bb%8dc" aria-label="Hỗ trợ Khả năng mở rộng (Đọc)">Hỗ trợ Khả năng mở rộng (Đọc)</a></li>
+                <li>
+                    <a href="#%c4%91%e1%ba%a3m-b%e1%ba%a3o-nh%e1%ba%a5t-qu%c3%a1n-consistency" aria-label="Đảm bảo Nhất quán (Consistency)">Đảm bảo Nhất quán (Consistency)</a></li>
+                <li>
+                    <a href="#h%e1%bb%97-tr%e1%bb%a3-kh%c3%b4i-ph%e1%bb%a5c-th%e1%ba%a3m-h%e1%bb%8da-disaster-recovery" aria-label="Hỗ trợ Khôi phục Thảm họa (Disaster Recovery)">Hỗ trợ Khôi phục Thảm họa (Disaster Recovery)</a></li>
+                <li>
+                    <a href="#k%e1%ba%bft-lu%e1%ba%adn-2" aria-label="Kết luận">Kết luận</a></li></ul>
+                </li>
+                <li>
+                    <a href="#c%c3%a1ch-t%e1%bb%91i-%c6%b0u-hi%e1%bb%87u-su%e1%ba%a5t-trong-kafka" aria-label="Cách tối ưu hiệu suất trong Kafka">Cách tối ưu hiệu suất trong Kafka</a><ul>
+                        
+                <li>
+                    <a href="#hi%e1%bb%83u-r%c3%b5-c%c3%a1c-kh%c3%a1i-ni%e1%bb%87m-c%e1%bb%91t-l%c3%b5i" aria-label="Hiểu rõ các Khái niệm Cốt lõi">Hiểu rõ các Khái niệm Cốt lõi</a></li>
+                <li>
+                    <a href="#c%e1%ba%a5u-h%c3%acnh-broker" aria-label="Cấu hình Broker">Cấu hình Broker</a></li>
+                <li>
+                    <a href="#c%e1%ba%a5u-h%c3%acnh-topic" aria-label="Cấu hình Topic">Cấu hình Topic</a></li>
+                <li>
+                    <a href="#c%e1%ba%a5u-h%c3%acnh-producer" aria-label="Cấu hình Producer">Cấu hình Producer</a></li>
+                <li>
+                    <a href="#c%e1%ba%a5u-h%c3%acnh-consumer" aria-label="Cấu hình Consumer">Cấu hình Consumer</a></li>
+                <li>
+                    <a href="#k%e1%ba%bft-lu%e1%ba%adn-3" aria-label="Kết luận">Kết luận</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="có-thể-sử-dụng-kafka-mà-không-cần-zookeeper-không-">Có thể sử dụng Kafka mà không cần ZooKeeper không ?<a hidden class="anchor" aria-hidden="true" href="#có-thể-sử-dụng-kafka-mà-không-cần-zookeeper-không-">¶</a></h1>
+<h2 id="chức-năng-cốt-lõi-của-zookeeper">Chức năng cốt lõi của ZooKeeper<a hidden class="anchor" aria-hidden="true" href="#chức-năng-cốt-lõi-của-zookeeper">¶</a></h2>
+<p><strong>ZooKeeper</strong> đã đóng vai trò thiết yếu trong kiến trúc Kafka trong hơn một thập kỷ. Hệ thống này chịu trách nhiệm cho các tác vụ quan trọng bao gồm <strong>quản lý metadata của cụm Kafka</strong>, lưu trữ thông tin về vị trí các broker, cấu hình topic và các phân vùng partition. ZooKeeper cũng thực hiện bầu cử <strong>leader</strong> cho mỗi partition của topic, đảm bảo chỉ có một broker chịu trách nhiệm xử lý ghi cho một partition cụ thể tại bất kỳ thời điểm nào. Ngoài ra, ZooKeeper quản lý <strong>consumer group offsets</strong>, lưu trữ vị trí đọc hiện tại của mỗi consumer group, cho phép consumer tiếp tục đọc từ vị trí cũ khi bị lỗi hay khởi động lại.</p>
+<p>Một chức năng quan trọng khác của ZooKeeper là <strong>giám sát sức khỏe</strong> của cụm Kafka thông qua cơ chế <strong>ephemeral znode</strong>. Mỗi broker khi tham gia vào cụm Kafka sẽ đăng ký với một ephemeral znode trên ZooKeeper, và controller election được thực hiện thông qua việc tạo ephemeral /controller znode. ZooKeeper cũng lưu trữ <strong>Access Control Lists (ACLs)</strong> và quotas, hỗ trợ việc xác thực và ủy quyền client cũng như giới hạn tài nguyên sử dụng.</p>
+<h2 id="những-thách-thức-với-zookeeper">Những thách thức với ZooKeeper<a hidden class="anchor" aria-hidden="true" href="#những-thách-thức-với-zookeeper">¶</a></h2>
+<p>Việc duy trì đồng thời cụm ZooKeeper cùng với cụm Kafka tạo ra <strong>độ phức tạp vận hành cao</strong>, đòi hỏi quản trị viên phải hiểu và quản lý hai hệ thống khác nhau với các file cấu hình, công cụ quản lý và mô hình triển khai riêng biệt. Tương tác giữa Kafka và ZooKeeper có thể tạo ra độ trễ, đặc biệt trong các cụm lớn hoặc khi có nhiều cập nhật metadata.</p>
+<p>ZooKeeper cũng trở thành <strong>điểm nghẽn</strong> giới hạn số lượng partition mà một broker có thể xử lý, thường giới hạn ở khoảng 100,000+ partitions. Đặc biệt quan trọng về <strong>khả năng chịu lỗi</strong>, nếu ZooKeeper gặp sự cố hoặc không ổn định, cả cụm Kafka có thể bị ảnh hưởng nghiêm trọng. Những hạn chế này đã thúc đẩy cộng đồng Kafka tìm kiếm giải pháp thay thế tốt hơn.</p>
+<h2 id="giới-thiệu-về-chế-độ-kraft">Giới thiệu về chế độ KRaft<a hidden class="anchor" aria-hidden="true" href="#giới-thiệu-về-chế-độ-kraft">¶</a></h2>
+<p>KRaft (Kafka Raft) là <strong>giao thức đồng thuận</strong> mới được phát triển nhằm mục đích loại bỏ sự phụ thuộc của Kafka vào ZooKeeper. Thay vì lưu trữ metadata thành hai thành phần hệ thống riêng biệt như ZooKeeper và Kafka, KRaft cho phép Kafka tự lưu trữ các metadata trên chính nó. Hệ thống sử dụng <strong>Quorum Controller</strong> mới với giao thức đồng thuận Raft để thực hiện bầu chọn leader và quản lý metadata.</p>
+<p>Trong kiến trúc KRaft, các <strong>controller nodes</strong> tạo thành một Raft quorum để quản lý Kafka metadata log. Log này chứa thông tin về mọi thay đổi đối với metadata của cụm, bao gồm tất cả những gì trước đây được lưu trữ trong ZooKeeper như topics, partitions, ISRs, configurations. Sử dụng giao thức đồng thuận Raft, các controller nodes duy trì tính nhất quán và bầu cử leader mà không cần dựa vào bất kỳ hệ thống bên ngoài nào.</p>
+<h2 id="cơ-chế-hoạt-động-của-kraft">Cơ chế hoạt động của KRaft<a hidden class="anchor" aria-hidden="true" href="#cơ-chế-hoạt-động-của-kraft">¶</a></h2>
+<p>KRaft hoạt động dựa trên <strong>event-driven model</strong>, trong đó quorum controller sử dụng event-sourced storage model để đảm bảo rằng các state machine nội bộ luôn có thể được tái tạo chính xác. Event log được sử dụng để lưu trữ state này (còn được gọi là metadata topic) được định kỳ rút gọn bằng snapshots để đảm bảo log không thể phát triển vô hạn. Các controller khác trong quorum theo dõi active controller bằng cách phản hồi các sự kiện mà nó tạo ra và lưu trữ trong log của mình.</p>
+<p>Một ưu điểm quan trọng của cơ chế này là khả năng <strong>recovery nhanh chóng</strong>. Nếu một node bị tạm dừng do sự kiện phân vùng mạng, nó có thể nhanh chóng bắt kịp các sự kiện bị lỡ bằng cách truy cập log khi tham gia lại. Điều này giảm đáng kể cửa sổ thời gian không khả dụng, cải thiện thời gian recovery trong trường hợp xấu nhất của hệ thống.</p>
+<h2 id="kết-luận">Kết luận<a hidden class="anchor" aria-hidden="true" href="#kết-luận">¶</a></h2>
+<p>Apache Kafka hoàn toàn có thể hoạt động mà không cần ZooKeeper nhờ vào sự ra đời của chế độ KRaft. Với việc Kafka 4.0 đã chính thức loại bỏ ZooKeeper và chạy mặc định trong chế độ KRaft, tương lai của Apache Kafka trở nên sáng sủa hơn với kiến trúc đơn giản, hiệu suất cao và dễ quản lý.</p>
+<ul>
+<li>Tham khảo thêm:
+<ul>
+<li><a href="https://softwaremill.com/zookeeper-less-kafka/">ZooKeeper-less Kafka</a></li>
+<li><a href="https://www.redpanda.com/guides/kafka-tutorial-kafka-without-zookeeper">Kafka without Zookeeper</a></li>
+<li><a href="https://docs.confluent.io/platform/current/kafka-metadata/kraft.html">KRaft Overview for Confluent Platform</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="vai-trò-của-offset-trong-kafka-là-gì-">Vai trò của offset trong Kafka là gì ?<a hidden class="anchor" aria-hidden="true" href="#vai-trò-của-offset-trong-kafka-là-gì-">¶</a></h1>
+<p>Trong Kafka, <strong>offset</strong> đóng vai trò là một <strong>định danh duy nhất cho mỗi bản ghi (record) trong một phân vùng (partition) cụ thể</strong>. Về cơ bản, offset là một giá trị số nguyên, tăng đơn điệu (strictly monotonically-increasing) trong một không gian địa chỉ thưa thớt (sparse address space). Điều này có nghĩa là <strong>mỗi offset kế tiếp luôn lớn hơn offset trước đó</strong>, và <strong>có thể có các khoảng trống</strong> (gap) giữa các offset liên tiếp do các sự kiện như nén (compaction) hoặc giao dịch (transactions).</p>
+<p>Dưới đây là các vai trò chính của offset trong Kafka</p>
+<h2 id="định-danh-và-khóa-chính">Định danh và Khóa chính<a hidden class="anchor" aria-hidden="true" href="#định-danh-và-khóa-chính">¶</a></h2>
+<p>Offset cùng với số phân vùng tạo thành tương đương với &ldquo;khóa chính&rdquo; của một bản ghi trong Kafka. <strong>Mỗi offset duy nhất xác định một bản ghi trong phân vùng của nó</strong>.</p>
+<h2 id="theo-dõi-vị-trí-đọc-của-consumer">Theo dõi vị trí đọc của Consumer<a hidden class="anchor" aria-hidden="true" href="#theo-dõi-vị-trí-đọc-của-consumer">¶</a></h2>
+<p>Consumer sử dụng offset để theo dõi những bản ghi nào đã được tiêu thụ (consumed). Consumer duy trì trạng thái nội bộ liên quan đến offset của phân vùng mà nó đang đọc.</p>
+<h2 id="cam-kết-offset-committing-offsets">Cam kết Offset (Committing Offsets)<a hidden class="anchor" aria-hidden="true" href="#cam-kết-offset-committing-offsets">¶</a></h2>
+<p>Đây là quá trình consumer lưu trữ vị trí đọc hiện tại (offset) trở lại cluster Kafka. Thông thường, consumer sẽ commit offset của bản ghi cuối cùng đã xử lý cộng thêm một (+1). Điều này đảm bảo rằng khi một consumer mới tiếp quản phân vùng (ví dụ: sau khi rebalance hoặc consumer trước đó bị lỗi), nó sẽ bắt đầu xử lý từ bản ghi ngay sau bản ghi cuối cùng đã được xử lý và commit, tránh xử lý lại bản ghi cuối cùng.</p>
+<h2 id="lưu-trữ-offset-consumer">Lưu trữ Offset Consumer<a hidden class="anchor" aria-hidden="true" href="#lưu-trữ-offset-consumer">¶</a></h2>
+<p>Kafka sử dụng một cách tiếp cận đệ quy để quản lý offset đã commit, sử dụng chính Kafka để lưu trữ và theo dõi các offset này. Khi một offset được commit, group coordinator sẽ xuất bản một bản ghi nhị phân lên topic nội bộ <strong>__consumer_offsets</strong>. Topic này được nén (compacted) trong nền, chỉ giữ lại điểm commit cuối cùng cho mỗi consumer group. Thời gian giữ lại mặc định cho topic này là 7 ngày (từ Kafka 2.0.0 trở đi, trước đó là 24 giờ).</p>
+<h2 id="kiểm-soát-đảm-bảo-phân-phối-delivery-guarantees">Kiểm soát Đảm bảo Phân phối (Delivery Guarantees)<a hidden class="anchor" aria-hidden="true" href="#kiểm-soát-đảm-bảo-phân-phối-delivery-guarantees">¶</a></h2>
+<p>Việc kiểm soát thời điểm commit offset mang lại sự linh hoạt trong việc lựa chọn các đảm bảo phân phối.</p>
+<ul>
+<li>Nếu commit offset trước khi xử lý bản ghi, bạn có thể đạt được đảm bảo at-most-once (tối đa một lần). Nếu consumer thất bại sau khi commit nhưng trước khi xử lý, bản ghi đó sẽ bị bỏ qua.</li>
+<li>Nếu commit offset sau khi xử lý bản ghi, bạn có thể đạt được đảm bảo at-least-once (tối thiểu một lần). Nếu consumer thất bại sau khi xử lý nhưng trước khi commit, bản ghi đó sẽ được đọc lại khi consumer mới tiếp quản.</li>
+<li>Mặc định, Kafka consumer tự động commit offset theo khoảng thời gian. Tuy nhiên, hành vi này có thể không đảm bảo at-least-once trong mọi trường hợp và được khuyến nghị tắt tự động commit (enable.auto.commit=false) để commit thủ công bằng commitAsync() để có quyền kiểm soát hoàn toàn.</li>
+</ul>
+<h2 id="di-chuyển-trong-log-và-xử-lý-lại">Di chuyển trong Log và Xử lý lại<a hidden class="anchor" aria-hidden="true" href="#di-chuyển-trong-log-và-xử-lý-lại">¶</a></h2>
+<p>Consumer có thể điều khiển nơi bắt đầu đọc dữ liệu bằng cách sử dụng các phương thức <code>seek()</code> để di chuyển đến một offset cụ thể. Điều này cho phép xử lý lại các bản ghi cũ hoặc bỏ qua các bản ghi hiện tại. Các tùy chọn phổ biến bao gồm:</p>
+<ul>
+<li><code>--from-beginning</code> hoặc <code>seekToBeginning</code>: <strong>Bắt đầu từ offset đầu tiên</strong> (low-water mark).</li>
+<li><code>--to-latest</code> hoặc <code>seekToEnd</code>: <strong>Bắt đầu từ offset cuối cùng</strong> (high-water mark), bỏ qua các bản ghi cũ hơn.</li>
+<li><code>--to-offset</code>: <strong>Bắt đầu từ một offset cụ thể được chỉ định</strong>.</li>
+<li><code>--to-datetime</code> hoặc <code>offsetsForTimes</code>: <strong>Tìm offset dựa trên timestamp của bản ghi</strong>.</li>
+<li><code>--shift-by</code>: <strong>Di chuyển offset tiến hoặc lùi một số lượng cố định</strong>.</li>
+</ul>
+<h2 id="offset-trong-phân-vùng">Offset trong Phân vùng<a hidden class="anchor" aria-hidden="true" href="#offset-trong-phân-vùng">¶</a></h2>
+<p>Mỗi phân vùng là một log độc lập. Bản ghi được ghi vào cuối log (<strong>append-only</strong>), và được đọc theo thứ tự từ đầu đến cuối. Offset đại diện cho vị trí của bản ghi trong log của phân vùng đó.</p>
+<h2 id="quản-lý-offset-khi-lỗi-hoặc-rebalance">Quản lý Offset khi lỗi hoặc Rebalance<a hidden class="anchor" aria-hidden="true" href="#quản-lý-offset-khi-lỗi-hoặc-rebalance">¶</a></h2>
+<p>Khi một consumer rời khỏi nhóm hoặc thất bại, các phân vùng được gán lại cho các consumer khác trong cùng nhóm. Consumer mới sẽ sử dụng offset đã commit cuối cùng cho phân vùng đó để tiếp tục xử lý. Nếu không tìm thấy offset đã commit (ví dụ: offset đã cũ hơn thời gian giữ lại của topic <strong>__consumer_offsets</strong>), Kafka sẽ dựa vào thuộc tính <strong>auto.offset.reset</strong> của consumer để quyết định bắt đầu từ đâu (<strong>earliest</strong>, <strong>latest</strong>, hoặc báo lỗi).</p>
+<h2 id="kết-luận-1">Kết luận<a hidden class="anchor" aria-hidden="true" href="#kết-luận-1">¶</a></h2>
+<p>Tóm lại, offset là nền tảng cho cách Kafka quản lý dữ liệu bên trong phân vùng, cho phép consumer theo dõi tiến trình, kiểm soát các đảm bảo phân phối, và di chuyển linh hoạt trong luồng dữ liệu.</p>
+<h1 id="tầm-quan-trọng-của-replications-trong-kafka">Tầm quan trọng của Replications trong Kafka<a hidden class="anchor" aria-hidden="true" href="#tầm-quan-trọng-của-replications-trong-kafka">¶</a></h1>
+<p>Trong Kafka, <strong>replication</strong> (nhân bản) là một tính năng cốt lõi đóng vai trò cực kỳ quan trọng đối với <strong>độ bền (durability)</strong> và <strong>tính sẵn sàng (availability)</strong> của dữ liệu.</p>
+<p>Dưới đây là tầm quan trọng của replication trong Kafka</p>
+<h2 id="đảm-bảo-độ-bền-dữ-liệu">Đảm bảo Độ bền Dữ liệu<a hidden class="anchor" aria-hidden="true" href="#đảm-bảo-độ-bền-dữ-liệu">¶</a></h2>
+<p>Replication là cơ chế chính để đảm bảo dữ liệu được ghi vào cluster Kafka sẽ <strong>tồn tại ngay cả khi các broker node bị lỗi</strong>. Dữ liệu được ghi vào nhiều bản sao (replicas), vì vậy việc một bản sao bị lỗi không dẫn đến mất dữ liệu. Số lượng bản sao (replication factor) ảnh hưởng trực tiếp đến khả năng chống mất dữ liệu: replication factor càng cao thì khả năng mất dữ liệu do lỗi của một bản sao bị cô lập càng thấp. Cấu hình <strong>acks=all</strong> hoặc <strong>acks=-1</strong> trên producer, kết hợp với <strong>min.insync.replicas</strong>, đảm bảo rằng bản ghi được coi là <strong>hoàn thành và được xác nhận (acknowledged)</strong> cho producer chỉ sau khi nó đã được nhân bản một cách bền vững đến tất cả các bản sao &ldquo;in-sync&rdquo; (<strong>ISR</strong>). Điều này mang lại sự đảm bảo cao nhất về độ bền.</p>
+<h2 id="đảm-bảo-tính-sẵn-sàng-dữ-liệu">Đảm bảo Tính sẵn sàng Dữ liệu<a hidden class="anchor" aria-hidden="true" href="#đảm-bảo-tính-sẵn-sàng-dữ-liệu">¶</a></h2>
+<p>Replication đảm bảo rằng dữ liệu sẽ <strong>luôn có thể truy cập được cho các client</strong> ngay cả khi có sự cố xảy ra với một số broker. Khi một broker làm leader cho một phân vùng bị lỗi, một follower trong tập hợp ISR (In-Sync Replicas) có thể được bầu làm leader mới, cho phép các client tiếp tục đọc và ghi vào phân vùng đó. Một replication factor bằng ba có thể cung cấp cả sẵn sàng đọc và ghi, nếu các điều kiện khác được đáp ứng. Cluster có thể xử lý lỗi của một broker riêng lẻ và tiếp tục phục vụ client nhờ replication.</p>
+<h2 id="đảm-bảo-tính-chịu-lỗi-fault-tolerance">Đảm bảo tính chịu lỗi (Fault Tolerance)<a hidden class="anchor" aria-hidden="true" href="#đảm-bảo-tính-chịu-lỗi-fault-tolerance">¶</a></h2>
+<p>Replication là một phần quan trọng trong khả năng chống lỗi của Kafka. Bằng cách phân tán các bản sao của cùng một phân vùng trên các broker khác nhau (và lý tưởng là trên các rack vật lý khác nhau thông qua tính năng rack awareness), Kafka có thể chống lại các lỗi broker hoặc thậm chí là lỗi rack.</p>
+<h2 id="hỗ-trợ-khả-năng-mở-rộng-đọc">Hỗ trợ Khả năng mở rộng (Đọc)<a hidden class="anchor" aria-hidden="true" href="#hỗ-trợ-khả-năng-mở-rộng-đọc">¶</a></h2>
+<p>Mặc dù việc ghi (writes) luôn được chuyển đến leader của phân vùng, cơ chế replication đặt nền tảng cho khả năng mở rộng việc đọc (reads). Mặc định, consumer đọc từ leader. Tuy nhiên, việc có nhiều bản sao dữ liệu mở ra khả năng cho các tối ưu hóa, chẳng hạn như <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-392%3A+Allow+consumers+to+fetch+from+closest+replica">KIP-392</a> cho phép consumer đọc từ bản sao gần nhất.</p>
+<h2 id="đảm-bảo-nhất-quán-consistency">Đảm bảo Nhất quán (Consistency)<a hidden class="anchor" aria-hidden="true" href="#đảm-bảo-nhất-quán-consistency">¶</a></h2>
+<p>Trong mô hình leader-follower của Kafka, replication đảm bảo rằng các bản sao của cùng một phân vùng sẽ duy trì tính nhất quán về mặt tuần tự (sequential consistency). Mọi thay đổi chỉ được thực hiện bởi leader, và các follower sao chép tất cả các thay đổi này theo thứ tự. Sự nhất quán này rất quan trọng để consumer có thể đọc dữ liệu theo thứ tự như khi nó được publish.</p>
+<h2 id="hỗ-trợ-khôi-phục-thảm-họa-disaster-recovery">Hỗ trợ Khôi phục Thảm họa (Disaster Recovery)<a hidden class="anchor" aria-hidden="true" href="#hỗ-trợ-khôi-phục-thảm-họa-disaster-recovery">¶</a></h2>
+<p>Mặc dù Kafka không có chiến lược backup truyền thống giống như cơ sở dữ liệu (chụp snapshot hay backup đĩa), việc nhân bản dữ liệu giữa các cluster là cách phổ biến để đảm bảo khả năng khôi phục sau thảm họa. MirrorMaker, một công cụ đi kèm với Kafka, hoạt động như một cặp consumer/producer để đọc dữ liệu từ một cluster nguồn và ghi (nhân bản) nó sang một cluster đích.</p>
+<h2 id="kết-luận-2">Kết luận<a hidden class="anchor" aria-hidden="true" href="#kết-luận-2">¶</a></h2>
+<p>Replication không chỉ là việc <strong>tạo ra các bản sao dữ liệu</strong>, mà là nền tảng cho các đảm bảo về <strong>độ tin cậy</strong> và <strong>khả năng hoạt động liên tục</strong> của Kafka trong môi trường phân tán. Việc cấu hình replication factor và các tham số liên quan một cách phù hợp là rất quan trọng để đáp ứng yêu cầu của ứng dụng về độ bền, tính sẵn sàng và hiệu suất.</p>
+<h1 id="cách-tối-ưu-hiệu-suất-trong-kafka">Cách tối ưu hiệu suất trong Kafka<a hidden class="anchor" aria-hidden="true" href="#cách-tối-ưu-hiệu-suất-trong-kafka">¶</a></h1>
+<p>Việc tối ưu hiệu suất (tuning) trong Kafka là rất quan trọng và phức tạp, đòi hỏi sự cân bằng giữa các yếu tố như thông lượng (throughput), độ trễ (latency), độ bền (durability) và tính sẵn sàng (availability)</p>
+<p>Dưới đây là các khía cạnh và cách tiếp cận</p>
+<h2 id="hiểu-rõ-các-khái-niệm-cốt-lõi">Hiểu rõ các Khái niệm Cốt lõi<a hidden class="anchor" aria-hidden="true" href="#hiểu-rõ-các-khái-niệm-cốt-lõi">¶</a></h2>
+<p>Trước khi tối ưu hiệu suất, cần hiểu rõ cách Kafka hoạt động bên trong. Các khái niệm như replication (nhân bản), partitions (phân vùng), leader, follower, In-Sync Replicas (ISR), batching (gom nhóm), buffering (bộ đệm), fetching (tìm nạp) là nền tảng.</p>
+<h2 id="cấu-hình-broker">Cấu hình Broker<a hidden class="anchor" aria-hidden="true" href="#cấu-hình-broker">¶</a></h2>
+<ul>
+<li>
+<p>Cấu hình <strong>Listeners</strong> và <strong>Advertised Listeners</strong> để đảm bảo kết nối chính xác</p>
+</li>
+<li>
+<p><strong>Quotas</strong> (Hạn ngạch): Kafka hỗ trợ quota để giới hạn việc sử dụng tài nguyên của client hoặc người dùng. Điều này rất quan trọng để đảm bảo hiệu suất ổn định trong môi trường multi-tenant bằng cách ngăn chặn một client hoặc người dùng chiếm dụng quá nhiều tài nguyên của broker. Có thể cấu hình quota theo byte rate (<code>producer_byte_rate</code>).</p>
+</li>
+</ul>
+<h2 id="cấu-hình-topic">Cấu hình Topic<a hidden class="anchor" aria-hidden="true" href="#cấu-hình-topic">¶</a></h2>
+<ul>
+<li>
+<p><strong>Số lượng Partitions</strong>: Quyết định số lượng phân vùng khi tạo topic. Số lượng phân vùng ảnh hưởng trực tiếp đến khả năng xử lý song song cho cả producer và consumer. Tuy nhiên, việc tăng số lượng phân vùng sau này có thể phá vỡ thứ tự tin nhắn cho các bản ghi có cùng key.</p>
+</li>
+<li>
+<p><strong>Replication Factor</strong>: Số lượng bản sao cho mỗi phân vùng. Yếu tố nhân bản ảnh hưởng trực tiếp đến độ bền và tính sẵn sàng của dữ liệu. Replication factor cao hơn (ví dụ 3) tăng độ bền nhưng có thể tăng độ trễ khi ghi vì leader phải chờ xác nhận từ các follower.</p>
+</li>
+<li>
+<p><strong>min.insync.replicas (ISR)</strong>: Số lượng bản sao &ldquo;in-sync&rdquo; tối thiểu (bao gồm leader) mà producer phải chờ xác nhận ghi trước khi coi yêu cầu ghi là thành công, khi <strong>acks</strong> được đặt là <strong>all</strong> hoặc <strong>-1</strong>. Giá trị mặc định là 1, điều này được coi là &ldquo;khó bền&rdquo;. Nên đặt tối thiểu là 2 để đảm bảo độ bền. Giá trị này ảnh hưởng trực tiếp đến sự đánh đổi giữa độ bền và hiệu suất/độ trễ khi ghi.</p>
+</li>
+<li>
+<p><strong>Retention Policies (Chính sách lưu giữ)</strong>: Kafka có hai chính sách: <strong>deletion</strong> (xóa theo thời gian hoặc kích thước) và <strong>compaction</strong> (nén). Cấu hình chính sách lưu giữ (<code>log.retention.ms</code>, <code>log.retention.bytes</code>, <code>log.segment.bytes</code>,&hellip;) ảnh hưởng đến dung lượng đĩa được sử dụng và lượng dữ liệu có sẵn cho consumer, có thể ảnh hưởng đến hiệu suất đọc và chi phí lưu trữ.</p>
+</li>
+<li>
+<p><strong>Reassigning Replicas &amp; Preferred Leader Election</strong>: Các công cụ quản trị cho phép di chuyển các bản sao phân vùng giữa các broker và bầu leader ưu tiên. Việc phân bố đồng đều leader và follower trên các broker là quan trọng để cân bằng tải và tối ưu hiệu suất cluster.</p>
+</li>
+</ul>
+<h2 id="cấu-hình-producer">Cấu hình Producer<a hidden class="anchor" aria-hidden="true" href="#cấu-hình-producer">¶</a></h2>
+<ul>
+<li>
+<p><strong>acks (Acknowledgements)</strong>: Đặt mức độ xác nhận mà producer chờ đợi từ leader. acks=0 có hiệu suất cao nhất nhưng ít bền nhất (có thể mất dữ liệu). acks=1 chờ leader ghi thành công. acks=all hoặc -1 chờ leader và tất cả các bản sao trong ISR ghi thành công, mang lại độ bền cao nhất nhưng độ trễ cao hơn. Đây là tham số quan trọng nhất ảnh hưởng đến sự cân bằng giữa hiệu suất ghi và độ bền dữ liệu.</p>
+</li>
+<li>
+<p><strong>Batching &amp; Buffering</strong>: Producer gom các bản ghi thành các lô (batches) trước khi gửi để tăng hiệu quả. Các tham số như <code>linger.ms</code> (thời gian chờ để tạo batch) và <code>batch.size</code> (kích thước batch tối đa) ảnh hưởng đến kích thước lô và tần suất gửi, tác động lớn đến thông lượng và độ trễ.</p>
+</li>
+<li>
+<p><strong>Timeouts</strong>: <code>delivery.timeout.ms</code> đặt thời gian tối đa để một bản ghi được gửi thành công (bao gồm thời gian chờ batch và thời gian gửi mạng). Nếu bộ đệm đầy hoặc quá trình batching/gửi chậm, bản ghi có thể bị timeout. Để giải quyết, có thể tăng timeout hoặc giảm kích thước bộ đệm (<code>buffer.memory</code>). Tuning bộ đệm và timeout là cần thiết để tránh mất dữ liệu do timeout hoặc gây áp lực ngược (backpressure) lên producer.</p>
+</li>
+</ul>
+<h2 id="cấu-hình-consumer">Cấu hình Consumer<a hidden class="anchor" aria-hidden="true" href="#cấu-hình-consumer">¶</a></h2>
+<ul>
+<li>
+<p><strong>Fetching</strong>: Consumer tìm nạp các lô bản ghi từ broker. Các tham số như <code>fetch.max.bytes</code> (kích thước dữ liệu tối đa trong một lần fetch) và <code>max.partition.fetch.bytes</code> (kích thước dữ liệu tối đa cho một phân vùng trong một lần fetch) ảnh hưởng đến lượng dữ liệu consumer kéo về mỗi lần. Tuning các tham số này giúp cân bằng giữa hiệu suất tìm nạp tổng thể và sự công bằng giữa các phân vùng.</p>
+</li>
+<li>
+<p><strong>Polling</strong>: Consumer gọi phương thức <strong>poll()</strong> để lấy các bản ghi. Thời gian chờ trong poll() (ví dụ: <code>Duration.ofMillis(100)</code>) và <code>max.poll.interval.ms</code> (khoảng thời gian tối đa giữa các lần poll trước khi consumer được coi là chết và gây rebalance) ảnh hưởng đến độ trễ đọc và hành vi rebalancing. Tuning các tham số này giúp đảm bảo consumer xử lý kịp thời và tham gia nhóm consumer (consumer group) một cách ổn định.</p>
+</li>
+<li>
+<p><strong>Offset Management</strong>: Cách consumer quản lý offset (vị trí đọc) ảnh hưởng đến độ bền xử lý (at-most-once, at-least-once, exactly-once). <code>enable.auto.commit</code> và tần suất auto-commit ảnh hưởng đến việc khi nào offset được lưu. Tuning việc commit offset thủ công hoặc tự động ảnh hưởng đến sự đánh đổi giữa hiệu suất và đảm bảo xử lý chính xác. <code>auto.offset.reset</code> xác định hành vi khi không tìm thấy offset đã commit.</p>
+</li>
+</ul>
+<h2 id="kết-luận-3">Kết luận<a hidden class="anchor" aria-hidden="true" href="#kết-luận-3">¶</a></h2>
+<p>Tối ưu hiệu suất Kafka là một quá trình liên tục đòi hỏi sự hiểu biết sâu sắc về kiến trúc của nó, cấu hình cẩn thận các tham số liên quan đến producer, consumer, topic và broker, dựa trên yêu cầu cụ thể về độ bền, độ trễ và thông lượng, kết hợp với việc thử nghiệm và theo dõi hệ thống.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2025 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a>
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>

@@ -14,6 +14,8 @@ description = 'Các khái niệm chính của Kafka'
 
 **Apache Kafka** là một dự án mã nguồn mở, ban đầu được thiết kế tại LinkedIn bởi một nhóm dẫn đầu bởi Jay Kreps, Neha Narkhede, và Jun Rao. Nó được phát hành dưới dạng mã nguồn mở vào cuối năm 2010 và gia nhập Apache Software Foundation vào năm 2011.
 
+- Tài liệu tham khảo: [Kafka And RabbitMQ Books](https://github.com/ramosITBooks/KafkaAndRabbitMQBooks)
+
 
 # Các thành phần cơ bản
 

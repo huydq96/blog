@@ -56,7 +56,7 @@
   "keywords": [
     "kafka", "message queue"
   ],
-  "wordCount" : "2836",
+  "wordCount" : "2844",
   "inLanguage": "en",
   "datePublished": "2025-05-27T14:21:38+07:00",
   "dateModified": "2025-05-27T14:21:38+07:00",
@@ -317,6 +317,9 @@ function toggleThemeListener() {
   <div class="post-content"><h1 id="tổng-quan">Tổng quan<a hidden class="anchor" aria-hidden="true" href="#tổng-quan">¶</a></h1>
 <p><strong>Kafka là gì</strong> ? Về cốt lõi, Kafka là một hệ thống nhắn tin <strong>publish/subscribe</strong>. Nó được thiết kế để cung cấp một bản ghi bền vững (durable record) về tất cả các giao dịch, cho phép chúng được phát lại để xây dựng trạng thái nhất quán của hệ thống. Dữ liệu trong Kafka được lưu trữ bền vững, theo thứ tự và có thể được đọc một cách xác định. Nó cũng được phân tán để cung cấp khả năng chống lại sự cố và cơ hội mở rộng hiệu suất đáng kể.</p>
 <p><strong>Apache Kafka</strong> là một dự án mã nguồn mở, ban đầu được thiết kế tại LinkedIn bởi một nhóm dẫn đầu bởi Jay Kreps, Neha Narkhede, và Jun Rao. Nó được phát hành dưới dạng mã nguồn mở vào cuối năm 2010 và gia nhập Apache Software Foundation vào năm 2011.</p>
+<ul>
+<li>Tài liệu tham khảo: <a href="https://github.com/ramosITBooks/KafkaAndRabbitMQBooks">Kafka And RabbitMQ Books</a></li>
+</ul>
 <h1 id="các-thành-phần-cơ-bản">Các thành phần cơ bản<a hidden class="anchor" aria-hidden="true" href="#các-thành-phần-cơ-bản">¶</a></h1>
 <h2 id="message-tin-nhắn--record-bản-ghi">Message (tin nhắn) / Record (Bản ghi)<a hidden class="anchor" aria-hidden="true" href="#message-tin-nhắn--record-bản-ghi">¶</a></h2>
 <p>Đơn vị dữ liệu trong Kafka. Đối với Kafka, một message chỉ là một mảng byte, không có định dạng hoặc ý nghĩa cụ thể. Message có thể có một phần metadata tùy chọn gọi là <strong>key</strong> (khóa), cũng là một mảng byte. Key được sử dụng để kiểm soát cách message được ghi vào các <strong>partition</strong>.</p>
