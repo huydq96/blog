@@ -8,6 +8,7 @@ tags = ["kafka", "message queue", "interview"]
 description = 'Một số câu hỏi phỏng vấn liên quan đến Kafka'
 +++
 
+Tài liệu tham khảo: [Kafka And RabbitMQ Books](https://github.com/ramosITBooks/KafkaAndRabbitMQBooks)
 
 # Có thể sử dụng Kafka mà không cần ZooKeeper không ?
 
