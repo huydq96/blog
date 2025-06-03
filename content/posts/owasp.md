@@ -10,17 +10,17 @@ description = 'Những lỗ hổng bảo mật phổ biến'
 
 # Tổng quan
 
-Bảo mật ứng dụng web đã trở thành mối quan tâm hàng đầu trong bối cảnh số hóa ngày càng gia tăng . **OWASP** (Open Web Application Security Project) là tổ chức phi lợi nhuận toàn cầu chuyên về bảo mật ứng dụng web, cung cấp danh sách **OWASP Top 10** - những lỗ hổng bảo mật nghiêm trọng nhất được cập nhật định kỳ.
+Bảo mật ứng dụng web đã trở thành mối quan tâm hàng đầu trong bối cảnh số hóa ngày càng gia tăng. **OWASP** (Open Web Application Security Project) là tổ chức phi lợi nhuận toàn cầu chuyên về bảo mật ứng dụng web, cung cấp danh sách **OWASP Top 10** - những lỗ hổng bảo mật nghiêm trọng nhất được cập nhật định kỳ.
 
 [**OWASP Top 10 2021**](https://owasp.org/www-project-top-ten/) được phát hành nhằm đánh dấu 20 năm của tổ chức OWASP và vẫn là tiêu chuẩn phổ biến nhất. Danh sách này được xây dựng dựa trên dữ liệu từ hơn 200,000 tổ chức và khảo sát các chuyên gia trong ngành, bao gồm 2 triệu báo cáo bảo mật từ 144 nguồn công khai.
 
-![](/static/images/owasp.png)
+![](https://blog.huydang.dev/images/owasp.png)
 
 Theo thông [tin chính thức từ OWASP](https://owasp.org/www-project-top-ten/), họ đang thu thập dữ liệu cho phiên bản **OWASP Top 10 2025** từ tháng 1 năm 2024 và dự kiến công bố kết quả trong nửa đầu năm 2025. Quá trình thu thập dữ liệu đã kết thúc vào tháng 9 năm 2024, sau đó nhóm sẽ xem xét và phân tích dữ liệu để đưa ra danh sách cập nhật.
 
-Dưới đây là bảng so sánh Rankings 2021 với dự đoán 2025
+Dưới đây là bảng so sánh Rankings 2021 với dự đoán 2025.
 
-![](/static/images/owasp-2021-2025.png)
+![](https://blog.huydang.dev/images/owasp-2021-2025.png)
 
 
 # A01:2021 - Broken Access Control (Kiểm soát Truy cập Bị phá vỡ)
