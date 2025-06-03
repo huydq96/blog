@@ -3,30 +3,33 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://blog.huydang.dev/categories/</loc>
-    <lastmod>2025-06-03T15:30:43+07:00</lastmod>
+    <lastmod>2025-06-03T21:34:51+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/coding/</loc>
-    <lastmod>2025-06-03T15:30:43+07:00</lastmod>
+    <lastmod>2025-06-03T21:34:51+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/design-pattern/</loc>
-    <lastmod>2025-06-03T15:30:43+07:00</lastmod>
+    <lastmod>2025-06-03T21:34:51+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/design-pattern/</loc>
-    <lastmod>2025-06-03T15:30:43+07:00</lastmod>
+    <lastmod>2025-06-03T21:34:51+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/posts/design-pattern-p2-structural/</loc>
-    <lastmod>2025-06-03T15:30:43+07:00</lastmod>
+    <loc>https://blog.huydang.dev/posts/design-pattern-p3-behavioral/</loc>
+    <lastmod>2025-06-03T21:34:51+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/golang/</loc>
-    <lastmod>2025-06-03T15:30:43+07:00</lastmod>
+    <lastmod>2025-06-03T21:34:51+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/</loc>
-    <lastmod>2025-06-03T15:30:43+07:00</lastmod>
+    <lastmod>2025-06-03T21:34:51+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/</loc>
-    <lastmod>2025-06-03T15:30:43+07:00</lastmod>
+    <lastmod>2025-06-03T21:34:51+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2025-06-03T21:34:51+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/design-pattern-p2-structural/</loc>
     <lastmod>2025-06-03T15:30:43+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/design-pattern-p1-creational/</loc>
