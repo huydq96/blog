@@ -1,7 +1,7 @@
 +++
 date = '2025-06-04T00:10:38+07:00'
 draft = false
-title = 'Owasp'
+title = 'OWASP'
 author = 'Huy Dang Quang'
 categories = ["Security"]
 tags = ["owasp", "security"]
