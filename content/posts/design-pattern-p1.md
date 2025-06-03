@@ -1,11 +1,11 @@
 +++
 date = '2025-06-03T10:08:25+07:00'
 draft = false
-title = 'Design Pattern P1'
+title = 'Design Pattern P1 (Creational)'
 author = 'Huy Dang Quang'
 categories = ["Design Pattern"]
 tags = ["golang", "coding", "design pattern"]
-description = 'Go và một số Design Pattern phổ biến phần 1'
+description = 'Go và một số Design Pattern phổ biến phần 1 (Creational)'
 +++
 
 # Mở đầu

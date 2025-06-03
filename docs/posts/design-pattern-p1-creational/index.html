@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Design Pattern P1 (Creational) | Huy Dang Blog</title>
+<meta name="keywords" content="golang, coding, design pattern">
+<meta name="description" content="Go và một số Design Pattern phổ biến phần 1 (Creational)">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/design-pattern-p1-creational/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/design-pattern-p1-creational/">
+
+<meta name="twitter:title" content="Design Pattern P1 (Creational) | Huy Dang Blog" />
+<meta name="twitter:description" content="Go và một số Design Pattern phổ biến phần 1 (Creational)" />
+<meta property="og:title" content="Design Pattern P1 (Creational) | Huy Dang Blog" />
+<meta property="og:description" content="Go và một số Design Pattern phổ biến phần 1 (Creational)" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/design-pattern-p1-creational/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2025-06-03T10:08:25&#43;07:00" />
+  <meta property="article:modified_time" content="2025-06-03T10:08:25&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Design Pattern P1 (Creational)",
+      "item": "https://blog.huydang.dev/posts/design-pattern-p1-creational/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Design Pattern P1 (Creational) | Huy Dang Blog",
+  "name": "Design Pattern P1 (Creational)",
+  "description": "Go và một số Design Pattern phổ biến phần 1 (Creational)",
+  "keywords": [
+    "golang", "coding", "design pattern"
+  ],
+  "wordCount" : "1570",
+  "inLanguage": "en",
+  "datePublished": "2025-06-03T10:08:25+07:00",
+  "dateModified": "2025-06-03T10:08:25+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/design-pattern-p1-creational/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Design Pattern P1 (Creational)</h1>
+    <div class="post-description">Go và một số Design Pattern phổ biến phần 1 (Creational)</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>June 3, 2025</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/coding/">Coding</a><a href="https://blog.huydang.dev/tags/design-pattern/">Design Pattern</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>8 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#m%e1%bb%9f-%c4%91%e1%ba%a7u" aria-label="Mở đầu">Mở đầu</a></li>
+                <li>
+                    <a href="#creational-design-patterns" aria-label="Creational Design Patterns">Creational Design Patterns</a><ul>
+                        
+                <li>
+                    <a href="#singleton" aria-label="Singleton">Singleton</a><ul>
+                        
+                <li>
+                    <a href="#implementation" aria-label="Implementation">Implementation</a></li>
+                <li>
+                    <a href="#usage" aria-label="Usage">Usage</a></li></ul>
+                </li>
+                <li>
+                    <a href="#factory-method" aria-label="Factory Method">Factory Method</a><ul>
+                        
+                <li>
+                    <a href="#implementation-1" aria-label="Implementation">Implementation</a></li>
+                <li>
+                    <a href="#usage-1" aria-label="Usage">Usage</a></li></ul>
+                </li>
+                <li>
+                    <a href="#abstract-factory" aria-label="Abstract Factory">Abstract Factory</a><ul>
+                        
+                <li>
+                    <a href="#implementation-2" aria-label="Implementation">Implementation</a></li>
+                <li>
+                    <a href="#usage-2" aria-label="Usage">Usage</a></li></ul>
+                </li>
+                <li>
+                    <a href="#prototype" aria-label="Prototype">Prototype</a><ul>
+                        
+                <li>
+                    <a href="#implementation-3" aria-label="Implementation">Implementation</a></li>
+                <li>
+                    <a href="#usage-3" aria-label="Usage">Usage</a></li></ul>
+                </li>
+                <li>
+                    <a href="#so-s%c3%a1nh-nhanh" aria-label="So sánh nhanh">So sánh nhanh</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="mở-đầu">Mở đầu<a hidden class="anchor" aria-hidden="true" href="#mở-đầu">¶</a></h1>
+<p><a href="https://en.wikipedia.org/wiki/Design_Patterns"><strong>Design Pattern</strong></a> là những mô hình thiết kế được sử dụng để giải quyết một vấn đề cụ thể trong lập trình. Nó cung cấp một giải pháp đã được kiểm nghiệm và tối ưu hóa, giúp các lập trình viên tiết kiệm thời gian và công sức khi phát triển phần mềm.</p>
+<p>Để tìm hiểu chi tiết về 23 patterns, các bạn có thể tham khảo những đường dẫn sau:</p>
+<ul>
+<li><a href="https://nguyenphuc22.github.io/Design-Patterns/intro.html">Design Pattern Tiếng Việt</a></li>
+<li><a href="https://github.com/anonystick/anonystick?tab=readme-ov-file#-series-design-patterns">Series Design Patterns</a></li>
+</ul>
+<p>Bài viết này sẽ chỉ tập trung vào một số pattern phổ biến và cách sử dụng trong Go.</p>
+<h1 id="creational-design-patterns">Creational Design Patterns<a hidden class="anchor" aria-hidden="true" href="#creational-design-patterns">¶</a></h1>
+<p><strong>Creational Design Patterns</strong> liên quan tới việc khởi tạo đối tượng. Nhóm pattern này cung cấp các cơ chế tạo đối tượng một cách linh hoạt và phù hợp với bối cảnh sử dụng.</p>
+<h2 id="singleton">Singleton<a hidden class="anchor" aria-hidden="true" href="#singleton">¶</a></h2>
+<p><strong>Singleton</strong> đảm bảo chỉ duy nhất một thể hiện của một lớp được tạo ra trong suốt chương trình.</p>
+<h3 id="implementation">Implementation<a hidden class="anchor" aria-hidden="true" href="#implementation">¶</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">package</span> <span class="nx">singleton</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">singleton</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">once</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">Once</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">instance</span> <span class="nx">singleton</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">New</span><span class="p">()</span> <span class="nx">singleton</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">once</span><span class="p">.</span><span class="nf">Do</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">instance</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="nx">singleton</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">})</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">instance</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="usage">Usage<a hidden class="anchor" aria-hidden="true" href="#usage">¶</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">s</span> <span class="o">:=</span> <span class="nx">singleton</span><span class="p">.</span><span class="nf">New</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">s</span><span class="p">[</span><span class="s">&#34;this&#34;</span><span class="p">]</span> <span class="p">=</span> <span class="s">&#34;that&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">s2</span> <span class="o">:=</span> <span class="nx">singleton</span><span class="p">.</span><span class="nf">New</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;This is &#34;</span><span class="p">,</span> <span class="nx">s2</span><span class="p">[</span><span class="s">&#34;this&#34;</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// This is that
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Với cách triển khai này, chỉ có một đối tượng <strong>singleton</strong> duy nhất được tạo ra, và đối tượng này có thể được truy cập từ bất kỳ nơi nào trong chương trình. Việc này sẽ giúp tránh được các vấn đề như dữ liệu trùng lặp, xung đột tài nguyên, khó kiểm soát.</p>
+<p>Tuy nhiên, cần lưu ý những điểm hạn chế của Singleton Pattern khi áp dụng:</p>
+<ul>
+<li>Nên sử dụng Singleton Pattern khi cần đảm bảo rằng chỉ có một thể hiện duy nhất của một lớp được tạo ra.</li>
+<li>Tránh sử dụng Singleton Pattern khi không cần thiết.</li>
+<li>Hạn chế sử dụng Singleton trong các hệ thống lớn hoặc phức tạp.</li>
+</ul>
+<h2 id="factory-method">Factory Method<a hidden class="anchor" aria-hidden="true" href="#factory-method">¶</a></h2>
+<p><strong>Factory Method</strong> cung cấp một cách để tạo các đối tượng của lớp một cách linh hoạt mà không cần chỉ định rõ kiểu cụ thể của đối tượng nào sẽ được tạo.</p>
+<p><strong>Mục đích</strong>:</p>
+<ul>
+<li><strong>Dễ dàng tạo các đối tượng của lớp</strong>: cho phép tạo các đối tượng của lớp một cách dễ dàng thông qua một phương thức trừu tượng.</li>
+<li><strong>Dễ dàng thay đổi cách tạo các đối tượng của lớp</strong>: bằng cách triển khai lại phương thức factory ở các lớp con, bạn có thể thay đổi cách tạo đối tượng mà không ảnh hưởng đến client code.</li>
+</ul>
+<h3 id="implementation-1">Implementation<a hidden class="anchor" aria-hidden="true" href="#implementation-1">¶</a></h3>
+<p>Định nghĩa Interface</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">package</span> <span class="nx">data</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="s">&#34;io&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Store</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Open</span><span class="p">(</span><span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">io</span><span class="p">.</span><span class="nx">ReadWriteCloser</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Các Implementations khác nhau</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">package</span> <span class="nx">data</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">StorageType</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">const</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">DiskStorage</span> <span class="nx">StorageType</span> <span class="p">=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="kc">iota</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">TempStorage</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">MemoryStorage</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">NewStore</span><span class="p">(</span><span class="nx">t</span> <span class="nx">StorageType</span><span class="p">)</span> <span class="nx">Store</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">switch</span> <span class="nx">t</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">case</span> <span class="nx">MemoryStorage</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">newMemoryStorage</span><span class="p">(</span> <span class="cm">/*...*/</span> <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">case</span> <span class="nx">DiskStorage</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">newDiskStorage</span><span class="p">(</span> <span class="cm">/*...*/</span> <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">default</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">newTempStorage</span><span class="p">(</span> <span class="cm">/*...*/</span> <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="usage-1">Usage<a hidden class="anchor" aria-hidden="true" href="#usage-1">¶</a></h3>
+<p>Chỉ định cụ thể kiểu storage mong muốn</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">s</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">data</span><span class="p">.</span><span class="nf">NewStore</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">MemoryStorage</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">f</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">Open</span><span class="p">(</span><span class="s">&#34;file&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">n</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">f</span><span class="p">.</span><span class="nf">Write</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="s">&#34;data&#34;</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="k">defer</span> <span class="nx">f</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Factory Pattern</strong> là một pattern hữu ích giúp tăng tính linh hoạt và khả năng mở rộng cho hệ thống bằng cách tách biệt quá trình khởi tạo đối tượng.</p>
+<h2 id="abstract-factory">Abstract Factory<a hidden class="anchor" aria-hidden="true" href="#abstract-factory">¶</a></h2>
+<p>Như phần trên đã trình bày, <a href="#factory-method">Factory Method</a> giúp tạo ra các đối tượng của một lớp. Tuy nhiên, trong nhiều trường hợp, các đối tượng có quan hệ với nhau và được nhóm thành các họ. Lúc này, chúng ta cần <strong>Abstract Factory</strong>.</p>
+<p><strong>Abstract Factory</strong> cung cấp một interface để tạo ra các họ đối tượng liên quan với nhau một cách linh hoạt. Nó bao gồm các thành phần chính sau:</p>
+<ul>
+<li><strong>Abstract Factory</strong> interface: định nghĩa các phương thức để tạo ra các sản phẩm trừu tượng.</li>
+<li><strong>Concrete Factorie</strong>: mỗi Concrete Factory tạo ra một tập sản phẩm khác biệt.</li>
+<li><strong>Abstract Product</strong> interface: định nghĩa interface chung cho một loại sản phẩm trừu tượng.</li>
+<li><strong>Concrete Product</strong>: implement Abstract Product. Mỗi sản phẩm thuộc về một Concrete Factory nhất định.</li>
+<li><strong>Client</strong>: sử dụng Abstract Factory và Abstract Product để tương tác với hệ thống. Không cần quan tâm đến các lớp cụ thể.</li>
+</ul>
+<h3 id="implementation-2">Implementation<a hidden class="anchor" aria-hidden="true" href="#implementation-2">¶</a></h3>
+<p>Định nghĩa <strong>Abstract Products</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// SMSNotification is an interface for SMS notifications.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">SMSNotification</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">SendSMS</span><span class="p">()</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// EmailNotification is an interface for Email notifications.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">EmailNotification</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">SendEmail</span><span class="p">()</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Định nghĩa <strong>Concrete Structs</strong> (implement <strong>Abstract Products</strong>)</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// iOS-based notifications
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// IOSSMS is a struct for iOS SMS notifications.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">IOSSMS</span> <span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="nx">IOSSMS</span><span class="p">)</span> <span class="nf">SendSMS</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="s">&#34;Sending iOS SMS Notification&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// IOSEmail is a struct for iOS Email notifications.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">IOSEmail</span> <span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="nx">IOSEmail</span><span class="p">)</span> <span class="nf">SendEmail</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="s">&#34;Sending iOS Email Notification&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Android-based notifications
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// AndroidSMS is a struct for Android SMS notifications.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">AndroidSMS</span> <span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="nx">AndroidSMS</span><span class="p">)</span> <span class="nf">SendSMS</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="s">&#34;Sending Android SMS Notification&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// AndroidEmail is a struct for Android Email notifications.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">AndroidEmail</span> <span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">e</span> <span class="nx">AndroidEmail</span><span class="p">)</span> <span class="nf">SendEmail</span><span class="p">()</span> <span class="kt">string</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="s">&#34;Sending Android Email Notification&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Định nghĩa <strong>Abstract Factory Interface</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// NotificationFactory is an abstract factory interface for creating notifications.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">NotificationFactory</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">CreateSMSNotification</span><span class="p">()</span> <span class="nx">SMSNotification</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">CreateEmailNotification</span><span class="p">()</span> <span class="nx">EmailNotification</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Định nghĩa <strong>Concrete Factories</strong> (implement <strong>Abstract Factory Interface</strong>)</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// IOSFactory is a concrete factory for iOS notifications.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">IOSFactory</span> <span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="nx">IOSFactory</span><span class="p">)</span> <span class="nf">CreateSMSNotification</span><span class="p">()</span> <span class="nx">SMSNotification</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">IOSSMS</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="nx">IOSFactory</span><span class="p">)</span> <span class="nf">CreateEmailNotification</span><span class="p">()</span> <span class="nx">EmailNotification</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">IOSEmail</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// AndroidFactory is a concrete factory for Android notifications.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">AndroidFactory</span> <span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="nx">AndroidFactory</span><span class="p">)</span> <span class="nf">CreateSMSNotification</span><span class="p">()</span> <span class="nx">SMSNotification</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">AndroidSMS</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">f</span> <span class="nx">AndroidFactory</span><span class="p">)</span> <span class="nf">CreateEmailNotification</span><span class="p">()</span> <span class="nx">EmailNotification</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">AndroidEmail</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="usage-2">Usage<a hidden class="anchor" aria-hidden="true" href="#usage-2">¶</a></h3>
+<p>Tạo <strong>Factory Selector</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// GetNotificationFactory returns a NotificationFactory based on the input type.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">GetNotificationFactory</span><span class="p">(</span><span class="nx">platform</span> <span class="kt">string</span><span class="p">)</span> <span class="nx">NotificationFactory</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">switch</span> <span class="nx">platform</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">case</span> <span class="s">&#34;iOS&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">IOSFactory</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">case</span> <span class="s">&#34;Android&#34;</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">AndroidFactory</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">default</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Sử dụng <strong>Abstract Factory</strong> ở Client</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Get an iOS factory
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">factory</span> <span class="o">:=</span> <span class="nf">GetNotificationFactory</span><span class="p">(</span><span class="s">&#34;iOS&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">factory</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">sms</span> <span class="o">:=</span> <span class="nx">factory</span><span class="p">.</span><span class="nf">CreateSMSNotification</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">email</span> <span class="o">:=</span> <span class="nx">factory</span><span class="p">.</span><span class="nf">CreateEmailNotification</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">sms</span><span class="p">.</span><span class="nf">SendSMS</span><span class="p">())</span>     <span class="c1">// Output: Sending iOS SMS Notification
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">email</span><span class="p">.</span><span class="nf">SendEmail</span><span class="p">())</span> <span class="c1">// Output: Sending iOS Email Notification
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Get an Android factory
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">factory</span> <span class="p">=</span> <span class="nf">GetNotificationFactory</span><span class="p">(</span><span class="s">&#34;Android&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">factory</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">sms</span> <span class="o">:=</span> <span class="nx">factory</span><span class="p">.</span><span class="nf">CreateSMSNotification</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">email</span> <span class="o">:=</span> <span class="nx">factory</span><span class="p">.</span><span class="nf">CreateEmailNotification</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">sms</span><span class="p">.</span><span class="nf">SendSMS</span><span class="p">())</span>     <span class="c1">// Output: Sending Android SMS Notification
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">email</span><span class="p">.</span><span class="nf">SendEmail</span><span class="p">())</span> <span class="c1">// Output: Sending Android Email Notification
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Abstract Factory</strong> là một Design Pattern hữu ích, có một số ưu điểm sau:</p>
+<ul>
+<li>Tách biệt phần triển khai với phần sử dụng code, giảm sự phụ thuộc lẫn nhau giữa các đối tượng.</li>
+<li>Có thể dễ dàng thay đổi, mở rộng cách tạo đối tượng mà không ảnh hưởng đến phần còn lại của code.</li>
+<li>Giúp tạo ra các họ đối tượng liên quan một cách thống nhất.</li>
+</ul>
+<p>Tuy nhiên cũng có nhược điểm cần lưu ý là cấu trúc phức tạp, nhiều lớp trừu tượng cần phải triển khai. Vì vậy, Abstract Factory phù hợp trong trường hợp cần tạo ra các họ đối tượng liên quan, có tính mở rộng cao. Không nên sử dụng nếu chỉ cần tạo đơn giản một Object.</p>
+<h2 id="prototype">Prototype<a hidden class="anchor" aria-hidden="true" href="#prototype">¶</a></h2>
+<p><strong>Prototype</strong> cho phép sao chép các đối tượng hiện có thay vì khởi tạo chúng từ đầu.</p>
+<p>Mục đích của Pattern này là tạo ra các đối tượng mới bằng cách <strong>clone</strong> từ đối tượng hiện có thay vì khởi tạo, tiết kiệm chi phí tạo mới đối tượng, đặc biệt là các đối tượng phức tạp. Ngoài ra, nó che giấu logic khởi tạo và cung cấp khả năng tạo các đối tượng tương tự một cách hiệu quả.</p>
+<h3 id="implementation-3">Implementation<a hidden class="anchor" aria-hidden="true" href="#implementation-3">¶</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Cloneable</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Clone</span><span class="p">()</span> <span class="nx">Cloneable</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Person</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Name</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Age</span>  <span class="kt">int</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">p</span> <span class="o">*</span><span class="nx">Person</span><span class="p">)</span> <span class="nf">Clone</span><span class="p">()</span> <span class="nx">Cloneable</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="o">&amp;</span><span class="nx">Person</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Name</span><span class="p">:</span> <span class="nx">p</span><span class="p">.</span><span class="nx">Name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Age</span><span class="p">:</span>  <span class="nx">p</span><span class="p">.</span><span class="nx">Age</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="usage-3">Usage<a hidden class="anchor" aria-hidden="true" href="#usage-3">¶</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">person1</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">Person</span><span class="p">{</span><span class="nx">Name</span><span class="p">:</span> <span class="s">&#34;Alice&#34;</span><span class="p">,</span> <span class="nx">Age</span><span class="p">:</span> <span class="mi">30</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">person2</span> <span class="o">:=</span> <span class="nx">person1</span><span class="p">.</span><span class="nf">Clone</span><span class="p">().(</span><span class="o">*</span><span class="nx">Person</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Modify the clone
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">person2</span><span class="p">.</span><span class="nx">Name</span> <span class="p">=</span> <span class="s">&#34;Jane&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">person2</span><span class="p">.</span><span class="nx">Age</span> <span class="p">=</span> <span class="mi">25</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">person1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">person2</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="so-sánh-nhanh">So sánh nhanh<a hidden class="anchor" aria-hidden="true" href="#so-sánh-nhanh">¶</a></h2>
+<ul>
+<li><a href="#singleton">Singleton</a> phù hợp khi cần đảm bảo tính duy nhất và quản lý tài nguyên chung.</li>
+<li><a href="#factory-method">Factory Method</a> là lựa chọn tốt khi cần tính linh hoạt trong việc tạo đối tượng và khả năng mở rộng trong tương lai.</li>
+<li><a href="#abstract-factory">Abstract Factory</a> được ưu tiên khi làm việc với các họ sản phẩm phức tạp và cần đảm bảo tính tương thích.</li>
+<li><a href="#prototype">Prototype</a> là giải pháp hiệu quả khi việc tạo đối tượng mới tốn kém hoặc khi cần sao chép các đối tượng phức tạp.</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2025 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a>
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>
