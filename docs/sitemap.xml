@@ -3,10 +3,25 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://blog.huydang.dev/categories/</loc>
-    <lastmod>2025-06-04T00:10:38+07:00</lastmod>
+    <lastmod>2025-06-05T10:27:14+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/</loc>
-    <lastmod>2025-06-04T00:10:38+07:00</lastmod>
+    <lastmod>2025-06-05T10:27:14+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/</loc>
+    <lastmod>2025-06-05T10:27:14+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/system-design/</loc>
+    <lastmod>2025-06-05T10:27:14+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/system-design/</loc>
+    <lastmod>2025-06-05T10:27:14+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/system-design-resources/</loc>
+    <lastmod>2025-06-05T10:27:14+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2025-06-05T10:27:14+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/owasp/</loc>
     <lastmod>2025-06-04T00:10:38+07:00</lastmod>
@@ -14,16 +29,10 @@
     <loc>https://blog.huydang.dev/posts/owasp/</loc>
     <lastmod>2025-06-04T00:10:38+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/posts/</loc>
-    <lastmod>2025-06-04T00:10:38+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/tags/security/</loc>
     <lastmod>2025-06-04T00:10:38+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/security/</loc>
-    <lastmod>2025-06-04T00:10:38+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/</loc>
     <lastmod>2025-06-04T00:10:38+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/coding/</loc>
