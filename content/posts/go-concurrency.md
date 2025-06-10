@@ -8,6 +8,10 @@ tags = ["golang", "coding", "concurrency"]
 description = 'Một số khái niệm về concurrency trong Go'
 +++
 
+# Tổng quan
+
+**Concurrency** là một trong những tính năng nổi bật nhất của Golang, được thiết kế để xây dựng các hệ thống hiệu quả, có khả năng mở rộng cao. Khác với mô hình đa luồng truyền thống, Concurrency trong Go được xây dựng dựa trên ba trụ cột: **goroutine** (đơn vị xử lý), **channel** (giao tiếp an toàn), và **runtime scheduler** (tối ưu tài nguyên).
+
 # Goroutine
 
 `Goroutine` là một trong những tính năng đặc biệt và mạnh mẽ nhất của ngôn ngữ lập trình Go, cho phép lập trình đồng thời (concurrency) được thực hiện một cách đơn giản và hiệu quả.
@@ -497,3 +501,18 @@ current := config.Load().(Config)
 go run -race main.go  # Chạy với race detector
 go test -race ./...   # Kiểm tra test cases
 ```
+
+# Go Scheduler
+
+**Go Runtime** quản lý goroutine thông qua:
+- **M (Machine)**: OS thread.
+- **P (Processor)**: Logical processor, điều phối goroutine.
+- **G (Goroutine)**: Đơn vị xử lý.
+
+Scheduler phân phối G lên M, tối ưu việc sử dụng CPU cores. Khi goroutine bị block (I/O), scheduler tự động chuyển sang G khác.
+
+Ưu điểm:
+- **Work-stealing**: P không nhàn rỗi sẽ "đánh cắp" G từ P khác để cân bằng tải.
+- **Không cần manual thread pool**: Tự động scale theo số CPU và workload.
+
+Tham khảo thêm: [Scheduling in Go](https://woolly-knave-e27.notion.site/Scheduling-in-Go-1-1bbb5045f2fc8056b3a5dc7bb65a180e)
