@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>MySQL Index: Composite vs Single | Huy Dang Blog</title>
+<meta name="keywords" content="mysql, database, indexing">
+<meta name="description" content="So sánh index đa cột và đơn cột trong MySQL">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/mysql-index-composite-vs-single/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/mysql-index-composite-vs-single/">
+
+<meta name="twitter:title" content="MySQL Index: Composite vs Single | Huy Dang Blog" />
+<meta name="twitter:description" content="So sánh index đa cột và đơn cột trong MySQL" />
+<meta property="og:title" content="MySQL Index: Composite vs Single | Huy Dang Blog" />
+<meta property="og:description" content="So sánh index đa cột và đơn cột trong MySQL" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/mysql-index-composite-vs-single/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2025-06-25T14:00:26&#43;07:00" />
+  <meta property="article:modified_time" content="2025-06-25T14:00:26&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "MySQL Index: Composite vs Single",
+      "item": "https://blog.huydang.dev/posts/mysql-index-composite-vs-single/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MySQL Index: Composite vs Single | Huy Dang Blog",
+  "name": "MySQL Index: Composite vs Single",
+  "description": "So sánh index đa cột và đơn cột trong MySQL",
+  "keywords": [
+    "mysql", "database", "indexing"
+  ],
+  "wordCount" : "2584",
+  "inLanguage": "en",
+  "datePublished": "2025-06-25T14:00:26+07:00",
+  "dateModified": "2025-06-25T14:00:26+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/mysql-index-composite-vs-single/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">MySQL Index: Composite vs Single</h1>
+    <div class="post-description">So sánh index đa cột và đơn cột trong MySQL</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>June 25, 2025</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/mysql/">Mysql</a><a href="https://blog.huydang.dev/tags/database/">Database</a><a href="https://blog.huydang.dev/tags/indexing/">Indexing</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>13 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#t%e1%bb%95ng-quan" aria-label="Tổng quan">Tổng quan</a></li>
+                <li>
+                    <a href="#ki%e1%ba%bfn-tr%c3%bac-c%e1%bb%a7a-index-trong-mysql" aria-label="Kiến trúc của index trong MySQL">Kiến trúc của index trong MySQL</a></li>
+                <li>
+                    <a href="#index-%c4%91a-c%e1%bb%99t---quy-t%e1%ba%afc-ti%e1%bb%81n-t%e1%bb%91-tr%c3%a1i-left-prefix-rule" aria-label="Index đa cột - Quy tắc Tiền tố Trái (Left-Prefix Rule)">Index đa cột - Quy tắc Tiền tố Trái (Left-Prefix Rule)</a><ul>
+                        
+                <li>
+                    <a href="#h%c3%a0nh-vi-c%e1%bb%a7a-b%e1%bb%99-t%e1%bb%91i-%c6%b0u-h%c3%b3a" aria-label="Hành vi của Bộ tối ưu hóa">Hành vi của Bộ tối ưu hóa</a></li></ul>
+                </li>
+                <li>
+                    <a href="#t%e1%bb%91i-%c6%b0u-h%c3%b3a-k%e1%ba%bft-h%e1%bb%a3p-index-index-merge-optimization" aria-label="Tối ưu hóa Kết hợp index (Index Merge Optimization)">Tối ưu hóa Kết hợp index (Index Merge Optimization)</a><ul>
+                        
+                <li>
+                    <a href="#c%c3%a1c-thu%e1%ba%adt-to%c3%a1n-c%e1%bb%a7a-index-merge" aria-label="Các thuật toán của Index Merge">Các thuật toán của Index Merge</a></li></ul>
+                </li>
+                <li>
+                    <a href="#so-s%c3%a1nh-d%e1%bb%b1a-tr%c3%aan-k%e1%bb%8bch-b%e1%ba%a3n" aria-label="So sánh dựa trên kịch bản">So sánh dựa trên kịch bản</a><ul>
+                        
+                <li>
+                    <a href="#chi%e1%ba%bfn-l%c6%b0%e1%bb%a3c-k%e1%ba%bft-h%e1%bb%a3p-hybrid-strategy" aria-label="Chiến lược Kết hợp (Hybrid Strategy)">Chiến lược Kết hợp (Hybrid Strategy)</a></li></ul>
+                </li>
+                <li>
+                    <a href="#t%e1%bb%95ng-h%e1%bb%a3p" aria-label="Tổng hợp">Tổng hợp</a><ul>
+                        
+                <li>
+                    <a href="#s%e1%bb%ad-d%e1%bb%a5ng-explain-%c4%91%e1%bb%83-x%c3%a1c-th%e1%bb%b1c-l%e1%bb%b1a-ch%e1%bb%8dn" aria-label="Sử dụng EXPLAIN để xác thực lựa chọn">Sử dụng EXPLAIN để xác thực lựa chọn</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="tổng-quan">Tổng quan<a hidden class="anchor" aria-hidden="true" href="#tổng-quan">¶</a></h1>
+<p>Khi gặp các truy vấn lọc trên nhiều cột, ví dụ <code>col_a</code> và <code>col_b</code>, đâu là lựa chọn tối ưu hơn – tạo một index đa cột <strong>(composite index)</strong> duy nhất trên <code>(col_a, col_b)</code> hay tạo hai index đơn cột <strong>(single-column indexes)</strong> riêng biệt trên <code>(col_a)</code> và <code>(col_b)</code> ?</p>
+<p>Quyết định tối ưu phụ thuộc hoàn toàn vào các yếu tố phức tạp và liên kết với nhau, bao gồm <strong>mẫu truy vấn (query patterns)</strong> đặc thù của ứng dụng, <strong>cấu trúc và tính chọn lọc của dữ liệu</strong>, và sự cân bằng chiến lược giữa <strong>hiệu năng đọc (read performance)</strong> và <strong>chi phí ghi (write overhead)</strong>.</p>
+<h1 id="kiến-trúc-của-index-trong-mysql">Kiến trúc của index trong MySQL<a hidden class="anchor" aria-hidden="true" href="#kiến-trúc-của-index-trong-mysql">¶</a></h1>
+<p>Hầu hết các loại index phổ biến trong MySQL, bao gồm <code>PRIMARY KEY</code>, <code>UNIQUE</code>, và <code>INDEX</code> thông thường, đều được lưu trữ dưới dạng cấu trúc dữ liệu cây <code>B-Tree</code>. Đặc tính cơ bản và quan trọng nhất của cây B-Tree là nó luôn duy trì dữ liệu ở trạng thái <strong>đã được sắp xếp</strong>.</p>
+<p>Đọc thêm: <a href="https://blog.huydang.dev/posts/mysql-indexing/">MySQL Indexing</a></p>
+<ul>
+<li><strong>Index đa cột <code>(col_a, col_b)</code>:</strong> Được xem như một mảng đã được sắp xếp, trong đó các phần tử được tạo ra bằng cách nối các giá trị của các cột được đánh index lại với nhau. Dữ liệu được sắp xếp trước hết theo col_a. Với những hàng có cùng giá trị col_a, chúng sẽ được sắp xếp tiếp theo col_b.</li>
+<li><strong>Hai index đơn cột <code>(col_a)</code> và <code>(col_b)</code>:</strong> Tạo ra hai cấu trúc cây B-Tree hoàn toàn riêng biệt và độc lập. Một cây chỉ chứa và sắp xếp các giá trị của col_a, trong khi cây còn lại chỉ chứa và sắp xếp các giá trị của col_b.</li>
+</ul>
+<h1 id="index-đa-cột---quy-tắc-tiền-tố-trái-left-prefix-rule">Index đa cột - Quy tắc Tiền tố Trái (Left-Prefix Rule)<a hidden class="anchor" aria-hidden="true" href="#index-đa-cột---quy-tắc-tiền-tố-trái-left-prefix-rule">¶</a></h1>
+<p>MySQL có thể sử dụng hiệu quả một index đa cột nếu các điều kiện trong mệnh đề <code>WHERE</code> của truy vấn khớp với một hoặc nhiều cột đầu tiên trong định nghĩa index, theo thứ tự từ trái sang phải, một cách liền kề. Nói cách khác, MySQL có thể sử dụng index cho các truy vấn kiểm tra cột đầu tiên, hai cột đầu tiên, ba cột đầu tiên, và cứ thế tiếp diễn.</p>
+<h2 id="hành-vi-của-bộ-tối-ưu-hóa">Hành vi của Bộ tối ưu hóa<a hidden class="anchor" aria-hidden="true" href="#hành-vi-của-bộ-tối-ưu-hóa">¶</a></h2>
+<ul>
+<li><strong>Khớp Toàn bộ Tiền tố:</strong> Với truy vấn <code>WHERE col_a = 'X' AND col_b = 'Y'</code> trên index <code>(col_a, col_b)</code>, đây là trường hợp lý tưởng. Bộ tối ưu hóa có thể thực hiện một thao tác tìm kiếm trực tiếp (seek) trong cây B-Tree đến đúng vị trí, giúp truy vấn cực kỳ hiệu quả.</li>
+<li><strong>Khớp một phần Tiền tố:</strong> Với truy vấn <code>WHERE col_a = 'X'</code>, bộ tối ưu hóa vẫn có thể sử dụng phần đầu của index <code>(col_a, col_b)</code> để lọc các hàng một cách hiệu quả. Một hệ quả quan trọng của điều này là nếu bạn có index <code>(col_a, col_b)</code>, thì việc tạo thêm một index riêng <code>(col_a)</code> là <strong>thừa thãi</strong> và nên được loại bỏ để tiết kiệm không gian và chi phí ghi.</li>
+<li><strong>Không khớp Tiền tố:</strong> Với truy vấn <code>WHERE col_b = 'Y'</code>, index <code>(col_a, col_b)</code> không thể được sử dụng để tìm kiếm. Bộ tối ưu hóa sẽ bỏ qua nó và có thể phải thực hiện quét toàn bộ bảng <strong>(full table scan)</strong> hoặc tìm một index khác phù hợp hơn (ví dụ, một index đơn trên <code>col_b</code>).</li>
+<li><strong>Vấn đề &ldquo;Khoảng trống&rdquo; (The &ldquo;Gap&rdquo; Problem):</strong> Giả sử có index <code>(col_a, col_b, col_c)</code> và truy vấn <code>WHERE col_a = 'X' AND col_c = 'Z'</code>. Bộ tối ưu hóa chỉ có thể sử dụng index cho <code>col_a</code>. Cột <code>col_b</code> bị thiếu trong điều kiện WHERE đã tạo ra một &ldquo;khoảng trống&rdquo;, ngăn cản bộ tối ưu hóa sử dụng <code>col_c</code> để thu hẹp phạm vi tìm kiếm.</li>
+<li><strong>Giới hạn &ldquo;Phạm vi&rdquo; (The &ldquo;Range&rdquo; Limitation):</strong> Giả sử có index <code>(col_a, col_b, col_c)</code> và truy vấn <code>WHERE col_a = 'X' AND col_b &gt; 'Y' AND col_c = 'Z'</code>. Bộ tối ưu hóa sẽ sử dụng index cho <code>col_a</code> (điều kiện bằng) và <code>col_b</code> (điều kiện phạm vi). Tuy nhiên, việc sử dụng index để thu hẹp tìm kiếm sẽ dừng lại ở điều kiện phạm vi đầu tiên <code>(col_b &gt; 'Y')</code>. Sau khi tìm thấy tất cả các hàng khớp với <code>col_a = 'X' và col_b &gt; 'Y'</code>, nó sẽ phải quét qua các hàng kết quả đó để lọc theo <code>col_c = 'Z'</code> thay vì sử dụng index cho <code>col_c</code>.</li>
+</ul>
+<p>Từ những quy tắc trên, thứ tự các cột trong một index đa cột sẽ ảnh hưởng trực tiếp đến hiệu năng:</p>
+<ul>
+<li><strong>Tính chọn lọc (Cardinality):</strong> Một nguyên tắc chung là đặt cột có tính chọn lọc cao nhất (nhiều giá trị duy nhất nhất, ví dụ: user_id) ở vị trí đầu tiên. Điều này giúp index loại bỏ được nhiều hàng không phù hợp nhất ngay từ bước đầu tiên, làm tăng hiệu quả lọc.</li>
+<li><strong>Loại điều kiện:</strong> Các cột được sử dụng trong điều kiện bằng <code>(=, IN)</code> nên được đặt trước các cột được sử dụng trong điều kiện phạm vi <code>(&gt;, &lt;, BETWEEN, LIKE 'prefix%')</code>. Điều này là do việc sử dụng index sẽ dừng lại ở điều kiện phạm vi đầu tiên.</li>
+<li><strong>Quy tắc:</strong> Một chiến lược sắp xếp cột hiệu quả thường tuân theo thứ tự: <strong>Cột lọc bằng -&gt; Cột dùng cho GROUP BY / ORDER BY -&gt; Cột lọc phạm vi</strong>.</li>
+</ul>
+<h1 id="tối-ưu-hóa-kết-hợp-index-index-merge-optimization">Tối ưu hóa Kết hợp index (Index Merge Optimization)<a hidden class="anchor" aria-hidden="true" href="#tối-ưu-hóa-kết-hợp-index-index-merge-optimization">¶</a></h1>
+<p>Khi không có một index đa cột hoàn hảo cho một truy vấn, thay vì thực hiện quét toàn bộ bảng, bộ tối ưu hóa có thể sử dụng một cơ chế dự phòng thông minh gọi là &ldquo;Tối ưu hóa Kết hợp index&rdquo; <strong>(Index Merge Optimization)</strong>.</p>
+<p>Index Merge là một phương pháp truy cập dữ liệu cho phép MySQL thực hiện quét trên nhiều index của cùng một bảng, sau đó hợp nhất các kết quả lại với nhau. Khi có các index đơn cột riêng biệt trên
+<code>col_a</code> và <code>col_b</code>, bộ tối ưu hóa có thể sử dụng cả hai để đáp ứng một truy vấn lọc trên cả hai cột.</p>
+<h2 id="các-thuật-toán-của-index-merge">Các thuật toán của Index Merge<a hidden class="anchor" aria-hidden="true" href="#các-thuật-toán-của-index-merge">¶</a></h2>
+<p>Cơ chế của Index Merge bao gồm ba thuật toán khác nhau, được lựa chọn dựa trên loại điều kiện trong mệnh đề <code>WHERE</code>. Chúng được hiển thị trong <strong>cột Extra của EXPLAIN</strong>.</p>
+<ul>
+<li><strong>Intersection (Using intersect(&hellip;)):</strong>
+<ul>
+<li><strong>Kịch bản:</strong> Được sử dụng cho các điều kiện kết hợp bằng toán tử <code>AND</code>, ví dụ: <code>WHERE col_a = ? AND col_b = ?</code>.</li>
+<li><strong>Cơ chế:</strong> MySQL thực hiện hai lần quét index đồng thời. Lần thứ nhất trên <code>idx_a</code> để lấy danh sách con trỏ hàng (row pointers) cho các hàng khớp với col_a. Lần thứ hai trên <code>idx_b</code> để lấy danh sách con trỏ hàng cho các hàng khớp với col_b. Sau đó, nó thực hiện một phép toán giao <code>(intersection)</code> trên hai danh sách này để tìm ra các con trỏ hàng xuất hiện trong cả hai. Chỉ những hàng này mới được truy xuất từ bảng chính để lấy dữ liệu đầy đủ.</li>
+</ul>
+</li>
+<li><strong>Union (Using union(&hellip;)):</strong>
+<ul>
+<li><strong>Kịch bản:</strong> Được sử dụng cho các điều kiện kết hợp bằng toán tử <code>OR</code>, ví dụ: <code>WHERE col_a = ? OR col_b = ?</code>.</li>
+<li><strong>Cơ chế:</strong> Tương tự như Intersection, MySQL quét cả hai index <code>idx_a</code> và <code>idx_b</code>. Nhưng thay vì tìm giao điểm, nó thực hiện một phép toán hợp <code>(union)</code>, kết hợp tất cả các con trỏ hàng từ cả hai lần quét và loại bỏ các giá trị trùng lặp trước khi truy xuất dữ liệu từ bảng.</li>
+</ul>
+</li>
+<li><strong>Sort-Union (Using sort_union(&hellip;)):</strong>
+<ul>
+<li><strong>Kịch bản:</strong> Đây là một biến thể của Union, được sử dụng khi các điều kiện <code>OR</code> liên quan đến các phạm vi (ví dụ: <code>col_a &lt; 10 OR col_b &lt; 20</code>) mà thuật toán Union thông thường không thể áp dụng.</li>
+<li><strong>Cơ chế:</strong> Thuật toán này phải lấy tất cả các ID hàng từ các lần quét index, sau đó thực hiện một bước sắp xếp (sort) chúng để loại bỏ các giá trị trùng lặp. Bước sắp xếp bổ sung này làm cho nó tốn kém hơn so với thuật toán Union thông thường.</li>
+</ul>
+</li>
+</ul>
+<p>Việc MySQL có sử dụng Index Merge hay không là một quyết định dựa trên chi phí ước tính <strong>(cost estimate)</strong>. Bộ tối ưu hóa sẽ so sánh chi phí của việc sử dụng Index Merge với các phương pháp khác, chẳng hạn như chỉ sử dụng một index duy nhất (index có tính chọn lọc cao nhất) và sau đó lọc các điều kiện còn lại, hoặc thậm chí là quét toàn bộ bảng.</p>
+<p>Nếu một trong các index đơn có tính chọn lọc rất cao (ví dụ: một cột <code>UNIQUE</code>), bộ tối ưu hóa có thể quyết định rằng cách rẻ nhất là chỉ sử dụng index đó để tìm một vài hàng, sau đó kiểm tra các điều kiện khác trên tập kết quả nhỏ đó, thay vì phải chịu chi phí quét hai index và hợp nhất chúng.</p>
+<h1 id="so-sánh-dựa-trên-kịch-bản">So sánh dựa trên kịch bản<a hidden class="anchor" aria-hidden="true" href="#so-sánh-dựa-trên-kịch-bản">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Kịch bản Truy vấn</th>
+<th>Index đa cột <code>(col_a, col_b)</code></th>
+<th>Hai Index đơn <code>(col_a)</code>, <code>(col_b)</code></th>
+<th>Phân tích</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WHERE col_a=? AND col_b=?</code></td>
+<td><strong>Xuất sắc.</strong> Thực hiện tìm kiếm B-Tree trực tiếp (Direct Seek) trên một cấu trúc dữ liệu đã được sắp xếp sẵn cho cặp (a, b).</td>
+<td><strong>Khá.</strong> Sử dụng Index Merge Intersection. Chậm hơn đáng kể do phải thực hiện hai lần quét index riêng biệt và sau đó hợp nhất kết quả. Chi phí hợp nhất có thể đáng kể.</td>
+<td><strong>Index Đa cột</strong> là lựa chọn vượt trội và được khuyến nghị mạnh mẽ.</td>
+</tr>
+<tr>
+<td><code>WHERE col_a=? OR col_b=?</code></td>
+<td><strong>Không hiệu quả.</strong> Truy vấn OR không thể tận dụng cấu trúc sắp xếp của index đa cột. Bộ tối ưu hóa không thể sử dụng index này một cách hiệu quả và có thể dẫn đến quét toàn bộ bảng.</td>
+<td><strong>Tốt.</strong> Sử dụng Index Merge Union. Đây là kịch bản chính mà Index Merge được thiết kế để giải quyết, cung cấp hiệu năng tốt hơn nhiều so với quét toàn bộ bảng.</td>
+<td><strong>Nhiều index Đơn</strong> là lựa chọn khả thi duy nhất để tối ưu hóa truy vấn <code>OR</code>.</td>
+</tr>
+<tr>
+<td><code>WHERE col_a=?</code></td>
+<td><strong>Xuất sắc.</strong> Tuân thủ Quy tắc Tiền tố Trái. index được sử dụng hiệu quả như một index đơn trên <code>col_a</code>.</td>
+<td><strong>Xuất sắc.</strong> Sử dụng index chuyên dụng <code>idx_a</code>.</td>
+<td><strong>Hòa về hiệu năng.</strong> Tuy nhiên, index đa cột <code>(col_a, col_b)</code> làm cho index đơn <code>(col_a)</code> trở nên dư thừa, có thể tiết kiệm không gian lưu trữ và giảm chi phí bảo trì khi ghi dữ liệu.</td>
+</tr>
+<tr>
+<td><code>WHERE col_b=?</code></td>
+<td><strong>Không hiệu quả.</strong> Vi phạm Quy tắc Tiền tố Trái vì <code>col_b</code> không phải là cột đầu tiên. index sẽ không được sử dụng để tìm kiếm.</td>
+<td><strong>Xuất sắc.</strong> Sử dụng index chuyên dụng <code>idx_b</code>.</td>
+<td>Cần có nhiều index đơn hoặc một chiến lược kết hợp (ví dụ: INDEX<code>(col_a, col_b)</code> VÀ INDEX<code>(col_b)</code>).</td>
+</tr>
+<tr>
+<td><code>ORDER BY col_a, col_b</code></td>
+<td><strong>Xuất sắc.</strong> Dữ liệu trong index đã được sắp xếp sẵn theo đúng thứ tự này. MySQL có thể đọc trực tiếp từ index mà không cần thực hiện thao tác sắp xếp tốn kém</td>
+<td><strong>Không hiệu quả.</strong> Không có index nào chứa thứ tự sắp xếp kết hợp này. MySQL sẽ phải thu thập dữ liệu và thực hiện một thao tác sắp xếp tốn nhiều tài nguyên.</td>
+<td><strong>Index Đa cột</strong> hiệu quả hơn rõ ràng cho việc tối ưu hóa sắp xếp trên nhiều cột.</td>
+</tr>
+<tr>
+<td><code>ORDER BY col_b, col_a</code></td>
+<td><strong>Không hiệu quả.</strong> Thứ tự sắp xếp của truy vấn ngược lại với thứ tự trong index.</td>
+<td><strong>Không hiệu quả.</strong> Không có index nào phù hợp.</td>
+<td><strong>Không chiến lược nào phù hợp.</strong> Cần một index đa cột riêng biệt được định nghĩa theo đúng thứ tự: <code>INDEX(col_b, col_a)</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="chiến-lược-kết-hợp-hybrid-strategy">Chiến lược Kết hợp (Hybrid Strategy)<a hidden class="anchor" aria-hidden="true" href="#chiến-lược-kết-hợp-hybrid-strategy">¶</a></h2>
+<p>Trong nhiều trường hợp thực tế, một chiến lược kết hợp mang lại sự cân bằng tốt nhất giữa hiệu năng và tính linh hoạt. Một mẫu thiết kế rất phổ biến và mạnh mẽ là tạo cả index đa cột và index đơn cột bổ sung.</p>
+<p>Ví dụ, với các cột col_a và col_b, chúng ta có thể tạo:</p>
+<ol>
+<li><code>CREATE INDEX idx_ab ON table_name (col_a, col_b);</code></li>
+<li><code>CREATE INDEX idx_b ON table_name (col_b);</code></li>
+</ol>
+<p>Sự kết hợp này mang lại lợi ích:</p>
+<ul>
+<li>Index <code>idx_ab</code> phục vụ tối ưu cho các truy vấn <code>WHERE col_a = ? AND col_b = ?</code> và <code>WHERE col_a = ?</code></li>
+<li>Index <code>idx_b</code> phục vụ tối ưu cho các truy vấn <code>WHERE col_b = ?</code></li>
+</ul>
+<h1 id="tổng-hợp">Tổng hợp<a hidden class="anchor" aria-hidden="true" href="#tổng-hợp">¶</a></h1>
+<p>Chiến lược Thiết kế Index:</p>
+<ul>
+<li><strong>Phân tích Tải công việc (Analyze Workload):</strong> Bước đầu tiên và quan trọng nhất là thu thập và ưu tiên các truy vấn quan trọng nhất, thường xuyên nhất của ứng dụng.</li>
+<li><strong>Ưu tiên các truy vấn AND và ORDER BY:</strong> Nếu các cột thường xuyên được lọc cùng nhau bằng <code>AND</code> hoặc sắp xếp cùng nhau, một index đa cột gần như luôn là lựa chọn đúng đắn. Hãy dành thời gian để xác định thứ tự cột tối ưu dựa trên quy tắc: <strong>điều kiện bằng, sắp xếp, rồi đến điều kiện phạm vi</strong>.</li>
+<li><strong>Hướng đến Covering Index:</strong> Khi thiết kế một index đa cột, hãy kiểm tra xem có thể thêm các cột từ mệnh đề SELECT vào cuối index để tạo ra một index bao phủ hay không. Lợi ích về hiệu năng thường rất lớn.</li>
+<li><strong>Giải quyết các truy vấn OR và các cột không phải tiền tố:</strong> Nếu có các truy vấn <code>OR</code> quan trọng, hoặc cần lọc hiệu quả trên cột thứ hai/thứ ba của một index đa cột (ví dụ <code>WHERE col_b = ?</code> khi có <code>INDEX(col_a, col_b)</code>), hãy tạo các index đơn cột riêng biệt hoặc áp dụng chiến lược kết hợp.</li>
+<li><strong>Cân bằng Đọc/Ghi:</strong> Đối với các bảng có tỷ lệ ghi rất cao (heavy-write), hãy thận trọng với việc thêm quá nhiều index. Mỗi index đều có chi phí. Hãy đảm bảo lợi ích về hiệu năng đọc vượt trội so với chi phí ghi.</li>
+</ul>
+<h2 id="sử-dụng-explain-để-xác-thực-lựa-chọn">Sử dụng EXPLAIN để xác thực lựa chọn<a hidden class="anchor" aria-hidden="true" href="#sử-dụng-explain-để-xác-thực-lựa-chọn">¶</a></h2>
+<p>Khi so sánh các chiến lược index, hãy chú ý đến các cột sau trong kết quả của <code>EXPLAIN</code>:</p>
+<ul>
+<li><strong>type:</strong> Cho biết cách MySQL truy cập bảng. Hãy tìm kiếm ref hoặc range (tốt), index (chỉ quét index, thường tốt cho index bao phủ), hoặc index_merge (khá). Hãy cố gắng tránh ALL (quét toàn bộ bảng).</li>
+<li><strong>possible_keys:</strong> Các index mà MySQL nghĩ rằng nó có thể sử dụng cho truy vấn</li>
+<li><strong>key:</strong> index mà MySQL thực sự đã chọn để sử dụng. Nếu là NULL, không có index nào được sử dụng. Nếu nó liệt kê nhiều index, đó là dấu hiệu của Index Merge.</li>
+<li><strong>key_len</strong>: Cột này cực kỳ quan trọng khi làm việc với index đa cột. Nó cho biết có bao nhiêu byte (và do đó là bao nhiêu phần) của một index đa cột đang được sử dụng. Bằng cách so sánh giá trị này với kích thước của các cột trong index, bạn có thể xác minh chính xác Quy tắc Tiền tố Trái đang hoạt động như thế nào.</li>
+<li><strong>extra:</strong> Chứa thông tin bổ sung quan trọng. Hãy tìm kiếm Using index (dấu hiệu của một index bao phủ - rất tốt), Using where (lọc sau khi lấy dữ liệu), Using filesort (sắp xếp tốn kém - tệ), hoặc Using intersect(&hellip;), Using union(&hellip;) (dấu hiệu của Index Merge).</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2025 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a>
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>
