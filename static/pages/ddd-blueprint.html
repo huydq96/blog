@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bản Vẽ DDD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Manrope:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --blueprint:#123a5e;
+    --blueprint-deep:#0b2c48;
+    --panel-bg:#153f68;
+    --panel-border:rgba(234,244,255,0.22);
+    --grid-line:rgba(234,244,255,0.055);
+    --grid-line-major:rgba(234,244,255,0.09);
+    --ink:#eaf4ff;
+    --ink-dim:#9dc2e0;
+    --ink-faint:#5f88ab;
+    --amber:#ffb454;
+    --coral:#ff8a68;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background-color:var(--blueprint);
+    background-image:
+      repeating-linear-gradient(0deg, var(--grid-line-major) 0 1px, transparent 1px 200px),
+      repeating-linear-gradient(90deg, var(--grid-line-major) 0 1px, transparent 1px 200px),
+      repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 40px);
+    color:var(--ink);
+    font-family:'Manrope',ui-sans-serif,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+
+  .mono{font-family:'Space Mono',ui-monospace,monospace;}
+  .hand{font-family:'Caveat',cursive;}
+
+  .sheet{
+    max-width:900px;
+    margin:0 auto;
+    padding:56px 24px 40px;
+    display:flex;
+    flex-direction:column;
+    gap:64px;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:center;
+    gap:24px;
+    border-bottom:1px dashed var(--panel-border);
+    padding-bottom:40px;
+  }
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .hero h1{
+    font-family:'Space Mono',monospace;
+    font-weight:700;
+    font-size:clamp(56px,11vw,96px);
+    line-height:0.9;
+    margin:10px 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .hero h2{
+    font-weight:600;
+    font-size:20px;
+    margin:0 0 14px;
+    color:var(--ink-dim);
+  }
+  .hero p{
+    max-width:56ch;
+    font-size:16px;
+    line-height:1.6;
+    margin:0 0 14px;
+    color:var(--ink);
+  }
+  .hero .note{
+    color:var(--amber);
+    font-size:20px;
+    transform:rotate(-2deg);
+    display:inline-block;
+  }
+  .hero-art{width:180px;height:180px;}
+  .spin{transform-origin:100px 100px; animation:spin 26s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- panel ---------- */
+  .panel{
+    background:var(--panel-bg);
+    border:1px dashed var(--panel-border);
+    border-left:4px solid var(--amber);
+    border-radius:3px;
+    padding:28px 28px 24px;
+  }
+  .panel h3{
+    font-size:24px;
+    font-weight:800;
+    margin:8px 0 10px;
+    text-wrap:balance;
+  }
+  .panel p{
+    font-size:15.5px;
+    line-height:1.65;
+    max-width:60ch;
+    color:var(--ink);
+    margin:0 0 20px;
+  }
+  figure{margin:0;}
+  figure svg{width:100%;height:auto;display:block;}
+  figcaption{
+    margin-top:12px;
+    font-size:13px;
+    color:var(--ink-dim);
+    line-height:1.5;
+    max-width:62ch;
+  }
+
+  /* ---------- legend ---------- */
+  .legend-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+  }
+  .chip{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    background:var(--blueprint-deep);
+    border:1px dashed var(--panel-border);
+    border-radius:3px;
+    padding:14px 16px;
+  }
+  .chip svg{flex:none;width:34px;height:34px;}
+  .chip .t{font-weight:700;font-size:14.5px;margin-bottom:3px;}
+  .chip .d{font-size:13px;color:var(--ink-dim);line-height:1.5;}
+
+  /* ---------- title block footer ---------- */
+  .titleblock{
+    border:1px solid var(--panel-border);
+    border-radius:3px;
+    overflow:hidden;
+    font-family:'Space Mono',monospace;
+    font-size:11.5px;
+  }
+  .titleblock .row{display:flex;}
+  .titleblock .cell{
+    flex:1;
+    padding:10px 14px;
+    border-top:1px solid var(--panel-border);
+    border-right:1px solid var(--panel-border);
+  }
+  .titleblock .row:first-child .cell{border-top:none;}
+  .titleblock .cell:last-child{border-right:none;}
+  .titleblock .k{color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:4px;}
+  .titleblock .v{color:var(--ink);}
+
+  @media (max-width:640px){
+    .hero{grid-template-columns:1fr;}
+    .hero-art{width:120px;height:120px;justify-self:start;}
+    .titleblock .row{flex-direction:column;}
+    .titleblock .cell{border-right:none;}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div>
+      <div class="eyebrow mono">BẢN VẼ KIẾN TRÚC PHẦN MỀM · SỐ 001</div>
+      <h1>DDD</h1>
+      <h2>Domain-Driven Design</h2>
+      <p>Thiết kế phần mềm cũng như vẽ một căn nhà: chia phòng rõ ràng, đặt tên phòng đúng như người ở vẫn gọi, và mỗi phòng tự lo việc của mình.</p>
+      <span class="hand note">không cần biết code vẫn hiểu được bản vẽ này ✎</span>
+    </div>
+    <svg class="hero-art" viewBox="0 0 200 200" role="img" aria-label="Biểu tượng compa và thước vẽ kỹ thuật">
+      <circle cx="100" cy="100" r="72" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="3 6"/>
+      <g class="spin">
+        <line x1="100" y1="40" x2="66" y2="150" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+        <line x1="100" y1="40" x2="134" y2="150" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="100" cy="40" r="6" fill="var(--ink)"/>
+        <circle cx="66" cy="150" r="5" fill="var(--amber)"/>
+        <circle cx="134" cy="150" r="5" fill="var(--ink)"/>
+      </g>
+      <circle cx="100" cy="100" r="3" fill="var(--amber)"/>
+    </svg>
+  </header>
+
+  <!-- ============ FIG 1 — PROBLEM ============ -->
+  <section class="panel">
+    <div class="eyebrow mono">FIG. 1 — TRƯỚC KHI CÓ DDD</div>
+    <h3>Một cái kho, cái gì cũng chất chung</h3>
+    <p>Không chia khu vực → ai cũng táy máy đồ của người khác. Sửa một chỗ, hỏng năm chỗ.</p>
+    <figure>
+      <svg viewBox="0 0 720 380" role="img" aria-label="Một căn phòng lớn duy nhất chứa tất cả mọi thứ, dây nối chằng chịt lung tung giữa các món đồ">
+        <rect x="20" y="20" width="680" height="340" rx="4" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="5 6"/>
+        <text x="40" y="46" class="mono" font-size="12" fill="var(--ink-dim)">1 PHÒNG DUY NHẤT</text>
+
+        <!-- tangled connector lines -->
+        <g stroke="var(--coral)" stroke-width="1.3" opacity="0.75" fill="none">
+          <line x1="140" y1="110" x2="480" y2="290"/>
+          <line x1="140" y1="110" x2="600" y2="130"/>
+          <line x1="140" y1="110" x2="330" y2="300"/>
+          <line x1="330" y1="90" x2="600" y2="290"/>
+          <line x1="330" y1="90" x2="140" y2="290"/>
+          <line x1="330" y1="90" x2="480" y2="130"/>
+          <line x1="480" y1="130" x2="140" y2="290"/>
+          <line x1="480" y1="130" x2="330" y2="300"/>
+          <line x1="600" y1="130" x2="330" y2="300"/>
+          <line x1="600" y1="130" x2="140" y2="290"/>
+          <line x1="480" y1="290" x2="600" y2="290"/>
+        </g>
+
+        <!-- item boxes -->
+        <g class="mono" font-size="11.5" text-anchor="middle">
+          <g>
+            <rect x="95" y="86" width="90" height="48" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="1.5"/>
+            <text x="140" y="115" fill="var(--ink)">Đơn hàng</text>
+          </g>
+          <g>
+            <rect x="285" y="66" width="90" height="48" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="1.5"/>
+            <text x="330" y="95" fill="var(--ink)">Kho</text>
+          </g>
+          <g>
+            <rect x="435" y="106" width="90" height="48" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="1.5"/>
+            <text x="480" y="135" fill="var(--ink)">Thanh toán</text>
+          </g>
+          <g>
+            <rect x="555" y="106" width="90" height="48" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="1.5"/>
+            <text x="600" y="135" fill="var(--ink)">User</text>
+          </g>
+          <g>
+            <rect x="95" y="266" width="90" height="48" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="1.5"/>
+            <text x="140" y="295" fill="var(--ink)">Email</text>
+          </g>
+          <g>
+            <rect x="285" y="276" width="90" height="48" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="1.5"/>
+            <text x="330" y="305" fill="var(--ink)">Log</text>
+          </g>
+          <g>
+            <rect x="435" y="266" width="90" height="48" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="1.5"/>
+            <text x="480" y="295" fill="var(--ink)">Giảm giá</text>
+          </g>
+        </g>
+
+        <text x="560" y="235" class="hand" font-size="26" fill="var(--coral)" transform="rotate(-6 560 235)">rối tung! ✎</text>
+      </svg>
+      <figcaption>Mọi thứ chất trong 1 phòng, ai cũng nối tắt vào đồ của người khác — không ai còn nhớ nổi cái gì phụ thuộc cái gì.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ FIG 2 — IDEA ============ -->
+  <section class="panel">
+    <div class="eyebrow mono">FIG. 2 — Ý TƯỞNG CỦA DDD</div>
+    <h3>Vẽ lại thành từng phòng riêng</h3>
+    <p>Đơn Hàng, Kho, Thanh Toán — mỗi phòng một việc, chỉ nối với phòng bên cạnh qua đúng một cái cửa.</p>
+    <figure>
+      <svg viewBox="0 0 760 340" role="img" aria-label="Ba căn phòng riêng biệt: Đơn hàng, Kho, Thanh toán, mỗi phòng chỉ nối với phòng bên cạnh qua một cửa nhỏ">
+        <g class="mono" font-size="13" text-anchor="middle" font-weight="700">
+          <rect x="40" y="60" width="200" height="220" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="140" y="90" fill="var(--ink)">ĐƠN HÀNG</text>
+
+          <rect x="280" y="60" width="200" height="220" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="380" y="90" fill="var(--ink)">KHO</text>
+
+          <rect x="520" y="60" width="200" height="220" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="620" y="90" fill="var(--ink)">THANH TOÁN</text>
+        </g>
+
+        <!-- door gaps on shared walls -->
+        <rect x="236" y="150" width="10" height="40" fill="var(--blueprint-deep)"/>
+        <rect x="236" y="150" width="10" height="40" fill="none" stroke="var(--amber)" stroke-width="2"/>
+        <path d="M246,190 A40,40 0 0 0 286,150" fill="none" stroke="var(--amber)" stroke-width="1" stroke-dasharray="2 4"/>
+
+        <rect x="476" y="150" width="10" height="40" fill="var(--blueprint-deep)"/>
+        <rect x="476" y="150" width="10" height="40" fill="none" stroke="var(--amber)" stroke-width="2"/>
+        <path d="M486,190 A40,40 0 0 0 526,150" fill="none" stroke="var(--amber)" stroke-width="1" stroke-dasharray="2 4"/>
+
+        <text x="241" y="215" text-anchor="middle" class="mono" font-size="10.5" fill="var(--amber)">cửa</text>
+        <text x="481" y="215" text-anchor="middle" class="mono" font-size="10.5" fill="var(--amber)">cửa</text>
+
+        <text x="380" y="312" text-anchor="middle" class="mono" font-size="11.5" fill="var(--ink-dim)">chỉ giao tiếp qua đúng cửa — không thò tay qua tường</text>
+      </svg>
+      <figcaption>Mỗi phòng (bounded context) tự quản đồ đạc của mình, chỉ nối với phòng khác qua một cửa duy nhất.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ FIG 3 — UBIQUITOUS LANGUAGE ============ -->
+  <section class="panel">
+    <div class="eyebrow mono">FIG. 3 — LUẬT SỐ 1: NGÔN NGỮ CHUNG</div>
+    <h3>Sales gọi sao, code viết vậy</h3>
+    <p>Người kinh doanh nói "đơn hàng" — trong code cũng phải là "đơn hàng", không phải <span class="mono">Object2</span> hay <span class="mono">data_x</span>.</p>
+    <figure>
+      <svg viewBox="0 0 700 300" role="img" aria-label="Người kinh doanh và lập trình viên cùng dùng chung một từ đơn hàng, gặp nhau ở một nhãn chung">
+        <!-- business figure -->
+        <g stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+          <circle cx="110" cy="150" r="16"/>
+          <line x1="110" y1="166" x2="110" y2="220"/>
+          <line x1="110" y1="185" x2="80" y2="215"/>
+          <line x1="110" y1="185" x2="140" y2="210"/>
+          <line x1="110" y1="220" x2="90" y2="255"/>
+          <line x1="110" y1="220" x2="130" y2="255"/>
+        </g>
+        <rect x="128" y="205" width="22" height="16" rx="2" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="1.5"/>
+
+        <!-- bubble -->
+        <path d="M50,60 h140 a8,8 0 0 1 8,8 v40 a8,8 0 0 1 -8,8 h-58 l-14,16 v-16 h-68 a8,8 0 0 1 -8,-8 v-40 a8,8 0 0 1 8,-8 z" fill="var(--blueprint-deep)" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="120" y="93" text-anchor="middle" class="mono" font-size="14" fill="var(--ink)">"đơn hàng"</text>
+
+        <!-- dev figure -->
+        <g stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+          <circle cx="590" cy="150" r="16"/>
+          <line x1="590" y1="166" x2="590" y2="220"/>
+          <line x1="590" y1="185" x2="560" y2="210"/>
+          <line x1="590" y1="185" x2="620" y2="215"/>
+          <line x1="590" y1="220" x2="570" y2="255"/>
+          <line x1="590" y1="220" x2="610" y2="255"/>
+        </g>
+        <rect x="558" y="230" width="64" height="18" rx="2" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="590" y="243" text-anchor="middle" class="mono" font-size="9" fill="var(--ink-dim)">&lt;/&gt;</text>
+
+        <!-- bubble -->
+        <path d="M442,60 h140 a8,8 0 0 1 8,8 v40 a8,8 0 0 1 -8,8 h-68 v16 l-14,-16 h-58 a8,8 0 0 1 -8,-8 v-40 a8,8 0 0 1 8,-8 z" fill="var(--blueprint-deep)" stroke="var(--ink)" stroke-width="1.5"/>
+        <text x="512" y="93" text-anchor="middle" class="mono" font-size="14" fill="var(--ink)">"đơn hàng"</text>
+
+        <!-- connecting lines to shared chip -->
+        <line x1="150" y1="60" x2="300" y2="20" stroke="var(--ink-faint)" stroke-width="1.3" stroke-dasharray="3 5"/>
+        <line x1="480" y1="60" x2="400" y2="20" stroke="var(--ink-faint)" stroke-width="1.3" stroke-dasharray="3 5"/>
+        <rect x="290" y="4" width="120" height="34" rx="4" fill="var(--amber)"/>
+        <text x="350" y="26" text-anchor="middle" class="mono" font-size="13" font-weight="700" fill="var(--blueprint-deep)">ĐƠN HÀNG</text>
+
+        <text x="350" y="285" text-anchor="middle" class="mono" font-size="11.5" fill="var(--ink-dim)">cùng 1 từ · cùng 1 nghĩa · cùng 1 khái niệm trong code</text>
+      </svg>
+      <figcaption>Ubiquitous Language: từ business dùng ngoài đời phải xuất hiện y hệt trong tên class, tên hàm.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ FIG 4 — SELF PROTECTION ============ -->
+  <section class="panel">
+    <div class="eyebrow mono">FIG. 4 — LUẬT SỐ 2: GÕ CỬA, ĐỪNG CHUI TƯỜNG</div>
+    <h3>Muốn đổi gì trong phòng? Phải qua đúng cửa</h3>
+    <p>Không ai được thò tay sửa trực tiếp đồ đạc của phòng khác — phải gọi đúng qua cửa để phòng đó tự kiểm tra trước khi đổi.</p>
+    <figure>
+      <svg viewBox="0 0 760 320" role="img" aria-label="Một căn phòng Đơn hàng: vào đúng qua cửa reception bằng lệnh Ship thì được chấp nhận, còn thò tay xuyên tường chỉnh trực tiếp trạng thái thì bị chặn">
+        <rect x="220" y="40" width="320" height="240" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="2"/>
+        <text x="380" y="66" text-anchor="middle" class="mono" font-size="13" font-weight="700" fill="var(--ink)">ĐƠN HÀNG (phòng)</text>
+
+        <!-- legit door, right side -->
+        <rect x="535" y="140" width="10" height="44" fill="var(--blueprint-deep)"/>
+        <rect x="535" y="140" width="10" height="44" fill="none" stroke="var(--amber)" stroke-width="2"/>
+        <text x="620" y="150" text-anchor="middle" class="mono" font-size="12" fill="var(--amber)" font-weight="700">Ship()</text>
+        <line x1="700" y1="162" x2="548" y2="162" stroke="var(--amber)" stroke-width="2" marker-end="url(#fig4-arrow-ok)"/>
+        <text x="620" y="185" text-anchor="middle" class="mono" font-size="10.5" fill="var(--ink-dim)">đi qua cửa → tự kiểm tra hợp lệ</text>
+        <text x="655" y="140" font-size="16" fill="var(--ink)">✓</text>
+
+        <!-- illegal reach through top wall -->
+        <line x1="380" y1="24" x2="380" y2="55" stroke="var(--coral)" stroke-width="2.5" stroke-dasharray="4 4" marker-end="url(#fig4-arrow-bad)"/>
+        <text x="380" y="16" text-anchor="middle" class="mono" font-size="11" fill="var(--coral)">status = "shipped"</text>
+        <circle cx="380" cy="34" r="13" fill="none" stroke="var(--coral)" stroke-width="2.5"/>
+        <line x1="371" y1="25" x2="389" y2="43" stroke="var(--coral)" stroke-width="2.5"/>
+        <line x1="389" y1="25" x2="371" y2="43" stroke="var(--coral)" stroke-width="2.5"/>
+
+        <defs>
+          <marker id="fig4-arrow-ok" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--amber)"/>
+          </marker>
+          <marker id="fig4-arrow-bad" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--coral)"/>
+          </marker>
+        </defs>
+
+        <text x="380" y="305" text-anchor="middle" class="mono" font-size="11.5" fill="var(--ink-dim)">vào đúng cửa → được · chọc thẳng qua tường → bị chặn</text>
+      </svg>
+      <figcaption>Rich domain model: thay đổi trạng thái luôn đi qua một "cửa" (method) tự kiểm tra, không cho gán field trực tiếp từ bên ngoài.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ FIG 5 — EVENTS ============ -->
+  <section class="panel">
+    <div class="eyebrow mono">FIG. 5 — LUẬT SỐ 3: BÁO TIN, ĐỪNG ÔM VIỆC</div>
+    <h3>Xong việc thì gửi tin, không tự chạy sang phòng khác làm hộ</h3>
+    <p>Phòng Kho đóng gói xong → gửi một tờ tin "đã đóng gói" → phòng Vận Chuyển tự nghe và tự làm phần của mình.</p>
+    <figure>
+      <svg viewBox="0 0 760 300" role="img" aria-label="Phòng Kho và phòng Vận chuyển đứng tách biệt, không nối trực tiếp mà gửi tin nhắn sự kiện cho nhau qua một đường bay cong">
+        <g class="mono" font-size="13" font-weight="700" text-anchor="middle">
+          <rect x="40" y="90" width="220" height="140" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="150" y="120" fill="var(--ink)">KHO</text>
+
+          <rect x="500" y="90" width="220" height="140" rx="3" fill="var(--panel-bg)" stroke="var(--ink)" stroke-width="2"/>
+          <text x="610" y="120" fill="var(--ink)">VẬN CHUYỂN</text>
+        </g>
+
+        <!-- forbidden direct pipe -->
+        <line x1="260" y1="200" x2="500" y2="200" stroke="var(--coral)" stroke-width="2" stroke-dasharray="5 5"/>
+        <text x="380" y="222" text-anchor="middle" class="mono" font-size="10.5" fill="var(--coral)">không gọi thẳng vào nhau ✕</text>
+
+        <!-- event arc -->
+        <path d="M260,150 C 380,60 420,60 500,150" fill="none" stroke="var(--amber)" stroke-width="2" marker-end="url(#fig5-arrow)"/>
+        <rect x="345" y="80" width="16" height="12" fill="none" stroke="var(--amber)" stroke-width="1.5"/>
+        <path d="M345,80 L353,88 L361,80" fill="none" stroke="var(--amber)" stroke-width="1.5"/>
+        <text x="380" y="52" text-anchor="middle" class="mono" font-size="11.5" fill="var(--amber)" font-weight="700">Sự kiện: "đã đóng gói"</text>
+
+        <defs>
+          <marker id="fig5-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--amber)"/>
+          </marker>
+        </defs>
+
+        <text x="380" y="270" text-anchor="middle" class="mono" font-size="11.5" fill="var(--ink-dim)">2 phòng độc lập, chỉ đồng bộ qua tin nhắn (domain event)</text>
+      </svg>
+      <figcaption>Domain Event: phòng phát tin xong là xong việc — phòng nghe tin tự quyết định làm gì tiếp, không ai gọi thẳng vào nội bộ ai.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ LEGEND ============ -->
+  <section>
+    <div class="eyebrow mono" style="margin-bottom:16px;">CHÚ GIẢI BẢN VẼ</div>
+    <div class="legend-grid">
+      <div class="chip">
+        <svg viewBox="0 0 40 40" role="img" aria-label="Hình bia bắn tâm điểm">
+          <circle cx="20" cy="20" r="16" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+          <circle cx="20" cy="20" r="9" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+          <circle cx="20" cy="20" r="3" fill="var(--amber)"/>
+        </svg>
+        <div>
+          <div class="t">Domain là trung tâm</div>
+          <div class="d">Nghiệp vụ quyết định thiết kế, không phải database hay framework.</div>
+        </div>
+      </div>
+      <div class="chip">
+        <svg viewBox="0 0 40 40" role="img" aria-label="Hai bong bóng thoại chồng nhau">
+          <rect x="4" y="8" width="20" height="14" rx="3" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+          <rect x="16" y="18" width="20" height="14" rx="3" fill="none" stroke="var(--amber)" stroke-width="1.5"/>
+        </svg>
+        <div>
+          <div class="t">Ngôn ngữ chung</div>
+          <div class="d">Code và người kinh doanh gọi cùng một khái niệm bằng cùng một từ.</div>
+        </div>
+      </div>
+      <div class="chip">
+        <svg viewBox="0 0 40 40" role="img" aria-label="Bức tường có một cửa">
+          <line x1="6" y1="8" x2="6" y2="32" stroke="var(--ink)" stroke-width="2"/>
+          <line x1="6" y1="8" x2="34" y2="8" stroke="var(--ink)" stroke-width="2"/>
+          <line x1="6" y1="32" x2="34" y2="32" stroke="var(--ink)" stroke-width="2"/>
+          <line x1="34" y1="8" x2="34" y2="15" stroke="var(--ink)" stroke-width="2"/>
+          <line x1="34" y1="25" x2="34" y2="32" stroke="var(--ink)" stroke-width="2"/>
+          <line x1="34" y1="15" x2="34" y2="25" stroke="var(--amber)" stroke-width="2"/>
+        </svg>
+        <div>
+          <div class="t">Ranh giới rõ ràng</div>
+          <div class="d">Mỗi phòng (bounded context) tự quản việc của mình, không đọc/ghi lẫn nhau.</div>
+        </div>
+      </div>
+      <div class="chip">
+        <svg viewBox="0 0 40 40" role="img" aria-label="Hình khiên có dấu tích">
+          <path d="M20,5 L34,11 V20 C34,29 28,34 20,36 C12,34 6,29 6,20 V11 Z" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+          <path d="M13,20 L18,25 L27,14" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div>
+          <div class="t">Tự bảo vệ chính mình</div>
+          <div class="d">Mọi thay đổi trạng thái phải đi qua đúng cửa (method) hợp lệ.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TITLE BLOCK ============ -->
+  <footer class="titleblock">
+    <div class="row">
+      <div class="cell"><span class="k">Bản vẽ</span><span class="v">DDD 101 — Bản Vẽ Nhập Môn</span></div>
+      <div class="cell"><span class="k">Tỷ lệ</span><span class="v">1 : ∞ (càng đọc càng vỡ ra)</span></div>
+    </div>
+    <div class="row">
+      <div class="cell"><span class="k">Ghi chú</span><span class="v">Đây chỉ là ẩn dụ để dễ hình dung — hiểu ý là chính, không cần khớp 100% thuật ngữ gốc.</span></div>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -2,13 +2,49 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://blog.huydang.dev/categories/</loc>
-    <lastmod>2025-06-25T14:00:26+07:00</lastmod>
+    <loc>https://blog.huydang.dev/tags/architecture/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/database/</loc>
-    <lastmod>2025-06-25T14:00:26+07:00</lastmod>
+    <loc>https://blog.huydang.dev/categories/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/ddd/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/ddd-p2/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/fintech/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/golang/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/golang/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/honeydue/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/ddd-p1/</loc>
+    <lastmod>2026-08-19T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/architecture/</loc>
+    <lastmod>2026-08-19T08:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/ddd-p0/</loc>
+    <lastmod>2026-08-19T08:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/database/</loc>
     <lastmod>2025-06-25T14:00:26+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/indexing/</loc>
@@ -21,12 +57,6 @@
     <lastmod>2025-06-25T14:00:26+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/mysql-index-composite-vs-single/</loc>
-    <lastmod>2025-06-25T14:00:26+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/posts/</loc>
-    <lastmod>2025-06-25T14:00:26+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/</loc>
     <lastmod>2025-06-25T14:00:26+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/mongodb/</loc>
@@ -74,9 +104,6 @@
     <loc>https://blog.huydang.dev/posts/design-pattern-p3-behavioral/</loc>
     <lastmod>2025-06-03T21:34:51+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/golang/</loc>
-    <lastmod>2025-06-03T21:34:51+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/posts/design-pattern-p2-structural/</loc>
     <lastmod>2025-06-03T15:30:43+07:00</lastmod>
   </url><url>
@@ -105,9 +132,6 @@
     <lastmod>2025-05-26T14:07:01+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/go-interview-p1/</loc>
-    <lastmod>2025-05-26T09:40:49+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/categories/golang/</loc>
     <lastmod>2025-05-26T09:40:49+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/concurrency/</loc>
