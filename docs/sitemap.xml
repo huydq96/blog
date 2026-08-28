@@ -2,10 +2,40 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://blog.huydang.dev/tags/architecture/</loc>
-    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
+    <loc>https://blog.huydang.dev/tags/authentication/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/golang/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/jwt/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/jwt/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/security/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/security/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/session/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/architecture/</loc>
     <lastmod>2026-08-19T09:30:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/ddd/</loc>
@@ -17,22 +47,10 @@
     <loc>https://blog.huydang.dev/tags/fintech/</loc>
     <lastmod>2026-08-19T09:30:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/golang/</loc>
-    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/categories/golang/</loc>
     <lastmod>2026-08-19T09:30:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/honeydue/</loc>
-    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/</loc>
-    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/posts/</loc>
-    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/</loc>
     <lastmod>2026-08-19T09:30:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/ddd-p1/</loc>
@@ -84,12 +102,6 @@
     <lastmod>2025-06-04T00:10:38+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/owasp/</loc>
-    <lastmod>2025-06-04T00:10:38+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/security/</loc>
-    <lastmod>2025-06-04T00:10:38+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/categories/security/</loc>
     <lastmod>2025-06-04T00:10:38+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/coding/</loc>

@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>JWT: Những Điều Cần Biết Trước Khi Chọn Nó | Huy Dang Blog</title>
+<meta name="keywords" content="jwt, authentication, security, golang, session">
+<meta name="description" content="JWT không dở, nhưng phần lớn chúng ta chọn nó theo bản năng chứ không phải theo bài toán. So sánh JWT với session, 5 câu hỏi trước khi chọn, và cái giá thật của logout khi dùng JWT.">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/jwt/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/jwt/">
+
+<meta name="twitter:title" content="JWT: Những Điều Cần Biết Trước Khi Chọn Nó | Huy Dang Blog" />
+<meta name="twitter:description" content="JWT không dở, nhưng phần lớn chúng ta chọn nó theo bản năng chứ không phải theo bài toán. So sánh JWT với session, 5 câu hỏi trước khi chọn, và cái giá thật của logout khi dùng JWT." />
+<meta property="og:title" content="JWT: Những Điều Cần Biết Trước Khi Chọn Nó | Huy Dang Blog" />
+<meta property="og:description" content="JWT không dở, nhưng phần lớn chúng ta chọn nó theo bản năng chứ không phải theo bài toán. So sánh JWT với session, 5 câu hỏi trước khi chọn, và cái giá thật của logout khi dùng JWT." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/jwt/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-08-25T10:00:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-08-25T10:00:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "JWT: Những Điều Cần Biết Trước Khi Chọn Nó",
+      "item": "https://blog.huydang.dev/posts/jwt/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JWT: Những Điều Cần Biết Trước Khi Chọn Nó | Huy Dang Blog",
+  "name": "JWT: Những Điều Cần Biết Trước Khi Chọn Nó",
+  "description": "JWT không dở, nhưng phần lớn chúng ta chọn nó theo bản năng chứ không phải theo bài toán. So sánh JWT với session, 5 câu hỏi trước khi chọn, và cái giá thật của logout khi dùng JWT.",
+  "keywords": [
+    "jwt", "authentication", "security", "golang", "session"
+  ],
+  "wordCount" : "7080",
+  "inLanguage": "en",
+  "datePublished": "2026-08-25T10:00:00+07:00",
+  "dateModified": "2026-08-25T10:00:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/jwt/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">JWT: Những Điều Cần Biết Trước Khi Chọn Nó</h1>
+    <div class="post-description">JWT không dở, nhưng phần lớn chúng ta chọn nó theo bản năng chứ không phải theo bài toán. So sánh JWT với session, 5 câu hỏi trước khi chọn, và cái giá thật của logout khi dùng JWT.</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>August 25, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/jwt/">Jwt</a><a href="https://blog.huydang.dev/tags/authentication/">Authentication</a><a href="https://blog.huydang.dev/tags/security/">Security</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/session/">Session</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>34 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%c4%91%e1%bb%8dc-nhanh-5-c%c3%a2u-h%e1%bb%8fi-tr%c6%b0%e1%bb%9bc-khi-ch%e1%bb%8dn-jwt" aria-label="Đọc nhanh: 5 câu hỏi trước khi chọn JWT">Đọc nhanh: 5 câu hỏi trước khi chọn JWT</a></li>
+                <li>
+                    <a href="#ph%e1%ba%a7n-1-v%c3%ac-sao-ai-c%c5%a9ng-ch%e1%bb%8dn-jwt-theo-b%e1%ba%a3n-n%c4%83ng" aria-label="Phần 1: Vì sao ai cũng chọn JWT theo bản năng">Phần 1: Vì sao ai cũng chọn JWT theo bản năng</a><ul>
+                        
+                <li>
+                    <a href="#jwt-tr%c3%b4ng-nh%c6%b0-th%e1%ba%bf-n%c3%a0o" aria-label="JWT trông như thế nào?">JWT trông như thế nào?</a></li></ul>
+                </li>
+                <li>
+                    <a href="#ph%e1%ba%a7n-2-nh%e1%bb%afng-thi%e1%ba%bft-k%e1%ba%bf-kh%c3%b4ng-n%c3%aan-d%c3%b9ng-jwt-v%c3%a0-%c4%91%c3%b3-l%c3%a0-ph%e1%ba%a7n-l%e1%bb%9bn-%e1%bb%a9ng-d%e1%bb%a5ng" aria-label="Phần 2: Những thiết kế không nên dùng JWT (và đó là phần lớn ứng dụng)">Phần 2: Những thiết kế không nên dùng JWT (và đó là phần lớn ứng dụng)</a><ul>
+                        
+                <li>
+                    <a href="#21-logout-v%e1%bb%9bi-session_id-l%c3%a0-chuy%e1%bb%87n-v%e1%ba%b7t" aria-label="2.1 Logout với session_id là chuyện vặt">2.1 Logout với session_id là chuyện vặt</a></li>
+                <li>
+                    <a href="#22-logout-v%e1%bb%9bi-jwt-m%e1%ba%b7c-%c4%91%e1%bb%8bnh-l%c3%a0-logout-gi%e1%ba%a3" aria-label="2.2 Logout với JWT, mặc định, là logout giả">2.2 Logout với JWT, mặc định, là logout giả</a></li>
+                <li>
+                    <a href="#23-b%e1%bb%91n-c%c3%a1ch-v%c3%a1-v%c3%a0-gi%c3%a1-c%e1%bb%a7a-t%e1%bb%abng-c%c3%a1ch" aria-label="2.3 Bốn cách vá, và giá của từng cách">2.3 Bốn cách vá, và giá của từng cách</a></li>
+                <li>
+                    <a href="#24-logout-t%e1%ba%a5t-c%e1%ba%a3-thi%e1%ba%bft-b%e1%bb%8b-ch%e1%bb%97-c%c3%a1ch-a-g%c3%a3y-ho%c3%a0n-to%c3%a0n" aria-label="2.4 Logout tất cả thiết bị: chỗ Cách A gãy hoàn toàn">2.4 Logout tất cả thiết bị: chỗ Cách A gãy hoàn toàn</a></li>
+                <li>
+                    <a href="#25-thi%e1%ba%bft-k%e1%ba%bf-%c4%91%e1%ba%a7y-%c4%91%e1%bb%a7-nh%e1%ba%a5t-m%c3%a0-jwt-%c4%91%e1%ba%a1t-t%e1%bb%9bi-%c4%91%c6%b0%e1%bb%a3c-v%c3%a0-n%c4%83m-c%c3%a1i-b%e1%ba%aby" aria-label="2.5 Thiết kế đầy đủ nhất mà JWT đạt tới được, và năm cái bẫy">2.5 Thiết kế đầy đủ nhất mà JWT đạt tới được, và năm cái bẫy</a></li>
+                <li>
+                    <a href="#26-m%e1%bb%99t-l%e1%bb%97i-c%e1%bb%a5-th%e1%bb%83-hay-g%e1%ba%b7p-race-khi-logout-all-g%e1%ba%b7p-refresh" aria-label="2.6 Một lỗi cụ thể hay gặp: race khi logout-all gặp refresh">2.6 Một lỗi cụ thể hay gặp: race khi logout-all gặp refresh</a></li>
+                <li>
+                    <a href="#27-ph%c3%a9p-t%c3%adnh-khi%e1%ba%bfn-t%c3%b4i-%c4%91%e1%bb%95i-%c3%bd-ho%c3%a0n-to%c3%a0n" aria-label="2.7 Phép tính khiến tôi đổi ý hoàn toàn">2.7 Phép tính khiến tôi đổi ý hoàn toàn</a></li>
+                <li>
+                    <a href="#28-t%c3%b3m-l%e1%ba%a1i-ph%e1%ba%a7n-logout" aria-label="2.8 Tóm lại phần logout">2.8 Tóm lại phần logout</a></li></ul>
+                </li>
+                <li>
+                    <a href="#ph%e1%ba%a7n-3-v%e1%ba%ady-khi-n%c3%a0o-n%c3%aan-d%c3%b9ng-jwt" aria-label="Phần 3: Vậy khi nào nên dùng JWT?">Phần 3: Vậy khi nào nên dùng JWT?</a><ul>
+                        
+                <li>
+                    <a href="#ph%e1%ba%a3n-bi%e1%bb%87n-%c4%91%c3%a1ng-gi%c3%a1-nh%e1%ba%a5t-session_id-c%e1%bb%99ng-gateway-th%c3%ac-sao" aria-label="Phản biện đáng giá nhất: &amp;ldquo;session_id cộng gateway thì sao?&amp;rdquo;">Phản biện đáng giá nhất: &ldquo;session_id cộng gateway thì sao?&rdquo;</a></li>
+                <li>
+                    <a href="#c%c3%a2u-tr%e1%ba%a3-l%e1%bb%9di-th%e1%bb%b1c-d%e1%bb%a5ng-cho-ph%e1%ba%a7n-l%e1%bb%9bn-%e1%bb%a9ng-d%e1%bb%a5ng-web" aria-label="Câu trả lời thực dụng cho phần lớn ứng dụng web">Câu trả lời thực dụng cho phần lớn ứng dụng web</a></li>
+                <li>
+                    <a href="#b%e1%ba%a3ng-tra-nhanh-theo-lo%e1%ba%a1i-h%e1%bb%87-th%e1%bb%91ng" aria-label="Bảng tra nhanh theo loại hệ thống">Bảng tra nhanh theo loại hệ thống</a></li></ul>
+                </li>
+                <li>
+                    <a href="#k%e1%ba%bft" aria-label="Kết">Kết</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><blockquote>
+<p><em>Bài viết dựa trên và mở rộng từ <a href="https://www.facebook.com/permalink.php?story_fbid=pfbid0Vm8tLQg2ZT6AfLsHDTRgmEnPbKkbDfebQEpQHFUE3Z5ix48SPVbxeiZMDqox4Fmul&amp;id=61590244986305">một bài viết gốc trên Facebook</a>, có bổ sung thêm code minh hoạ, sơ đồ, và vài lưu ý bảo mật.</em></p>
+</blockquote>
+<p>Tôi từng nhét JWT vào mọi chỗ, chỉ vì nghĩ nó mới và nó ngầu.</p>
+<p>Có một thời JWT là thứ ai cũng nhắc tới. Stateless, hiện đại, không cần session store, nghe là thấy đúng kiểu kiến trúc mà một backend developer muốn đem đi khoe. Tôi dùng nó cho mọi dự án, không phân biệt cái nào cần cái nào không. Có dự án tôi còn thấy hơi tự hào vì đã bỏ được Redis ra khỏi luồng đăng nhập.</p>
+<p>Gần đây đọc thiết kế của anh em, tôi thấy lại y nguyên cái tâm lý đó. Chọn JWT gần như là một phản xạ chứ không phải một quyết định. Hỏi &ldquo;sao em chọn JWT&rdquo; thì câu trả lời hay gặp nhất là &ldquo;cho nó stateless anh ạ&rdquo;. Mà &ldquo;stateless&rdquo; là tên của giải pháp, không phải mô tả của vấn đề.</p>
+<p>Không phải vì JWT dở, mà vì tôi đã áp dụng sai bài toán. Bài toán đó là một yêu cầu nghe rất bình thường: &ldquo;cho tôi chức năng đăng xuất khỏi tất cả thiết bị, và sửa quyền nhân viên thì phải có hiệu lực ngay&rdquo;.</p>
+<p>Nghe qua tưởng một ngày là xong. Thực tế thì không.</p>
+<h2 id="đọc-nhanh-5-câu-hỏi-trước-khi-chọn-jwt">Đọc nhanh: 5 câu hỏi trước khi chọn JWT<a hidden class="anchor" aria-hidden="true" href="#đọc-nhanh-5-câu-hỏi-trước-khi-chọn-jwt">¶</a></h2>
+<p>Nếu chỉ có hai phút, đọc phần này thôi cũng đủ.</p>
+<div style="max-width:800px;margin:2rem auto;">
+<svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="jq-shadow" x="-20%" y="-20%" width="140%" height="140%">
+<feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#00000022"/>
+</filter>
+<marker id="jq-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#57534E"/>
+</marker>
+<marker id="jq-arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#B45309"/>
+</marker>
+<marker id="jq-arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="800" height="800" fill="#FFFDF7" rx="16"/>
+<rect x="370" y="20" width="380" height="90" rx="14" fill="#F3F4F6" stroke="#6B7280" stroke-width="2" filter="url(#jq-shadow)"/>
+<text x="560" y="50" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">① Verify có tra được Redis/DB</text>
+<text x="560" y="68" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">của bạn không?</text>
+<rect x="30" y="20" width="300" height="90" rx="14" fill="#FFF3DB" stroke="#F5A623" stroke-width="2" filter="url(#jq-shadow)"/>
+<text x="180" y="48" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">→ CHỌN JWT</text>
+<text x="180" y="68" text-anchor="middle" font-size="10.5" fill="#92400E">Sân chơi của nó: CDN/edge,</text>
+<text x="180" y="84" text-anchor="middle" font-size="10.5" fill="#92400E">cross-region, đối tác ngoài</text>
+<line x1="370" y1="65" x2="330" y2="65" stroke="#B45309" stroke-width="2" marker-end="url(#jq-arrow-amber)"/>
+<rect x="270" y="38" width="90" height="18" rx="4" fill="#FFFDF7"/>
+<text x="360" y="51" text-anchor="end" font-size="10" font-weight="700" fill="#B45309">KHÔNG tra được</text>
+<line x1="560" y1="110" x2="560" y2="148" stroke="#57534E" stroke-width="2" marker-end="url(#jq-arrow)"/>
+<rect x="574" y="123" width="150" height="18" rx="4" fill="#FFFDF7"/>
+<text x="576" y="136" font-size="10" font-weight="700" fill="#57534E">tra được thoải mái</text>
+<rect x="370" y="150" width="380" height="90" rx="14" fill="#F3F4F6" stroke="#6B7280" stroke-width="2" filter="url(#jq-shadow)"/>
+<text x="560" y="180" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">② Tuổi thọ token có NGẮN HƠN</text>
+<text x="560" y="198" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">độ trễ nghiệp vụ chấp nhận?</text>
+<rect x="30" y="150" width="300" height="90" rx="14" fill="#FFF3DB" stroke="#F5A623" stroke-width="2" filter="url(#jq-shadow)"/>
+<text x="180" y="178" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">→ CHỌN JWT</text>
+<text x="180" y="198" text-anchor="middle" font-size="10.5" fill="#92400E">Token tự chết trước khi</text>
+<text x="180" y="214" text-anchor="middle" font-size="10.5" fill="#92400E">kịp cần thu hồi</text>
+<line x1="370" y1="195" x2="330" y2="195" stroke="#B45309" stroke-width="2" marker-end="url(#jq-arrow-amber)"/>
+<rect x="300" y="170" width="65" height="18" rx="4" fill="#FFFDF7"/>
+<text x="360" y="183" text-anchor="end" font-size="10" font-weight="700" fill="#B45309">NGẮN hơn</text>
+<line x1="560" y1="240" x2="560" y2="278" stroke="#57534E" stroke-width="2" marker-end="url(#jq-arrow)"/>
+<rect x="574" y="253" width="70" height="18" rx="4" fill="#FFFDF7"/>
+<text x="576" y="266" font-size="10" font-weight="700" fill="#57534E">DÀI hơn</text>
+<rect x="370" y="280" width="380" height="90" rx="14" fill="#F3F4F6" stroke="#6B7280" stroke-width="2" filter="url(#jq-shadow)"/>
+<text x="560" y="310" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">③ Cần thu hồi tức thì (vài giây):</text>
+<text x="560" y="328" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">logout-all, khoá TK, sửa quyền?</text>
+<rect x="30" y="280" width="300" height="90" rx="14" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#jq-shadow)"/>
+<text x="180" y="332" text-anchor="middle" font-size="14" font-weight="800" fill="#134E4A">→ CHỌN SESSION_ID</text>
+<line x1="370" y1="325" x2="330" y2="325" stroke="#0D9488" stroke-width="2" marker-end="url(#jq-arrow-teal)"/>
+<rect x="270" y="297" width="95" height="18" rx="4" fill="#FFFDF7"/>
+<text x="360" y="310" text-anchor="end" font-size="10" font-weight="700" fill="#0D9488">CÓ, phải ăn ngay</text>
+<line x1="560" y1="370" x2="560" y2="408" stroke="#57534E" stroke-width="2" marker-end="url(#jq-arrow)"/>
+<rect x="574" y="376" width="220" height="32" rx="4" fill="#FFFDF7"/>
+<text x="576" y="388" font-size="9.5" font-weight="700" fill="#57534E">không gấp (hoặc chấp nhận trễ</text>
+<text x="576" y="401" font-size="9.5" font-weight="700" fill="#57534E">5-15 phút, ghi rõ trong tài liệu)</text>
+<rect x="370" y="410" width="380" height="90" rx="14" fill="#F3F4F6" stroke="#6B7280" stroke-width="2" filter="url(#jq-shadow)"/>
+<text x="560" y="440" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">④ User cần thấy danh sách thiết bị</text>
+<text x="560" y="458" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">& tự đăng xuất từng cái?</text>
+<rect x="30" y="410" width="300" height="90" rx="14" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#jq-shadow)"/>
+<text x="180" y="462" text-anchor="middle" font-size="14" font-weight="800" fill="#134E4A">→ CHỌN SESSION_ID</text>
+<line x1="370" y1="455" x2="330" y2="455" stroke="#0D9488" stroke-width="2" marker-end="url(#jq-arrow-teal)"/>
+<rect x="335" y="434" width="30" height="18" rx="4" fill="#FFFDF7"/>
+<text x="360" y="447" text-anchor="end" font-size="10" font-weight="700" fill="#0D9488">CÓ</text>
+<line x1="560" y1="500" x2="560" y2="538" stroke="#57534E" stroke-width="2" marker-end="url(#jq-arrow)"/>
+<rect x="574" y="513" width="55" height="18" rx="4" fill="#FFFDF7"/>
+<text x="576" y="526" font-size="10" font-weight="700" fill="#57534E">KHÔNG</text>
+<rect x="370" y="540" width="380" height="100" rx="14" fill="#F3F4F6" stroke="#6B7280" stroke-width="2" filter="url(#jq-shadow)"/>
+<text x="560" y="570" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">⑤ Chịu được bản chất stateless —</text>
+<text x="560" y="588" text-anchor="middle" font-size="12.5" font-weight="700" fill="#374151">phát ra rồi không rút lại được?</text>
+<rect x="30" y="540" width="300" height="100" rx="14" fill="#FFF3DB" stroke="#F5A623" stroke-width="2" filter="url(#jq-shadow)"/>
+<text x="180" y="596" text-anchor="middle" font-size="13.5" font-weight="800" fill="#7C4A03">→ DÙNG JWT THOẢI MÁI</text>
+<line x1="370" y1="585" x2="330" y2="585" stroke="#B45309" stroke-width="2" marker-end="url(#jq-arrow-amber)"/>
+<rect x="276" y="553" width="90" height="20" rx="4" fill="#FFFDF7"/>
+<text x="360" y="567" text-anchor="end" font-size="10" font-weight="700" fill="#B45309">chấp nhận được</text>
+<line x1="560" y1="640" x2="560" y2="678" stroke="#57534E" stroke-width="2" marker-end="url(#jq-arrow)"/>
+<rect x="574" y="653" width="75" height="18" rx="4" fill="#FFFDF7"/>
+<text x="576" y="666" font-size="10" font-weight="700" fill="#57534E">rợn người</text>
+<rect x="370" y="680" width="380" height="80" rx="14" fill="#FFE9EC" stroke="#E11D48" stroke-width="2.5" filter="url(#jq-shadow)"/>
+<text x="560" y="712" text-anchor="middle" font-size="13.5" font-weight="800" fill="#9F1239">→ ĐỪNG DÙNG JWT</text>
+<text x="560" y="732" text-anchor="middle" font-size="10.5" fill="#BE123C">dù mọi tiêu chí khác có hợp tới đâu</text>
+</svg>
+</div>
+<p style="text-align:center;font-size:0.9em;color:#8A8272;font-style:italic;">5 câu hỏi tự kiểm tra trước khi chọn JWT — trả lời "CÓ" ở câu 3 hoặc 4 là dừng ngay ở session_id.</p>
+<p>Gói lại thành một câu để nhớ:</p>
+<blockquote>
+<p><strong>JWT là để nói chuyện qua một ranh giới mà bạn không hỏi lại được, hoặc để cấp một tấm vé sống ngắn.</strong> Nếu bài toán của bạn không phải hai cái đó, khả năng cao bạn đang chọn nó vì quán tính.</p>
+</blockquote>
+<p>Và một câu kiểm tra chéo tôi hay dùng khi review thiết kế của anh em: nếu bạn không nêu được một lý do cụ thể <strong>khiến bạn không thể</strong> tra một cái store ở mỗi request, thì bạn không có lý do để dùng JWT.</p>
+<h2 id="phần-1-vì-sao-ai-cũng-chọn-jwt-theo-bản-năng">Phần 1: Vì sao ai cũng chọn JWT theo bản năng<a hidden class="anchor" aria-hidden="true" href="#phần-1-vì-sao-ai-cũng-chọn-jwt-theo-bản-năng">¶</a></h2>
+<p>Phần này tôi để thật ngắn, nhưng phải nói, để công bằng với JWT. Điểm mạnh của nó là thật.</p>
+<p>Server không phải lưu gì về phiên đăng nhập. Mọi thông tin nằm sẵn trong token, verify chữ ký xong là biết bạn là ai. Không tra Redis, không tra database, không bước chân ra khỏi tiến trình.</p>
+<h3 id="jwt-trông-như-thế-nào">JWT trông như thế nào?<a hidden class="anchor" aria-hidden="true" href="#jwt-trông-như-thế-nào">¶</a></h3>
+<p>Nếu bạn chưa quen định dạng, một JWT chỉ là 3 khối base64 nối bằng dấu chấm: <code>header.payload.signature</code>. Không có gì bí ẩn cả — bạn có thể copy bất kỳ token nào, dán vào <a href="https://jwt.io">jwt.io</a> là thấy ngay 2 khối đầu chỉ là JSON thường.</p>
+<div style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="ja-shadow" x="-20%" y="-20%" width="140%" height="140%">
+<feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#00000022"/>
+</filter>
+<marker id="ja-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#57534E"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="900" height="480" fill="#FFFDF7" rx="16"/>
+<rect x="40" y="30" width="260" height="50" rx="25" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#ja-shadow)"/>
+<text x="170" y="61" text-anchor="middle" font-size="12.5" font-family="monospace" fill="#0F766E">eyJhbGciOiJSUzI1NiJ9</text>
+<rect x="320" y="30" width="260" height="50" rx="25" fill="#FFF3DB" stroke="#F5A623" stroke-width="2" filter="url(#ja-shadow)"/>
+<text x="450" y="61" text-anchor="middle" font-size="12.5" font-family="monospace" fill="#92400E">eyJ1aWQiOiJ1XzEyMyJ9</text>
+<rect x="600" y="30" width="260" height="50" rx="25" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2" filter="url(#ja-shadow)"/>
+<text x="730" y="61" text-anchor="middle" font-size="12.5" font-family="monospace" fill="#9F1239">SflKxwRJSMeKKF2QT4f...</text>
+<line x1="170" y1="80" x2="170" y2="118" stroke="#57534E" stroke-width="2" marker-end="url(#ja-arrow)"/>
+<line x1="450" y1="80" x2="450" y2="118" stroke="#57534E" stroke-width="2" marker-end="url(#ja-arrow)"/>
+<line x1="730" y1="80" x2="730" y2="118" stroke="#57534E" stroke-width="2" marker-end="url(#ja-arrow)"/>
+<rect x="40" y="120" width="260" height="140" rx="14" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#ja-shadow)"/>
+<text x="170" y="148" text-anchor="middle" font-size="14" font-weight="800" fill="#134E4A">HEADER</text>
+<text x="60" y="175" font-size="11.5" font-family="monospace" fill="#0F766E">{ "alg": "RS256",</text>
+<text x="60" y="193" font-size="11.5" font-family="monospace" fill="#0F766E">  "typ": "JWT" }</text>
+<text x="170" y="222" text-anchor="middle" font-size="10.5" fill="#0F766E">thuật toán ký +</text>
+<text x="170" y="238" text-anchor="middle" font-size="10.5" fill="#0F766E">loại token</text>
+<rect x="320" y="120" width="260" height="300" rx="14" fill="#FFF3DB" stroke="#F5A623" stroke-width="2" filter="url(#ja-shadow)"/>
+<text x="450" y="148" text-anchor="middle" font-size="14" font-weight="800" fill="#7C4A03">PAYLOAD</text>
+<text x="336" y="172" font-size="10.5" font-family="monospace" fill="#92400E">{ "uid": "u_123",</text>
+<text x="336" y="190" font-size="10.5" font-family="monospace" fill="#92400E">  "jti": "a1b2c3",</text>
+<text x="336" y="208" font-size="10.5" font-family="monospace" fill="#92400E">  "iat": 1755590000,</text>
+<text x="336" y="226" font-size="10.5" font-family="monospace" fill="#92400E">  "exp": 1755590900,</text>
+<text x="336" y="244" font-size="10.5" font-family="monospace" fill="#92400E">  "aud": "warehouse-svc" }</text>
+<rect x="332" y="280" width="236" height="60" rx="8" fill="#FFE9EC" stroke="#E11D48" stroke-width="1.5"/>
+<text x="450" y="304" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">⚠️ Chỉ encode base64,</text>
+<text x="450" y="322" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">KHÔNG mã hoá — đừng nhét mật khẩu!</text>
+<text x="450" y="360" text-anchor="middle" font-size="10.5" fill="#92400E">dữ liệu — ai đọc được token</text>
+<text x="450" y="376" text-anchor="middle" font-size="10.5" fill="#92400E">cũng đọc được phần này</text>
+<rect x="600" y="120" width="260" height="140" rx="14" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2" filter="url(#ja-shadow)"/>
+<text x="730" y="148" text-anchor="middle" font-size="14" font-weight="800" fill="#9F1239">SIGNATURE</text>
+<text x="620" y="175" font-size="10.5" font-family="monospace" fill="#BE123C">RS256(header+payload,</text>
+<text x="620" y="193" font-size="10.5" font-family="monospace" fill="#BE123C">  private key)</text>
+<text x="730" y="222" text-anchor="middle" font-size="10.5" fill="#BE123C">chỉ auth-service</text>
+<text x="730" y="238" text-anchor="middle" font-size="10.5" fill="#BE123C">có private key để ký</text>
+</svg>
+</div>
+<p style="text-align:center;font-size:0.9em;color:#8A8272;font-style:italic;">Anatomy của 1 JWT: header và payload chỉ encode (ai cũng đọc được), chỉ signature là thứ chứng minh được ai đã tạo ra token này.</p>
+<p>Tôi vốn tin ngược lại, rằng JWT nặng hơn vì phải parse và verify chữ ký, nên ngồi đo thật (Go 1.24, container giới hạn 1 CPU core, Redis 7 container riêng cùng network). Số liệu bác bỏ tôi:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Thời gian</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Verify 1 JWT (RS256)</td>
+<td><strong>5.03 μs</strong></td>
+<td>chạy ngay trong tiến trình</td>
+</tr>
+<tr>
+<td>Tra 1 session trong Redis</td>
+<td><strong>112.30 μs</strong></td>
+<td>một lượt đi-về qua mạng</td>
+</tr>
+</tbody>
+</table>
+<p>Rẻ hơn 22 lần. Khác biệt lớn hơn nằm ở khả năng mở rộng: verify JWT đạt khoảng <strong>152 nghìn lượt/giây trên mỗi core</strong>, thêm server là thêm tuyến tính, không phụ thuộc một component trung tâm nào.</p>
+<p>Nhanh hơn, mở rộng tốt hơn. Đó là lý do JWT thành phản xạ mặc định, và tôi cho rằng phản xạ đó có cơ sở — miễn là bạn dừng lại đúng lúc.</p>
+<h2 id="phần-2-những-thiết-kế-không-nên-dùng-jwt-và-đó-là-phần-lớn-ứng-dụng">Phần 2: Những thiết kế không nên dùng JWT (và đó là phần lớn ứng dụng)<a hidden class="anchor" aria-hidden="true" href="#phần-2-những-thiết-kế-không-nên-dùng-jwt-và-đó-là-phần-lớn-ứng-dụng">¶</a></h2>
+<p>Toàn bộ lợi thế ở Phần 1 đứng trên một giả định duy nhất: bạn không cần thu hồi token. Ngay khi nghiệp vụ yêu cầu thu hồi, mọi thứ đổi. Đây là phần chính của bài, và là chỗ tôi va tường ngày xưa.</p>
+<h3 id="21-logout-với-session_id-là-chuyện-vặt">2.1 Logout với session_id là chuyện vặt<a hidden class="anchor" aria-hidden="true" href="#21-logout-với-session_id-là-chuyện-vặt">¶</a></h3>
+<p>Sự thật về phiên nằm ở server, nên logout chỉ là xoá nó đi:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">DEL sess:&lt;session_id&gt;
+</span></span><span class="line"><span class="cl">SREM user_sessions:&lt;uid&gt; &lt;session_id&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Xong. Hiệu lực tức thì, không cửa sổ trễ. Request tiếp theo mang <code>session_id</code> đó tra không thấy, trả 401. Logout tất cả thiết bị thì lấy danh sách phiên của user rồi xoá cả loạt: với một user có 5 thiết bị là khoảng <strong>6 lệnh Redis</strong>, chạy đúng một lần trong đời tài khoản đó. Thu hồi quyền và khoá tài khoản dùng chung cơ chế này.</p>
+<p>Giữ con số 6 lệnh trong đầu, lát nữa nó có ích.</p>
+<h3 id="22-logout-với-jwt-mặc-định-là-logout-giả">2.2 Logout với JWT, mặc định, là logout giả<a hidden class="anchor" aria-hidden="true" href="#22-logout-với-jwt-mặc-định-là-logout-giả">¶</a></h3>
+<p>Đây là điều tôi mong anh em nắm cho thật chắc, vì ngày xưa tôi không nắm.</p>
+<p>Khi client bấm logout trong một hệ JWT thuần, cái duy nhất xảy ra là client tự xoá token khỏi bộ nhớ trình duyệt. Server không được thông báo gì, và kể cả có được thông báo cũng không làm gì được. Token đã ký là đã phát ra ngoài thế giới. Chữ ký vẫn hợp lệ, hạn vẫn còn. Bất kỳ ai đang giữ một bản sao chuỗi token đó — qua log, qua proxy, qua extension trình duyệt, qua một ảnh chụp màn hình DevTools — vẫn gọi API bình thường cho tới lúc token hết hạn.</p>
+<p>Nói cách khác: bạn không đăng xuất người dùng. Bạn chỉ yêu cầu trình duyệt của họ quên đi cái chìa khoá, còn ổ khoá vẫn mở với bất cứ ai còn giữ bản sao chìa.</p>
+<p>Với nhiều hệ thống thì như vậy chấp nhận được, và tôi không cho là sai. Một blog cá nhân, một công cụ nội bộ mà mô hình đe doạ không bao gồm &ldquo;token bị đánh cắp&rdquo;, thì logout giả hoàn toàn ổn. Nhưng nó phải là một <strong>quyết định có ý thức</strong>, được ghi lại, được bên nghiệp vụ biết. Vấn đề là trong phần lớn dự án tôi từng thấy, đó không phải quyết định. Đó là hệ quả không ai nhận ra, cho tới ngày có yêu cầu mới.</p>
+<h3 id="23-bốn-cách-vá-và-giá-của-từng-cách">2.3 Bốn cách vá, và giá của từng cách<a hidden class="anchor" aria-hidden="true" href="#23-bốn-cách-vá-và-giá-của-từng-cách">¶</a></h3>
+<p>Khi sếp yêu cầu logout phải là logout thật, bạn có bốn lựa chọn. Tôi liệt kê theo đúng thứ tự các team thường mò ra.</p>
+<p><strong>Cách A: Denylist theo <code>jti</code></strong></p>
+<p>Mỗi token mang claim <code>jti</code> (JWT ID), là một mã ngẫu nhiên riêng cho từng token, kiểu số seri in trên tờ vé. Hai lần đăng nhập ra hai <code>jti</code> khác nhau.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">claims</span> <span class="o">:=</span> <span class="nx">Claims</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">UID</span><span class="p">:</span> <span class="nx">user</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">RegisteredClaims</span><span class="p">:</span> <span class="nx">jwt</span><span class="p">.</span><span class="nx">RegisteredClaims</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">ID</span><span class="p">:</span>        <span class="nx">uuid</span><span class="p">.</span><span class="nf">NewString</span><span class="p">(),</span>                              <span class="c1">// jti
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">IssuedAt</span><span class="p">:</span>  <span class="nx">jwt</span><span class="p">.</span><span class="nf">NewNumericDate</span><span class="p">(</span><span class="nx">now</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">ExpiresAt</span><span class="p">:</span> <span class="nx">jwt</span><span class="p">.</span><span class="nf">NewNumericDate</span><span class="p">(</span><span class="nx">now</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">15</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">)),</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Issuer</span><span class="p">:</span>    <span class="s">&#34;auth-service&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">},</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">token</span> <span class="o">:=</span> <span class="nx">jwt</span><span class="p">.</span><span class="nf">NewWithClaims</span><span class="p">(</span><span class="nx">jwt</span><span class="p">.</span><span class="nx">SigningMethodRS256</span><span class="p">,</span> <span class="nx">claims</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">signed</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">token</span><span class="p">.</span><span class="nf">SignedString</span><span class="p">(</span><span class="nx">privateKey</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Lúc logout, ghi mã đó vào Redis với TTL đúng bằng thời gian sống còn lại của token:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">SET deny:jti:&lt;jti&gt; <span class="m">1</span> EX &lt;so_giay_con_lai&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Mỗi request, sau khi verify chữ ký, phải hỏi thêm <code>EXISTS deny:jti:&lt;jti&gt;</code>.</p>
+<p>Có một nỗi sợ phổ biến ở đây mà tôi muốn dập đi, vì nó khiến nhiều người loại phương án này vì lý do sai: sợ denylist phình to vô hạn. Không hề — TTL mỗi bản ghi chỉ bằng thời gian sống còn lại của token nên nó tự dọn. Thử tính: 1 triệu user, 5% logout mỗi ngày là 50 nghìn lượt; access token sống 15 phút thì số bản ghi tồn tại đồng thời chỉ khoảng <strong>520</strong>, tức vài chục KB.</p>
+<p>Cái đắt không phải bộ nhớ. Cái đắt là bạn vừa thêm một lượt đi-về qua mạng vào <strong>mọi</strong> request — đúng cái thứ mà bạn chọn JWT để tránh.</p>
+<p><strong>Cách B: Một cột mốc thời gian theo user</strong></p>
+<p>Lưu ở server một mốc cho mỗi user, kiểu <code>uinvalid:&lt;uid&gt; = 10:30 sáng nay</code>. Token thì đã sẵn có claim <code>iat</code> (issued at), đóng dấu lúc ký. Mỗi request so <code>iat</code> với mốc đó, token nào phát ra <strong>trước</strong> mốc thì từ chối. Đăng xuất tất cả thiết bị chỉ là ghi mốc bằng thời điểm hiện tại.</p>
+<p>Có biến thể dùng số nguyên: lưu <code>uver:&lt;uid&gt; = 7</code>, token mang thêm claim <code>ver: 7</code>, logout tất cả là tăng bộ đếm lên 8. Tôi thích biến thể thời gian hơn — nó không cần thêm claim nào vì <code>iat</code> có sẵn, và nó cộng dồn được theo tầng: một mốc toàn hệ thống dùng khi có sự cố bảo mật, một mốc theo tenant, một mốc theo user, rồi lấy giá trị lớn nhất để so với <code>iat</code>. Với số nguyên thì hai bộ đếm độc lập không so với nhau được.</p>
+<p>Cả hai biến thể có chung hai giới hạn mà ít bài nói ra. Thứ nhất, nó <strong>không</strong> làm được logout <strong>một</strong> thiết bị: đẩy mốc lên là đá văng toàn bộ thiết bị của user. Thứ hai, và quan trọng hơn: nó vẫn bắt bạn tra Redis ở mọi request.</p>
+<p><strong>Cách C: Danh sách phiên đang hoạt động</strong></p>
+<p>Token mang claim <code>sid</code>. Server giữ một tập các <code>sid</code> còn sống của mỗi user, tra ở mỗi request. Cách này giải quyết được mọi yêu cầu nghiệp vụ — nhưng hãy nhìn thẳng vào thứ bạn vừa dựng lên: một bảng ánh xạ từ mã phiên sang trạng thái phiên, tra ở mỗi request, thu hồi được tức thì. Đó chính xác là định nghĩa của <strong>session</strong>. Khác biệt duy nhất còn lại là bạn vẫn phải verify chữ ký, vẫn gửi token to hơn hàng chục lần, vẫn phải quản lý và xoay khoá ký. Trả toàn bộ chi phí của JWT để nhận về đúng ngữ nghĩa của session.</p>
+<p><strong>Cách D: Access token ngắn cộng refresh token có state</strong></p>
+<p>Access token là JWT sống rất ngắn (5-15 phút) và <strong>không</strong> kiểm tra thu hồi ở mỗi request. Refresh token là chuỗi ngẫu nhiên thường, lưu database, thu hồi được.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">RefreshToken</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ID</span>        <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">UserID</span>    <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">DeviceID</span>  <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">TokenHash</span> <span class="kt">string</span> <span class="c1">// hash SHA-256, không lưu plaintext
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">ExpiresAt</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Time</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">RevokedAt</span> <span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Time</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Rotation: mỗi lần refresh, thu hồi bản ghi cũ và phát bản ghi mới.
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Nếu một refresh token đã-bị-thu-hồi bị dùng lại -&gt; dấu hiệu bị đánh cắp,
+</span></span></span><span class="line"><span class="cl"><span class="c1">// thu hồi luôn TOÀN BỘ refresh token của user đó.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">Rotate</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">db</span> <span class="o">*</span><span class="nx">sql</span><span class="p">.</span><span class="nx">DB</span><span class="p">,</span> <span class="nx">presentedHash</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">accessJWT</span><span class="p">,</span> <span class="nx">newRefresh</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">rt</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">findByHash</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">db</span><span class="p">,</span> <span class="nx">presentedHash</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="s">&#34;&#34;</span><span class="p">,</span> <span class="s">&#34;&#34;</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">rt</span><span class="p">.</span><span class="nx">RevokedAt</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nf">revokeAllForUser</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">db</span><span class="p">,</span> <span class="nx">rt</span><span class="p">.</span><span class="nx">UserID</span><span class="p">)</span> <span class="c1">// reuse detection
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span> <span class="s">&#34;&#34;</span><span class="p">,</span> <span class="s">&#34;&#34;</span><span class="p">,</span> <span class="nx">errTokenReuse</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">revoke</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">db</span><span class="p">,</span> <span class="nx">rt</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">newRT</span> <span class="o">:=</span> <span class="nf">issueRefreshToken</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">db</span><span class="p">,</span> <span class="nx">rt</span><span class="p">.</span><span class="nx">UserID</span><span class="p">,</span> <span class="nx">rt</span><span class="p">.</span><span class="nx">DeviceID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">accessJWT</span> <span class="p">=</span> <span class="nf">signAccessToken</span><span class="p">(</span><span class="nx">rt</span><span class="p">.</span><span class="nx">UserID</span><span class="p">,</span> <span class="mi">15</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">accessJWT</span><span class="p">,</span> <span class="nx">newRT</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Logout một thiết bị là xoá bản ghi refresh token của thiết bị đó. Logout tất cả là xoá toàn bộ bản ghi của user.</p>
+<p>Đây là phương án duy nhất <strong>giữ được</strong> lợi thế của JWT, vì đường đi nóng — đoạn code chạy ở mọi request — không chạm database. Đó là lý do nó là mặc định hợp lý cho phần lớn ứng dụng web.</p>
+<p>Nhưng nó có một cái giá không thương lượng được: <strong>cửa sổ trễ</strong>. Trong 5-15 phút đó, người vừa bị đuổi việc vẫn gọi API được. Kẻ vừa bị phát hiện gian lận vẫn đặt đơn được. Quyền vừa bị thu hồi vẫn dùng được.</p>
+<p>Còn một cách nữa nhưng nó không phải cơ chế logout: <strong>đổi khoá ký</strong>. Xoay khoá làm mọi token cũ vô hiệu ngay lập tức, nhưng đá văng toàn bộ user của hệ thống. Đây là nút bấm khi khoá bị lộ, không phải nút bấm khi một user logout.</p>
+<h3 id="24-logout-tất-cả-thiết-bị-chỗ-cách-a-gãy-hoàn-toàn">2.4 Logout tất cả thiết bị: chỗ Cách A gãy hoàn toàn<a hidden class="anchor" aria-hidden="true" href="#24-logout-tất-cả-thiết-bị-chỗ-cách-a-gãy-hoàn-toàn">¶</a></h3>
+<p>Đây là điểm logic tôi cho là đáng giá nhất trong cả bài, và ít thấy ai nói ra.</p>
+<p>Denylist theo <code>jti</code> <strong>tự nó</strong> không giải được bài toán logout tất cả thiết bị. Lý do rất đơn giản: để chặn toàn bộ token của một user, bạn phải biết toàn bộ <code>jti</code> đã phát cho user đó và còn hạn. Nhưng JWT là stateless — bạn không lưu chúng ở đâu cả, không có danh sách để mà chặn.</p>
+<p>Muốn có danh sách đó, bạn phải bắt đầu lưu mọi <code>jti</code> đã phát ra kèm chủ sở hữu và kèm hạn. Ngay giây phút đó, bạn đã có một session store, chỉ là được gọi bằng cái tên khác và được truy cập kèm một bước verify chữ ký thừa.</p>
+<p>Cho nên trong thực tế, mọi hệ JWT có chức năng logout tất cả thiết bị đều rơi vào một trong ba trạng thái: hoặc dùng cột mốc thời gian và mất khả năng logout từng thiết bị, hoặc dùng danh sách phiên và đã là session store, hoặc chấp nhận cửa sổ trễ của Cách D. Không có lối thoát thứ tư — đây không phải hạn chế của thư viện hay của cách triển khai, mà là hệ quả tất yếu của việc chọn một tấm vé tự chứng minh.</p>
+<h3 id="25-thiết-kế-đầy-đủ-nhất-mà-jwt-đạt-tới-được-và-năm-cái-bẫy">2.5 Thiết kế đầy đủ nhất mà JWT đạt tới được, và năm cái bẫy<a hidden class="anchor" aria-hidden="true" href="#25-thiết-kế-đầy-đủ-nhất-mà-jwt-đạt-tới-được-và-năm-cái-bẫy">¶</a></h3>
+<p>Kết hợp Cách A với Cách B thì bạn có thiết kế đầy đủ nhất mà một hệ JWT làm được:</p>
+<ul>
+<li>Logout <strong>một</strong> thiết bị: chặn theo <code>jti</code>, tức số seri của đúng tấm vé đó.</li>
+<li>Logout <strong>tất cả</strong> thiết bị: so <code>iat</code> của token với cột mốc thời gian lưu theo user.</li>
+</ul>
+<p>Thiết kế này đáp ứng được cả hai yêu cầu nghiệp vụ, và tôi cho rằng đây là điểm cuối của con đường: bạn không làm tốt hơn thế được mà vẫn còn gọi nó là JWT. Nhưng nó đi kèm năm cái bẫy, và điểm chung của cả năm là chúng im lặng — không cái nào ném ra lỗi, không cái nào làm test đỏ.</p>
+<p><strong>Bẫy 1 — Hai cơ chế nghĩa là hai lần tra.</strong> Viết ngây thơ thì mỗi request gọi <code>EXISTS deny:jti:&lt;jti&gt;</code> rồi gọi tiếp <code>GET uinvalid:&lt;uid&gt;</code> — hai lượt đi-về tuần tự. Gộp lại bằng một lệnh là xong:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">MGET deny:jti:&lt;jti&gt; uinvalid:&lt;uid&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nhưng nếu chạy Redis Cluster, hai key này có thể rơi vào hai node khác nhau và <code>MGET</code> bị từ chối thẳng. Lúc đó phải đặt tên key khéo để ép chúng về cùng một hash slot (dùng hash tag <code>{uid}</code>), hoặc gói hai lệnh vào một Lua script. Đây là loại chi tiết mà không xử lý thì hệ chạy ngon ở dev một node, rồi vỡ đúng ngày lên cluster.</p>
+<p><strong>Bẫy 2 — Lỗ hổng một giây của <code>iat</code>.</strong> Claim <code>iat</code> tính bằng <strong>giây</strong>, không phải mili giây (chuẩn của JWT là vậy — xem <a href="https://www.rfc-editor.org/rfc/rfc7519#section-2">RFC 7519</a>). Mọi token phát ra trong cùng một giây đều có <code>iat</code> giống hệt nhau.</p>
+<p>Hình dung: token phát lúc <code>10:30:45.200</code>, người dùng bấm đăng xuất tất cả thiết bị lúc <code>10:30:45.800</code>. Bạn ghi <code>uinvalid = 10:30:45</code>. Điều kiện từ chối là <code>iat &lt; uinvalid</code>, mà <code>10:30:45</code> không nhỏ hơn <code>10:30:45</code>, nên <strong>cái token đó sống sót</strong> qua lệnh đăng xuất tất cả thiết bị.</p>
+<p>Đổi sang <code>iat &lt;= uinvalid</code> thì hết lỗ hổng, nhưng sinh vấn đề ngược: người dùng đăng nhập lại trong cùng giây đó sẽ nhận token mới cũng bị từ chối, không vào được cho tới khi sang giây kế tiếp. Cách xử lý sạch là đừng dùng <code>iat</code> cho việc này — thêm một claim riêng, ví dụ <code>iat_ms</code> tính bằng mili giây, rồi so sánh trên thang mili giây:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">CheckRevoked</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">rdb</span> <span class="o">*</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Client</span><span class="p">,</span> <span class="nx">jti</span><span class="p">,</span> <span class="nx">uid</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">iatMs</span> <span class="kt">int64</span><span class="p">)</span> <span class="p">(</span><span class="kt">bool</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">vals</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">rdb</span><span class="p">.</span><span class="nf">MGet</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;deny:jti:&#34;</span><span class="o">+</span><span class="nx">jti</span><span class="p">,</span> <span class="s">&#34;uinvalid_ms:&#34;</span><span class="o">+</span><span class="nx">uid</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">false</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">nil</span> <span class="c1">// jti nằm trong denylist
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">cutoffMs</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">strconv</span><span class="p">.</span><span class="nf">ParseInt</span><span class="p">(</span><span class="nx">vals</span><span class="p">[</span><span class="mi">1</span><span class="p">].(</span><span class="kt">string</span><span class="p">),</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">iatMs</span> <span class="o">&lt;=</span> <span class="nx">cutoffMs</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">nil</span> <span class="c1">// token phát ra trước-hoặc-đúng mốc logout-all
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nghe nhỏ nhặt, nhưng &ldquo;đăng xuất tất cả thiết bị mà một thiết bị vẫn vào được&rdquo; là loại bug bạn không tài nào tái hiện được khi ngồi debug, vì nó chỉ xảy ra khi hai sự kiện rơi đúng vào cùng một giây.</p>
+<p><strong>Bẫy 3 — Lấy thời gian từ đâu.</strong> <code>iat</code> do auth service đóng dấu, mốc <code>uinvalid</code> do service xử lý logout ghi. Nếu hai service chạy trên hai máy có đồng hồ lệch nhau vài giây, bạn gặp một trong hai hậu quả: token hợp lệ vừa phát ra bị từ chối oan, hoặc token đáng lẽ phải chết thì vẫn sống. Nguyên tắc: cả hai mốc phải lấy từ <strong>cùng một nguồn</strong> — dùng lệnh <code>TIME</code> của Redis hoặc <code>now()</code> của database, chứ đừng lấy đồng hồ của từng application server. NTP chỉ giảm lệch chứ không xoá được lệch, và lúc container vừa khởi động lại là lúc đồng hồ hay sai nhất.</p>
+<p><strong>Bẫy 4 — TTL của bản ghi chặn phải tính từ <code>exp</code>.</strong> Khi ghi <code>deny:jti</code>, TTL phải đúng bằng thời gian sống <strong>còn lại</strong> của token, tức <code>exp</code> trừ đi thời điểm hiện tại. Code đặt TTL cố định 5 phút cho gọn, trong khi token còn sống 30 phút, sẽ dẫn tới: sau 5 phút bản ghi chặn bốc hơi và cái token đã bị logout <strong>sống lại</strong>, dùng tiếp được 25 phút nữa. Không lỗi nào ném ra, không log nào bất thường — chức năng logout chỉ đơn giản là ngừng có tác dụng sau 5 phút.</p>
+<p><strong>Bẫy 5, nguy hiểm nhất — Redis đuổi key là huỷ lệnh thu hồi.</strong> Nhiều hệ dùng chung một Redis cho cả cache lẫn các bản ghi thu hồi này, với <code>maxmemory-policy</code> là <code>allkeys-lru</code>. Khi đầy bộ nhớ, Redis tự đuổi bớt key ít được dùng nhất để lấy chỗ.</p>
+<p>Bản ghi <code>deny:jti</code> của một token đã bị logout là key gần như không bao giờ được đọc trúng (chủ nhân của nó đã bị đá ra rồi) — nó nằm đúng nhóm bị đuổi đầu tiên. Khi bị đuổi, token bị thu hồi <strong>hợp lệ trở lại</strong>. Tương tự với mốc <code>uinvalid</code>: key đó bị đuổi thì mọi token cũ của user sống lại hết.</p>
+<p>Đây là kiểu hỏng tệ nhất trong bảo mật: hệ thống tự mở khoá cho kẻ tấn công đúng lúc nó đang chịu tải cao, và không ai được cảnh báo. Nguyên tắc: dữ liệu thu hồi <strong>không phải cache</strong>. Nó phải nằm ở nơi bền vững, hoặc ít nhất là một Redis riêng có bật persistence và đặt:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">maxmemory-policy noeviction
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Với <code>session_id</code> thì lỗi này cũng tồn tại nhưng theo hướng <strong>ngược lại</strong> và an toàn hơn nhiều: session bị đuổi thì người dùng bị đăng xuất oan — hỏng theo kiểu <strong>đóng</strong>. Còn JWT thì hỏng theo kiểu <strong>mở</strong>. Cùng một sự cố hạ tầng, một bên gây phiền, một bên gây thủng.</p>
+<h3 id="26-một-lỗi-cụ-thể-hay-gặp-race-khi-logout-all-gặp-refresh">2.6 Một lỗi cụ thể hay gặp: race khi logout-all gặp refresh<a hidden class="anchor" aria-hidden="true" href="#26-một-lỗi-cụ-thể-hay-gặp-race-khi-logout-all-gặp-refresh">¶</a></h3>
+<p>Tình huống: user bấm &ldquo;đăng xuất tất cả thiết bị&rdquo; trên điện thoại. Đúng lúc đó, laptop của họ đang gọi refresh vì access token vừa hết hạn.</p>
+<p>Nếu luồng refresh đọc mốc thu hồi <strong>trước</strong> khi lệnh ghi mốc kịp hoàn tất, laptop sẽ nhận được một access token mới hợp lệ và sống thêm nguyên một chu kỳ nữa. Người dùng đã bấm đăng xuất tất cả, hệ thống báo thành công, mà thiết bị kia vẫn vào được.</p>
+<p>Cách xử lý là để việc phát token mới và việc đọc mốc nằm trong cùng một thao tác nguyên tử, và luôn kiểm tra lại mốc ngay trước khi ký. Với <code>session_id</code> thì lỗi này không tồn tại, vì không có bước phát lại chìa khoá nào cả.</p>
+<p>Tôi nêu nó ra vì nó minh hoạ một điểm chung: mỗi lớp vá thêm vào JWT lại mở ra một loại lỗi mới mà mô hình session đơn giản không hề có.</p>
+<h3 id="27-phép-tính-khiến-tôi-đổi-ý-hoàn-toàn">2.7 Phép tính khiến tôi đổi ý hoàn toàn<a hidden class="anchor" aria-hidden="true" href="#27-phép-tính-khiến-tôi-đổi-ý-hoàn-toàn">¶</a></h3>
+<p>So chi phí thật của cùng một chức năng:</p>
+<table>
+<thead>
+<tr>
+<th>Phương án</th>
+<th>Chi phí logout-all (1 lần)</th>
+<th>Chi phí mỗi request (mãi mãi)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>session_id</code>, user 5 thiết bị</td>
+<td>~6 lệnh Redis</td>
+<td>1 lượt tra store</td>
+</tr>
+<tr>
+<td>JWT + cột mốc thời gian</td>
+<td>1 lệnh <code>SET</code> (rẻ hơn)</td>
+<td>1 lượt tra store <strong>cộng thêm</strong> verify chữ ký</td>
+</tr>
+</tbody>
+</table>
+<p>Giả sử user đó dùng 5 thiết bị, mỗi thiết bị 100 request/ngày. Chỉ riêng user đó, chỉ trong một ngày, JWT đã tốn thêm <strong>500 lệnh Redis</strong>, so với 6 lệnh một lần của session. Ngày mai lại 500 lệnh nữa.</p>
+<p>Bạn vừa dời chi phí từ một sự kiện <strong>hiếm</strong> (logout, vài lần một năm cho mỗi user) sang một sự kiện <strong>liên tục</strong> (mọi request, hàng nghìn lần một ngày). Trong tối ưu hệ thống, đó là hướng đánh đổi sai một cách kinh điển.</p>
+<p>Nhưng phần cay đắng nhất không cần con số nào để chứng minh. Hãy nhìn hình dạng của hai đường đi — đường đi thứ hai chứa trọn đường đi thứ nhất rồi cộng thêm việc. Nó <strong>không bao giờ</strong> rẻ hơn được, dù bạn tối ưu tới đâu, dù Redis của bạn nhanh cỡ nào. Cái lợi thế 22 lần ở Phần 1 chỉ tồn tại chừng nào bạn không cần thu hồi.</p>
+<p>Trả nhiều tiền hơn để mua một thứ kém hơn. Đó là câu tôi muốn anh em nhớ nhất từ bài này.</p>
+<h3 id="28-tóm-lại-phần-logout">2.8 Tóm lại phần logout<a hidden class="anchor" aria-hidden="true" href="#28-tóm-lại-phần-logout">¶</a></h3>
+<p>Nếu nghiệp vụ của bạn có một trong các yêu cầu sau, hãy nghiêm túc cân nhắc <code>session_id</code>:</p>
+<ul>
+<li>Đăng xuất khỏi tất cả thiết bị, phải hiệu lực ngay</li>
+<li>Đăng xuất từng thiết bị cụ thể, và người dùng nhìn thấy danh sách thiết bị</li>
+<li>Thu hồi quyền, khoá tài khoản, đình chỉ nhân viên, phải ăn ngay</li>
+<li>Đổi mật khẩu thì phải đá hết mọi phiên khác</li>
+<li>Cần biết ai đang online, bao nhiêu phiên, đăng nhập từ đâu</li>
+</ul>
+<p>Còn nếu bạn dùng JWT, hãy trả lời được câu này trước khi code dòng đầu tiên: <strong>cửa sổ thu hồi của hệ thống này là bao nhiêu phút, và bên nghiệp vụ đã đồng ý với con số đó chưa?</strong> Trong phần lớn dự án, con số đó chưa bao giờ được hỏi. Nó được quyết định tình cờ bởi một dòng <code>expiresIn</code> mà ai đó copy từ Stack Overflow. Ngày xưa tôi cũng vậy.</p>
+<h2 id="phần-3-vậy-khi-nào-nên-dùng-jwt">Phần 3: Vậy khi nào nên dùng JWT?<a hidden class="anchor" aria-hidden="true" href="#phần-3-vậy-khi-nào-nên-dùng-jwt">¶</a></h2>
+<p>Nói vậy không có nghĩa JWT yếu. Nó mạnh thật, nhưng mạnh ở một sân chơi rất cụ thể, còn chúng ta thì hay mang nó sang sân chơi khác.</p>
+<p>Tính chất gốc của JWT gói trong một câu: bên nhận tự quyết định được &ldquo;đây là ai, được làm gì&rdquo; mà không phải hỏi ai cả, chỉ cần giữ khoá. Mọi điểm mạnh là hệ quả của câu đó, và mọi điểm yếu cũng vậy: đã nói ra rồi thì không rút lại được. Từ đó suy ra luật chọn đáng nhớ nhất:</p>
+<blockquote>
+<p>Nếu tuổi thọ của token <strong>ngắn hơn</strong> độ trễ thu hồi mà nghiệp vụ chấp nhận được, thì thu hồi không còn là vấn đề và JWT thắng tuyệt đối. Nếu <strong>dài hơn</strong>, bạn đang tự dựng lại session store, chỉ là dựng xấu hơn.</p>
+</blockquote>
+<p><strong>1. Đăng nhập liên tổ chức (SSO)</strong></p>
+<p>Login bằng Google, Okta, Keycloak. Bạn không có quyền tra session store của Google, chữ ký là cách duy nhất để tin. Nhưng để ý chi tiết nhiều người bỏ qua: cái token Google trả về được dùng đúng <strong>một lần</strong> lúc login để dựng phiên phía bạn, rồi vứt đi. Người ta copy cái định dạng mà không copy cái vòng đời.</p>
+<p><strong>2. Giao tiếp giữa các service, khi danh tính người dùng phải đi qua nhiều chặng</strong></p>
+<p>Đây là lý do chính đáng nhất để dùng JWT trong hệ thống nội bộ, mà lại hay bị nói lướt.</p>
+<p>Hình dung luồng đặt hàng thật: người dùng bấm Thanh toán, request vào <code>order-service</code>, <code>order-service</code> gọi sang <code>inventory-service</code> để trừ tồn kho, <code>inventory-service</code> gọi tiếp sang <code>warehouse-service</code> để chọn kho xuất. Ba service, ba team, ba repo. Câu hỏi: <code>warehouse-service</code>, ở chặng thứ ba, làm sao biết thao tác này đang thay mặt nhân viên nào, và nhân viên đó có quyền xuất kho ở chi nhánh này không?</p>
+<p>Với <code>session_id</code>, hai cách làm hiển nhiên nhất đều dở. Cách thứ nhất: mỗi service tự cầm <code>session_id</code> rồi gọi ngược về session store để tra — <code>warehouse-service</code>, vốn chẳng liên quan gì tới đăng nhập, giờ phải có mật khẩu Redis auth và phải xử lý tình huống Redis chết, nhân với 20 service thì cả hệ thống cùng phụ thuộc vào <strong>một</strong> component. Cách thứ hai: <code>order-service</code> tra một lần rồi truyền xuống dưới bằng header thường kiểu <code>X-User-Id: 12345</code> — nhanh, gọn, và sai về bảo mật, vì header đó không chứng minh được gì cả. Bất kỳ ai chọc được vào mạng nội bộ cũng đặt được <code>X-User-Id: 1</code> để đóng vai admin. Bạn vừa biến toàn bộ phân quyền thành hệ danh dự.</p>
+<p>Với JWT thì bài toán tan biến. Nhưng có đúng một chi tiết phải làm cho chuẩn, và đây là chỗ tôi thấy nhiều người hiểu sai nhất:</p>
+<blockquote>
+<p><strong>Chỉ có một nơi được ký token, và nơi đó không phải <code>order-service</code>.</strong></p>
+</blockquote>
+<p>Auth service giữ private key và là nơi duy nhất ký. Nó công bố public key qua một endpoint chuẩn tên là <strong>JWKS</strong> (JSON Web Key Set) — thực chất chỉ là một file JSON chứa public key, để service nào cần thì tự tải về rồi cache lại. <code>order-service</code> <strong>không</strong> tạo token mới, nó chỉ chuyển tiếp nguyên cái token nó nhận được xuống dưới. <code>warehouse-service</code> verify bằng public key tải từ JWKS, không gọi đi đâu cả, cũng không cần biết Redis auth tồn tại.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">jwks</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">keyfunc</span><span class="p">.</span><span class="nf">NewDefaultCtx</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="p">[]</span><span class="kt">string</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;https://auth.internal/.well-known/jwks.json&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">})</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">token</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">jwt</span><span class="p">.</span><span class="nf">ParseWithClaims</span><span class="p">(</span><span class="nx">tokenString</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">Claims</span><span class="p">{},</span> <span class="nx">jwks</span><span class="p">.</span><span class="nx">Keyfunc</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">jwt</span><span class="p">.</span><span class="nf">WithValidMethods</span><span class="p">([]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;RS256&#34;</span><span class="p">}),</span> <span class="c1">// chặn &#34;alg confusion&#34; — xem khung dưới
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">jwt</span><span class="p">.</span><span class="nf">WithAudience</span><span class="p">(</span><span class="s">&#34;warehouse-service&#34;</span><span class="p">),</span>   <span class="c1">// chặn token bị dùng sai chỗ nó được cấp cho
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">jwt</span><span class="p">.</span><span class="nf">WithIssuer</span><span class="p">(</span><span class="s">&#34;auth-service&#34;</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p><strong>Hai điểm tôi muốn thêm vào bài gốc, vì đây là chỗ nhiều thư viện JWT từng dính CVE thật:</strong></p>
+<ul>
+<li><strong>Alg confusion.</strong> Đừng bao giờ để code verify tự đọc <code>alg</code> trong header rồi làm theo — luôn khai báo cứng thuật toán được chấp nhận (<code>WithValidMethods</code>). Có một lớp bug JWT nổi tiếng: nếu code verify tin vào <code>alg</code> trong token, kẻ tấn công đổi <code>alg</code> thành <code>HS256</code> rồi lấy chính <strong>public key RS256</strong> (vốn công khai qua JWKS) làm secret để ký — nhiều thư viện cũ verify HS256 bằng đúng chuỗi bytes đó, thế là token giả được coi là hợp lệ. Cố định thuật toán ở phía verify là cách chặn triệt để.</li>
+<li><strong>Kiểm tra <code>aud</code>/<code>iss</code>, không chỉ chữ ký.</strong> Chữ ký hợp lệ chỉ chứng minh token do đúng auth service ký ra — nó không chứng minh token này được cấp <em>cho service của bạn</em>. Một token hợp lệ cấp cho <code>payment-service</code> mà bị phát hiện dùng sai chỗ ở <code>warehouse-service</code> (do log rò rỉ, do proxy debug) vẫn nên bị từ chối. Đó là việc của claim <code>aud</code> (audience) và <code>iss</code> (issuer), không phải việc của signature.</li>
+</ul>
+</blockquote>
+<p>Nên số khoá phải quản lý là <strong>một</strong> cặp cho cả hệ thống, không phải mỗi service một cặp. Nếu thiết kế của bạn để service nào cũng ký được token thì đó là thiết kế sai, và sai nặng — bạn vừa cho 20 service quyền tự phong danh tính cho bất kỳ ai. Đây cũng là lý do phải dùng RS256 hoặc ES256 chứ không phải HS256 cho hệ nhiều service: HS256 dùng chung một khoá cho cả ký lẫn verify, tức là phát khoá ký cho mọi service.</p>
+<p>Đây là lúc &ldquo;không cần một nơi verify chung&rdquo; là lợi ích thật, chứ không phải câu chữ trên slide. Để ý cách nói cho chính xác: <strong>không cần một nơi verify chung, nhưng vẫn có một nơi ký chung.</strong> Hai chuyện đó khác nhau, và lẫn lộn chúng là nguồn gốc của phần lớn thiết kế JWT hỏng mà tôi từng đọc.</p>
+<h3 id="phản-biện-đáng-giá-nhất-session_id-cộng-gateway-thì-sao">Phản biện đáng giá nhất: &ldquo;session_id cộng gateway thì sao?&rdquo;<a hidden class="anchor" aria-hidden="true" href="#phản-biện-đáng-giá-nhất-session_id-cộng-gateway-thì-sao">¶</a></h3>
+<p>Tới đây kiểu gì cũng có bạn hỏi ngược, và đây là câu hỏi hay nhất trong cả chủ đề: sao không làm giống hệt JWT — cũng có một auth service và một gateway, mọi request từ ngoài đều bắt buộc đi qua gateway, gateway tra <code>session_id</code> một lần rồi bơm thông tin người dùng xuống dưới, còn các service nội bộ gọi nhau thì khỏi verify?</p>
+<p>Được. Nó chạy thật, và rất nhiều công ty đang chạy đúng như vậy. Mô hình này có tên: <strong>mô hình vành đai</strong>, nói dân dã là vỏ cứng ruột mềm. Tôi công nhận trước ba điểm đúng của nó, rồi mới nói chỗ nó gãy.</p>
+<p>Thứ nhất, gateway chỉ tra store <strong>một lần</strong> cho mỗi request, không phải mỗi service tra một lần — nên cái lo &ldquo;20 service cùng phụ thuộc vào Redis auth&rdquo; ở trên <strong>không</strong> áp dụng cho thiết kế này. Thứ hai, thu hồi vẫn tức thì, vì gateway tra store thật ở mỗi request — đây đúng là thứ JWT thuần không làm được, và ở đây nó là điểm mạnh. Thứ ba, chi phí rẻ: một lượt tra cho cả chuỗi gọi, dù chuỗi đó dài ba chặng hay mười chặng.</p>
+<p>Đem so với JWT thuần thì mô hình này thắng ở chỗ thu hồi và hoà ở chỗ chi phí. Nếu chỉ dừng ở đó thì nó là lựa chọn tốt hơn. Chỗ gãy nằm ở bảo mật, không phải hiệu năng.</p>
+<p><strong>Điểm gãy: niềm tin bắc cầu</strong></p>
+<p>Gateway làm tốt việc của nó. Chỗ gãy nằm ở đoạn sau gateway. Ở chặng thứ ba, <code>warehouse-service</code> nhận được header <code>X-User-Id: 12345</code>. Nó không có cách nào phân biệt &ldquo;gateway đặt header đó, <code>inventory-service</code> chỉ chuyển tiếp trung thực&rdquo; với &ldquo;<code>inventory-service</code> tự bịa ra con số đó&rdquo; — vì một chuỗi ký tự trần không mang theo bằng chứng nào cả.</p>
+<div style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="jt-shadow" x="-20%" y="-20%" width="140%" height="140%">
+<feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#00000022"/>
+</filter>
+<marker id="jt-arrow-grey" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF"/>
+</marker>
+<marker id="jt-arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#16A34A"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="900" height="560" fill="#FFFDF7" rx="16"/>
+<text x="450" y="34" text-anchor="middle" font-size="15" font-weight="800" fill="#DC2626">❌ Gateway + header nội bộ — niềm tin bắc cầu</text>
+<rect x="40" y="60" width="150" height="70" rx="12" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#jt-shadow)"/>
+<text x="115" y="100" text-anchor="middle" font-size="12" font-weight="700" fill="#134E4A">Gateway</text>
+<rect x="230" y="60" width="150" height="70" rx="12" fill="#F3F4F6" stroke="#6B7280" stroke-width="2" filter="url(#jt-shadow)"/>
+<text x="305" y="100" text-anchor="middle" font-size="12" font-weight="700" fill="#374151">order-svc</text>
+<rect x="420" y="60" width="150" height="70" rx="12" fill="#FFE9EC" stroke="#E11D48" stroke-width="2.5" filter="url(#jt-shadow)"/>
+<text x="495" y="92" text-anchor="middle" font-size="12" font-weight="700" fill="#9F1239">inventory-svc</text>
+<text x="495" y="110" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">✕ bị chiếm</text>
+<rect x="610" y="60" width="150" height="70" rx="12" fill="#F3F4F6" stroke="#6B7280" stroke-width="2" filter="url(#jt-shadow)"/>
+<text x="685" y="100" text-anchor="middle" font-size="12" font-weight="700" fill="#374151">warehouse-svc</text>
+<line x1="190" y1="95" x2="228" y2="95" stroke="#9CA3AF" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#jt-arrow-grey)"/>
+<line x1="380" y1="95" x2="418" y2="95" stroke="#9CA3AF" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#jt-arrow-grey)"/>
+<line x1="570" y1="95" x2="608" y2="95" stroke="#9CA3AF" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#jt-arrow-grey)"/>
+<text x="400" y="45" text-anchor="middle" font-size="10" font-family="monospace" fill="#9CA3AF">X-User-Id: 12345 (chỉ 1 chuỗi, không bằng chứng)</text>
+<rect x="420" y="150" width="340" height="50" rx="8" fill="#FFE9EC" stroke="#E11D48" stroke-width="1.5"/>
+<text x="590" y="170" text-anchor="middle" font-size="10.5" fill="#9F1239">inventory-svc tự bịa X-User-Id: 1 (admin)</text>
+<text x="590" y="186" text-anchor="middle" font-size="10.5" fill="#9F1239">→ warehouse-svc tin luôn, không cách nào phát hiện</text>
+<text x="450" y="230" text-anchor="middle" font-size="11.5" fill="#6B7280">Một service thủng ⇒ đóng vai BẤT KỲ ai, ở MỌI service phía sau, ngay lập tức</text>
+<line x1="450" y1="260" x2="450" y2="290" stroke="#D1D5DB" stroke-width="1.5" stroke-dasharray="2 4"/>
+<text x="450" y="320" text-anchor="middle" font-size="15" font-weight="800" fill="#16A34A">✅ Token có chữ ký — verify từng chặng</text>
+<rect x="40" y="346" width="150" height="70" rx="12" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#jt-shadow)"/>
+<text x="115" y="378" text-anchor="middle" font-size="12" font-weight="700" fill="#134E4A">Auth</text>
+<text x="115" y="394" text-anchor="middle" font-size="9.5" fill="#0F766E">(ký token)</text>
+<rect x="230" y="346" width="150" height="70" rx="12" fill="#F3F4F6" stroke="#6B7280" stroke-width="2" filter="url(#jt-shadow)"/>
+<text x="305" y="386" text-anchor="middle" font-size="12" font-weight="700" fill="#374151">order-svc</text>
+<rect x="420" y="346" width="150" height="70" rx="12" fill="#FFE9EC" stroke="#E11D48" stroke-width="2.5" filter="url(#jt-shadow)"/>
+<text x="495" y="378" text-anchor="middle" font-size="12" font-weight="700" fill="#9F1239">inventory-svc</text>
+<text x="495" y="396" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">✕ bị chiếm</text>
+<rect x="610" y="346" width="150" height="70" rx="12" fill="#F3F4F6" stroke="#6B7280" stroke-width="2" filter="url(#jt-shadow)"/>
+<text x="685" y="386" text-anchor="middle" font-size="12" font-weight="700" fill="#374151">warehouse-svc</text>
+<line x1="190" y1="381" x2="228" y2="381" stroke="#16A34A" stroke-width="2" marker-end="url(#jt-arrow-green)"/>
+<line x1="380" y1="381" x2="418" y2="381" stroke="#16A34A" stroke-width="2" marker-end="url(#jt-arrow-green)"/>
+<line x1="570" y1="381" x2="608" y2="381" stroke="#16A34A" stroke-width="2" marker-end="url(#jt-arrow-green)"/>
+<text x="400" y="336" text-anchor="middle" font-size="10" font-family="monospace" fill="#16A34A">JWT (có chữ ký) — mỗi chặng tự verify</text>
+<rect x="420" y="436" width="340" height="60" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="1.5"/>
+<text x="590" y="456" text-anchor="middle" font-size="10.5" fill="#166534">inventory-svc đọc được token đi qua nó,</text>
+<text x="590" y="472" text-anchor="middle" font-size="10.5" fill="#166534">nhưng KHÔNG tự ký được token mới</text>
+<text x="590" y="488" text-anchor="middle" font-size="10.5" fill="#166534">(không có private key)</text>
+<text x="450" y="524" text-anchor="middle" font-size="11.5" fill="#166534">Một service thủng ⇒ chỉ lộ đúng phần nó đã thấy, không giả danh được ai khác</text>
+</svg>
+</div>
+<p style="text-align:center;font-size:0.9em;color:#8A8272;font-style:italic;">Niềm tin bắc cầu (trust A→B→C mà chưa từng kiểm tra C) so với chữ ký verify độc lập ở từng chặng.</p>
+<p>Niềm tin ở đây bắc cầu: A tin B, B tin C, nên A phải tin C mà chưa từng kiểm tra C bao giờ. Hệ quả nằm ở phạm vi thiệt hại: chỉ cần <strong>một</strong> service bị chiếm là kẻ tấn công đóng vai được <strong>bất kỳ</strong> người dùng nào, ở <strong>mọi</strong> service còn lại, ngay lập tức — không phải leo thang từng bước, mà là toàn quyền ngay từ bước đầu.</p>
+<p>So với token có chữ ký cho rõ. Kẻ chiếm được <code>inventory-service</code> vẫn nguy hiểm, nó vẫn dùng lại được những token đã đi qua nó. Nhưng nó <strong>không</strong> tự phát ra danh tính mới được, vì nó không giữ private key. Nó bị nhốt trong tập những người dùng thật sự đã đi qua nó, trong khoảng thời gian token còn hạn. Đó là khác biệt giữa <strong>mất một phần</strong> và <strong>mất tất cả</strong>.</p>
+<p><strong>Ba đường vào có thật, xếp theo mức hay gặp:</strong></p>
+<ol>
+<li><strong>Gateway quên gỡ header do client gửi lên.</strong> Lỗi kinh điển và hay gặp nhất. Nếu gateway chỉ biết <strong>thêm</strong> header <code>X-User-Id</code> mà không <strong>xoá</strong> cái header cùng tên do client gửi kèm, thì bất kỳ ai ngồi ngoài Internet cũng gửi lên <code>X-User-Id: 1</code> và thành admin. Vành đai sập từ ngoài vào, không cần chiếm service nào cả. Nguyên tắc: mọi header nội bộ phải nằm trong danh sách bị gỡ bắt buộc ở gateway, và phải có test tự động cho việc đó — đây là loại lỗi lặng lẽ, thêm một route mới là nó tái xuất hiện.</li>
+<li><strong>SSRF ở bất kỳ service nào.</strong> SSRF (server side request forgery) là lỗi khiến bạn dụ được server gọi hộ mình tới một địa chỉ do mình chọn, ví dụ chức năng &ldquo;nhập ảnh từ URL&rdquo; mà không kiểm tra URL. Chỉ cần một chỗ như thế ở bất kỳ service nào trong mạng, kẻ tấn công đã có sẵn một bàn đạp nằm bên trong vành đai để gọi thẳng vào <code>warehouse-service</code> kèm header tuỳ ý. Lỗ hổng ở service A lại phá vỡ phân quyền của service C — hai thứ chẳng liên quan gì nhau về nghiệp vụ.</li>
+<li><strong>Một service được expose tạm để test rồi quên gỡ</strong>, hoặc một ingress cấu hình nhầm trỏ thẳng vào service thay vì qua gateway. Cái này không phải lỗ hổng phần mềm, nó là chuyện vận hành, và chính vì vậy nó xảy ra thường xuyên hơn hai cái trên cộng lại.</li>
+</ol>
+<p><strong>Chỗ hai mô hình gặp nhau</strong></p>
+<p>Nếu đẩy câu hỏi thêm một bước nữa, bạn sẽ tự đi tới lời giải: để <strong>gateway đổi <code>session_id</code> lấy một token nội bộ sống 60 giây</strong>, rồi mới forward xuống dưới.</p>
+<p>Lúc đó bạn có cả hai thứ cùng lúc. Thu hồi tức thì ở rìa, vì gateway vẫn tra store thật ở mỗi request từ ngoài vào. Danh tính verify được ở mọi chặng bên trong, vì token có chữ ký. Chỉ <strong>một</strong> nơi ký là gateway nên không nở khoá. Và cửa sổ 60 giây ngắn tới mức toàn bộ phần thu hồi rắc rối ở Phần 2 không còn ý nghĩa: token chết trước khi bạn kịp muốn thu hồi nó.</p>
+<p>Tôi cho rằng đây là thiết kế đúng cho phần lớn hệ nhiều service. Gói cả mục này lại thành một câu:</p>
+<blockquote>
+<p><strong>Mô hình gateway thì niềm tin bắc cầu, một service thủng là thủng hết. Token có chữ ký thì niềm tin verify được ở từng chặng, một service thủng thì thiệt hại dừng ở phạm vi những gì nó đã nhìn thấy.</strong></p>
+</blockquote>
+<p><strong>3. Verify ở nơi không với tới được auth store</strong></p>
+<p>Code chạy trên CDN. Gateway chặn request rác trước khi chạm application. Và mạnh nhất là multi-region: session nằm ở Singapore, request rơi vào Frankfurt. JWT biến bài toán đồng bộ dữ liệu thành bài toán phân phối khoá, mà khoá thì một tháng đổi một lần còn session thì mỗi giây đổi hàng nghìn. Đây là lập luận mạnh nhất bênh JWT và tôi công nhận nó hoàn toàn.</p>
+<p><strong>4. Token một mục đích, sống ngắn, dùng như một tấm vé</strong></p>
+<p>Link tải file có hạn, link xác thực email, link mời vào tổ chức, magic link, token callback cho webhook thanh toán. Nhóm này JWT không những hợp mà còn đang bị <strong>dùng thiếu</strong>: tôi thấy nhiều team dựng hẳn một bảng trong database để quản lý mấy cái link tạm, kèm cron dọn rác chạy hàng đêm, trong khi một token ký sống 15 phút là đủ và không cần dọn gì cả.</p>
+<p><strong>5. Fan-out đọc rất lớn mà hậu quả của dữ liệu cũ là nhỏ</strong></p>
+<p>API nội dung công khai, feature flag, personalization. Thông tin cũ 5 phút thì hậu quả là gợi ý sai, không phải lộ đơn hàng.</p>
+<p><strong>Điều kiện tiên quyết cho cả năm trường hợp trên</strong>: hệ thống của bạn phải chịu được bản chất stateless của JWT. Token đã phát ra thì không rút lại được. Ứng dụng nào không chịu được điều đó thì đừng dùng, dù mọi tiêu chí còn lại có hợp tới đâu.</p>
+<p>Ngoại lệ đáng nói nhất: <strong>API key cấp cho bên thứ ba</strong>. Nghe rất hợp lý để dùng JWT, nhưng mọi nhà cung cấp API lớn đều dùng key dạng chuỗi ngẫu nhiên kèm tra store, vì hai lý do rất đời: cần chặn được <strong>ngay</strong> trong vài giây khi có ai đó lỡ đẩy key lên GitHub, và cần đếm usage theo từng key để tính tiền. Đây là chỗ trực giác đánh lừa nhiều người nhất.</p>
+<h3 id="câu-trả-lời-thực-dụng-cho-phần-lớn-ứng-dụng-web">Câu trả lời thực dụng cho phần lớn ứng dụng web<a hidden class="anchor" aria-hidden="true" href="#câu-trả-lời-thực-dụng-cho-phần-lớn-ứng-dụng-web">¶</a></h3>
+<p>Vẫn là kiến trúc lai ở Cách D: access token JWT sống ngắn, không kiểm tra thu hồi ở đường đi nóng, cộng refresh token dạng chuỗi ngẫu nhiên lưu DB và thu hồi được.</p>
+<p>Nhưng phải trung thực với chính mình về hai điều. Thứ nhất, cửa sổ trễ là có thật và bên nghiệp vụ phải biết nó dài bao nhiêu. Thứ hai, rất nhiều team đặt access token sống 24 giờ để giảm lưu lượng refresh, và thế là cửa sổ thu hồi thành 24 giờ — họ quay về đúng vấn đề ban đầu, nhưng lần này tự tin hơn vì &ldquo;đã dùng kiến trúc chuẩn&rdquo;.</p>
+<h3 id="bảng-tra-nhanh-theo-loại-hệ-thống">Bảng tra nhanh theo loại hệ thống<a hidden class="anchor" aria-hidden="true" href="#bảng-tra-nhanh-theo-loại-hệ-thống">¶</a></h3>
+<p>Bạn dò xem dự án mình rơi vào đâu.</p>
+<table>
+<thead>
+<tr>
+<th>Loại hệ thống</th>
+<th>Chọn gì</th>
+<th>Vì sao</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Web nội bộ công ty: ERP, CRM, quản lý kho, nhân sự</td>
+<td><code>session_id</code></td>
+<td>Phân quyền phức tạp, có đình chỉ nhân viên, một region — JWT chỉ tổ thêm việc</td>
+</tr>
+<tr>
+<td>Sàn thương mại điện tử, app đặt hàng, ví điện tử</td>
+<td><code>session_id</code> (+ JWT cho vé phụ)</td>
+<td>Có khoá tài khoản gian lận, đăng xuất tất cả thiết bị, đổi mật khẩu phải đá hết phiên. JWT dùng cho link xác thực, link tải hoá đơn</td>
+</tr>
+<tr>
+<td>App mobile đăng nhập một lần, dùng cả tháng</td>
+<td>Kiến trúc lai</td>
+<td>Access token JWT 15 phút + refresh token thường lưu DB, mỗi thiết bị một bản ghi — chỗ danh sách thiết bị làm sạch nhất</td>
+</tr>
+<tr>
+<td>Hệ thống nhiều service gọi nhau</td>
+<td>JWT nội bộ (60s) sau gateway</td>
+<td>Gateway đổi <code>session_id</code> thành JWT nội bộ sống ngắn — thu hồi tức thì ở rìa, stateless ở trong</td>
+</tr>
+<tr>
+<td>Public API cho bên thứ ba, cấp API key</td>
+<td>Key ngẫu nhiên, tra store</td>
+<td>Cần chặn ngay khi lộ key, cần đếm usage để tính tiền</td>
+</tr>
+<tr>
+<td>SSO nội bộ, đăng nhập một lần cho nhiều app con</td>
+<td>JWT ở tầng liên ứng dụng</td>
+<td>Mỗi app con nên đổi token đó lấy phiên riêng rồi vứt token đi</td>
+</tr>
+<tr>
+<td>Trang tin tức, blog, nội dung công khai có cá nhân hoá nhẹ</td>
+<td>JWT</td>
+<td>Hậu quả dữ liệu cũ rất nhỏ</td>
+</tr>
+<tr>
+<td>Nhiều region, cùng tài khoản dùng ở VN và Mỹ</td>
+<td>JWT cho access token</td>
+<td>Thay thế duy nhất là replicate session store xuyên lục địa</td>
+</tr>
+<tr>
+<td>Game, chat, realtime qua WebSocket</td>
+<td>JWT lúc bắt tay</td>
+<td>Danh tính gắn với kết nối, không verify lại mỗi message. Thu hồi = đóng kết nối (vốn đã có state)</td>
+</tr>
+<tr>
+<td>Ngân hàng, bảo hiểm, y tế, nơi có kiểm toán</td>
+<td><code>session_id</code></td>
+<td>&ldquo;Khoảng 15 phút nữa họ tự hết hạn&rdquo; không phải câu trả lời kiểm toán chấp nhận</td>
+</tr>
+</tbody>
+</table>
+<p>Nếu dự án của bạn không nằm trong danh sách trên, quay lại 5 câu hỏi ở đầu bài.</p>
+<h2 id="kết">Kết<a hidden class="anchor" aria-hidden="true" href="#kết">¶</a></h2>
+<p>Ngày trước tôi chọn JWT vì nó mới và nó ngầu. Tôi không phân tích gì cả, và tôi nghĩ nhiều bạn bây giờ cũng đang ở đúng chỗ tôi đứng khi đó.</p>
+<p>Điều buồn cười là khi ngồi đo lại tử tế, tôi phát hiện mình sai cả ở chiều ngược lại: JWT không hề nặng, verify nó rẻ hơn tra Redis tới 22 lần. Nhưng ngay khi nghiệp vụ yêu cầu logout thật, đăng xuất tất cả thiết bị, hay sửa quyền ăn ngay, bạn buộc phải tra một cái store ở mỗi request và toàn bộ lợi thế đó bốc hơi. Bạn quay về đúng mô hình session, nhưng cõng thêm chi phí verify, cõng thêm token to, cõng thêm quản lý khoá, và vẫn kém chính xác hơn.</p>
+<p>Cho nên chọn JWT hay session không phải một quyết định kỹ thuật. Nó là câu hỏi: <strong>sự thật về danh tính người dùng nên nằm ở đâu, và bạn chấp nhận nó sai trong bao lâu.</strong> Trả lời được câu đó rồi thì phần còn lại chỉ là chi tiết triển khai.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a>
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>
