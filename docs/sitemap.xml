@@ -2,13 +2,46 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://blog.huydang.dev/tags/backend/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/caching/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/backend-interview-cheatsheet/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/database/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/golang/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/interview/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/system-design/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/system-design/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
+  </url><url>
     <loc>https://blog.huydang.dev/tags/architecture/</loc>
     <lastmod>2026-08-27T10:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/architecture/</loc>
-    <lastmod>2026-08-27T10:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/categories/</loc>
     <lastmod>2026-08-27T10:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/clean-architecture/</loc>
@@ -17,22 +50,10 @@
     <loc>https://blog.huydang.dev/tags/ddd/</loc>
     <lastmod>2026-08-27T10:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/golang/</loc>
-    <lastmod>2026-08-27T10:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/tags/hexagonal-architecture/</loc>
     <lastmod>2026-08-27T10:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/</loc>
-    <lastmod>2026-08-27T10:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/posts/architecture-patterns-ddd/</loc>
-    <lastmod>2026-08-27T10:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/posts/</loc>
-    <lastmod>2026-08-27T10:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/</loc>
     <lastmod>2026-08-27T10:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/authentication/</loc>
@@ -71,9 +92,6 @@
     <loc>https://blog.huydang.dev/posts/ddd-p0/</loc>
     <lastmod>2026-08-19T08:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/database/</loc>
-    <lastmod>2025-06-25T14:00:26+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/tags/indexing/</loc>
     <lastmod>2025-06-25T14:00:26+07:00</lastmod>
   </url><url>
@@ -97,12 +115,6 @@
   </url><url>
     <loc>https://blog.huydang.dev/tags/nosql/</loc>
     <lastmod>2025-06-05T14:19:52+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/system-design/</loc>
-    <lastmod>2025-06-05T10:27:14+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/categories/system-design/</loc>
-    <lastmod>2025-06-05T10:27:14+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/system-design-resources/</loc>
     <lastmod>2025-06-05T10:27:14+07:00</lastmod>
@@ -132,9 +144,6 @@
     <lastmod>2025-06-03T10:08:25+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/apache-kafka-p2/</loc>
-    <lastmod>2025-05-27T16:09:22+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/interview/</loc>
     <lastmod>2025-05-27T16:09:22+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/kafka/</loc>
