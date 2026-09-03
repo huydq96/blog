@@ -25,7 +25,7 @@ Nghe qua tưởng một ngày là xong. Thực tế thì không.
 
 Nếu chỉ có hai phút, đọc phần này thôi cũng đủ.
 
-<div style="max-width:800px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:800px;margin:2rem auto;">
 <svg viewBox="0 0 800 800" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="jq-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -131,7 +131,7 @@ Server không phải lưu gì về phiên đăng nhập. Mọi thông tin nằm 
 
 Nếu bạn chưa quen định dạng, một JWT chỉ là 3 khối base64 nối bằng dấu chấm: `header.payload.signature`. Không có gì bí ẩn cả — bạn có thể copy bất kỳ token nào, dán vào [jwt.io](https://jwt.io) là thấy ngay 2 khối đầu chỉ là JSON thường.
 
-<div style="max-width:900px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
 <svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="ja-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -479,7 +479,7 @@ Thứ nhất, gateway chỉ tra store **một lần** cho mỗi request, không 
 
 Gateway làm tốt việc của nó. Chỗ gãy nằm ở đoạn sau gateway. Ở chặng thứ ba, `warehouse-service` nhận được header `X-User-Id: 12345`. Nó không có cách nào phân biệt "gateway đặt header đó, `inventory-service` chỉ chuyển tiếp trung thực" với "`inventory-service` tự bịa ra con số đó" — vì một chuỗi ký tự trần không mang theo bằng chứng nào cả.
 
-<div style="max-width:900px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
 <svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="jt-shadow" x="-20%" y="-20%" width="140%" height="140%">

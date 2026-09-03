@@ -35,7 +35,7 @@ DDD là **một tư duy thiết kế phần mềm** (a design approach), do Eric
 
 So sánh cho dễ hình dung: DDD giống SOLID hay Clean Architecture — một **tư duy** bạn áp dụng vào cách chia module, đặt tên, tổ chức tầng — chứ không phải một công cụ bạn cài vào rồi có ngay.
 
-<div style="max-width:900px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
 <svg viewBox="0 0 900 680" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="p0m1-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -80,7 +80,7 @@ Trước DDD, cách làm phổ biến là thiết kế bắt đầu từ **datab
 
 DDD ra đời để đảo ngược việc đó: đưa logic **về đúng chỗ của nó** — bên trong chính domain object, dưới dạng behavior thật sự chứ không phải field trần trụi.
 
-<div style="max-width:760px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:760px;margin:2rem auto;">
 <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="p0m2-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -158,7 +158,7 @@ order.Ship()   // tự kiểm tra status hợp lệ, tự đổi state, tự ph�
 
 Nhìn lại nhánh ③④ ở Hình 1 — Strategic (bức tranh lớn) và Tactical (chi tiết trong code). Phần Tactical là nơi hầu hết người mới bị rối vì có nhiều khái niệm cùng lúc, nên tôi minh hoạ bằng vòng đời thay vì liệt kê khô khan:
 
-<div style="max-width:900px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
 <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="p0m3-shadow" x="-20%" y="-20%" width="140%" height="140%">

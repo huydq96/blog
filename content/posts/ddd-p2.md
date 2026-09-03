@@ -107,7 +107,7 @@ type TransactionAggregate struct {
 }
 ```
 
-<div style="max-width:680px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:680px;margin:2rem auto;">
 <svg viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="p2a-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -281,7 +281,7 @@ Nói cách khác: đã tránh được lỗi "publish event cho thứ chưa lưu
 
 ## Ghép lại: 1 request đi qua hết các building block
 
-<div style="max-width:640px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:640px;margin:2rem auto;">
 <svg viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="p2b-shadow" x="-20%" y="-20%" width="140%" height="140%">

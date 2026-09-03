@@ -76,7 +76,7 @@ Không hề ngẫu nhiên mà type trong Go tên là `PrivacyLevel`, field tên 
 
 Honeydue chia code thành 4 tầng. Luật duy nhất và quan trọng nhất: **tầng ngoài phụ thuộc vào tầng trong, không bao giờ ngược lại**. Domain là lõi — nó không được import bất cứ thứ gì từ Infrastructure hay Presentation.
 
-<div style="max-width:720px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:720px;margin:2rem auto;">
 <svg viewBox="0 0 720 580" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="p1a-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -130,7 +130,7 @@ Chú ý chiều mũi tên teal ở dưới: **Infrastructure phụ thuộc vào 
 
 Một domain lớn (toàn bộ app Honeydue) được chia nhỏ thành các **bounded context** — mỗi context có model, ngôn ngữ, và trách nhiệm riêng, chỉ giao tiếp với nhau qua interface rõ ràng (domain event, hoặc gọi trực tiếp qua domain service). Honeydue hiện có 3 context CORE đã implement:
 
-<div style="max-width:760px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:760px;margin:2rem auto;">
 <svg viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="p1b-shadow" x="-20%" y="-20%" width="140%" height="140%">
