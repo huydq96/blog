@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Layered, Clean, Hexagonal Architecture: So Sánh Dễ Hiểu (Và DDD Nằm Ở Đâu Trong Đó) | Huy Dang Blog</title>
+<meta name="keywords" content="architecture, ddd, golang, clean-architecture, hexagonal-architecture">
+<meta name="description" content="Layered, Clean, Hexagonal Architecture khác nhau ở đâu, giống nhau ở đâu, và kết hợp với DDD như thế nào — kèm sơ đồ trực quan và code structure mẫu bằng Go">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/architecture-patterns-ddd/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/architecture-patterns-ddd/">
+
+<meta name="twitter:title" content="Layered, Clean, Hexagonal Architecture: So Sánh Dễ Hiểu (Và DDD Nằm Ở Đâu Trong Đó) | Huy Dang Blog" />
+<meta name="twitter:description" content="Layered, Clean, Hexagonal Architecture khác nhau ở đâu, giống nhau ở đâu, và kết hợp với DDD như thế nào — kèm sơ đồ trực quan và code structure mẫu bằng Go" />
+<meta property="og:title" content="Layered, Clean, Hexagonal Architecture: So Sánh Dễ Hiểu (Và DDD Nằm Ở Đâu Trong Đó) | Huy Dang Blog" />
+<meta property="og:description" content="Layered, Clean, Hexagonal Architecture khác nhau ở đâu, giống nhau ở đâu, và kết hợp với DDD như thế nào — kèm sơ đồ trực quan và code structure mẫu bằng Go" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/architecture-patterns-ddd/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-08-27T10:00:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-08-27T10:00:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Layered, Clean, Hexagonal Architecture: So Sánh Dễ Hiểu (Và DDD Nằm Ở Đâu Trong Đó)",
+      "item": "https://blog.huydang.dev/posts/architecture-patterns-ddd/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Layered, Clean, Hexagonal Architecture: So Sánh Dễ Hiểu (Và DDD Nằm Ở Đâu Trong Đó) | Huy Dang Blog",
+  "name": "Layered, Clean, Hexagonal Architecture: So Sánh Dễ Hiểu (Và DDD Nằm Ở Đâu Trong Đó)",
+  "description": "Layered, Clean, Hexagonal Architecture khác nhau ở đâu, giống nhau ở đâu, và kết hợp với DDD như thế nào — kèm sơ đồ trực quan và code structure mẫu bằng Go",
+  "keywords": [
+    "architecture", "ddd", "golang", "clean-architecture", "hexagonal-architecture"
+  ],
+  "wordCount" : "2622",
+  "inLanguage": "en",
+  "datePublished": "2026-08-27T10:00:00+07:00",
+  "dateModified": "2026-08-27T10:00:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/architecture-patterns-ddd/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Layered, Clean, Hexagonal Architecture: So Sánh Dễ Hiểu (Và DDD Nằm Ở Đâu Trong Đó)</h1>
+    <div class="post-description">Layered, Clean, Hexagonal Architecture khác nhau ở đâu, giống nhau ở đâu, và kết hợp với DDD như thế nào — kèm sơ đồ trực quan và code structure mẫu bằng Go</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>August 27, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/architecture/">Architecture</a><a href="https://blog.huydang.dev/tags/ddd/">Ddd</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/clean-architecture/">Clean-Architecture</a><a href="https://blog.huydang.dev/tags/hexagonal-architecture/">Hexagonal-Architecture</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>13 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#ddd-kh%c3%b4ng-ph%e1%ba%a3i-l%c3%a0-1-trong-3-c%c3%a1i-n%c3%a0y" aria-label="DDD không phải là 1 trong 3 cái này">DDD không phải là 1 trong 3 cái này</a></li>
+                <li>
+                    <a href="#layered-architecture" aria-label="Layered Architecture">Layered Architecture</a></li>
+                <li>
+                    <a href="#clean-architecture" aria-label="Clean Architecture">Clean Architecture</a></li>
+                <li>
+                    <a href="#hexagonal-architecture-ports--adapters" aria-label="Hexagonal Architecture (Ports &amp;amp; Adapters)">Hexagonal Architecture (Ports &amp; Adapters)</a></li>
+                <li>
+                    <a href="#so-s%c3%a1nh-tr%e1%bb%b1c-ti%e1%ba%bfp" aria-label="So sánh trực tiếp">So sánh trực tiếp</a></li>
+                <li>
+                    <a href="#v%e1%ba%ady-honeydue-%c4%91ang-d%c3%b9ng-g%c3%ac" aria-label="Vậy Honeydue đang dùng gì?">Vậy Honeydue đang dùng gì?</a></li>
+                <li>
+                    <a href="#ch%e1%bb%8dn-c%c3%a1i-n%c3%a0o" aria-label="Chọn cái nào?">Chọn cái nào?</a></li>
+                <li>
+                    <a href="#k%e1%ba%bft" aria-label="Kết">Kết</a></li>
+                <li>
+                    <a href="#%c4%91%e1%bb%8dc-th%c3%aam" aria-label="Đọc thêm">Đọc thêm</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p>Ba cái tên này hay bị nghĩ là ba lựa chọn tách biệt, phải chọn đúng 1 trong 3. Sự thật gần với &ldquo;3 cách vẽ cùng một ý tưởng&rdquo; hơn là &ldquo;3 kiến trúc khác nhau&rdquo;. Bài này so sánh kỹ từng cái, có sơ đồ, có code structure mẫu bằng Go, và trả lời câu hỏi hay bị lẫn lộn nhất: <strong>DDD nằm ở đâu trong bức tranh này?</strong></p>
+<p>Bài này dùng thẳng thuật ngữ Aggregate, Entity, Repository, Domain Service mà không giải thích lại — nếu chưa quen, đọc <a href="https://blog.huydang.dev/posts/ddd-p0/">series DDD</a> trước sẽ dễ theo hơn.</p>
+<h2 id="ddd-không-phải-là-1-trong-3-cái-này">DDD không phải là 1 trong 3 cái này<a hidden class="anchor" aria-hidden="true" href="#ddd-không-phải-là-1-trong-3-cái-này">¶</a></h2>
+<p>Nói trước để khỏi lẫn lộn, vì đây là chỗ tôi thấy nhiều người nhầm nhất.</p>
+<p><strong>DDD trả lời câu hỏi: bên trong lõi nghiệp vụ có những gì, và chúng quan hệ với nhau ra sao</strong> — Aggregate, Entity, Value Object, Domain Service, Domain Event, Bounded Context, Ubiquitous Language.</p>
+<p><strong>Layered / Clean / Hexagonal trả lời một câu hỏi khác: code được chia thành mấy khối, và khối nào được phép phụ thuộc vào khối nào.</strong></p>
+<p>Hai câu hỏi này độc lập với nhau. Bạn có thể áp dụng DDD trong một file <code>main.go</code> duy nhất (dở, nhưng làm được), hoặc tổ chức code theo Clean Architecture cho một app không có tí DDD nào (chỉ có CRUD, không Aggregate, không Bounded Context). DDD ra đời năm 2003 (Eric Evans), Clean Architecture là 2012 (Robert C. Martin), Hexagonal là 2005 (Alistair Cockburn) — ba nguồn gốc, ba mối quan tâm khác nhau, nhưng vì chúng bổ sung cho nhau cực kỳ tốt nên thường bị dạy chung, rồi bị hiểu lẫn thành một thứ.</p>
+<p>Trong bài này, khi nói &ldquo;Domain&rdquo; hay &ldquo;Core&rdquo;, đó chính là chỗ các building block của DDD (Aggregate, Entity&hellip;) sống — bất kể bạn vẽ ranh giới quanh nó theo kiểu nào trong 3 kiểu dưới đây.</p>
+<h2 id="layered-architecture">Layered Architecture<a hidden class="anchor" aria-hidden="true" href="#layered-architecture">¶</a></h2>
+<p>Kiểu truyền thống nhất, dạy trong hầu hết giáo trình: chia code thành các tầng xếp chồng, tầng trên gọi xuống tầng dưới.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Presentation  (HTTP handler, CLI, gRPC...)
+</span></span><span class="line"><span class="cl">      ↓
+</span></span><span class="line"><span class="cl">Application   (orchestration)
+</span></span><span class="line"><span class="cl">      ↓
+</span></span><span class="line"><span class="cl">Domain        (business logic)
+</span></span><span class="line"><span class="cl">      ↓
+</span></span><span class="line"><span class="cl">Infrastructure (database, message queue...)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Cấu trúc thư mục Go — đây chính xác là cách Honeydue đang tổ chức:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">internal/
+</span></span><span class="line"><span class="cl">├── domain/
+</span></span><span class="line"><span class="cl">│   └── transaction/
+</span></span><span class="line"><span class="cl">│       ├── aggregate.go
+</span></span><span class="line"><span class="cl">│       ├── entity.go
+</span></span><span class="line"><span class="cl">│       ├── repository.go      // interface — Save, GetByID...
+</span></span><span class="line"><span class="cl">│       └── service.go
+</span></span><span class="line"><span class="cl">├── application/
+</span></span><span class="line"><span class="cl">│   └── transaction/
+</span></span><span class="line"><span class="cl">│       └── service.go         // orchestration, gọi domain + repo
+</span></span><span class="line"><span class="cl">├── infrastructure/
+</span></span><span class="line"><span class="cl">│   └── persistence/
+</span></span><span class="line"><span class="cl">│       └── mysql_transaction_repository.go  // implements domain/transaction.Repository
+</span></span><span class="line"><span class="cl">└── presentation/
+</span></span><span class="line"><span class="cl">    └── transaction/
+</span></span><span class="line"><span class="cl">        └── handler.go          // Gin handler
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Điểm yếu thật của Layered &ldquo;thuần&rdquo;</strong>: nó không <em>bắt buộc</em> Dependency Inversion. Trong nhiều sách giáo khoa cũ (kiểu 3-tier ASP.NET: UI / BLL / DAL), tầng Business Logic gọi <em>thẳng</em> xuống class ở Data Access, tức Domain phụ thuộc trực tiếp vào Infrastructure — không qua interface nào cả. Domain lúc đó biết cả ORM, biết cả connection string, test domain logic bắt buộc phải có database thật chạy cùng.</p>
+<div class="zoomable-diagram" style="max-width:1240px;margin:2rem auto;">
+<svg viewBox="0 0 1240 610" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="ap-shadow" x="-20%" y="-20%" width="140%" height="140%">
+<feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#00000022"/>
+</filter>
+<marker id="ap-arrow-grey" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#57534E"/>
+</marker>
+<marker id="ap-arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#D97706"/>
+</marker>
+<marker id="ap-arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/>
+</marker>
+<marker id="ap-arrow-tealdark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="1240" height="610" fill="#FFFDF7" rx="16"/>
+<text x="210" y="25" text-anchor="middle" font-size="14" font-weight="800" fill="#374151">LAYERED (truyền thống)</text>
+<rect x="50" y="50" width="320" height="55" rx="10" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#ap-shadow)"/>
+<text x="210" y="72" text-anchor="middle" font-size="12" font-weight="700" fill="#134E4A">Presentation</text>
+<text x="210" y="90" text-anchor="middle" font-size="10" fill="#0F766E">Gin handler</text>
+<line x1="210" y1="105" x2="210" y2="128" stroke="#57534E" stroke-width="2" marker-end="url(#ap-arrow-grey)"/>
+<rect x="50" y="130" width="320" height="55" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2" filter="url(#ap-shadow)"/>
+<text x="210" y="152" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">Application</text>
+<text x="210" y="170" text-anchor="middle" font-size="10" fill="#92400E">orchestration</text>
+<line x1="210" y1="185" x2="210" y2="208" stroke="#57534E" stroke-width="2" marker-end="url(#ap-arrow-grey)"/>
+<rect x="50" y="210" width="320" height="55" rx="10" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="3" filter="url(#ap-shadow)"/>
+<text x="210" y="232" text-anchor="middle" font-size="12" font-weight="700" fill="#9F1239">Domain</text>
+<text x="210" y="250" text-anchor="middle" font-size="10" fill="#BE123C">Aggregate · Entity · VO</text>
+<rect x="50" y="290" width="320" height="55" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2" filter="url(#ap-shadow)"/>
+<text x="210" y="312" text-anchor="middle" font-size="12" font-weight="700" fill="#134E4A">Infrastructure</text>
+<text x="210" y="330" text-anchor="middle" font-size="10" fill="#0F766E">MySQL, Kafka, Redis...</text>
+<line x1="210" y1="265" x2="210" y2="288" stroke="#D97706" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#ap-arrow-amber)"/>
+<rect x="216" y="264" width="180" height="30" rx="4" fill="#FFFDF7"/>
+<text x="220" y="277" font-size="9.5" fill="#D97706">⚠ domain có thể lỡ import</text>
+<text x="220" y="290" font-size="9.5" fill="#D97706">thẳng infra nếu không kỷ luật</text>
+<text x="210" y="368" text-anchor="middle" font-size="10" fill="#D97706">KHÔNG bắt buộc dependency inversion —</text>
+<text x="210" y="384" text-anchor="middle" font-size="10" fill="#D97706">domain dễ rò rỉ phụ thuộc xuống dưới</text>
+<text x="610" y="25" text-anchor="middle" font-size="14" font-weight="800" fill="#374151">CLEAN ARCHITECTURE</text>
+<circle cx="610" cy="250" r="150" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#ap-shadow)"/>
+<circle cx="610" cy="250" r="112" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<circle cx="610" cy="250" r="75" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2"/>
+<circle cx="610" cy="250" r="38" fill="#FF6B6B" stroke="#BE123C" stroke-width="2"/>
+<text x="610" y="254" text-anchor="middle" font-size="12" font-weight="800" fill="#ffffff">Entities</text>
+<rect x="460" y="418" width="16" height="16" rx="3" fill="#E6FBF9" stroke="#14B8A6"/>
+<text x="482" y="430" font-size="10" fill="#374151">Frameworks &amp; Drivers (Web, DB, UI)</text>
+<rect x="460" y="440" width="16" height="16" rx="3" fill="#FFF3DB" stroke="#F5A623"/>
+<text x="482" y="452" font-size="10" fill="#374151">Interface Adapters (Controller, Gateway)</text>
+<rect x="460" y="462" width="16" height="16" rx="3" fill="#FFE9EC" stroke="#FF6B6B"/>
+<text x="482" y="474" font-size="10" fill="#374151">Use Cases</text>
+<rect x="460" y="484" width="16" height="16" rx="3" fill="#FF6B6B" stroke="#BE123C"/>
+<text x="482" y="496" font-size="10" fill="#374151">Entities (business rule thuần)</text>
+<line x1="700" y1="516" x2="670" y2="516" stroke="#0D9488" stroke-width="2.5" marker-end="url(#ap-arrow-teal)"/>
+<text x="460" y="520" font-size="10.5" font-weight="700" fill="#0F766E">phụ thuộc LUÔN chỉ vào trong</text>
+<text x="1010" y="25" text-anchor="middle" font-size="14" font-weight="800" fill="#374151">HEXAGONAL (Ports &amp; Adapters)</text>
+<polygon points="1092,298 1010,345 928,298 928,203 1010,155 1092,203" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="3" filter="url(#ap-shadow)"/>
+<text x="1010" y="245" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">CORE</text>
+<text x="1010" y="262" text-anchor="middle" font-size="9.5" fill="#BE123C">(Domain + Use Case)</text>
+<rect x="780" y="175" width="110" height="50" rx="8" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#ap-shadow)"/>
+<text x="835" y="196" text-anchor="middle" font-size="10.5" font-weight="700" fill="#134E4A">HTTP</text>
+<text x="835" y="212" text-anchor="middle" font-size="9.5" fill="#0F766E">Handler</text>
+<rect x="780" y="278" width="110" height="50" rx="8" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#ap-shadow)"/>
+<text x="835" y="299" text-anchor="middle" font-size="10.5" font-weight="700" fill="#134E4A">CLI /</text>
+<text x="835" y="315" text-anchor="middle" font-size="9.5" fill="#0F766E">Test</text>
+<rect x="1108" y="175" width="92" height="50" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2" filter="url(#ap-shadow)"/>
+<text x="1154" y="196" text-anchor="middle" font-size="10.5" font-weight="700" fill="#134E4A">MySQL</text>
+<text x="1154" y="212" text-anchor="middle" font-size="9.5" fill="#0F766E">Repo</text>
+<rect x="1108" y="278" width="92" height="50" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2" filter="url(#ap-shadow)"/>
+<text x="1154" y="299" text-anchor="middle" font-size="10.5" font-weight="700" fill="#134E4A">Kafka</text>
+<text x="1154" y="315" text-anchor="middle" font-size="9.5" fill="#0F766E">Publisher</text>
+<line x1="890" y1="200" x2="924" y2="203" stroke="#0D9488" stroke-width="2" marker-end="url(#ap-arrow-teal)"/>
+<line x1="890" y1="303" x2="924" y2="298" stroke="#0D9488" stroke-width="2" marker-end="url(#ap-arrow-teal)"/>
+<line x1="1092" y1="203" x2="1106" y2="200" stroke="#0D9488" stroke-width="2" marker-end="url(#ap-arrow-tealdark)"/>
+<line x1="1092" y1="298" x2="1106" y2="303" stroke="#0D9488" stroke-width="2" marker-end="url(#ap-arrow-tealdark)"/>
+<circle cx="928" cy="203" r="5" fill="#14B8A6" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="928" cy="298" r="5" fill="#14B8A6" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="1092" cy="203" r="5" fill="#0D9488" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="1092" cy="298" r="5" fill="#0D9488" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="838" cy="422" r="5" fill="#14B8A6"/>
+<circle cx="838" cy="446" r="5" fill="#14B8A6"/>
+<text x="852" y="426" font-size="10" fill="#374151">Port — interface do core định nghĩa</text>
+<text x="852" y="450" font-size="10" fill="#374151">Adapter — implementation cụ thể</text>
+<text x="838" y="466" font-size="10" fill="#374151">(driving bên trái, driven bên phải)</text>
+<text x="620" y="580" text-anchor="middle" font-size="13" font-weight="800" fill="#374151">Domain/Core không bao giờ phụ thuộc ra ngoài — 3 cách vẽ khác nhau, cùng 1 luật phụ thuộc</text>
+</svg>
+</div>
+<p style="text-align:center;font-size:0.9em;color:#8A8272;font-style:italic;">Hình 1: Cùng một ý tưởng — "logic nghiệp vụ không phụ thuộc chi tiết kỹ thuật" — vẽ theo 3 kiểu khác nhau.</p>
+<p>Layered vẫn dùng tốt, kể cả cho hệ nghiêm túc — miễn là bạn <em>tự</em> áp thêm kỷ luật Dependency Inversion (Domain khai báo interface, Infrastructure implement). Đó chính xác là cách Honeydue làm, và tôi sẽ quay lại điểm này ở cuối bài.</p>
+<h2 id="clean-architecture">Clean Architecture<a hidden class="anchor" aria-hidden="true" href="#clean-architecture">¶</a></h2>
+<p>Robert C. Martin (&ldquo;Uncle Bob&rdquo;) công bố năm 2012, vẽ thành 4 vòng tròn đồng tâm. Luật duy nhất và tuyệt đối, ông gọi là <strong>The Dependency Rule</strong>:</p>
+<blockquote>
+<p>Source code dependency chỉ được phép trỏ <strong>vào trong</strong>. Không có gì ở vòng trong biết bất cứ điều gì về vòng ngoài.</p>
+</blockquote>
+<p>4 vòng, từ trong ra ngoài:</p>
+<ul>
+<li><strong>Entities</strong> — business rule chung nhất, ít thay đổi nhất. Đây chính là chỗ Aggregate/Entity/VO của DDD sống.</li>
+<li><strong>Use Cases</strong> — business rule riêng của ứng dụng này (orchestration, giống tầng Application ở Layered).</li>
+<li><strong>Interface Adapters</strong> — controller, presenter, gateway: chuyển đổi dữ liệu qua lại giữa Use Cases và thế giới bên ngoài.</li>
+<li><strong>Frameworks &amp; Drivers</strong> — vòng ngoài cùng: web framework, database, UI. Uncle Bob gọi thẳng đây là &ldquo;chi tiết&rdquo; (details) — quan trọng về mặt kỹ thuật nhưng không quan trọng về mặt kiến trúc.</li>
+</ul>
+<p>Cấu trúc thư mục Go — theo convention phổ biến nhất trong cộng đồng Go (kiểu <code>bxcodec/go-clean-arch</code>, project tham khảo Clean Architecture bằng Go được biết đến nhiều nhất):</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">transaction/
+</span></span><span class="line"><span class="cl">├── domain.go                 // Entity + Repository interface + UseCase interface
+</span></span><span class="line"><span class="cl">├── usecase/
+</span></span><span class="line"><span class="cl">│   └── transaction_usecase.go     // implements UseCase, phụ thuộc domain.Repository (interface)
+</span></span><span class="line"><span class="cl">├── repository/
+</span></span><span class="line"><span class="cl">│   └── mysql/
+</span></span><span class="line"><span class="cl">│       └── transaction_repository.go  // implements domain.Repository
+</span></span><span class="line"><span class="cl">└── delivery/
+</span></span><span class="line"><span class="cl">    └── http/
+</span></span><span class="line"><span class="cl">        └── transaction_handler.go     // gọi domain.UseCase (interface)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Điểm khác biệt quan trọng nhất so với Layered &ldquo;thuần&rdquo;: <strong>interface được khai báo ở tầng trong cùng, không phải ở tầng dùng nó</strong>.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// transaction/domain.go — tầng trong cùng, KHÔNG import bất kỳ package nào khác trong app
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kn">package</span> <span class="nx">transaction</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Transaction</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ID</span>       <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Amount</span>   <span class="kt">int64</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Category</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Repository interface do chính domain khai báo — usecase và delivery chỉ biết đúng interface này
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Repository</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Save</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">t</span> <span class="o">*</span><span class="nx">Transaction</span><span class="p">)</span> <span class="kt">error</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">GetByID</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">id</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">Transaction</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// UseCase interface — tầng delivery (HTTP handler) chỉ gọi qua interface này
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">UseCase</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Create</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">amount</span> <span class="kt">int64</span><span class="p">,</span> <span class="nx">category</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">Transaction</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// transaction/usecase/transaction_usecase.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kn">package</span> <span class="nx">usecase</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">transactionUseCase</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">repo</span> <span class="nx">transaction</span><span class="p">.</span><span class="nx">Repository</span> <span class="c1">// phụ thuộc INTERFACE, chưa từng biết chữ &#34;mysql&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">uc</span> <span class="o">*</span><span class="nx">transactionUseCase</span><span class="p">)</span> <span class="nf">Create</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">amount</span> <span class="kt">int64</span><span class="p">,</span> <span class="nx">category</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">t</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">{</span><span class="nx">ID</span><span class="p">:</span> <span class="nx">uuid</span><span class="p">.</span><span class="nf">NewString</span><span class="p">(),</span> <span class="nx">Amount</span><span class="p">:</span> <span class="nx">amount</span><span class="p">,</span> <span class="nx">Category</span><span class="p">:</span> <span class="nx">category</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">uc</span><span class="p">.</span><span class="nx">repo</span><span class="p">.</span><span class="nf">Save</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">t</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">t</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">_</span> <span class="nx">transaction</span><span class="p">.</span><span class="nx">UseCase</span> <span class="p">=</span> <span class="p">(</span><span class="o">*</span><span class="nx">transactionUseCase</span><span class="p">)(</span><span class="kc">nil</span><span class="p">)</span> <span class="c1">// compile-time check
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>So với Layered ở phần trước: nhìn thoáng qua giống hệt (vẫn 4 khối, vẫn top-down). Khác biệt nằm ở <strong>ai sở hữu interface</strong>. Ở Layered thuần, Infrastructure có thể tự định nghĩa struct riêng rồi Domain import nó. Ở Clean, interface <em>luôn</em> nằm ở tầng trong, tầng ngoài phải code theo đúng khuôn đó — đảo ngược hoàn toàn hướng &ldquo;biết về nhau&rdquo;.</p>
+<h2 id="hexagonal-architecture-ports--adapters">Hexagonal Architecture (Ports &amp; Adapters)<a hidden class="anchor" aria-hidden="true" href="#hexagonal-architecture-ports--adapters">¶</a></h2>
+<p>Alistair Cockburn công bố năm 2005 — trước cả Clean Architecture 7 năm. Ý tưởng cốt lõi giống hệt The Dependency Rule, nhưng vẽ và gọi tên khác: thay vì vòng tròn, hình lục giác (chỉ mang tính tượng trưng &ldquo;có nhiều cạnh&rdquo;, không phải đúng 6).</p>
+<p>Hai khái niệm cần nhớ:</p>
+<ul>
+<li><strong>Port</strong> — interface do phần lõi (core) định nghĩa. Có 2 loại:
+<ul>
+<li><strong>Primary/Driving port</strong> — cổng mà thế giới bên ngoài dùng để <em>gọi vào</em> core (vd: interface <code>TransactionService</code>).</li>
+<li><strong>Secondary/Driven port</strong> — cổng mà core dùng để <em>gọi ra</em> thế giới bên ngoài (vd: interface <code>TransactionRepository</code>).</li>
+</ul>
+</li>
+<li><strong>Adapter</strong> — implementation cụ thể cắm vào một port. <strong>Driving adapter</strong> (HTTP handler, CLI, gRPC, test) gọi vào qua primary port. <strong>Driven adapter</strong> (MySQL, Kafka, SMTP) bị gọi qua secondary port.</li>
+</ul>
+<p>Điểm hay nhất của cách đặt tên này: nó đối xứng. HTTP handler và MySQL repository, dưới góc nhìn của core, <strong>là cùng một thứ</strong> — một adapter cắm vào một port. Core không quan tâm ai đang gọi nó (HTTP, CLI, hay test) hay nó đang nói chuyện với ai (MySQL, Postgres, hay một fake trong bộ nhớ).</p>
+<p>Cấu trúc thư mục Go:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">internal/
+</span></span><span class="line"><span class="cl">├── core/
+</span></span><span class="line"><span class="cl">│   ├── domain/
+</span></span><span class="line"><span class="cl">│   │   └── transaction.go          // Entity + business rule thuần
+</span></span><span class="line"><span class="cl">│   ├── ports/
+</span></span><span class="line"><span class="cl">│   │   ├── driving/
+</span></span><span class="line"><span class="cl">│   │   │   └── transaction_service.go   // primary port
+</span></span><span class="line"><span class="cl">│   │   └── driven/
+</span></span><span class="line"><span class="cl">│   │       └── transaction_repository.go // secondary port
+</span></span><span class="line"><span class="cl">│   └── service/
+</span></span><span class="line"><span class="cl">│       └── transaction_service.go        // implements driving port, dùng driven port
+</span></span><span class="line"><span class="cl">└── adapters/
+</span></span><span class="line"><span class="cl">    ├── driving/
+</span></span><span class="line"><span class="cl">    │   └── http/
+</span></span><span class="line"><span class="cl">    │       └── transaction_handler.go     // gọi driving port
+</span></span><span class="line"><span class="cl">    └── driven/
+</span></span><span class="line"><span class="cl">        └── mysql/
+</span></span><span class="line"><span class="cl">            └── transaction_repository.go  // implements driven port
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// core/ports/driven/transaction_repository.go — secondary port
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kn">package</span> <span class="nx">driven</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">TransactionRepository</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Save</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">t</span> <span class="o">*</span><span class="nx">domain</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">)</span> <span class="kt">error</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// core/service/transaction_service.go — implement primary port, dùng secondary port
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kn">package</span> <span class="nx">service</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">TransactionService</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">repo</span> <span class="nx">driven</span><span class="p">.</span><span class="nx">TransactionRepository</span> <span class="c1">// secondary port — core &#34;cần&#34; cái này, không biết nó là MySQL hay gì
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">TransactionService</span><span class="p">)</span> <span class="nf">CreateTransaction</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">amount</span> <span class="kt">int64</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">domain</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">t</span> <span class="o">:=</span> <span class="nx">domain</span><span class="p">.</span><span class="nf">NewTransaction</span><span class="p">(</span><span class="nx">amount</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">t</span><span class="p">,</span> <span class="nx">s</span><span class="p">.</span><span class="nx">repo</span><span class="p">.</span><span class="nf">Save</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">t</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// adapters/driven/mysql/transaction_repository.go — driven adapter
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kn">package</span> <span class="nx">mysql</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">TransactionRepository</span> <span class="kd">struct</span><span class="p">{</span> <span class="nx">db</span> <span class="o">*</span><span class="nx">sql</span><span class="p">.</span><span class="nx">DB</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">TransactionRepository</span><span class="p">)</span> <span class="nf">Save</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">t</span> <span class="o">*</span><span class="nx">domain</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nx">db</span><span class="p">.</span><span class="nf">ExecContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">`INSERT INTO transactions (id, amount) VALUES (?, ?)`</span><span class="p">,</span> <span class="nx">t</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span> <span class="nx">t</span><span class="p">.</span><span class="nx">Amount</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">_</span> <span class="nx">driven</span><span class="p">.</span><span class="nx">TransactionRepository</span> <span class="p">=</span> <span class="p">(</span><span class="o">*</span><span class="nx">TransactionRepository</span><span class="p">)(</span><span class="kc">nil</span><span class="p">)</span> <span class="c1">// compile-time: đúng port chưa
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Đổi <code>mysql.TransactionRepository</code> này sang <code>postgres.TransactionRepository</code> hay <code>inmemory.TransactionRepository</code> (dùng cho test) — <code>TransactionService</code> không cần sửa một dòng nào, vì nó chỉ biết <code>driven.TransactionRepository</code> là một interface.</p>
+<h2 id="so-sánh-trực-tiếp">So sánh trực tiếp<a hidden class="anchor" aria-hidden="true" href="#so-sánh-trực-tiếp">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tiêu chí</th>
+<th>Layered (thuần)</th>
+<th>Clean</th>
+<th>Hexagonal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tác giả / năm</td>
+<td>Truyền thống, không có tác giả cụ thể</td>
+<td>Robert C. Martin, 2012</td>
+<td>Alistair Cockburn, 2005</td>
+</tr>
+<tr>
+<td>Hình vẽ</td>
+<td>Ngăn xếp (stack)</td>
+<td>Vòng tròn đồng tâm</td>
+<td>Lục giác + cổng</td>
+</tr>
+<tr>
+<td>Số tầng</td>
+<td>Thường cố định 3-4</td>
+<td>Đúng 4 (Entities/Use Cases/Adapters/Frameworks)</td>
+<td>Không cố định — bao nhiêu port cũng được</td>
+</tr>
+<tr>
+<td>Dependency Inversion</td>
+<td>Không bắt buộc</td>
+<td>Bắt buộc, ở mọi ranh giới</td>
+<td>Bắt buộc, đối xứng cả 2 phía</td>
+</tr>
+<tr>
+<td>Interface được gọi là</td>
+<td>&ldquo;Repository interface&rdquo;</td>
+<td>&ldquo;Boundary&rdquo;</td>
+<td>&ldquo;Port&rdquo;</td>
+</tr>
+<tr>
+<td>Implementation được gọi là</td>
+<td>&ldquo;Repository implementation&rdquo;</td>
+<td>&ldquo;Interface Adapter&rdquo;</td>
+<td>&ldquo;Adapter&rdquo;</td>
+</tr>
+<tr>
+<td>Phân biệt chiều gọi vào/ra</td>
+<td>Không rõ</td>
+<td>Không nhấn mạnh</td>
+<td>Rõ ràng — driving vs driven</td>
+</tr>
+<tr>
+<td>Điểm mạnh riêng</td>
+<td>Đơn giản, dễ dạy, dễ onboard</td>
+<td>Tư duy 4 vòng rõ ràng, nhiều tài liệu</td>
+<td>Vocabulary tách bạch driving/driven — hợp hệ nhiều loại client</td>
+</tr>
+</tbody>
+</table>
+<p>Sự thật ít ai nói thẳng: <strong>trong Go, code sinh ra từ Clean Architecture và từ Hexagonal Architecture gần như giống hệt nhau.</strong> Cả hai đều: interface khai báo ở tầng trong, implementation ở tầng ngoài, dependency luôn trỏ vào trong. Khác biệt chủ yếu là tên thư mục (<code>usecase/</code> vs <code>core/service/</code>, <code>repository/</code> vs <code>adapters/driven/</code>) và việc Hexagonal tách rõ driving/driven còn Clean thì gộp chung vào &ldquo;Interface Adapters&rdquo;. Nếu bạn thấy 2 codebase, một khai là &ldquo;Clean Architecture&rdquo;, một khai là &ldquo;Hexagonal Architecture&rdquo;, và cấu trúc dependency giống hệt nhau — cả hai đều đúng, chỉ đang dùng từ điển khác nhau. (Có một biến thể thứ 3 cùng họ, ít được nhắc trong bài này: <strong>Onion Architecture</strong> của Jeffrey Palermo, 2008 — cũng vòng tròn đồng tâm, cũng cùng luật, khác vài chi tiết nhỏ về cách chia ring.)</p>
+<p>Điểm phân biệt thật sự chỉ có một: <strong>Layered thuần không bắt buộc Dependency Inversion, hai cái còn lại bắt buộc.</strong> Ngay khi bạn thêm kỷ luật đó vào Layered, ranh giới giữa 3 cái gần như biến mất — chỉ còn khác tên gọi.</p>
+<h2 id="vậy-honeydue-đang-dùng-gì">Vậy Honeydue đang dùng gì?<a hidden class="anchor" aria-hidden="true" href="#vậy-honeydue-đang-dùng-gì">¶</a></h2>
+<p>Nhìn lại <code>CLAUDE.md</code> và code thật:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/domain/transaction/repository.go
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Interface khai báo Ở TRONG domain — infrastructure implement nó, không phải ngược lại
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Repository</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Save</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">agg</span> <span class="o">*</span><span class="nx">TransactionAggregate</span><span class="p">)</span> <span class="kt">error</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">GetByID</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">id</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">TransactionAggregate</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">GetByCoupleID</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">coupleID</span> <span class="kt">string</span><span class="p">)</span> <span class="p">([]</span><span class="o">*</span><span class="nx">TransactionAggregate</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">Delete</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">id</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">error</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/infrastructure/persistence/mysql_transaction_repository.go
+</span></span></span><span class="line"><span class="cl"><span class="c1">// implement interface trên — package này import domain, domain KHÔNG import ngược lại
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">MysqlTransactionRepository</span> <span class="kd">struct</span><span class="p">{</span> <span class="nx">db</span> <span class="o">*</span><span class="nx">sql</span><span class="p">.</span><span class="nx">DB</span> <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="zoomable-diagram" style="max-width:820px;margin:2rem auto;">
+<svg viewBox="0 0 820 460" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="ap2-shadow" x="-20%" y="-20%" width="140%" height="140%">
+<feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#00000022"/>
+</filter>
+<marker id="ap2-arrow-grey" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#57534E"/>
+</marker>
+<marker id="ap2-arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+<path d="M0,0 L10,5 L0,10 z" fill="#16A34A"/>
+</marker>
+</defs>
+<rect x="0" y="0" width="820" height="460" fill="#FFFDF7" rx="16"/>
+<rect x="60" y="20" width="600" height="65" rx="12" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#ap2-shadow)"/>
+<text x="360" y="47" text-anchor="middle" font-size="13" font-weight="700" fill="#134E4A">Presentation</text>
+<text x="360" y="65" text-anchor="middle" font-size="10.5" fill="#0F766E" font-family="monospace">internal/presentation/transaction</text>
+<line x1="360" y1="85" x2="360" y2="108" stroke="#57534E" stroke-width="2" marker-end="url(#ap2-arrow-grey)"/>
+<rect x="60" y="110" width="600" height="65" rx="12" fill="#FFF3DB" stroke="#F5A623" stroke-width="2" filter="url(#ap2-shadow)"/>
+<text x="360" y="137" text-anchor="middle" font-size="13" font-weight="700" fill="#7C4A03">Application</text>
+<text x="360" y="155" text-anchor="middle" font-size="10.5" fill="#92400E" font-family="monospace">internal/application/transaction</text>
+<line x1="360" y1="175" x2="360" y2="198" stroke="#57534E" stroke-width="2" marker-end="url(#ap2-arrow-grey)"/>
+<rect x="60" y="200" width="600" height="85" rx="14" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="3" filter="url(#ap2-shadow)"/>
+<text x="360" y="227" text-anchor="middle" font-size="14" font-weight="800" fill="#9F1239">Domain (core)</text>
+<text x="360" y="245" text-anchor="middle" font-size="10.5" fill="#BE123C" font-family="monospace">internal/domain/transaction</text>
+<text x="360" y="263" text-anchor="middle" font-size="10.5" font-weight="700" fill="#9F1239">→ Repository INTERFACE định nghĩa ở đây</text>
+<rect x="60" y="360" width="600" height="65" rx="12" fill="#CCFBF1" stroke="#0D9488" stroke-width="2" filter="url(#ap2-shadow)"/>
+<text x="360" y="387" text-anchor="middle" font-size="13" font-weight="700" fill="#134E4A">Infrastructure</text>
+<text x="360" y="405" text-anchor="middle" font-size="10.5" fill="#0F766E" font-family="monospace">internal/infrastructure/persistence</text>
+<line x1="560" y1="360" x2="560" y2="287" stroke="#16A34A" stroke-width="2.5" marker-end="url(#ap2-arrow-green)"/>
+<rect x="566" y="300" width="220" height="46" rx="4" fill="#FFFDF7"/>
+<text x="570" y="315" font-size="10" font-weight="700" fill="#16A34A">implements Repository ✓</text>
+<text x="570" y="330" font-size="9.5" fill="#166534">= Dependency Inversion — giống</text>
+<text x="570" y="343" font-size="9.5" fill="#166534">hệt nguyên lý Clean/Hexagonal</text>
+</svg>
+</div>
+<p style="text-align:center;font-size:0.9em;color:#8A8272;font-style:italic;">Hình 2: Honeydue gọi tên là "Layered Architecture", nhưng vì có Dependency Inversion ở ranh giới domain-infrastructure, nó đã thực chất áp dụng đúng The Dependency Rule của Clean/Hexagonal.</p>
+<p>Nói cách khác: cái tên &ldquo;Layered Architecture&rdquo; trong <code>CLAUDE.md</code> không sai, nhưng hơi khiêm tốn. Honeydue không phải Layered &ldquo;thuần&rdquo; (kiểu 3-tier cũ, domain phụ thuộc thẳng infra) — nó là Layered <strong>có kỷ luật Dependency Inversion</strong>, tức về bản chất dependency graph, nó đã đứng chung hàng với Clean và Hexagonal. Khác biệt còn lại chỉ là tên gọi: Honeydue gọi là &ldquo;Repository interface&rdquo;, không gọi là &ldquo;driven port&rdquo; — nhưng ý nghĩa thì y hệt.</p>
+<h2 id="chọn-cái-nào">Chọn cái nào?<a hidden class="anchor" aria-hidden="true" href="#chọn-cái-nào">¶</a></h2>
+<ul>
+<li><strong>App nhỏ, CRUD chủ yếu, hạ tầng gần như không đổi</strong>: Layered đơn giản là đủ. Đừng vẽ hexagon cho một app quản lý ghi chú cá nhân.</li>
+<li><strong>Domain phức tạp</strong> (nhiều business rule, nhiều invariant, giá trị nghiệp vụ cao — đúng kiểu DDD nhắm tới), <strong>cần test domain logic hoàn toàn độc lập</strong>, <strong>cần đổi hạ tầng mà không đụng business logic</strong>: Clean hoặc Hexagonal, không phân biệt cái nào hơn cái nào — chọn theo cái team đã quen thuật ngữ.</li>
+<li><strong>Hệ có nhiều kiểu client gọi vào</strong> (HTTP + gRPC + CLI + consumer Kafka) <strong>và nhiều kiểu hạ tầng gọi ra</strong> (nhiều DB, nhiều message broker): Hexagonal có lợi thế vì vocabulary driving/driven làm rõ ngay hệ thống có bao nhiêu &ldquo;cửa&rdquo; mỗi loại — nhìn vào thư mục <code>adapters/driving/</code> và <code>adapters/driven/</code> là đếm được ngay.</li>
+<li><strong>Layered đã có sẵn kỷ luật Dependency Inversion (như Honeydue)</strong>: không cần đổi tên hay tổ chức lại thư mục — bạn đã đứng đúng chỗ Clean/Hexagonal đứng, chỉ khác tên gọi.</li>
+</ul>
+<h2 id="kết">Kết<a hidden class="anchor" aria-hidden="true" href="#kết">¶</a></h2>
+<p>Câu hỏi &ldquo;nên chọn Layered, Clean, hay Hexagonal&rdquo; thường là câu hỏi sai. Câu hỏi đúng là: <strong>domain của bạn có bị ép biết về infrastructure hay không?</strong> Nếu có (domain import ORM, domain gọi thẳng HTTP client, business logic test không nổi vì thiếu database) — bất kể bạn đang gọi kiến trúc của mình là gì, bạn đang có vấn đề. Nếu không — domain hoàn toàn độc lập, chỉ giao tiếp qua interface do chính nó định nghĩa — bạn đã đúng luật, dù bạn gọi cái interface đó là &ldquo;repository&rdquo;, &ldquo;boundary&rdquo;, hay &ldquo;port&rdquo;.</p>
+<p>DDD cho bạn biết nên đặt gì vào giữa (Aggregate, Entity, Domain Service, Bounded Context). Layered/Clean/Hexagonal cho bạn biết cách vẽ và bảo vệ ranh giới quanh cái giữa đó. Hai việc khác nhau, nhưng làm tốt cả hai thì mới ra một hệ thống vừa đúng nghiệp vụ, vừa dễ bảo trì lâu dài.</p>
+<h2 id="đọc-thêm">Đọc thêm<a hidden class="anchor" aria-hidden="true" href="#đọc-thêm">¶</a></h2>
+<ul>
+<li>Robert C. Martin — <a href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html">The Clean Architecture</a> (bài blog gốc, 2012)</li>
+<li>Alistair Cockburn — <a href="https://alistair.cockburn.us/hexagonal-architecture/">Hexagonal Architecture</a> (bài viết gốc, 2005)</li>
+<li>Jeffrey Palermo — <a href="https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/">The Onion Architecture</a></li>
+<li><a href="https://github.com/bxcodec/go-clean-arch">bxcodec/go-clean-arch</a> — reference implementation Clean Architecture bằng Go được dùng nhiều nhất</li>
+<li>Series DDD trên blog này: <a href="https://blog.huydang.dev/posts/ddd-p0/">Phần 0</a> · <a href="https://blog.huydang.dev/posts/ddd-p1/">Phần 1</a> · <a href="https://blog.huydang.dev/posts/ddd-p2/">Phần 2</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>

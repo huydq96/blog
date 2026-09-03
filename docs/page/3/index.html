@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head>
+	<meta name="generator" content="Hugo 0.131.0"><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Huy Dang Blog</title>
+
+<meta name="description" content="Where I save and share anything I like about tech.">
+<meta name="author" content="huydq96">
+<link rel="canonical" href="https://blog.huydang.dev/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/">
+
+<meta name="twitter:title" content="Huy Dang Blog" />
+<meta name="twitter:description" content="Where I save and share anything I like about tech." />
+<meta property="og:title" content="Huy Dang Blog" />
+<meta property="og:description" content="Where I save and share anything I like about tech." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://blog.huydang.dev/" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Huy Dang Blog",
+  "url": "https://blog.huydang.dev/",
+  "description": "Where I save and share anything I like about tech.",
+  "thumbnailUrl": "https://blog.huydang.dev/favicon.ico",
+  "sameAs": [
+      "https://www.linkedin.com/in/huydq96/", "https://github.com/huydq96", "mailto:huydq96hp@gmail.com", "tel:+84339485241"
+  ]
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class="list-page type-page kind-home layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main"> 
+  
+
+
+
+
+
+
+<article class="post-entry"> 
+  <header class="entry-header">
+    <h2>Go Context
+    </h2>
+  </header>
+  <section class="entry-content">
+    
+      <p>Context Package trong Go: ngữ nghĩa và cách sử dụng</p>
+    
+  </section>
+  <footer class="entry-footer"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>April 26, 2025</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/coding/">Coding</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>9 min</span></span>
+</footer>
+  <a class="entry-link" aria-label="post link to Go Context" href="https://blog.huydang.dev/posts/go-context/"></a>
+</article>
+<footer class="page-footer">
+  <nav class="pagination">
+    <a class="prev" href="https://blog.huydang.dev/page/2/">« Prev Page</a>
+  </nav>
+</footer>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+</body>
+
+</html>

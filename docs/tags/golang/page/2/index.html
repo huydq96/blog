@@ -166,6 +166,27 @@ function toggleThemeListener() {
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2>Solid in Go
+    </h2>
+  </header>
+  <section class="entry-content">
+    
+      <p>Nguyên tắc SOLID với các ví dụ trong Go</p>
+    
+  </section>
+  <footer class="entry-footer"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>May 4, 2025</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/coding/">Coding</a><a href="https://blog.huydang.dev/tags/design-pattern/">Design Pattern</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>5 min</span></span>
+</footer>
+  <a class="entry-link" aria-label="post link to Solid in Go" href="https://blog.huydang.dev/posts/solid-in-go/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2>Go Context
     </h2>
   </header>
@@ -205,7 +226,89 @@ function toggleThemeListener() {
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
     <path d="M12 6H0l6-6z" />
   </svg>
-</a>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
 
 <script>
   (function() {

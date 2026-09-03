@@ -271,7 +271,7 @@ function toggleThemeListener() {
 <p>DDD <strong>không phải</strong> một chuẩn (standard) — không có tổ chức nào ban hành &ldquo;spec DDD&rdquo; để bạn build xong rồi validate đúng/sai. Nó cũng <strong>không phải</strong> framework hay thư viện — không có gì để <code>import</code> hay <code>go get</code>.</p>
 <p>DDD là <strong>một tư duy thiết kế phần mềm</strong> (a design approach), do Eric Evans đúc kết trong cuốn sách <em>Domain-Driven Design: Tackling Complexity in the Heart of Software</em> (2003) — dân lập trình hay gọi tắt là &ldquo;Blue Book&rdquo;. Nó là tập hợp nguyên tắc + pattern trả lời câu hỏi: <em>tổ chức code thế nào khi nghiệp vụ (business) đủ phức tạp để tự nó trở thành thứ khó nhất trong dự án — khó hơn cả bài toán kỹ thuật?</em></p>
 <p>So sánh cho dễ hình dung: DDD giống SOLID hay Clean Architecture — một <strong>tư duy</strong> bạn áp dụng vào cách chia module, đặt tên, tổ chức tầng — chứ không phải một công cụ bạn cài vào rồi có ngay.</p>
-<div style="max-width:900px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
 <svg viewBox="0 0 900 680" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="p0m1-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -312,7 +312,7 @@ function toggleThemeListener() {
 <h2 id="2-ddd-ra-đời-để-giải-quyết-vấn-đề-gì">2. DDD ra đời để giải quyết vấn đề gì?<a hidden class="anchor" aria-hidden="true" href="#2-ddd-ra-đời-để-giải-quyết-vấn-đề-gì">¶</a></h2>
 <p>Trước DDD, cách làm phổ biến là thiết kế bắt đầu từ <strong>database</strong> (vẽ ERD trước, map field ra object) hoặc từ <strong>framework</strong> (theo khuôn MVC, business logic nhét vào đâu tiện thì nhét). Với hệ thống nhỏ, cách này ổn. Với hệ thống phức tạp, nó sinh ra một anti-pattern rất phổ biến gọi là <strong>Anemic Domain Model</strong> — object chỉ là cái túi đựng field (<code>get</code>/<code>set</code>), còn logic thật sự nằm hết ở các class <code>Service</code> bên ngoài, tự ý thao túng field của object khác. Hệ quả: mất luôn lợi ích của lập trình hướng đối tượng, nhưng vẫn phải gánh toàn bộ độ phức tạp mà lẽ ra OOP giúp giảm bớt.</p>
 <p>DDD ra đời để đảo ngược việc đó: đưa logic <strong>về đúng chỗ của nó</strong> — bên trong chính domain object, dưới dạng behavior thật sự chứ không phải field trần trụi.</p>
-<div style="max-width:760px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:760px;margin:2rem auto;">
 <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="p0m2-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -415,7 +415,7 @@ function toggleThemeListener() {
 <p><strong>Mặt trái cần biết</strong>: DDD tốn công hơn hẳn so với CRUD thuần — tạo Value Object, Aggregate, Repository interface cho 1 app &ldquo;thêm/sửa/xoá&rdquo; đơn giản là over-engineering. DDD đáng giá khi nghiệp vụ <strong>thật sự phức tạp</strong>: nhiều rule, nhiều ràng buộc, nhiều actor. Một todo-list app không cần DDD.</p>
 <h2 id="5-các-thành-phần-trong-ddd-và-quan-hệ-giữa-chúng">5. Các thành phần trong DDD và quan hệ giữa chúng<a hidden class="anchor" aria-hidden="true" href="#5-các-thành-phần-trong-ddd-và-quan-hệ-giữa-chúng">¶</a></h2>
 <p>Nhìn lại nhánh ③④ ở Hình 1 — Strategic (bức tranh lớn) và Tactical (chi tiết trong code). Phần Tactical là nơi hầu hết người mới bị rối vì có nhiều khái niệm cùng lúc, nên tôi minh hoạ bằng vòng đời thay vì liệt kê khô khan:</p>
-<div style="max-width:900px;margin:2rem auto;">
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
 <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
 <defs>
 <filter id="p0m3-shadow" x="-20%" y="-20%" width="140%" height="140%">
@@ -527,7 +527,89 @@ function toggleThemeListener() {
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
     <path d="M12 6H0l6-6z" />
   </svg>
-</a>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
 
 <script>
   (function() {
