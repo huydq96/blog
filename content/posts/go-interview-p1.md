@@ -474,3 +474,9 @@ Interfaces trong Go tập trung vào **hành vi** thay vì **kế thừa**. Khá
 - **Implicit implementation** giúp code linh hoạt, ít phụ thuộc.
 - **Structural typing** cho phép đa hình mà không cần hệ thống phân cấp phức tạp.
 - **Đơn giản** với việc chỉ định nghĩa method signatures.
+
+# Xem thêm
+
+<div style="margin:1.5rem 0;text-align:left;">
+<a href="/pages/golang-interview-prep.html" target="_blank" rel="noopener" style="">📋 Senior Golang Interview Prepare<thêm/a>
+</div>

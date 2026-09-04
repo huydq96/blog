@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senior Golang Interview Prep — Đặng Quang Huy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00d4aa;
+    --accent2: #4f9cf9;
+    --accent3: #f97316;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0d1117;
+    --tag-hard: #7f1d1d;
+    --tag-hard-text: #fca5a5;
+    --tag-mid: #1c3559;
+    --tag-mid-text: #93c5fd;
+    --tag-easy: #14532d;
+    --tag-easy-text: #86efac;
+    --cat-core: #00d4aa;
+    --cat-design: #4f9cf9;
+    --cat-infra: #f97316;
+    --cat-db: #a78bfa;
+    --cat-exp: #fb923c;
+    --cat-soft: #34d399;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* SIDEBAR NAV */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+    padding: 0 0 24px;
+  }
+
+  .sidebar-brand {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .sidebar-brand .name {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .sidebar-brand .role {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .sidebar-progress {
+    margin: 0 16px 16px;
+    background: var(--surface2);
+    border-radius: 4px;
+    height: 4px;
+    overflow: hidden;
+  }
+
+  .sidebar-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%;
+    transition: width 0.4s ease;
+    border-radius: 4px;
+  }
+
+  .sidebar-progress-label {
+    font-size: 10px;
+    color: var(--muted);
+    padding: 0 16px 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .nav-category {
+    padding: 6px 16px 2px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 0 6px 6px 0;
+    margin-right: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: rgba(0,212,170,0.1); color: var(--accent); border-right: 2px solid var(--accent); }
+
+  .nav-item .q-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    min-width: 26px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .nav-item .difficulty-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* MAIN CONTENT */
+  .main {
+    margin-left: 260px;
+    padding: 0;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #0a0e17 0%, #111827 50%, #0f1a2e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 48px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(0,212,170,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 20%;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(79,156,249,0.06) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .header-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .header h1 {
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .meta-chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* SEARCH */
+  .search-bar {
+    padding: 24px 48px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--muted); }
+
+  .filter-btn {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,212,170,0.08);
+  }
+
+  /* CONTENT */
+  .content {
+    padding: 32px 48px 64px;
+    max-width: 900px;
+  }
+
+  .category-block {
+    margin-bottom: 48px;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .category-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .category-header h2 {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .category-count {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 3px 10px;
+    border-radius: 12px;
+  }
+
+  /* QUESTION CARD */
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .q-card:hover { border-color: #2a3f5f; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+  .q-card.open { border-color: var(--accent); }
+
+  .q-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 20px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .q-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 3px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .q-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text);
+  }
+
+  .q-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .difficulty-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .diff-hard { background: var(--tag-hard); color: var(--tag-hard-text); }
+  .diff-mid { background: var(--tag-mid); color: var(--tag-mid-text); }
+  .diff-easy { background: var(--tag-easy); color: var(--tag-easy-text); }
+
+  .toggle-icon {
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1;
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .q-card.open .toggle-icon { transform: rotate(180deg); color: var(--accent); }
+
+  /* ANSWER BODY */
+  .q-body {
+    display: none;
+    padding: 0 20px 20px 52px;
+    border-top: 1px solid var(--border);
+    margin-top: -1px;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .q-card.open .q-body { display: block; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .q-body p { margin-top: 12px; color: #94a3b8; font-size: 14px; line-height: 1.8; }
+  .q-body strong { color: var(--text); font-weight: 700; }
+
+  .q-body h4 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 20px 0 8px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .q-body ul {
+    list-style: none;
+    margin: 8px 0;
+  }
+
+  .q-body ul li {
+    padding: 4px 0;
+    padding-left: 16px;
+    position: relative;
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.7;
+  }
+
+  .q-body ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  /* CODE BLOCK */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: #a8d8b0;
+  }
+
+  pre .kw { color: #f472b6; }
+  pre .fn { color: #60a5fa; }
+  pre .cm { color: #4b5563; font-style: italic; }
+  pre .str { color: #34d399; }
+  pre .num { color: #fbbf24; }
+  pre .type { color: #a78bfa; }
+
+  /* TIP BOX */
+  .tip-box {
+    background: rgba(0,212,170,0.06);
+    border: 1px solid rgba(0,212,170,0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #94a3b8;
+  }
+
+  .tip-box .tip-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  /* COMPARISON TABLE */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 13px;
+  }
+
+  .comp-table th {
+    background: var(--surface2);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+
+  .comp-table td {
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    color: #94a3b8;
+    vertical-align: top;
+    line-height: 1.6;
+  }
+
+  .comp-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* TAGS */
+  .q-tag {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  /* EXPAND ALL */
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    align-items: center;
+  }
+
+  .toolbar-btn {
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+
+  .toolbar-btn:hover { color: var(--text); border-color: #2a3f5f; }
+
+  /* HIDDEN BY FILTER */
+  .q-card.filtered-out { display: none; }
+  .category-block.filtered-out { display: none; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+    .header, .search-bar, .content { padding-left: 20px; padding-right: 20px; }
+    .q-body { padding-left: 20px; }
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 48px;
+    color: var(--muted);
+    font-size: 14px;
+    display: none;
+  }
+
+  /* Section anchor offset */
+  .section-anchor { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="name">Interview Prep</div>
+    <div class="role">Đặng Quang Huy · Senior Golang</div>
+  </div>
+  <div class="sidebar-progress-label" id="progressLabel">0 / 30 reviewed</div>
+  <div class="sidebar-progress"><div class="sidebar-progress-bar" id="progressBar"></div></div>
+
+  <div class="nav-category">Golang Core</div>
+  <a class="nav-item" href="#cat-core" onclick="scrollTo('cat-core')"><span class="q-num">Q01</span><span class="difficulty-dot" style="background:#ef4444"></span>Goroutine Leak</a>
+  <a class="nav-item" href="#cat-core" onclick="scrollTo('cat-core')"><span class="q-num">Q02</span><span class="difficulty-dot" style="background:#ef4444"></span>Channel Buffered vs Unbuffered</a>
+  <a class="nav-item" href="#cat-core" onclick="scrollTo('cat-core')"><span class="q-num">Q03</span><span class="difficulty-dot" style="background:#ef4444"></span>Memory Model & Race</a>
+  <a class="nav-item" href="#cat-core" onclick="scrollTo('cat-core')"><span class="q-num">Q04</span><span class="difficulty-dot" style="background:#ef4444"></span>Nil Interface Gotcha</a>
+  <a class="nav-item" href="#cat-core" onclick="scrollTo('cat-core')"><span class="q-num">Q05</span><span class="difficulty-dot" style="background:#f59e0b"></span>Generics</a>
+  <a class="nav-item" href="#cat-core" onclick="scrollTo('cat-core')"><span class="q-num">Q06</span><span class="difficulty-dot" style="background:#22c55e"></span>Slice Internals</a>
+  <a class="nav-item" href="#cat-core" onclick="scrollTo('cat-core')"><span class="q-num">Q07</span><span class="difficulty-dot" style="background:#f59e0b"></span>Context Package</a>
+  <a class="nav-item" href="#cat-core" onclick="scrollTo('cat-core')"><span class="q-num">Q08</span><span class="difficulty-dot" style="background:#22c55e"></span>Data Types: Array / Slice / Map</a>
+  <a class="nav-item" href="#cat-core" onclick="scrollTo('cat-core')"><span class="q-num">Q09</span><span class="difficulty-dot" style="background:#f59e0b"></span>Interface & Go vs OOP</a>
+  <a class="nav-item" href="#cat-core" onclick="scrollTo('cat-core')"><span class="q-num">Q10</span><span class="difficulty-dot" style="background:#f59e0b"></span>Go Scheduler (GMP)</a>
+
+  <div class="nav-category">System Design</div>
+  <a class="nav-item" href="#cat-design" onclick="scrollTo('cat-design')"><span class="q-num">Q11</span><span class="difficulty-dot" style="background:#ef4444"></span>Alert Management System</a>
+  <a class="nav-item" href="#cat-design" onclick="scrollTo('cat-design')"><span class="q-num">Q12</span><span class="difficulty-dot" style="background:#ef4444"></span>Distributed Transaction</a>
+  <a class="nav-item" href="#cat-design" onclick="scrollTo('cat-design')"><span class="q-num">Q13</span><span class="difficulty-dot" style="background:#ef4444"></span>Rate Limiting</a>
+  <a class="nav-item" href="#cat-design" onclick="scrollTo('cat-design')"><span class="q-num">Q14</span><span class="difficulty-dot" style="background:#f59e0b"></span>gRPC vs REST vs Kafka</a>
+
+  <div class="nav-category">Infra & DevOps</div>
+  <a class="nav-item" href="#cat-infra" onclick="scrollTo('cat-infra')"><span class="q-num">Q15</span><span class="difficulty-dot" style="background:#ef4444"></span>Kafka Consumer Lag</a>
+  <a class="nav-item" href="#cat-infra" onclick="scrollTo('cat-infra')"><span class="q-num">Q16</span><span class="difficulty-dot" style="background:#f59e0b"></span>CI/CD Pipeline</a>
+
+  <div class="nav-category">Database</div>
+  <a class="nav-item" href="#cat-db" onclick="scrollTo('cat-db')"><span class="q-num">Q17</span><span class="difficulty-dot" style="background:#ef4444"></span>MySQL Index Optimization</a>
+  <a class="nav-item" href="#cat-db" onclick="scrollTo('cat-db')"><span class="q-num">Q18</span><span class="difficulty-dot" style="background:#ef4444"></span>Redis Cache Invalidation</a>
+  <a class="nav-item" href="#cat-db" onclick="scrollTo('cat-db')"><span class="q-num">Q19</span><span class="difficulty-dot" style="background:#f59e0b"></span>Elasticsearch vs MySQL</a>
+  <a class="nav-item" href="#cat-db" onclick="scrollTo('cat-db')"><span class="q-num">Q20</span><span class="difficulty-dot" style="background:#f59e0b"></span>MongoDB Schema Design</a>
+
+  <div class="nav-category">MySQL Deep Dive</div>
+  <a class="nav-item" href="#cat-mysql2" onclick="scrollTo('cat-mysql2')"><span class="q-num">Q21</span><span class="difficulty-dot" style="background:#ef4444"></span>ACID & Isolation Levels</a>
+  <a class="nav-item" href="#cat-mysql2" onclick="scrollTo('cat-mysql2')"><span class="q-num">Q22</span><span class="difficulty-dot" style="background:#ef4444"></span>Composite vs Single Index</a>
+  <a class="nav-item" href="#cat-mysql2" onclick="scrollTo('cat-mysql2')"><span class="q-num">Q23</span><span class="difficulty-dot" style="background:#f59e0b"></span>Index Types: B-Tree vs Hash</a>
+
+  <div class="nav-category">Kafka Deep Dive</div>
+  <a class="nav-item" href="#cat-kafka2" onclick="scrollTo('cat-kafka2')"><span class="q-num">Q24</span><span class="difficulty-dot" style="background:#ef4444"></span>Kafka Architecture</a>
+  <a class="nav-item" href="#cat-kafka2" onclick="scrollTo('cat-kafka2')"><span class="q-num">Q25</span><span class="difficulty-dot" style="background:#ef4444"></span>Offset, Replication & Delivery</a>
+  <a class="nav-item" href="#cat-kafka2" onclick="scrollTo('cat-kafka2')"><span class="q-num">Q26</span><span class="difficulty-dot" style="background:#f59e0b"></span>KRaft — Kafka không ZooKeeper</a>
+
+  <div class="nav-category">Design Patterns & SOLID</div>
+  <a class="nav-item" href="#cat-patterns" onclick="scrollTo('cat-patterns')"><span class="q-num">Q27</span><span class="difficulty-dot" style="background:#f59e0b"></span>SOLID Principles trong Go</a>
+  <a class="nav-item" href="#cat-patterns" onclick="scrollTo('cat-patterns')"><span class="q-num">Q28</span><span class="difficulty-dot" style="background:#f59e0b"></span>Creational Patterns</a>
+  <a class="nav-item" href="#cat-patterns" onclick="scrollTo('cat-patterns')"><span class="q-num">Q29</span><span class="difficulty-dot" style="background:#f59e0b"></span>Structural Patterns</a>
+  <a class="nav-item" href="#cat-patterns" onclick="scrollTo('cat-patterns')"><span class="q-num">Q30</span><span class="difficulty-dot" style="background:#f59e0b"></span>Behavioral Patterns</a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="header">
+    <div class="header-eyebrow">Golang Engineer</div>
+    <h1>Senior Backend<br>Interview Prepare</h1>
+    <div style="color: var(--muted); font-size: 14px; max-width: 540px;">30 câu hỏi trải dài từ Golang internals, System Design, Database, Kafka, đến Design Patterns — được cá nhân hóa từ kinh nghiệm thực tế.</div>
+    <div class="header-meta">
+      <div class="meta-chip"><span class="dot" style="background:#ef4444"></span>14 câu Khó</div>
+      <div class="meta-chip"><span class="dot" style="background:#f59e0b"></span>14 câu Trung bình</div>
+      <div class="meta-chip"><span class="dot" style="background:#22c55e"></span>2 câu Cơ bản</div>
+      <div class="meta-chip" style="color: var(--accent);">📌 Golang · Fintech · Microservices · Cloud</div>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <input type="text" class="search-input" placeholder="🔍  Tìm câu hỏi, keyword..." id="searchInput" oninput="handleSearch()">
+    <button class="filter-btn active" onclick="filterDiff('all', this)">Tất cả</button>
+    <button class="filter-btn" onclick="filterDiff('hard', this)">Khó</button>
+    <button class="filter-btn" onclick="filterDiff('mid', this)">Trung bình</button>
+    <button class="filter-btn" onclick="filterDiff('easy', this)">Cơ bản</button>
+  </div>
+
+  <div class="content">
+    <div class="toolbar">
+      <button class="toolbar-btn" onclick="expandAll()">Mở tất cả</button>
+      <button class="toolbar-btn" onclick="collapseAll()">Đóng tất cả</button>
+      <span style="font-size:12px; color: var(--muted); margin-left:8px; font-family: 'JetBrains Mono', monospace;">Click vào câu hỏi để xem đáp án</span>
+    </div>
+
+    <div id="noResults" class="no-results">Không tìm thấy câu hỏi phù hợp 🔍</div>
+
+    <!-- ============================================================ -->
+    <!-- CATEGORY 1: GOLANG CORE -->
+    <!-- ============================================================ -->
+    <div class="category-block" id="cat-core">
+      <div class="category-header">
+        <div class="category-icon" style="background: rgba(0,212,170,0.12);">⚙️</div>
+        <h2 style="color: var(--cat-core);">Golang Core</h2>
+        <span class="category-count">10 câu</span>
+      </div>
+
+      <!-- Q1 -->
+      <div class="q-card" id="q1" data-diff="hard" data-tags="goroutine leak context channel runtime pprof">
+        <div class="q-header" onclick="toggle('q1')">
+          <span class="q-number">Q01</span>
+          <span class="q-title">Goroutine leak — khi nào xảy ra, detect và fix thế nào?</span>
+          <div class="q-meta">
+            <span class="q-tag">runtime</span>
+            <span class="q-tag">concurrency</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Goroutine leak xảy ra khi goroutine bị block vĩnh viễn và không bao giờ thoát — không được GC thu hồi vì Go runtime vẫn coi đây là goroutine "đang chạy". Hậu quả: memory tăng dần, CPU có thể tăng, và theo thời gian dẫn đến OOM.</p>
+
+          <h4>Nguyên nhân phổ biến</h4>
+          <ul>
+            <li><strong>Channel không có receiver/sender:</strong> goroutine block mãi tại <code>ch &lt;- data</code> hoặc <code>data := &lt;-ch</code> khi đầu kia không bao giờ sẵn sàng.</li>
+            <li><strong>Context không được propagate:</strong> goroutine chạy vô thời hạn vì không nhận <code>ctx.Done()</code> signal.</li>
+            <li><strong>HTTP client thiếu timeout:</strong> goroutine treo chờ response từ downstream service chậm hoặc chết.</li>
+            <li><strong>Mutex deadlock:</strong> goroutine A giữ lock A chờ lock B, goroutine B giữ lock B chờ lock A.</li>
+            <li><strong>WaitGroup sử dụng sai:</strong> <code>wg.Add()</code> sau <code>wg.Wait()</code> hoặc <code>wg.Done()</code> không được gọi.</li>
+          </ul>
+
+          <h4>Cách detect</h4>
+          <ul>
+            <li><strong>runtime.NumGoroutine():</strong> log định kỳ mỗi 30s. Số tăng đều mà không giảm = leak.</li>
+            <li><strong>pprof goroutine endpoint:</strong> <code>GET /debug/pprof/goroutine?debug=2</code> → xem full stack trace mọi goroutine đang chạy. Rất hữu ích khi debug production.</li>
+            <li><strong>goleak trong unit test:</strong> <code>goleak.VerifyNone(t)</code> ở cuối test — fail nếu có goroutine chưa cleanup.</li>
+          </ul>
+
+<pre><span class="cm">// Pattern chuẩn: luôn truyền context, select với ctx.Done()</span>
+<span class="kw">func</span> <span class="fn">worker</span>(ctx context.Context, jobs &lt;-<span class="kw">chan</span> Job) {
+    <span class="kw">for</span> {
+        <span class="kw">select</span> {
+        <span class="kw">case</span> &lt;-ctx.Done():
+            <span class="kw">return</span> <span class="cm">// cleanup & exit khi context cancel</span>
+        <span class="kw">case</span> job, ok := &lt;-jobs:
+            <span class="kw">if</span> !ok { <span class="kw">return</span> } <span class="cm">// channel closed, exit</span>
+            process(job)
+        }
+    }
+}
+
+<span class="cm">// Graceful shutdown pattern</span>
+<span class="kw">const</span> numWorkers = <span class="num">5</span>
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    ctx, cancel := context.WithCancel(context.Background())
+    <span class="kw">defer</span> cancel()
+    jobs := make(<span class="kw">chan</span> Job, <span class="num">100</span>) <span class="cm">// worker() nhận jobs qua đây</span>
+    <span class="kw">var</span> wg sync.WaitGroup
+    <span class="kw">for</span> i := <span class="num">0</span>; i &lt; numWorkers; i++ {
+        wg.Add(<span class="num">1</span>)
+        <span class="kw">go func</span>() {
+            <span class="kw">defer</span> wg.Done()
+            worker(ctx, jobs)
+        }()
+    }
+    <span class="cm">// Khi nhận SIGTERM: cancel() -> workers nhận Done -> wg.Wait()</span>
+    wg.Wait()
+}</pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Từ kinh nghiệm thực tế</span>
+            Tại ATAO Cloud, mỗi WebSocket connection (VM console) là 1 goroutine. Pattern: khi client disconnect, WebSocket handler nhận error → cancel context → worker goroutine nhận <code>ctx.Done()</code> → cleanup gRPC stream → goroutine thoát sạch. Kết hợp với <code>WaitGroup</code> để graceful shutdown đảm bảo không drop connection giữa chừng khi deploy.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="q-card" id="q2" data-diff="hard" data-tags="channel buffered unbuffered deadlock worker pool">
+        <div class="q-header" onclick="toggle('q2')">
+          <span class="q-number">Q02</span>
+          <span class="q-title">Channel buffered vs unbuffered — trade-off và deadlock scenario?</span>
+          <div class="q-meta">
+            <span class="q-tag">channel</span>
+            <span class="q-tag">concurrency</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p><strong>Unbuffered</strong> <code>make(chan T)</code>: synchronous rendezvous — sender block cho đến khi receiver sẵn sàng đọc, và ngược lại. Đảm bảo 2 goroutine "gặp nhau" đúng thời điểm.</p>
+          <p><strong>Buffered</strong> <code>make(chan T, N)</code>: asynchronous trong giới hạn N. Sender chỉ block khi buffer đầy, receiver chỉ block khi buffer rỗng. Tách throughput giữa producer và consumer.</p>
+
+          <h4>Khi nào dùng cái nào</h4>
+          <table class="comp-table">
+            <tr><th>Loại</th><th>Dùng khi</th><th>Ví dụ</th></tr>
+            <tr><td>Unbuffered</td><td>Signaling, handshake, cần guarantee đồng bộ</td><td><code>done chan struct{}</code>, pipeline stage</td></tr>
+            <tr><td>Buffered</td><td>Worker pool, rate limiting, tách producer/consumer speed</td><td>Job queue, alert pipeline</td></tr>
+          </table>
+
+          <h4>Deadlock scenarios</h4>
+          <ul>
+            <li>Goroutine gửi vào unbuffered channel nhưng không ai receive (và ngược lại).</li>
+            <li>Main goroutine push vào full buffered channel mà consumer chưa start.</li>
+            <li>Tất cả goroutine cùng block → Go runtime panic: <code>all goroutines are asleep - deadlock!</code></li>
+            <li>Circular dependency: A chờ B, B chờ A — cả 2 đều blocked trên channel của nhau.</li>
+          </ul>
+
+<pre><span class="cm">// Worker pool pattern — buffered channel</span>
+jobs    := make(<span class="kw">chan</span> Job, <span class="num">100</span>)     <span class="cm">// buffer producer không block ngay</span>
+results := make(<span class="kw">chan</span> Result, <span class="num">100</span>)
+
+<span class="kw">var</span> wg sync.WaitGroup
+<span class="kw">for</span> i := <span class="num">0</span>; i &lt; numWorkers; i++ {
+    wg.Add(<span class="num">1</span>)
+    <span class="kw">go func</span>() {
+        <span class="kw">defer</span> wg.Done()
+        <span class="kw">for</span> job := <span class="kw">range</span> jobs {  <span class="cm">// unblock khi channel closed</span>
+            results &lt;- process(job)
+        }
+    }()
+}
+
+<span class="cm">// Producer: push job vào channel — bước này thiếu thì pool xử lý 0 job</span>
+<span class="kw">for</span> _, j := <span class="kw">range</span> incomingJobs {
+    jobs &lt;- j
+}
+<span class="cm">// Close jobs sau khi push xong → workers thoát range loop</span>
+close(jobs)
+wg.Wait()
+close(results) <span class="cm">// safe vì workers đã done</span></pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Từ kinh nghiệm thực tế</span>
+            Trong Alert Management System: pipeline alert → grouping → notification dùng <strong>buffered channel</strong> giữa các stage để tránh slow consumer (notification có network I/O) block fast producer (grouping engine chỉ làm in-memory). Buffer size = số alert có thể queue mà không OOM — thường dựa trên max alert/s × acceptable delay seconds.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="q-card" id="q3" data-diff="hard" data-tags="memory model race condition happens-before mutex atomic sync">
+        <div class="q-header" onclick="toggle('q3')">
+          <span class="q-number">Q03</span>
+          <span class="q-title">Go memory model — happens-before, race condition, cách detect và fix?</span>
+          <div class="q-meta">
+            <span class="q-tag">memory</span>
+            <span class="q-tag">sync</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Go memory model định nghĩa: goroutine A <strong>đảm bảo thấy write của goroutine B</strong> khi và chỉ khi có happens-before relationship được thiết lập qua synchronization primitives. Không có sync = undefined behavior.</p>
+
+          <h4>Synchronization tạo happens-before</h4>
+          <ul>
+            <li><strong>Channel send</strong> happens-before tương ứng channel receive (unbuffered: receive complete → send return).</li>
+            <li><strong>sync.Mutex.Unlock()</strong> happens-before Lock() tiếp theo trên cùng mutex.</li>
+            <li><strong>sync/atomic</strong>: có sequential consistency — safe cho counter, flag.</li>
+            <li><strong>sync.Once</strong>: <code>f()</code> happens-before <code>Do()</code> return ở mọi goroutine.</li>
+            <li><strong>Goroutine start/join:</strong> <code>go f()</code> happens-after lệnh gọi; <code>wg.Wait()</code> happens-after <code>wg.Done()</code>.</li>
+          </ul>
+
+          <h4>Fix strategies (theo thứ tự ưu tiên)</h4>
+          <ul>
+            <li><strong>Redesign với channel:</strong> "Do not communicate by sharing memory; share memory by communicating." Loại bỏ hoàn toàn shared state.</li>
+            <li><strong>sync.RWMutex:</strong> read-heavy workload — nhiều reader đồng thời, write hiếm.</li>
+            <li><strong>sync.Mutex:</strong> general purpose, đơn giản nhất.</li>
+            <li><strong>sync/atomic:</strong> chỉ cho primitive type (int64, bool, pointer) trên hot path cần performance.</li>
+          </ul>
+
+<pre><span class="cm">// Race condition — DATA RACE!</span>
+<span class="kw">var</span> counter <span class="type">int</span>
+<span class="kw">go func</span>() { counter++ }() <span class="cm">// read-modify-write không atomic</span>
+
+<span class="cm">// Fix 1: sync/atomic (cho counter đơn giản)</span>
+<span class="kw">var</span> counter <span class="type">int64</span>
+<span class="kw">go func</span>() { atomic.AddInt64(&amp;counter, <span class="num">1</span>) }()
+
+<span class="cm">// Fix 2: sync.RWMutex (cho struct phức tạp)</span>
+<span class="kw">type</span> <span class="type">SafeCache</span> <span class="kw">struct</span> {
+    mu    sync.RWMutex
+    store <span class="kw">map</span>[<span class="type">string</span>]<span class="type">string</span>
+}
+<span class="kw">func</span> (c *<span class="type">SafeCache</span>) <span class="fn">Get</span>(key <span class="type">string</span>) <span class="type">string</span> {
+    c.mu.RLock()
+    <span class="kw">defer</span> c.mu.RUnlock()
+    <span class="kw">return</span> c.store[key]
+}
+
+<span class="cm">// Detect: go test -race ./... (overhead ~5-10x, chạy trong CI)</span></pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Lưu ý quan trọng</span>
+            Race detector chỉ phát hiện race <em>thực sự xảy ra</em> khi test chạy — không phải tất cả potential race. Cần kết hợp với code review kỹ phần concurrent code. Trong CI/CD pipeline nên luôn có <code>go test -race</code> để bắt sớm.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="q-card" id="q4" data-diff="hard" data-tags="nil interface typed nil gotcha interface value type">
+        <div class="q-header" onclick="toggle('q4')">
+          <span class="q-number">Q04</span>
+          <span class="q-title">Nil interface gotcha — tại sao typed nil != nil?</span>
+          <div class="q-meta">
+            <span class="q-tag">interface</span>
+            <span class="q-tag">gotcha</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Interface value trong Go gồm <strong>2 phần</strong>: <code>(type, value)</code>. Interface chỉ <code>== nil</code> khi <strong>cả hai</strong> đều nil. Đây là một trong những gotcha nổi tiếng nhất phân biệt senior với junior.</p>
+
+<pre><span class="kw">type</span> <span class="type">MyError</span> <span class="kw">struct</span>{ msg <span class="type">string</span> }
+<span class="kw">func</span> (e *<span class="type">MyError</span>) <span class="fn">Error</span>() <span class="type">string</span> { <span class="kw">return</span> e.msg }
+
+<span class="cm">// BUG: trả về (*MyError, nil) != nil interface</span>
+<span class="kw">func</span> <span class="fn">getError</span>() <span class="type">error</span> {
+    <span class="kw">var</span> err *<span class="type">MyError</span> = <span class="kw">nil</span>
+    <span class="kw">return</span> err  <span class="cm">// interface = (*MyError, nil) → NOT nil!</span>
+}
+
+err := <span class="fn">getError</span>()
+fmt.Println(err == <span class="kw">nil</span>) <span class="cm">// false! 🐛</span>
+
+<span class="cm">// FIX: return untyped nil trực tiếp</span>
+<span class="kw">func</span> <span class="fn">getErrorFixed</span>() <span class="type">error</span> {
+    <span class="kw">var</span> err *<span class="type">MyError</span> = <span class="kw">nil</span>
+    <span class="kw">if</span> err == <span class="kw">nil</span> {
+        <span class="kw">return</span> <span class="kw">nil</span>  <span class="cm">// return (nil, nil) → IS nil ✓</span>
+    }
+    <span class="kw">return</span> err
+}
+
+<span class="cm">// Rule: function return error → luôn return nil (untyped)</span>
+<span class="cm">// không return concrete_nil_pointer</span></pre>
+
+          <h4>Khi nào gặp trong thực tế</h4>
+          <ul>
+            <li>Function trả về concrete error type thay vì <code>error</code> interface — middleware check <code>err != nil</code> bỏ qua lỗi.</li>
+            <li>Repository layer trả về <code>*CustomError</code> — service layer check <code>== nil</code> và skip xử lý error.</li>
+            <li>Tại 9Pay: payment result wrapper có thể dính bug này nếu không cẩn thận — transaction thực ra lỗi nhưng code upstream không biết.</li>
+          </ul>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Golden Rule</span>
+            Hàm nào return <code>error</code>: luôn <code>return nil</code> (untyped), không <code>return concreteNilPointer</code>. Nếu buộc phải dùng concrete type, assign vào biến <code>error</code> trước rồi compare: <code>var e error = myErr; if e == nil {...}</code>.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="q-card" id="q5" data-diff="mid" data-tags="generics type parameter constraint comparable go 1.18">
+        <div class="q-header" onclick="toggle('q5')">
+          <span class="q-number">Q05</span>
+          <span class="q-title">Generics trong Go — khi nào dùng, khi nào không?</span>
+          <div class="q-meta">
+            <span class="q-tag">generics</span>
+            <span class="q-tag">Go 1.18+</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Generics (Go 1.18+) cho phép viết code type-safe mà không cần duplicate hoặc hy sinh type safety bằng <code>interface{}/any</code>. Nhưng Go community rất thận trọng — "clear is better than clever".</p>
+
+          <h4>NÊN dùng generics</h4>
+          <ul>
+            <li><strong>Generic data structures:</strong> <code>Queue[T]</code>, <code>Stack[T]</code>, <code>Set[T]</code> — thay thế hoàn toàn <code>interface{}</code>.</li>
+            <li><strong>Utility functions:</strong> <code>Map[T,U]</code>, <code>Filter[T]</code>, <code>Contains[T comparable]</code> — viết một lần, dùng mọi type.</li>
+            <li><strong>Type-safe wrappers:</strong> <code>Result[T]</code>, <code>Option[T]</code> — tránh nil pointer và interface boxing.</li>
+          </ul>
+
+          <h4>KHÔNG nên dùng generics</h4>
+          <ul>
+            <li>Khi interface đủ dùng — nếu chỉ cần gọi method, interface clean hơn và không có compile overhead.</li>
+            <li>Logic khác nhau theo type — phải dùng type switch, generics không giúp được.</li>
+            <li>Hot path performance-critical — generics có dictionary passing overhead, không inline tốt bằng concrete type.</li>
+          </ul>
+
+<pre><span class="cm">// Generic utility — hữu ích thực tế</span>
+<span class="kw">func</span> Contains[T comparable](slice []T, item T) <span class="type">bool</span> {
+    <span class="kw">for</span> _, v := <span class="kw">range</span> slice {
+        <span class="kw">if</span> v == item { <span class="kw">return true</span> }
+    }
+    <span class="kw">return false</span>
+}
+
+<span class="cm">// Generic Result type — tránh error-prone nil check</span>
+<span class="kw">type</span> Result[T any] <span class="kw">struct</span> {
+    Value T
+    Err   <span class="type">error</span>
+}
+<span class="kw">func</span> (r Result[T]) <span class="fn">IsOK</span>() <span class="type">bool</span> { <span class="kw">return</span> r.Err == <span class="kw">nil</span> }
+
+<span class="cm">// Alert Management: check suppressed alerts</span>
+<span class="kw">if</span> <span class="fn">Contains</span>(suppressedFingerprints, alert.Fingerprint) {
+    skip()
+}</pre>
+        </div>
+      </div>
+
+      <!-- Q6 -->
+      <div class="q-card" id="q6" data-diff="easy" data-tags="slice array underlying copy append cap len">
+        <div class="q-header" onclick="toggle('q6')">
+          <span class="q-number">Q06</span>
+          <span class="q-title">Slice internals — copy vs share underlying array?</span>
+          <div class="q-meta">
+            <span class="q-tag">slice</span>
+            <span class="q-tag">memory</span>
+            <span class="difficulty-badge diff-easy">Cơ bản</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Slice là <code>struct{ptr *T, len int, cap int}</code> — không phải array mà là <strong>view vào backing array</strong>. Điều này gây ra nhiều bug tinh vi khi pass slice qua function hoặc reslice.</p>
+
+<pre><span class="cm">// Share backing array: re-slice</span>
+a := []<span class="type">int</span>{<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>}
+b := a[:<span class="num">3</span>]         <span class="cm">// share! ptr giống a, len=3, cap=5</span>
+b[<span class="num">0</span>] = <span class="num">99</span>          <span class="cm">// a[0] cũng thành 99!</span>
+
+<span class="cm">// Append trong cap: vẫn share</span>
+c := append(b, <span class="num">10</span>) <span class="cm">// len=4, cap=5 → dùng chung array</span>
+c[<span class="num">3</span>] = <span class="num">10</span>          <span class="cm">// a[3] = 10! surprise bug</span>
+
+<span class="cm">// Append vượt cap: allocate mới, tách biệt</span>
+d := append(c, <span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>) <span class="cm">// cap 5 → allocate mới, safe</span>
+
+<span class="cm">// Safe: explicit copy</span>
+safe := make([]<span class="type">int</span>, len(a[:<span class="num">3</span>]))
+copy(safe, a[:<span class="num">3</span>]) <span class="cm">// độc lập hoàn toàn</span>
+
+<span class="cm">// BUG phổ biến: append trong function không affect caller</span>
+<span class="kw">func</span> <span class="fn">addItem</span>(s []<span class="type">int</span>, v <span class="type">int</span>) {
+    s = append(s, v) <span class="cm">// slice header được copy vào function</span>
+    <span class="cm">// nếu append tạo mới backing array → caller không thấy!</span>
+}
+<span class="cm">// Fix: return slice hoặc pass *[]int</span></pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Rule of thumb</span>
+            Khi pass slice vào function và muốn mutation safe: dùng <code>copy()</code> trước, hoặc return slice mới thay vì mutate in-place. Với large slice cần avoid copy: pass <code>*[]T</code> hoặc dùng shared mutable struct với mutex.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q7 -->
+      <div class="q-card" id="q23" data-diff="mid" data-tags="context package withcancel withtimeout withdeadline withvalue propagate cancel leak">
+        <div class="q-header" onclick="toggle('q23')">
+          <span class="q-number">Q07</span>
+          <span class="q-title">Context package — semantic, rules, và khi nào nên dùng gì?</span>
+          <div class="q-meta">
+            <span class="q-tag">context</span>
+            <span class="q-tag">cancellation</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Context package giải quyết vấn đề Go không có keyword nào để kill goroutine. Nó cho phép propagate cancellation, deadline, timeout và request-scoped values qua call chain.</p>
+
+          <h4>Interface của Context</h4>
+<pre><span class="kw">type</span> <span class="type">Context</span> <span class="kw">interface</span> {
+    Deadline() (deadline time.Time, ok <span class="type">bool</span>)
+    Done()     &lt;-<span class="kw">chan</span> <span class="kw">struct</span>{}   <span class="cm">// closed khi context bị cancel</span>
+    Err()      <span class="type">error</span>             <span class="cm">// nil nếu chưa cancel</span>
+    Value(key any) any           <span class="cm">// request-scoped data</span>
+}</pre>
+
+          <h4>4 constructor functions & khi nào dùng</h4>
+          <ul>
+            <li><strong>WithCancel(parent):</strong> tạo context có thể cancel thủ công. Dùng khi muốn cancel từ bên ngoài (user abort, shutdown signal).</li>
+            <li><strong>WithTimeout(parent, d):</strong> tự cancel sau duration d. Dùng cho HTTP call, DB query có time budget. Phổ biến nhất.</li>
+            <li><strong>WithDeadline(parent, t):</strong> tự cancel tại absolute time t. Dùng khi có SLA cụ thể ("xử lý xong trước 23:59").</li>
+            <li><strong>WithValue(parent, k, v):</strong> đính kèm request-scoped data (trace ID, user ID). <strong>Không dùng để truyền function params.</strong></li>
+          </ul>
+
+          <h4>Rules quan trọng (phải nhớ)</h4>
+          <ul>
+            <li>Tạo context sớm nhất có thể — ngay khi nhận request. Từ Go 1.7, <code>http.Request</code> đã chứa context.</li>
+            <li><strong>Không lưu context trong struct</strong> — truyền tường minh làm param đầu tiên của function.</li>
+            <li>Mọi function thực hiện I/O (DB, HTTP, gRPC) đều phải nhận và tôn trọng context.</li>
+            <li><strong>Luôn defer cancel()</strong> ngay sau lệnh With — không cancel = goroutine/resource leak.</li>
+            <li>Khi parent cancel → tất cả child context cũng bị cancel tự động (tree propagation).</li>
+            <li>Không truyền <code>nil</code> context — dùng <code>context.Background()</code> hoặc <code>context.TODO()</code>.</li>
+          </ul>
+
+<pre><span class="cm">// Pattern chuẩn: HTTP handler → service → repository</span>
+<span class="kw">func</span> (h *Handler) <span class="fn">GetUser</span>(w http.ResponseWriter, r *http.Request) {
+    ctx, cancel := context.WithTimeout(r.Context(), <span class="num">3</span>*time.Second)
+    <span class="kw">defer</span> cancel() <span class="cm">// LUÔN defer cancel</span>
+
+    user, err := h.svc.GetUser(ctx, userID)
+    <span class="cm">// context propagate xuống service → repo → DB query</span>
+    <span class="cm">// nếu client disconnect: r.Context() cancelled → ctx cancelled</span>
+    <span class="cm">// → DB query bị abort → không waste resource</span>
+}</pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Context Value key type</span>
+            Không dùng string làm key cho WithValue — collision risk giữa packages. Dùng unexported custom type: <code>type contextKey int; const requestIDKey contextKey = 0</code>. Đây là idiomatic Go để avoid collision và type-safe context lookup.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q8 -->
+      <div class="q-card" id="q24" data-diff="easy" data-tags="array slice map rune data types value reference golang">
+        <div class="q-header" onclick="toggle('q24')">
+          <span class="q-number">Q08</span>
+          <span class="q-title">Data types: Array vs Slice vs Map — value type vs reference type?</span>
+          <div class="q-meta">
+            <span class="q-tag">data types</span>
+            <span class="q-tag">rune</span>
+            <span class="difficulty-badge diff-easy">Cơ bản</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <table class="comp-table">
+            <tr><th>Type</th><th>Value/Reference</th><th>Zero Value</th><th>Key properties</th></tr>
+            <tr><td><strong>Array</strong></td><td>Value type — copy toàn bộ khi assign/pass</td><td>Array với zero values</td><td>Kích thước là phần của type: <code>[3]int ≠ [4]int</code>. Có thể so sánh ==</td></tr>
+            <tr><td><strong>Slice</strong></td><td>Reference (header copy, same backing array)</td><td><code>nil</code> (len=0, cap=0)</td><td>Struct{ptr, len, cap}. Append có thể tạo backing array mới</td></tr>
+            <tr><td><strong>Map</strong></td><td>Reference — assign chia sẻ cùng hash table</td><td><code>nil</code> (panic nếu write vào nil map)</td><td>Unordered, key phải comparable. Implement bằng hash table, lookup O(1) avg</td></tr>
+          </table>
+
+          <h4>Rune vs Byte</h4>
+          <ul>
+            <li><strong>byte = uint8</strong>: 1 byte, đại diện ASCII hoặc raw binary data.</li>
+            <li><strong>rune = int32</strong>: 4 bytes, đại diện 1 Unicode code point. Dùng khi làm việc với UTF-8 string có ký tự đặc biệt (tiếng Việt, emoji, CJK).</li>
+          </ul>
+
+<pre><span class="cm">// Sai: range string theo byte index</span>
+s := <span class="str">"hello, 世界"</span>
+fmt.Println(len(s))        <span class="cm">// 13 bytes, không phải 9 ký tự!</span>
+
+<span class="cm">// Đúng: range string cho rune</span>
+<span class="kw">for</span> i, r := <span class="kw">range</span> s {
+    fmt.Printf(<span class="str">"%d -> %c\n"</span>, i, r)
+    <span class="cm">// 7 -> 世 (index 7, chiếm 3 bytes UTF-8)</span>
+}
+
+<span class="cm">// Đúng: convert sang []rune để thao tác ký tự</span>
+runes := []<span class="type">rune</span>(s)
+fmt.Println(len(runes))    <span class="cm">// 9 ký tự</span>
+
+<span class="cm">// Map: nil map READ ok, WRITE panic</span>
+<span class="kw">var</span> m <span class="kw">map</span>[<span class="type">string</span>]<span class="type">int</span>
+_ = m[<span class="str">"key"</span>]      <span class="cm">// ok, returns zero value</span>
+m[<span class="str">"key"</span>] = <span class="num">1</span>    <span class="cm">// PANIC: assignment to nil map</span>
+m = make(<span class="kw">map</span>[<span class="type">string</span>]<span class="type">int</span>)
+m[<span class="str">"key"</span>] = <span class="num">1</span>    <span class="cm">// ok</span></pre>
+        </div>
+      </div>
+
+      <!-- Q9 -->
+      <div class="q-card" id="q25" data-diff="mid" data-tags="interface go implicit structural typing duck typing empty interface OOP comparison">
+        <div class="q-header" onclick="toggle('q25')">
+          <span class="q-number">Q09</span>
+          <span class="q-title">Interface trong Go — khác với OOP thế nào? Implicit vs explicit?</span>
+          <div class="q-meta">
+            <span class="q-tag">interface</span>
+            <span class="q-tag">OOP</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Go dùng <strong>implicit (structural) interface satisfaction</strong> — type tự động implement interface nếu nó có đủ methods. Không cần khai báo <code>implements</code> như Java/C#.</p>
+
+          <table class="comp-table">
+            <tr><th></th><th>Go</th><th>Java / C#</th></tr>
+            <tr><td><strong>Declare</strong></td><td>Implicit — chỉ cần có method set khớp</td><td>Explicit — phải viết <code>implements</code></td></tr>
+            <tr><td><strong>Coupling</strong></td><td>Loose — type và interface có thể ở 2 package khác nhau</td><td>Tight — phải import interface</td></tr>
+            <tr><td><strong>Retrofit</strong></td><td>Dễ — không cần sửa type gốc</td><td>Khó — phải sửa class cũ</td></tr>
+            <tr><td><strong>Nil</strong></td><td>Interface = (type, value) — typed nil != nil</td><td>null reference concept</td></tr>
+          </table>
+
+<pre><span class="cm">// Go: io.Writer là interface — mọi type có Write() đều implement tự động</span>
+<span class="kw">type</span> <span class="type">Writer</span> <span class="kw">interface</span> {
+    Write(p []<span class="type">byte</span>) (n <span class="type">int</span>, err <span class="type">error</span>)
+}
+<span class="cm">// os.File, bytes.Buffer, net.Conn — không cần "implements Writer"</span>
+
+<span class="cm">// Type assertion & type switch</span>
+<span class="kw">func</span> <span class="fn">Print</span>(v any) {
+    <span class="kw">switch</span> t := v.(<span class="kw">type</span>) {
+    <span class="kw">case</span> <span class="type">string</span>:  fmt.Println(<span class="str">"string:"</span>, t)
+    <span class="kw">case</span> <span class="type">int</span>:     fmt.Println(<span class="str">"int:"</span>, t)
+    <span class="kw">default</span>:     fmt.Printf(<span class="str">"unknown: %T\n"</span>, t)
+    }
+}</pre>
+
+          <h4>Ưu và nhược điểm</h4>
+          <ul>
+            <li><strong>Ưu:</strong> Loose coupling, dễ mock test, retrofit existing type kể cả từ external package, compose interface nhỏ.</li>
+            <li><strong>Nhược:</strong> Không biết type implement interface nào chỉ bằng nhìn vào struct — cần tooling (gopls, IDE). Typed nil gotcha (Q04).</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Q10 -->
+      <div class="q-card" id="q26" data-diff="mid" data-tags="go scheduler goroutine M:N GOMAXPROCS runtime GMP model">
+        <div class="q-header" onclick="toggle('q26')">
+          <span class="q-number">Q10</span>
+          <span class="q-title">Go Scheduler — mô hình M:N, GMP, GOMAXPROCS hoạt động thế nào?</span>
+          <div class="q-meta">
+            <span class="q-tag">scheduler</span>
+            <span class="q-tag">GMP</span>
+            <span class="q-tag">goroutine</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Go runtime dùng mô hình <strong>M:N scheduler</strong>: multiplexes M goroutines onto N OS threads, cho phép hàng nghìn goroutine chạy trên vài OS thread.</p>
+
+          <h4>GMP Model</h4>
+          <ul>
+            <li><strong>G (Goroutine):</strong> unit of work, lightweight (~2-8KB stack ban đầu, grow dynamically). Không phải OS thread.</li>
+            <li><strong>M (Machine):</strong> OS thread thực sự. M chạy goroutine khi được gắn với P.</li>
+            <li><strong>P (Processor):</strong> logical processor, số lượng = GOMAXPROCS. P giữ local run queue của goroutines. M phải có P để chạy Go code.</li>
+          </ul>
+
+          <h4>Scheduling hoạt động</h4>
+          <ul>
+            <li>Mỗi P có local run queue. Khi queue empty → <strong>work stealing</strong> từ P khác → maximize CPU utilization.</li>
+            <li>Goroutine block on syscall: M tách khỏi P, P attach sang M khác → không block các goroutine khác.</li>
+            <li>Network I/O: goroutine park, netpoller (epoll/kqueue) wakeup khi data ready.</li>
+            <li>Preemptive scheduling từ Go 1.14: signal-based, không cần goroutine yield explicitly.</li>
+          </ul>
+
+<pre><span class="cm">// GOMAXPROCS mặc định = số logical CPU (Go 1.5+)</span>
+fmt.Println(runtime.GOMAXPROCS(<span class="num">0</span>)) <span class="cm">// đọc current value</span>
+
+<span class="cm">// Goroutine stack: 2-8KB ban đầu, grow đến 1GB default</span>
+<span class="cm">// OS thread stack: 1-8MB fixed</span>
+<span class="cm">// → 100,000 goroutines ≈ 200-800MB vs 100,000 threads ≈ không feasible</span>
+
+<span class="cm">// Kubernetes: GOMAXPROCS mặc định dùng node CPU, không phải pod limit</span>
+<span class="cm">// Fix: dùng automaxprocs library để detect cgroup CPU quota</span>
+<span class="cm">// import _ "go.uber.org/automaxprocs"</span></pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Channel vs Mutex — khi nào dùng cái nào?</span>
+            Go philosophy: "Do not communicate by sharing memory; share memory by communicating." <br>
+            <strong>Channel</strong>: giao tiếp giữa goroutines, pipeline, fan-out, ownership transfer. <br>
+            <strong>Mutex</strong>: protect shared state đơn giản, performance-critical cache, counter. <br>
+            Nếu cần cả hai: thường là dấu hiệu design cần refactor.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CATEGORY 2: SYSTEM DESIGN -->
+    <!-- ============================================================ -->
+    <div class="category-block" id="cat-design">
+      <div class="category-header">
+        <div class="category-icon" style="background: rgba(79,156,249,0.12);">🏗️</div>
+        <h2 style="color: var(--cat-design);">System Design</h2>
+        <span class="category-count">4 câu</span>
+      </div>
+
+      <!-- Q11 -->
+      <div class="q-card" id="q7" data-diff="hard" data-tags="alert management kafka redis state machine grouping notification system design">
+        <div class="q-header" onclick="toggle('q7')">
+          <span class="q-number">Q11</span>
+          <span class="q-title">Design Alert Management System — grouping, delay, suspend, scale?</span>
+          <div class="q-meta">
+            <span class="q-tag">kafka</span>
+            <span class="q-tag">redis</span>
+            <span class="q-tag">state machine</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Đây là project bạn đã build tại Giaohangtietkiem — trả lời được end-to-end architecture bằng kinh nghiệm thực tế là điểm cộng lớn.</p>
+
+          <h4>Architecture overview</h4>
+          <ul>
+            <li><strong>Ingest Layer:</strong> Alertmanager webhook → Kafka topic <code>alerts.raw</code>. Mỗi alert có <code>fingerprint</code> = hash(labels). Idempotency: upsert theo fingerprint + time window.</li>
+            <li><strong>Grouping Engine:</strong> Consumer đọc từ Kafka, group alerts bằng sliding window (5 phút). Các alert cùng <code>alertname + cluster + severity</code> được gom. Group state lưu Redis với TTL = 1 giờ.</li>
+            <li><strong>State Machine:</strong> <code>firing → acknowledged → resolved → closed</code>. Mỗi transition log vào MySQL với timestamp + actor để audit.</li>
+            <li><strong>Delay/Suspend Queue:</strong> Redis Sorted Set, score = unix timestamp <code>execute_at</code>. Worker poll mỗi 5s: <code>ZRANGEBYSCORE 0 now</code> → process → <code>ZREM</code>.</li>
+            <li><strong>Notification Worker:</strong> Consume <code>alerts.notify</code>, fan-out sang email/Slack/PagerDuty.</li>
+          </ul>
+
+          <h4>Scale strategy</h4>
+          <ul>
+            <li>Partition Kafka theo <code>alert_source/cluster</code> → mỗi partition xử lý độc lập.</li>
+            <li>Horizontal scale consumer group → thêm instance tự nhận partition.</li>
+            <li>Redis Cluster cho group state → sharding theo group key hash.</li>
+            <li>MySQL chỉ lưu metadata + state transitions, không lưu raw alert payload → size manageable.</li>
+          </ul>
+
+          <h4>Handle flapping alerts (alert bật/tắt liên tục)</h4>
+          <ul>
+            <li><strong>Re-resolve threshold:</strong> alert phải ở state "resolved" > X phút mới thực sự close — tránh close sớm rồi reopen.</li>
+            <li><strong>Inhibition rule:</strong> nếu parent alert firing, suppress child alerts.</li>
+            <li><strong>Repeat interval:</strong> không re-notify nếu alert chưa đổi state sau lần notify trước.</li>
+          </ul>
+
+<pre><span class="cm">// Delay queue với Redis Sorted Set (rdb là *redis.Client, go-redis v9)</span>
+<span class="cm">// Delay alert X đến thời điểm T</span>
+rdb.ZAdd(ctx, <span class="str">"delay_queue"</span>, redis.Z{
+    Score:  float64(executeAt.Unix()),
+    Member: alertID,
+})
+
+<span class="cm">// Worker poll mỗi 5 giây</span>
+<span class="kw">func</span> <span class="fn">pollDelayQueue</span>(ctx context.Context) {
+    ticker := time.NewTicker(<span class="num">5</span> * time.Second)
+    <span class="kw">for</span> {
+        <span class="kw">select</span> {
+        <span class="kw">case</span> &lt;-ctx.Done(): <span class="kw">return</span>
+        <span class="kw">case</span> &lt;-ticker.C:
+            now := fmt.Sprintf(<span class="str">"%d"</span>, time.Now().Unix())
+            ids, _ := rdb.ZRangeByScore(ctx, <span class="str">"delay_queue"</span>, &amp;redis.ZRangeBy{
+                Min: <span class="str">"0"</span>, Max: now,
+            }).Result()
+            <span class="kw">for</span> _, id := <span class="kw">range</span> ids {
+                processAlert(id)
+                rdb.ZRem(ctx, <span class="str">"delay_queue"</span>, id)
+            }
+        }
+    }
+}</pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Exactly-once processing</span>
+            Interviewer hay hỏi: đảm bảo exactly-once thế nào? Trả lời: <strong>at-least-once (Kafka) + idempotent handler (upsert theo fingerprint + idempotency key) = effectively exactly-once</strong>. True exactly-once (Kafka Transactions) có overhead quá cao và thường không cần thiết khi handler idempotent.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q12 -->
+      <div class="q-card" id="q8" data-diff="hard" data-tags="distributed transaction saga outbox pattern fintech consistency idempotency circuit breaker">
+        <div class="q-header" onclick="toggle('q8')">
+          <span class="q-number">Q12</span>
+          <span class="q-title">Distributed transaction trong Fintech — đảm bảo consistency khi chuyển tiền?</span>
+          <div class="q-meta">
+            <span class="q-tag">fintech</span>
+            <span class="q-tag">saga</span>
+            <span class="q-tag">outbox</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Tại 9Pay: merchant chuyển tiền → payment service → bank API → invoice service → notification. Nếu bank API timeout sau khi đã debit, bạn handle thế nào?</p>
+
+          <h4>Approach & Trade-off</h4>
+          <table class="comp-table">
+            <tr><th>Pattern</th><th>Ưu điểm</th><th>Nhược điểm</th><th>Khi nào dùng</th></tr>
+            <tr><td><strong>Outbox Pattern</strong></td><td>Atomic DB write + event; no message loss</td><td>Eventual consistency, cần relay service</td><td>Fintech — recommended</td></tr>
+            <tr><td><strong>Saga Choreography</strong></td><td>Loose coupling, mỗi service tự quản</td><td>Hard to debug, khó thấy overall flow</td><td>Simple, loosely-coupled flow</td></tr>
+            <tr><td><strong>Saga Orchestration</strong></td><td>Central state, dễ audit & debug</td><td>Orchestrator = single coupling point</td><td>Fintech phức tạp cần audit trail</td></tr>
+            <tr><td><strong>2PC</strong></td><td>Strong consistency</td><td>Blocking, scale kém, coordinator SPOF</td><td>Tránh trong microservices</td></tr>
+          </table>
+
+          <h4>Outbox Pattern (khuyến nghị cho Fintech)</h4>
+<pre><span class="cm">// 1 DB transaction: write payment + outbox event (atomic)</span>
+tx.Exec(<span class="str">"INSERT INTO payments VALUES (...)"</span>)
+tx.Exec(<span class="str">"INSERT INTO outbox (event_type, payload, published) VALUES (?, ?, false)"</span>,
+    <span class="str">"payment.created"</span>, payload)
+tx.Commit() <span class="cm">// atomic: cả 2 hoặc không cái nào</span>
+
+<span class="cm">// Relay worker: poll outbox → publish Kafka → mark published</span>
+rows, err := db.Query(<span class="str">"SELECT id, event_type, payload FROM outbox WHERE published=false ORDER BY id LIMIT 100"</span>)
+<span class="kw">if</span> err != <span class="kw">nil</span> { <span class="kw">return</span> err }
+<span class="kw">defer</span> rows.Close()
+
+<span class="kw">for</span> rows.Next() {
+    <span class="kw">var</span> id <span class="type">int64</span>
+    <span class="kw">var</span> eventType, payload <span class="type">string</span>
+    <span class="kw">if</span> err := rows.Scan(&amp;id, &amp;eventType, &amp;payload); err != <span class="kw">nil</span> {
+        <span class="kw">return</span> err <span class="cm">// dừng batch này, lần poll sau sẽ retry từ đầu</span>
+    }
+    kafka.Publish(eventType, payload)
+    db.Exec(<span class="str">"UPDATE outbox SET published=true WHERE id=?"</span>, id)
+}
+<span class="cm">// Nếu app crash sau DB commit nhưng trước Kafka publish</span>
+<span class="cm">// → relay service vẫn pick up khi restart</span></pre>
+
+          <h4>Idempotency Key</h4>
+          <ul>
+            <li>Client gửi <code>X-Idempotency-Key: uuid</code> trong header mọi request chuyển tiền.</li>
+            <li>Server store key + result vào Redis với TTL = 24h.</li>
+            <li>Duplicate request (bank retry sau timeout) → trả về cached result, không process lại.</li>
+          </ul>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Circuit Breaker với Bank Partner</span>
+            Bank partner thường có QPS thấp và latency cao. Dùng circuit breaker (<code>sony/gobreaker</code>): error rate > threshold → open circuit → fail fast với <code>ErrCircuitOpen</code>, không hammer bank API đang lỗi. States: Closed → Open → Half-Open → Closed. Kết hợp exponential backoff khi retry.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q13 -->
+      <div class="q-card" id="q9" data-diff="hard" data-tags="rate limiting token bucket sliding window redis lua script api gateway">
+        <div class="q-header" onclick="toggle('q9')">
+          <span class="q-number">Q13</span>
+          <span class="q-title">Rate limiting trong API Gateway — thuật toán nào phù hợp?</span>
+          <div class="q-meta">
+            <span class="q-tag">rate limit</span>
+            <span class="q-tag">redis</span>
+            <span class="q-tag">lua</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <table class="comp-table">
+            <tr><th>Thuật toán</th><th>Ưu điểm</th><th>Nhược điểm</th><th>Dùng khi</th></tr>
+            <tr><td><strong>Token Bucket</strong></td><td>Cho phép burst, phổ biến nhất</td><td>Phức tạp hơn fixed window</td><td>API public, burst-friendly</td></tr>
+            <tr><td><strong>Sliding Window Log</strong></td><td>Chính xác nhất</td><td>Memory-heavy (lưu timestamp)</td><td>Strict limit, low traffic</td></tr>
+            <tr><td><strong>Sliding Window Counter</strong></td><td>Balance accuracy-memory</td><td>Sai số nhỏ tại boundary</td><td>Production — recommended</td></tr>
+            <tr><td><strong>Fixed Window</strong></td><td>Đơn giản nhất</td><td>Boundary burst: 2x rate tại window edge</td><td>Internal API, ít critical</td></tr>
+          </table>
+
+          <h4>Distributed rate limiting — Redis + Lua script</h4>
+<pre><span class="cm">-- Lua: atomic token bucket check (không bị race condition)</span>
+<span class="kw">local</span> key      = KEYS[<span class="num">1</span>]
+<span class="kw">local</span> capacity = tonumber(ARGV[<span class="num">1</span>])
+<span class="kw">local</span> now      = tonumber(ARGV[<span class="num">2</span>])
+<span class="kw">local</span> rate     = tonumber(ARGV[<span class="num">3</span>])  <span class="cm">-- tokens/second</span>
+
+<span class="kw">local</span> last   = tonumber(redis.call(<span class="str">"HGET"</span>, key, <span class="str">"last"</span>)) <span class="kw">or</span> now
+<span class="kw">local</span> tokens = tonumber(redis.call(<span class="str">"HGET"</span>, key, <span class="str">"tokens"</span>)) <span class="kw">or</span> capacity
+
+<span class="cm">-- Refill tokens based on elapsed time</span>
+tokens = math.min(capacity, tokens + rate * (now - last))
+
+<span class="kw">if</span> tokens &gt;= <span class="num">1</span> <span class="kw">then</span>
+    tokens = tokens - <span class="num">1</span>
+    redis.call(<span class="str">"HMSET"</span>, key, <span class="str">"last"</span>, now, <span class="str">"tokens"</span>, tokens)
+    redis.call(<span class="str">"EXPIRE"</span>, key, <span class="num">3600</span>)
+    <span class="kw">return</span> <span class="num">1</span>  <span class="cm">-- allowed</span>
+<span class="kw">end</span>
+<span class="kw">return</span> <span class="num">0</span>  <span class="cm">-- rejected</span></pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Từ 9Pay thực tế</span>
+            Rate limit theo <code>merchant_id</code> thay vì IP — merchant có thể dùng nhiều IP. Key format: <code>ratelimit:{merchant_id}:{endpoint}:{window}</code>. Endpoint-level limit quan trọng: limit chuyển tiền chặt hơn query balance. Kết hợp với daily transaction limit lưu trong DB để enforce business rule.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q14 -->
+      <div class="q-card" id="q10" data-diff="mid" data-tags="grpc rest kafka microservices communication protocol websocket">
+        <div class="q-header" onclick="toggle('q10')">
+          <span class="q-number">Q14</span>
+          <span class="q-title">gRPC vs REST vs Kafka — khi nào dùng cái nào trong microservices?</span>
+          <div class="q-meta">
+            <span class="q-tag">grpc</span>
+            <span class="q-tag">rest</span>
+            <span class="q-tag">kafka</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <table class="comp-table">
+            <tr><th></th><th>gRPC</th><th>REST</th><th>Kafka/MQ</th></tr>
+            <tr><td><strong>Dùng khi</strong></td><td>Internal, latency-sensitive, streaming</td><td>External API, human-readable, ecosystem</td><td>Async, fan-out, decoupling, replay</td></tr>
+            <tr><td><strong>Ưu</strong></td><td>Binary (nhỏ 3-5x), codegen, deadline/cancel built-in</td><td>Universal, cacheable, dễ debug</td><td>Loose coupling, durable, backpressure</td></tr>
+            <tr><td><strong>Nhược</strong></td><td>Khó debug, browser không support HTTP/2 raw</td><td>Verbose, no built-in streaming</td><td>Eventual consistency, không có response</td></tr>
+          </table>
+
+          <h4>Decision framework</h4>
+          <ul>
+            <li><strong>Cần response ngay + internal:</strong> gRPC — ATAO Cloud: Agent ↔ API Server dùng gRPC bidirectional stream cho VM metrics real-time.</li>
+            <li><strong>Cần response ngay + external partner:</strong> REST — 9Pay: bank integration API dùng REST vì bank chỉ support HTTP/JSON.</li>
+            <li><strong>Không cần response ngay, cần decoupling/fan-out:</strong> Kafka — payment.created → invoice service + notification service + audit service consume độc lập.</li>
+            <li><strong>Real-time bidirectional (special case):</strong> WebSocket — VM console access trong ATAO Cloud.</li>
+          </ul>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Lưu ý khi mix</span>
+            Thực tế thường mix cả 3: REST cho public API → internal xử lý qua gRPC → event emit sang Kafka → downstream async. Quan trọng là consistent design per boundary type, không mix ad-hoc.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CATEGORY 3: INFRA & DEVOPS -->
+    <!-- ============================================================ -->
+    <div class="category-block" id="cat-infra">
+      <div class="category-header">
+        <div class="category-icon" style="background: rgba(249,115,22,0.12);">🔧</div>
+        <h2 style="color: var(--cat-infra);">Infra & DevOps</h2>
+        <span class="category-count">2 câu</span>
+      </div>
+
+      <!-- Q15 -->
+      <div class="q-card" id="q11" data-diff="hard" data-tags="kafka consumer lag rebalancing partition offset debug optimize">
+        <div class="q-header" onclick="toggle('q11')">
+          <span class="q-number">Q15</span>
+          <span class="q-title">Kafka consumer lag, rebalancing — debug và tối ưu thế nào?</span>
+          <div class="q-meta">
+            <span class="q-tag">kafka</span>
+            <span class="q-tag">consumer group</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p><strong>Consumer lag</strong> = latest offset - committed offset. Lag tăng = consumer xử lý chậm hơn producer produce. Nếu không fix → OOM khi backlog quá lớn.</p>
+
+          <h4>Root cause của lag</h4>
+          <ul>
+            <li>Processing quá chậm: downstream DB slow query, external API timeout, heavy computation.</li>
+            <li>Consumer crash/restart liên tục: mỗi rebalance cần warm-up time.</li>
+            <li>Partition count quá ít: 1 partition max 1 consumer/group → không scale được.</li>
+            <li>Message size quá lớn: network bandwidth bottleneck.</li>
+          </ul>
+
+          <h4>Troubleshooting checklist</h4>
+          <ul>
+            <li><code>kafka-consumer-groups.sh --describe</code>: xem lag per partition, identify partition bị lag nhất.</li>
+            <li>Verify consumer count == partition count (nếu không → một số instance idle, lãng phí).</li>
+            <li>Trace processing time per message từ receive → ack để tìm bottleneck.</li>
+            <li>Check downstream: DB slow query log, Redis latency, external API p99.</li>
+          </ul>
+
+          <h4>Fix strategies</h4>
+          <ul>
+            <li><strong>Scale horizontally:</strong> tăng partition count → tăng consumer instance (phải theo thứ tự: partition trước).</li>
+            <li><strong>Batch processing:</strong> bulk insert N messages thay vì từng message → giảm DB round trips.</li>
+            <li><strong>Parallel processing trong consumer:</strong> mỗi message spawn goroutine, control với semaphore (bounded concurrency).</li>
+          </ul>
+
+          <h4>Rebalancing — minimize impact</h4>
+          <ul>
+            <li><strong>Static membership:</strong> <code>group.instance.id</code> fixed per pod → restart không trigger rebalance ngay.</li>
+            <li><strong>Incremental cooperative rebalancing</strong> (Kafka 2.4+): chỉ reassign partition cần thiết, không stop-the-world toàn bộ group.</li>
+            <li><code>max.poll.interval.ms</code> phải lớn hơn processing time của batch lớn nhất — nếu không Kafka coi consumer là dead và rebalance.</li>
+          </ul>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Từ Alert Management thực tế</span>
+            Alert processing có thể chậm nếu grouping engine query Redis nhiều. Fix: <strong>commit offset trước, xử lý async bằng goroutine pool</strong>. Trade-off: at-least-once delivery — message có thể process lại nếu crash sau commit. Handler phải idempotent.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q16 -->
+      <div class="q-card" id="q12" data-diff="mid" data-tags="cicd pipeline golang lint test docker security scan deploy blue green">
+        <div class="q-header" onclick="toggle('q12')">
+          <span class="q-number">Q16</span>
+          <span class="q-title">CI/CD pipeline chuẩn cho Go service — thiết kế thế nào?</span>
+          <div class="q-meta">
+            <span class="q-tag">ci/cd</span>
+            <span class="q-tag">docker</span>
+            <span class="q-tag">security</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <h4>Stage 1 — Code Quality</h4>
+          <ul>
+            <li><code>golangci-lint</code>: chạy 30+ linter đồng thời. Config: <code>errcheck, govet, staticcheck, gosec, exhaustive</code>.</li>
+            <li><code>gofmt / goimports</code>: enforce code style — fail nếu có diff.</li>
+          </ul>
+
+          <h4>Stage 2 — Testing</h4>
+          <ul>
+            <li><code>go test -race -count=1 ./...</code>: <code>-race</code> detect data race, <code>-count=1</code> disable cache để luôn chạy thực.</li>
+            <li>Coverage threshold: fail nếu coverage &lt; 80%. Critical package require 90%.</li>
+            <li>Integration test: Docker Compose spin up MySQL + Redis + Kafka → run test → teardown.</li>
+          </ul>
+
+          <h4>Stage 3 — Build</h4>
+<pre><span class="cm"># Multi-stage Dockerfile — final image ~15MB</span>
+<span class="kw">FROM</span> golang:1.21-alpine <span class="kw">AS</span> builder
+<span class="kw">WORKDIR</span> /app
+<span class="cm"># Cache layer: go.mod trước, source sau</span>
+<span class="kw">COPY</span> go.mod go.sum ./
+<span class="kw">RUN</span>  go mod download
+<span class="kw">COPY</span> . .
+<span class="kw">RUN</span>  CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+     go build -ldflags=<span class="str">"-w -s"</span> -o /app/server ./cmd/server
+
+<span class="kw">FROM</span> alpine:3.18
+<span class="kw">COPY</span> --from=builder /app/server /server
+<span class="kw">ENTRYPOINT</span> [<span class="str">"/server"</span>]</pre>
+
+          <h4>Stage 4 — Security Scan</h4>
+          <ul>
+            <li><strong>Trivy:</strong> scan Docker image CVE trong OS packages + Go dependencies.</li>
+            <li><strong>govulncheck:</strong> Go official tool — check known vulnerability trong <code>go.sum</code>.</li>
+            <li><strong>CheckMarx + SonarQube</strong> (tại Lifesup/Giaohangtietkiem): SAST trong pipeline — fail build nếu critical issue.</li>
+          </ul>
+
+          <h4>Stage 5 — Deploy</h4>
+          <ul>
+            <li>Image tag: <code>git commit SHA + semantic version</code> (v1.2.3-abc1234) — luôn traceable.</li>
+            <li><strong>Blue-green:</strong> deploy sang slot idle → health check pass → switch traffic → drain old.</li>
+            <li><strong>Canary:</strong> 5% traffic → monitor error rate/latency → promote hoặc rollback.</li>
+          </ul>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Rollback strategy</span>
+            Giữ lại ít nhất 3 image tag gần nhất. Rollback = redeploy tag cũ trong &lt;2 phút — nhanh hơn rebuild. Kết hợp feature flag để rollback tính năng mà không cần redeploy toàn service.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CATEGORY 4: DATABASE -->
+    <!-- ============================================================ -->
+    <div class="category-block" id="cat-db">
+      <div class="category-header">
+        <div class="category-icon" style="background: rgba(167,139,250,0.12);">🗄️</div>
+        <h2 style="color: var(--cat-db);">Database</h2>
+        <span class="category-count">4 câu</span>
+      </div>
+
+      <!-- Q17 -->
+      <div class="q-card" id="q13" data-diff="hard" data-tags="mysql explain index optimization covering index composite query performance">
+        <div class="q-header" onclick="toggle('q13')">
+          <span class="q-number">Q17</span>
+          <span class="q-title">MySQL: EXPLAIN output, index optimization, covering index?</span>
+          <div class="q-meta">
+            <span class="q-tag">mysql</span>
+            <span class="q-tag">index</span>
+            <span class="q-tag">explain</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <h4>Đọc EXPLAIN output</h4>
+          <table class="comp-table">
+            <tr><th>Field</th><th>Giá trị tốt ✅</th><th>Giá trị xấu ❌</th></tr>
+            <tr><td><code>type</code></td><td><code>const, eq_ref, ref</code></td><td><code>ALL</code> (full scan), <code>index</code> (full index scan)</td></tr>
+            <tr><td><code>key</code></td><td>Tên index được dùng</td><td><code>NULL</code> — không dùng index</td></tr>
+            <tr><td><code>rows</code></td><td>Số nhỏ</td><td>Số lớn (nhiều rows phải scan)</td></tr>
+            <tr><td><code>Extra</code></td><td><code>Using index</code> (covering)</td><td><code>Using filesort, Using temporary</code></td></tr>
+            <tr><td><code>filtered</code></td><td>Gần 100%</td><td>Nhỏ — nhiều row bị filter sau scan</td></tr>
+          </table>
+
+          <h4>Covering Index</h4>
+          <p>Index chứa tất cả column cần SELECT → MySQL không cần lookup row (InnoDB B+tree leaf). <code>Extra: Using index</code> = không cần random I/O vào primary key.</p>
+
+<pre><span class="cm">-- Query: tìm alert theo status và created_at</span>
+<span class="kw">SELECT</span> id, fingerprint, status <span class="kw">FROM</span> alerts
+<span class="kw">WHERE</span> status = <span class="str">'firing'</span> <span class="kw">AND</span> created_at > <span class="str">'2024-01-01'</span>
+<span class="kw">ORDER BY</span> created_at <span class="kw">DESC LIMIT</span> <span class="num">100</span>;
+
+<span class="cm">-- Composite index: equality → range → include SELECT columns</span>
+<span class="cm">-- Rule: equality conditions đặt trước, range condition đặt cuối</span>
+<span class="kw">CREATE INDEX</span> idx_cover <span class="kw">ON</span> alerts(status, created_at <span class="kw">DESC</span>, id, fingerprint);
+
+<span class="cm">-- EXPLAIN sẽ show: type=range, key=idx_cover, Extra=Using index ✅</span>
+<span class="cm">-- MySQL không cần đọc row nào từ primary key</span></pre>
+
+          <h4>Composite index — left-prefix rule</h4>
+          <ul>
+            <li><code>INDEX(a, b, c)</code>: WHERE a=1 AND b=2 ✅, WHERE a=1 ✅, WHERE b=2 ❌ (không dùng được).</li>
+            <li>ORDER BY phải match index order và direction để tránh filesort.</li>
+          </ul>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Tại 9Pay — large table</span>
+            Table <code>transactions</code> có thể đạt hàng trăm triệu rows. <strong>RANGE partitioning</strong> theo <code>created_at</code> (monthly) + index per partition giảm scan scope đáng kể. Query "transactions trong tháng 1/2025" chỉ scan 1 partition. Kết hợp với <code>pt-online-schema-change</code> cho DDL không downtime.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q18 -->
+      <div class="q-card" id="q14" data-diff="hard" data-tags="redis cache invalidation cache aside write through stampede setnx mutex ttl">
+        <div class="q-header" onclick="toggle('q14')">
+          <span class="q-number">Q18</span>
+          <span class="q-title">Redis cache invalidation — strategies và cache stampede?</span>
+          <div class="q-meta">
+            <span class="q-tag">redis</span>
+            <span class="q-tag">cache</span>
+            <span class="q-tag">stampede</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <table class="comp-table">
+            <tr><th>Strategy</th><th>Ưu điểm</th><th>Nhược điểm</th><th>Khi dùng</th></tr>
+            <tr><td><strong>Cache-aside</strong></td><td>Lazy, chỉ cache data được đọc</td><td>First miss + stale window</td><td>Phổ biến nhất</td></tr>
+            <tr><td><strong>Write-through</strong></td><td>Không bao giờ stale</td><td>Write latency tăng, cache bloat</td><td>Read-heavy, consistency quan trọng</td></tr>
+            <tr><td><strong>Write-behind</strong></td><td>Fast write</td><td>Risk data loss khi Redis crash</td><td>Non-critical data (session, view count) <strong>KHÔNG dùng Fintech</strong></td></tr>
+          </table>
+
+          <h4>Cache stampede — problem và fix</h4>
+          <p>Problem: TTL expire → nhiều request đồng thời miss → tất cả hit DB → DB overwhelmed (thundering herd).</p>
+
+<pre><span class="cm">// Fix 1: Mutex lock với SETNX — chỉ 1 goroutine rebuild</span>
+<span class="kw">func</span> <span class="fn">getWithLock</span>(ctx context.Context, key <span class="type">string</span>, ttl time.Duration) (<span class="type">string</span>, <span class="type">error</span>) {
+    val, err := rdb.Get(ctx, key).Result()
+    <span class="kw">if</span> err == <span class="kw">nil</span> { <span class="kw">return</span> val, <span class="kw">nil</span> }  <span class="cm">// cache hit</span>
+
+    lockKey := key + <span class="str">":lock"</span>
+    locked, _ := rdb.SetNX(ctx, lockKey, <span class="str">"1"</span>, <span class="num">5</span>*time.Second).Result()
+
+    <span class="kw">if</span> locked {
+        <span class="kw">defer</span> rdb.Del(ctx, lockKey)
+        data := <span class="fn">fetchFromDB</span>()
+        rdb.Set(ctx, key, data, ttl)
+        <span class="kw">return</span> data, <span class="kw">nil</span>
+    }
+    <span class="cm">// Không lấy được lock → chờ rồi retry</span>
+    time.Sleep(<span class="num">50</span> * time.Millisecond)
+    <span class="kw">return</span> rdb.Get(ctx, key).Result()
+}
+
+<span class="cm">// Fix 2: Probabilistic early expiration</span>
+<span class="cm">// Khi còn 10% TTL, một số request tự rebuild sớm</span>
+<span class="cm">// Tránh đồng loạt expire</span>
+
+<span class="cm">// Fix 3: Jitter — thêm random vào TTL</span>
+ttl := baseTTL + time.Duration(rand.Intn(<span class="num">30</span>))*time.Second</pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Invalidation tại 9Pay</span>
+            Merchant info cache (rate limit, account status) cần invalidate ngay khi admin update — không thể chờ TTL. Pattern: <strong>write-through + pub/sub invalidation</strong>: update DB → publish <code>cache:invalidate:{merchant_id}</code> event → all instances nhận và DELETE key. Eventual consistency ~100ms là acceptable cho non-financial data.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q19 -->
+      <div class="q-card" id="q15" data-diff="mid" data-tags="elasticsearch inverted index full text search bm25 aggregation vs mysql">
+        <div class="q-header" onclick="toggle('q15')">
+          <span class="q-number">Q19</span>
+          <span class="q-title">Elasticsearch — inverted index, khi nào chọn ES vs MySQL full-text?</span>
+          <div class="q-meta">
+            <span class="q-tag">elasticsearch</span>
+            <span class="q-tag">search</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <h4>Inverted index hoạt động thế nào</h4>
+          <ul>
+            <li>Text <code>"golang microservice"</code> được tokenize: <code>["golang", "microservice"]</code>.</li>
+            <li>Inverted index: <code>"golang" → [doc1, doc5, doc9]</code>. Search = lookup O(1) → trả về doc IDs.</li>
+            <li>Nhanh hơn <code>LIKE "%golang%"</code> (full table scan) rất nhiều ở scale lớn.</li>
+            <li><strong>BM25 scoring:</strong> relevance dựa trên term frequency (TF) + inverse document frequency (IDF).</li>
+          </ul>
+
+          <table class="comp-table">
+            <tr><th></th><th>Elasticsearch ✅</th><th>MySQL ✅</th></tr>
+            <tr><td><strong>Dùng khi</strong></td><td>Full-text với relevance ranking, complex aggregation, log analysis, near-real-time search</td><td>ACID transaction, strong consistency, complex JOIN, relational data</td></tr>
+            <tr><td><strong>Tránh khi</strong></td><td>Payment records, account balance (eventually consistent)</td><td>Search hàng triệu docs với relevance ranking</td></tr>
+          </table>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Từ VCS Threat Intelligence</span>
+            IOC (IP, domain, URL, hash) được index vào ES. Query pattern: filter theo <code>type + severity + confidence + time_range</code>, sort theo <code>severity DESC, sighting_count DESC</code>. Aggregation: top 10 malicious domain trong 24h. Dùng <strong>search_after</strong> (keyset pagination) thay vì from+size cho deep pagination — from+size expensive ở trang lớn vì phải scan hết offset docs.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q20 -->
+      <div class="q-card" id="q16" data-diff="mid" data-tags="mongodb schema design embedded document reference 1-to-many query pattern">
+        <div class="q-header" onclick="toggle('q16')">
+          <span class="q-number">Q20</span>
+          <span class="q-title">MongoDB — embedded document vs reference, khi nào dùng cái nào?</span>
+          <div class="q-meta">
+            <span class="q-tag">mongodb</span>
+            <span class="q-tag">schema</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>MongoDB không có JOIN như SQL. Schema design dựa trên <strong>query pattern</strong>, không phải normalization rules. "Design for your queries, not for the data."</p>
+
+          <table class="comp-table">
+            <tr><th>Loại</th><th>Dùng khi</th><th>Ví dụ</th></tr>
+            <tr><td><strong>Embedded</strong></td><td>Data thường đọc cùng nhau; 1-to-few (&lt;100); child không có lifecycle độc lập</td><td>User + address; Blog post + (few) comments</td></tr>
+            <tr><td><strong>Reference</strong></td><td>1-to-many large; data access độc lập; shared data; M-to-N</td><td>Post + thousands of comments; IOC + source</td></tr>
+          </table>
+
+<pre><span class="cm">// ISACs: IOC document — hybrid approach</span>
+{
+    <span class="str">"_id"</span>:      <span class="str">"ioc_123"</span>,
+    <span class="str">"type"</span>:     <span class="str">"ip"</span>,
+    <span class="str">"value"</span>:    <span class="str">"1.2.3.4"</span>,
+    <span class="str">"severity"</span>: <span class="str">"high"</span>,
+    <span class="cm">// Embed summary để 1 query read</span>
+    <span class="str">"source"</span>: {
+        <span class="str">"id"</span>:         <span class="str">"src_456"</span>,
+        <span class="str">"name"</span>:       <span class="str">"AbuseIPDB"</span>,
+        <span class="str">"confidence"</span>: <span class="num">95</span>
+    },
+    <span class="cm">// Reference để query full source detail khi cần</span>
+    <span class="str">"source_id"</span>: <span class="str">"src_456"</span>
+}</pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Document size limit</span>
+            MongoDB document limit = 16MB. Nếu embed comments vào post và post có hàng nghìn comments → vượt giới hạn và phải migrate. Quy tắc: nếu không biết số lượng grow đến bao nhiêu → dùng reference để an toàn.
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ============================================================ -->
+    <!-- CATEGORY 8: MYSQL DEEP DIVE -->
+    <!-- ============================================================ -->
+    <div class="category-block" id="cat-mysql2">
+      <div class="category-header">
+        <div class="category-icon" style="background: rgba(167,139,250,0.12);">🐬</div>
+        <h2 style="color: var(--cat-db);">MySQL Deep Dive</h2>
+        <span class="category-count">3 câu</span>
+      </div>
+
+      <!-- Q21 -->
+      <div class="q-card" id="q27" data-diff="hard" data-tags="ACID atomicity consistency isolation durability isolation level dirty read phantom read repeatable read serializable">
+        <div class="q-header" onclick="toggle('q27')">
+          <span class="q-number">Q21</span>
+          <span class="q-title">ACID properties và Isolation Levels — dirty read, phantom read là gì?</span>
+          <div class="q-meta">
+            <span class="q-tag">ACID</span>
+            <span class="q-tag">isolation</span>
+            <span class="q-tag">transaction</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <h4>ACID Properties</h4>
+          <ul>
+            <li><strong>Atomicity:</strong> Transaction là atomic — toàn bộ thành công hoặc toàn bộ rollback. Không có partial commit.</li>
+            <li><strong>Consistency:</strong> Transaction đưa DB từ valid state này sang valid state khác. Integrity constraints luôn được giữ.</li>
+            <li><strong>Isolation:</strong> Concurrent transactions không ảnh hưởng nhau — mỗi transaction thấy consistent view của data.</li>
+            <li><strong>Durability:</strong> Committed transactions tồn tại vĩnh viễn — kể cả khi system crash sau commit.</li>
+          </ul>
+
+          <h4>4 Isolation Levels (tăng dần độ chặt)</h4>
+          <table class="comp-table">
+            <tr><th>Level</th><th>Dirty Read</th><th>Non-Repeatable</th><th>Phantom Read</th><th>Performance</th></tr>
+            <tr><td><strong>READ UNCOMMITTED</strong></td><td>✅ Có</td><td>✅ Có</td><td>✅ Có</td><td>Cao nhất</td></tr>
+            <tr><td><strong>READ COMMITTED</strong></td><td>❌ Không</td><td>✅ Có</td><td>✅ Có</td><td>Cao</td></tr>
+            <tr><td><strong>REPEATABLE READ</strong> (MySQL default)</td><td>❌ Không</td><td>❌ Không</td><td>✅ Có*</td><td>Trung bình</td></tr>
+            <tr><td><strong>SERIALIZABLE</strong></td><td>❌ Không</td><td>❌ Không</td><td>❌ Không</td><td>Thấp nhất</td></tr>
+          </table>
+          <p style="font-size:12px; margin-top:4px;">* InnoDB dùng MVCC + gap lock để ngăn phantom read trong REPEATABLE READ — khác với SQL standard.</p>
+
+          <h4>Anomalies giải thích</h4>
+          <ul>
+            <li><strong>Dirty Read:</strong> T2 đọc data T1 chưa commit → T1 rollback → T2 đã dùng data không tồn tại.</li>
+            <li><strong>Non-Repeatable Read:</strong> T2 đọc cùng row 2 lần → giữa 2 lần đọc T1 UPDATE và commit → kết quả khác nhau.</li>
+            <li><strong>Phantom Read:</strong> T2 query với WHERE điều kiện 2 lần → T1 INSERT row mới thỏa điều kiện giữa 2 lần → số lượng rows khác.</li>
+          </ul>
+
+          <h4>MySQL Deadlocks</h4>
+          <p>Deadlock = T1 chờ lock T2 đang giữ, T2 chờ lock T1 đang giữ → circular wait. MySQL detect tự động và rollback transaction nhỏ hơn (ít undo log hơn). Fix: consistent lock order, short transactions, index để avoid full table lock.</p>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Tại 9Pay</span>
+            Fintech cần REPEATABLE READ (default MySQL) cho payment transaction — đảm bảo balance đọc consistent trong suốt transaction. SERIALIZABLE quá chậm. READ COMMITTED không đủ — có thể thấy intermediate state từ concurrent transaction.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q22 -->
+      <div class="q-card" id="q28" data-diff="hard" data-tags="composite index single index left prefix rule index merge optimizer cardinality column order">
+        <div class="q-header" onclick="toggle('q28')">
+          <span class="q-number">Q22</span>
+          <span class="q-title">Composite index vs Single index — left-prefix rule, khi nào chọn cái nào?</span>
+          <div class="q-meta">
+            <span class="q-tag">composite index</span>
+            <span class="q-tag">left-prefix</span>
+            <span class="q-tag">index merge</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Cả hai đều là B-Tree. Composite index <code>(col_a, col_b)</code> = mảng đã sort theo col_a trước, col_b sau. Single index = 2 B-Tree độc lập.</p>
+
+          <h4>Left-Prefix Rule — Critical</h4>
+          <ul>
+            <li><code>INDEX(a,b,c)</code>: query <code>WHERE a=1 AND b=2</code> ✅, <code>WHERE a=1</code> ✅, <code>WHERE b=2</code> ❌ (không dùng được).</li>
+            <li><strong>Gap problem:</strong> <code>WHERE a=1 AND c=3</code> → chỉ dùng được cột a, c bị skip vì b không có trong WHERE.</li>
+            <li><strong>Range stop rule:</strong> <code>WHERE a=1 AND b&gt;2 AND c=3</code> → dùng được a và b, nhưng dừng tại range <code>b&gt;2</code>, c không được index-filtered.</li>
+          </ul>
+
+          <h4>Thứ tự cột trong composite index</h4>
+          <ul>
+            <li>Rule: <strong>Equality columns → GROUP BY/ORDER BY columns → Range columns</strong>.</li>
+            <li>Đặt cột có cardinality cao (nhiều distinct values) lên đầu để loại bỏ nhiều rows sớm nhất.</li>
+            <li>Nếu đã có <code>INDEX(a, b)</code>, tạo thêm <code>INDEX(a)</code> là <strong>redundant</strong> — vì index (a,b) đã cover query <code>WHERE a=?</code>.</li>
+          </ul>
+
+          <h4>Index Merge — khi không có composite index hoàn hảo</h4>
+          <ul>
+            <li><strong>Intersection</strong>: <code>WHERE col_a=? AND col_b=?</code> → scan idx_a + scan idx_b → intersect row IDs. Hiệu quả hơn full table scan nhưng kém composite index.</li>
+            <li><strong>Union</strong>: <code>WHERE col_a=? OR col_b=?</code> → union 2 index results.</li>
+            <li>Xuất hiện trong EXPLAIN Extra: <code>Using intersect(...)</code> / <code>Using union(...)</code>.</li>
+            <li><strong>Nếu thấy index merge thường xuyên → nên tạo composite index</strong> thay vì để optimizer làm thủ công.</li>
+          </ul>
+
+<pre><span class="cm">-- Bảng transactions: query phổ biến</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> transactions
+<span class="kw">WHERE</span> merchant_id = <span class="num">123</span>
+  <span class="kw">AND</span> status = <span class="str">'completed'</span>
+  <span class="kw">AND</span> created_at &gt; <span class="str">'2025-01-01'</span>
+<span class="kw">ORDER BY</span> created_at <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">20</span>;
+
+<span class="cm">-- Composite index tối ưu:</span>
+<span class="cm">-- merchant_id (equality), status (equality), created_at (range+order)</span>
+<span class="kw">CREATE INDEX</span> idx_merchant_status_date
+    <span class="kw">ON</span> transactions(merchant_id, status, created_at <span class="kw">DESC</span>);
+
+<span class="cm">-- EXPLAIN: type=range, key=idx_merchant_status_date</span>
+<span class="cm">-- Extra=Using index (covering nếu SELECT cột nằm trong index)</span></pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Không tạo quá nhiều index</span>
+            Mỗi index tốn không gian và làm chậm INSERT/UPDATE/DELETE vì MySQL phải update tất cả index affected. Rule of thumb: ≤5-6 index per table. Profile trước khi thêm index mới — <code>performance_schema</code> hoặc slow query log.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q23 -->
+      <div class="q-card" id="q29" data-diff="mid" data-tags="B-Tree index hash index full text index MySQL types InnoDB adaptive hash">
+        <div class="q-header" onclick="toggle('q29')">
+          <span class="q-number">Q23</span>
+          <span class="q-title">Index types: B-Tree vs Hash vs Full-Text — khi nào dùng cái nào?</span>
+          <div class="q-meta">
+            <span class="q-tag">B-Tree</span>
+            <span class="q-tag">hash</span>
+            <span class="q-tag">full-text</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <table class="comp-table">
+            <tr><th>Type</th><th>Cơ chế</th><th>Hỗ trợ</th><th>Không hỗ trợ</th><th>Khi dùng</th></tr>
+            <tr><td><strong>B-Tree</strong> (mặc định InnoDB)</td><td>Balanced tree, data sorted</td><td>=, >, &lt;, BETWEEN, LIKE 'prefix%', ORDER BY, GROUP BY, range</td><td>LIKE '%suffix', function on column</td><td>Hầu hết mọi trường hợp</td></tr>
+            <tr><td><strong>Hash</strong> (MEMORY engine)</td><td>Hash function → bucket lookup</td><td>Exact match (=, IN) — O(1)</td><td>Range, ORDER BY, partial match</td><td>Lookup chính xác, MEMORY table. Không dùng InnoDB</td></tr>
+            <tr><td><strong>Full-Text</strong></td><td>Inverted index, tokenize words</td><td>MATCH...AGAINST, Boolean mode, relevance ranking</td><td>Exact match, CHAR/VARCHAR ngắn</td><td>Search văn bản dài, blog, product description</td></tr>
+          </table>
+
+          <h4>InnoDB Adaptive Hash Index (AHI)</h4>
+          <p>InnoDB có tính năng AHI — tự động tạo hash index <em>trong bộ nhớ</em> cho các B-Tree lookup thường xuyên. Hoàn toàn transparent, không cần cấu hình. Hiệu quả cho hot data lookup. Có thể disable nếu có contention: <code>innodb_adaptive_hash_index=OFF</code>.</p>
+
+          <h4>Three-star index rating</h4>
+          <p>Để tạo index "tốt" (từ sách Relational Database Index Design): <strong>⭐ Adjacent rows</strong> (rows liên quan nằm gần nhau) + <strong>⭐ Sorted rows</strong> (match ORDER BY để tránh filesort) + <strong>⭐ Covering index</strong> (chứa tất cả SELECT columns, không cần lookup row).</p>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 LIKE và prefix</span>
+            <code>LIKE 'golang%'</code> — B-Tree index được dùng (prefix match). <code>LIKE '%golang'</code> — không dùng được B-Tree (suffix unknown). Fix: Full-text index hoặc search engine như Elasticsearch (dùng trong VCS project).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CATEGORY 9: KAFKA DEEP DIVE -->
+    <!-- ============================================================ -->
+    <div class="category-block" id="cat-kafka2">
+      <div class="category-header">
+        <div class="category-icon" style="background: rgba(249,115,22,0.12);">📨</div>
+        <h2 style="color: var(--cat-infra);">Kafka Deep Dive</h2>
+        <span class="category-count">3 câu</span>
+      </div>
+
+      <!-- Q24 -->
+      <div class="q-card" id="q30" data-diff="hard" data-tags="kafka architecture topic partition broker producer consumer group commit log ISR replication">
+        <div class="q-header" onclick="toggle('q30')">
+          <span class="q-number">Q24</span>
+          <span class="q-title">Kafka architecture — Topic, Partition, Consumer Group hoạt động thế nào?</span>
+          <div class="q-meta">
+            <span class="q-tag">kafka</span>
+            <span class="q-tag">architecture</span>
+            <span class="q-tag">partition</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <h4>Core components</h4>
+          <ul>
+            <li><strong>Message/Record:</strong> đơn vị data — byte array với optional key. Key dùng để route vào partition cụ thể (same key → same partition → ordering guarantee).</li>
+            <li><strong>Topic:</strong> logical category, giống table trong DB. Immutable append-only log.</li>
+            <li><strong>Partition:</strong> physical unit, append-only log. 1 topic nhiều partitions. Ordering chỉ đảm bảo <em>trong 1 partition</em>, không phải cross-partition.</li>
+            <li><strong>Offset:</strong> vị trí của message trong partition — monotonically increasing integer. Consumer track offset để biết đọc đến đâu.</li>
+            <li><strong>Broker:</strong> Kafka server. 1 partition leader + N replicas trên các broker khác.</li>
+          </ul>
+
+          <h4>Consumer Group</h4>
+          <ul>
+            <li>Multiple consumers cùng group.id chia sẻ partitions — mỗi partition chỉ được đọc bởi <strong>1 consumer trong group</strong> tại một thời điểm.</li>
+            <li>Consumer count > partition count → một số consumer idle. Consumer count = partition count → optimal parallelism.</li>
+            <li>Multiple groups → mỗi group nhận full copy của data (fan-out).</li>
+          </ul>
+
+          <h4>Replication và Durability</h4>
+          <ul>
+            <li>Leader partition nhận ghi từ producer. Follower replicate từ leader.</li>
+            <li><strong>ISR (In-Sync Replicas):</strong> tập followers đã nhận và commit tất cả messages từ leader. Leader fail → ISR member được bầu làm leader mới.</li>
+            <li><code>replication.factor=3</code> + <code>min.insync.replicas=2</code> + <code>acks=all</code> → data safe kể cả 1 broker fail.</li>
+          </ul>
+
+<pre><span class="cm">// Producer config cho Fintech (high durability)</span>
+acks = all              <span class="cm">// wait all ISR replicas acknowledge</span>
+min.insync.replicas = 2 <span class="cm">// at least 2 replicas must confirm</span>
+enable.idempotence = true <span class="cm">// exactly-once producer semantics</span>
+retries = 2147483647   <span class="cm">// retry forever (với idempotence safe)</span>
+
+<span class="cm">// Consumer config: delivery guarantee</span>
+enable.auto.commit = false  <span class="cm">// manual commit after processing</span>
+auto.offset.reset = earliest <span class="cm">// nếu no offset: đọc từ đầu</span>
+max.poll.interval.ms = 300000 <span class="cm">// phải lớn hơn max processing time</span></pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Topic Compaction</span>
+            Thay vì xóa data cũ theo thời gian, compaction giữ lại <strong>message cuối cùng per key</strong>. Hữu ích cho changelog/state store — consumer có thể rebuild state mà không cần replay toàn bộ history. Tại ATAO Cloud: VM state topic dùng compaction — chỉ cần last state per VM ID.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q25 -->
+      <div class="q-card" id="q31" data-diff="hard" data-tags="kafka offset delivery guarantee at-least-once exactly-once idempotent consumer rebalance">
+        <div class="q-header" onclick="toggle('q31')">
+          <span class="q-number">Q25</span>
+          <span class="q-title">Kafka Delivery Guarantees — at-least-once vs exactly-once thực tế?</span>
+          <div class="q-meta">
+            <span class="q-tag">delivery guarantee</span>
+            <span class="q-tag">idempotent</span>
+            <span class="q-tag">offset</span>
+            <span class="difficulty-badge diff-hard">Khó</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <h4>3 loại Delivery Guarantee</h4>
+          <ul>
+            <li><strong>At-most-once:</strong> commit offset trước khi process. Message có thể bị mất nếu process fail. Không dùng cho critical data.</li>
+            <li><strong>At-least-once:</strong> process xong mới commit offset. Message có thể bị xử lý lại nếu commit fail. <strong>Handler phải idempotent.</strong></li>
+            <li><strong>Exactly-once (EOS):</strong> Kafka Transactions + idempotent producer. Overhead cao — chỉ dùng khi thực sự cần (financial ledger).</li>
+          </ul>
+
+          <h4>Idempotent consumer — thực tế phổ biến nhất</h4>
+          <p>At-least-once + idempotent handler = <strong>effectively exactly-once</strong> với cost thấp hơn nhiều so với Kafka EOS.</p>
+
+<pre><span class="cm">// Idempotent consumer pattern</span>
+<span class="kw">func</span> <span class="fn">processMessage</span>(ctx context.Context, msg kafka.Message) <span class="type">error</span> {
+    <span class="cm">// Idempotency key = message key + offset (unique per message)</span>
+    idempotencyKey := fmt.Sprintf(<span class="str">"%s:%d:%d"</span>, msg.Topic, msg.Partition, msg.Offset)
+
+    <span class="cm">// Check if already processed (Redis SET NX với TTL, rdb là *redis.Client)</span>
+    ok, err := rdb.SetNX(ctx, <span class="str">"processed:"</span>+idempotencyKey, <span class="str">"1"</span>, <span class="num">24</span>*time.Hour).Result()
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="kw">return</span> err
+    }
+    <span class="kw">if</span> !ok {
+        <span class="kw">return nil</span> <span class="cm">// already processed, skip</span>
+    }
+
+    <span class="cm">// Process (upsert, not insert — handle duplicate gracefully)</span>
+    <span class="cm">// db.Exec trả (sql.Result, error) — không gán thẳng vào return error được</span>
+    _, err = db.Exec(<span class="str">"INSERT INTO events ... ON DUPLICATE KEY UPDATE ..."</span>)
+    <span class="kw">return</span> err
+}
+
+<span class="cm">// Commit offset sau khi process thành công</span>
+<span class="cm">// Fail trước commit → message sẽ được retry → idempotent handler safe</span></pre>
+
+          <h4>Quản lý Offset khi Rebalance</h4>
+          <ul>
+            <li>Rebalance trigger: consumer join/leave group, partition count change, <code>max.poll.interval.ms</code> vượt quá.</li>
+            <li>Trong rebalance: consumer dừng đọc, partition được redistribute. <strong>Uncommitted offsets sẽ được re-processed.</strong></li>
+            <li>Minimize rebalance impact: static membership (<code>group.instance.id</code>), incremental cooperative rebalancing (Kafka 2.4+).</li>
+          </ul>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 auto.offset.reset</span>
+            <code>earliest</code>: đọc từ đầu partition khi không có committed offset (new consumer group). <code>latest</code>: chỉ đọc message mới. Fintech thường dùng <code>earliest</code> để không bỏ sót message khi deploy consumer group mới.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q26 -->
+      <div class="q-card" id="q32" data-diff="mid" data-tags="KRaft ZooKeeper Kafka 4.0 Raft quorum controller metadata">
+        <div class="q-header" onclick="toggle('q32')">
+          <span class="q-number">Q26</span>
+          <span class="q-title">KRaft mode — Kafka không cần ZooKeeper, hoạt động thế nào?</span>
+          <div class="q-meta">
+            <span class="q-tag">KRaft</span>
+            <span class="q-tag">ZooKeeper</span>
+            <span class="q-tag">Kafka 4.0</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <p>Kafka 4.0 (phát hành tháng 3/2025) chính thức loại bỏ ZooKeeper, chạy hoàn toàn bằng <strong>KRaft (Kafka Raft)</strong>. Đây là thay đổi kiến trúc lớn nhất trong lịch sử Kafka.</p>
+
+          <h4>Vấn đề với ZooKeeper</h4>
+          <ul>
+            <li><strong>Operational complexity:</strong> phải maintain 2 cluster riêng biệt (ZK + Kafka), 2 set config, 2 set monitoring.</li>
+            <li><strong>Bottleneck:</strong> ZK giới hạn số partition ~100K+ per cluster. Với KRaft có thể scale đến hàng triệu partitions.</li>
+            <li><strong>SPOF:</strong> ZK không ổn định → cả Kafka cluster bị ảnh hưởng.</li>
+            <li><strong>Latency:</strong> ZK round-trip tạo latency cho metadata operations.</li>
+          </ul>
+
+          <h4>KRaft hoạt động thế nào</h4>
+          <ul>
+            <li><strong>Quorum Controller:</strong> một số broker được đề cử làm controller nodes, tạo thành Raft quorum (thường 3 hoặc 5 nodes).</li>
+            <li>Controller nodes dùng Raft consensus protocol để bầu leader và replicate metadata log.</li>
+            <li><strong>Metadata log</strong> = event-sourced store — tất cả thay đổi (topic create, partition reassign, broker join/leave) được append vào log, không phải update in-place.</li>
+            <li>Recovery nhanh: controller mới catch up bằng cách replay metadata log + snapshot.</li>
+          </ul>
+
+<pre><span class="cm"># KRaft mode config (Kafka 4.0)</span>
+process.roles=broker,controller   <span class="cm"># combined node</span>
+node.id=1
+controller.quorum.voters=1@host1:9093,2@host2:9093,3@host3:9093
+
+<span class="cm"># Không còn zookeeper.connect config</span>
+<span class="cm"># Bootstrap: kafka-storage.sh format --config server.properties \</span>
+<span class="cm">#   --cluster-id $(kafka-storage.sh random-uuid)</span></pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Migration path</span>
+            Nếu đang chạy Kafka 2.x/3.x với ZooKeeper: có thể migrate sang KRaft mode bằng migration tool trong Kafka 3.5+. Kafka 4.0 remove ZooKeeper hoàn toàn. Production recommendation: test KRaft trên non-critical cluster trước khi migrate main cluster.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CATEGORY 10: DESIGN PATTERNS & SOLID -->
+    <!-- ============================================================ -->
+    <div class="category-block" id="cat-patterns">
+      <div class="category-header">
+        <div class="category-icon" style="background: rgba(52,211,153,0.12);">🎨</div>
+        <h2 style="color: var(--cat-soft);">Design Patterns & SOLID</h2>
+        <span class="category-count">4 câu</span>
+      </div>
+
+      <!-- Q27 -->
+      <div class="q-card" id="q33" data-diff="mid" data-tags="SOLID SRP OCP LSP ISP DIP single responsibility open closed dependency inversion golang">
+        <div class="q-header" onclick="toggle('q33')">
+          <span class="q-number">Q27</span>
+          <span class="q-title">SOLID Principles trong Go — ví dụ thực tế từng nguyên tắc?</span>
+          <div class="q-meta">
+            <span class="q-tag">SOLID</span>
+            <span class="q-tag">design</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <table class="comp-table">
+            <tr><th>Principle</th><th>Định nghĩa</th><th>Go Application</th></tr>
+            <tr><td><strong>S — SRP</strong></td><td>1 struct, 1 lý do thay đổi</td><td>Tách TradeRepository (lưu DB) và TradeValidator (validate) — không gom vào 1 struct</td></tr>
+            <tr><td><strong>O — OCP</strong></td><td>Open for extension, closed for modification</td><td>Interface TradeProcessor — thêm FutureProcessor mới không sửa code cũ</td></tr>
+            <tr><td><strong>L — LSP</strong></td><td>Subtype có thể thay thế parent</td><td>FutureTrade implement Trade interface — dùng thay Trade mà không break behavior</td></tr>
+            <tr><td><strong>I — ISP</strong></td><td>Client không phụ thuộc interface không dùng</td><td>io.Reader, io.Writer, io.Closer nhỏ, composable — không force implement tất cả</td></tr>
+            <tr><td><strong>D — DIP</strong></td><td>Depend on abstractions, not concretions</td><td>TradeProcessor phụ thuộc TradeService interface, không phải SqlTradeRepo trực tiếp</td></tr>
+          </table>
+
+<pre><span class="cm">// D — Dependency Inversion: depend on interface</span>
+<span class="kw">type</span> <span class="type">PaymentStore</span> <span class="kw">interface</span> {
+    Save(p *Payment) <span class="type">error</span>
+    FindByID(id <span class="type">string</span>) (*Payment, <span class="type">error</span>)
+}
+
+<span class="kw">type</span> <span class="type">PaymentService</span> <span class="kw">struct</span> {
+    store <span class="type">PaymentStore</span>  <span class="cm">// interface, không phải *MySQLStore</span>
+}
+
+<span class="cm">// Test: inject MockStore, Production: inject MySQLStore</span>
+<span class="cm">// Không cần sửa PaymentService khi đổi storage layer</span>
+
+<span class="cm">// I — Interface Segregation: nhỏ và focused</span>
+<span class="kw">type</span> <span class="type">Reader</span> <span class="kw">interface</span> { Read(p []<span class="type">byte</span>) (<span class="type">int</span>, <span class="type">error</span>) }
+<span class="kw">type</span> <span class="type">Writer</span> <span class="kw">interface</span> { Write(p []<span class="type">byte</span>) (<span class="type">int</span>, <span class="type">error</span>) }
+<span class="kw">type</span> <span class="type">ReadWriter</span> <span class="kw">interface</span> { <span class="type">Reader</span>; <span class="type">Writer</span> } <span class="cm">// compose</span>
+<span class="cm">// Function chỉ cần read: nhận Reader, không force Writer</span></pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Go và SOLID</span>
+            Go không có class/inheritance nhưng implement SOLID rất tự nhiên qua interface + composition. DIP đặc biệt quan trọng cho testability — mọi external dependency (DB, cache, HTTP client) nên được inject qua interface. Tại 9Pay: payment service inject bank client interface → unit test với mock, integration test với real bank sandbox.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q28 -->
+      <div class="q-card" id="q34" data-diff="mid" data-tags="creational design pattern singleton factory abstract factory prototype golang sync once">
+        <div class="q-header" onclick="toggle('q34')">
+          <span class="q-number">Q28</span>
+          <span class="q-title">Creational Patterns — Singleton, Factory, Abstract Factory trong Go?</span>
+          <div class="q-meta">
+            <span class="q-tag">singleton</span>
+            <span class="q-tag">factory</span>
+            <span class="q-tag">creational</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <h4>Singleton — sync.Once</h4>
+          <p>Đảm bảo chỉ 1 instance trong toàn chương trình. Go dùng <code>sync.Once</code> để thread-safe initialization.</p>
+<pre><span class="kw">var</span> (
+    once     sync.Once
+    instance *DBPool
+)
+
+<span class="kw">func</span> <span class="fn">GetDB</span>() *DBPool {
+    once.Do(<span class="kw">func</span>() {
+        instance = <span class="fn">newDBPool</span>() <span class="cm">// chỉ chạy 1 lần dù nhiều goroutine</span>
+    })
+    <span class="kw">return</span> instance
+}
+<span class="cm">// Tại 9Pay: DB connection pool, Redis client — Singleton pattern</span></pre>
+
+          <h4>Factory Method — trả về interface, hide implementation</h4>
+<pre><span class="kw">type</span> <span class="type">NotificationSender</span> <span class="kw">interface</span> {
+    Send(to, msg <span class="type">string</span>) <span class="type">error</span>
+}
+
+<span class="kw">func</span> <span class="fn">NewSender</span>(channel <span class="type">string</span>) <span class="type">NotificationSender</span> {
+    <span class="kw">switch</span> channel {
+    <span class="kw">case</span> <span class="str">"email"</span>:  <span class="kw">return</span> &EmailSender{}
+    <span class="kw">case</span> <span class="str">"sms"</span>:    <span class="kw">return</span> &SMSSender{}
+    <span class="kw">case</span> <span class="str">"slack"</span>:  <span class="kw">return</span> &SlackSender{}
+    <span class="kw">default</span>:       <span class="kw">return</span> &EmailSender{}
+    }
+}
+<span class="cm">// Alert Management: factory tạo notification sender theo config</span></pre>
+
+          <h4>Abstract Factory — family of related objects</h4>
+          <p>Khi cần tạo nhiều loại object liên quan theo "họ" — ví dụ iOS factory tạo IOSSMSSender + IOSEmailSender, Android factory tạo bộ tương ứng. Client chỉ biết factory interface, không biết concrete type.</p>
+
+          <h4>Trade-off khi dùng</h4>
+          <ul>
+            <li><strong>Singleton:</strong> hạn chế testability (hard to mock). Tránh overuse. Chỉ dùng cho truly shared resource (DB pool, config).</li>
+            <li><strong>Factory:</strong> tăng abstraction nhưng thêm indirection. Hữu ích khi creation logic phức tạp hoặc cần runtime decision.</li>
+            <li><strong>Abstract Factory:</strong> phức tạp, nhiều interface. Dùng khi cần swap "họ" implementation theo environment (prod/test/staging).</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Q29 -->
+      <div class="q-card" id="q35" data-diff="mid" data-tags="structural design pattern facade adapter proxy decorator composite golang">
+        <div class="q-header" onclick="toggle('q35')">
+          <span class="q-number">Q29</span>
+          <span class="q-title">Structural Patterns — Facade, Adapter, Proxy, Decorator trong Go?</span>
+          <div class="q-meta">
+            <span class="q-tag">facade</span>
+            <span class="q-tag">adapter</span>
+            <span class="q-tag">proxy</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <table class="comp-table">
+            <tr><th>Pattern</th><th>Mục đích</th><th>Ví dụ thực tế</th></tr>
+            <tr><td><strong>Facade</strong></td><td>Interface đơn giản cho hệ thống phức tạp</td><td>PaymentFacade: ẩn phức tạp của bank API + idempotency + retry</td></tr>
+            <tr><td><strong>Adapter</strong></td><td>Kết nối 2 interface không tương thích</td><td>StripeAdapter implement PaymentProcessor interface từ codebase cũ</td></tr>
+            <tr><td><strong>Proxy</strong></td><td>Wrapper kiểm soát access (logging, caching, auth)</td><td>CachedUserRepo wrap UserRepo, cache result trong Redis</td></tr>
+            <tr><td><strong>Decorator</strong></td><td>Thêm behavior động mà không sửa struct gốc</td><td>LoggingHandler wrap HTTP handler để add request logging</td></tr>
+          </table>
+
+<pre><span class="cm">// Adapter: tích hợp bank partner mới không sửa code cũ</span>
+<span class="kw">type</span> <span class="type">BankTransfer</span> <span class="kw">interface</span> {
+    Transfer(from, to <span class="type">string</span>, amount <span class="type">float64</span>) <span class="type">error</span>
+}
+
+<span class="kw">type</span> <span class="type">VietinBankAdapter</span> <span class="kw">struct</span> { client *vietinbank.Client }
+<span class="kw">func</span> (a *VietinBankAdapter) <span class="fn">Transfer</span>(from, to <span class="type">string</span>, amount <span class="type">float64</span>) <span class="type">error</span> {
+    <span class="cm">// VietinBank SDK có API khác: CreateTransaction(req VietinReq)</span>
+    req := vietinbank.TransactionReq{SenderAcc: from, ReceiverAcc: to, Value: amount}
+    _, err := a.client.CreateTransaction(req)
+    <span class="kw">return</span> err
+}
+
+<span class="cm">// Proxy: caching layer</span>
+<span class="kw">type</span> <span class="type">CachedMerchantRepo</span> <span class="kw">struct</span> {
+    repo  <span class="type">MerchantRepository</span>
+    cache *redis.Client
+}
+<span class="kw">func</span> (c *CachedMerchantRepo) <span class="fn">FindByID</span>(ctx context.Context, id <span class="type">string</span>) (*Merchant, <span class="type">error</span>) {
+    <span class="kw">if</span> cached, err := c.cache.Get(ctx, id).Result(); err == <span class="kw">nil</span> {
+        <span class="kw">return</span> unmarshal(cached)
+    }
+    m, err := c.repo.FindByID(id)
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="kw">return nil</span>, err
+    }
+    c.cache.Set(ctx, id, marshal(m), <span class="num">5</span>*time.Minute)
+    <span class="kw">return</span> m, <span class="kw">nil</span>
+}</pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Decorator với HTTP Middleware</span>
+            Gin/Echo middleware chain là Decorator pattern — mỗi middleware wrap handler thêm behavior (auth check, rate limit, request logging, metrics) mà không sửa business handler. Tại 9Pay: middleware chain = RateLimit → AuthCheck → RequestLogger → BankAPIHandler.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q30 -->
+      <div class="q-card" id="q36" data-diff="mid" data-tags="behavioral design pattern observer strategy iterator golang event driven">
+        <div class="q-header" onclick="toggle('q36')">
+          <span class="q-number">Q30</span>
+          <span class="q-title">Behavioral Patterns — Observer, Strategy, Iterator trong Go?</span>
+          <div class="q-meta">
+            <span class="q-tag">observer</span>
+            <span class="q-tag">strategy</span>
+            <span class="q-tag">behavioral</span>
+            <span class="difficulty-badge diff-mid">Trung bình</span>
+            <span class="toggle-icon">▾</span>
+          </div>
+        </div>
+        <div class="q-body">
+          <table class="comp-table">
+            <tr><th>Pattern</th><th>Mục đích</th><th>Ví dụ thực tế</th></tr>
+            <tr><td><strong>Observer</strong></td><td>1-to-many notification khi state thay đổi. Publisher-subscriber</td><td>Alert fired → notify Slack observer + Email observer + PagerDuty observer</td></tr>
+            <tr><td><strong>Strategy</strong></td><td>Swap algorithm/behavior tại runtime</td><td>PaymentStrategy: CardPayment / BankTransfer / Wallet — chọn theo merchant config</td></tr>
+            <tr><td><strong>Iterator</strong></td><td>Duyệt collection mà không expose cấu trúc nội bộ</td><td>IOCIterator duyệt large IOC dataset page by page từ MongoDB/ES</td></tr>
+          </table>
+
+<pre><span class="cm">// Observer: Alert notification system</span>
+<span class="kw">type</span> <span class="type">AlertObserver</span> <span class="kw">interface</span> {
+    OnAlert(alert Alert)
+}
+
+<span class="kw">type</span> <span class="type">AlertNotifier</span> <span class="kw">struct</span> {
+    mu        sync.Mutex
+    <span class="cm">// map key là interface — an toàn miễn concrete type luôn comparable</span>
+    <span class="cm">// (không chứa field kiểu slice/map/func)</span>
+    observers <span class="kw">map</span>[<span class="type">AlertObserver</span>]<span class="kw">struct</span>{}
+}
+
+<span class="kw">func</span> (n *AlertNotifier) <span class="fn">Register</span>(o <span class="type">AlertObserver</span>) {
+    n.mu.Lock()
+    <span class="kw">defer</span> n.mu.Unlock()
+    n.observers[o] = <span class="kw">struct</span>{}{}
+}
+<span class="kw">func</span> (n *AlertNotifier) <span class="fn">Deregister</span>(o <span class="type">AlertObserver</span>) {
+    n.mu.Lock()
+    <span class="kw">defer</span> n.mu.Unlock()
+    delete(n.observers, o)
+}
+<span class="kw">func</span> (n *AlertNotifier) <span class="fn">Notify</span>(a Alert) {
+    n.mu.Lock() <span class="cm">// Register/Deregister/Notify gọi từ nhiều goroutine → bắt buộc lock</span>
+    <span class="kw">defer</span> n.mu.Unlock()
+    <span class="kw">for</span> o := <span class="kw">range</span> n.observers { <span class="kw">go</span> o.OnAlert(a) } <span class="cm">// async notify</span>
+}
+
+<span class="cm">// Strategy: payment method selection</span>
+<span class="kw">type</span> <span class="type">PaymentStrategy</span> <span class="kw">interface</span> {
+    Pay(amount <span class="type">float64</span>) <span class="type">error</span>
+}
+
+<span class="kw">type</span> <span class="type">PaymentService</span> <span class="kw">struct</span> { strategy <span class="type">PaymentStrategy</span> }
+<span class="kw">func</span> (s *PaymentService) <span class="fn">SetStrategy</span>(st <span class="type">PaymentStrategy</span>) { s.strategy = st }
+<span class="kw">func</span> (s *PaymentService) <span class="fn">Execute</span>(amount <span class="type">float64</span>) <span class="type">error</span> {
+    <span class="kw">return</span> s.strategy.Pay(amount) <span class="cm">// runtime swap mà không sửa service</span>
+}</pre>
+
+          <div class="tip-box">
+            <span class="tip-label">💡 Observer vs Kafka</span>
+            Observer Pattern là in-process event notification. Kafka là distributed pub-sub. Khi nào dùng gì: <br>
+            In-process, same service → Observer (zero latency, no serialization). <br>
+            Cross-service, async, durable → Kafka (Alert Management: trigger → Kafka → multiple notification consumers).
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Toggle card
+function toggle(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('open');
+  updateProgress();
+  updateNavActive(id);
+}
+
+function expandAll() {
+  document.querySelectorAll('.q-card:not(.filtered-out)').forEach(c => c.classList.add('open'));
+  updateProgress();
+}
+
+function collapseAll() {
+  document.querySelectorAll('.q-card').forEach(c => c.classList.remove('open'));
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = document.querySelectorAll('.q-card').length;
+  const opened = document.querySelectorAll('.q-card.open').length;
+  const pct = (opened / total) * 100;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = opened + ' / ' + total + ' reviewed';
+}
+
+function updateNavActive(id) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+}
+
+// Search
+function handleSearch() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('.q-card').forEach(card => {
+    const text = (card.dataset.tags || '') + ' ' + card.innerText;
+    const match = !q || text.toLowerCase().includes(q);
+    card.classList.toggle('filtered-out', !match);
+    if (match) visible++;
+  });
+  document.querySelectorAll('.category-block').forEach(block => {
+    const hasVisible = block.querySelectorAll('.q-card:not(.filtered-out)').length > 0;
+    block.classList.toggle('filtered-out', !hasVisible);
+  });
+  document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+}
+
+// Filter by difficulty
+let currentDiff = 'all';
+function filterDiff(diff, btn) {
+  currentDiff = diff;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.q-card').forEach(card => {
+    const match = diff === 'all' || card.dataset.diff === diff;
+    card.classList.toggle('filtered-out', !match);
+  });
+  document.querySelectorAll('.category-block').forEach(block => {
+    const hasVisible = block.querySelectorAll('.q-card:not(.filtered-out)').length > 0;
+    block.classList.toggle('filtered-out', !hasVisible);
+  });
+  handleSearch();
+}
+
+// Smooth scroll
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+// Keyboard shortcut: / to focus search
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('searchInput').value = '';
+    handleSearch();
+    document.getElementById('searchInput').blur();
+  }
+});
+</script>
+</body>
+</html>
