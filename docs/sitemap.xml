@@ -2,6 +2,30 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://blog.huydang.dev/categories/</loc>
+    <lastmod>2026-09-04T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/go-interview-p2/</loc>
+    <lastmod>2026-09-04T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/golang/</loc>
+    <lastmod>2026-09-04T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/golang/</loc>
+    <lastmod>2026-09-04T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/</loc>
+    <lastmod>2026-09-04T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/interview/</loc>
+    <lastmod>2026-09-04T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/</loc>
+    <lastmod>2026-09-04T10:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2026-09-04T10:00:00+07:00</lastmod>
+  </url><url>
     <loc>https://blog.huydang.dev/tags/backend/</loc>
     <lastmod>2026-08-29T09:00:00+07:00</lastmod>
   </url><url>
@@ -11,31 +35,13 @@
     <loc>https://blog.huydang.dev/posts/backend-interview-cheatsheet/</loc>
     <lastmod>2026-08-29T09:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/categories/</loc>
-    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/tags/database/</loc>
-    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/golang/</loc>
-    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/</loc>
-    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/interview/</loc>
-    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/posts/</loc>
     <lastmod>2026-08-29T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/system-design/</loc>
     <lastmod>2026-08-29T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/system-design/</loc>
-    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/</loc>
     <lastmod>2026-08-29T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/architecture/</loc>
@@ -78,9 +84,6 @@
     <lastmod>2026-08-19T09:30:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/fintech/</loc>
-    <lastmod>2026-08-19T09:30:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/categories/golang/</loc>
     <lastmod>2026-08-19T09:30:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/honeydue/</loc>
