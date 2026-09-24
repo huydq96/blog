@@ -1324,16 +1324,18 @@ Chỉ giúp khi `EXPLAIN` cho thấy **hash join**. Nếu đang là index nested
 
 # Checklist khi một query JOIN chậm
 
-□ 1. Chạy EXPLAIN FORMAT=TREE  -> thuật toán gì? Nested loop hay hash join?  
-□ 2. Chạy EXPLAIN ANALYZE      -> node nào có `loops` lớn? `actual time` nhảy ở đâu?  
-□ 3. Có `type = ALL` trên bảng lớn không?  
-□ 4. Cột join của bảng trong đã có index chưa?  
-□ 5. Hai cột join có CÙNG kiểu / độ dài / charset / collation không?  
-□ 6. `rows` ước tính có lệch xa `rows` thật không?  -> ANALYZE TABLE  
-□ 7. Bảng driving đã được lọc nhỏ nhất có thể chưa?  
-□ 8. Có LEFT JOIN nào đang bị WHERE biến thành INNER JOIN không?  
-□ 9. Có JOIN 1-n nào làm nhân dòng, sai SUM/COUNT không?  
-□ 10. Có thể chuyển sang covering index không?  
+```txt
+□ Chạy EXPLAIN FORMAT=TREE  -> thuật toán gì? Nested loop hay hash join?  
+□ Chạy EXPLAIN ANALYZE      -> node nào có `loops` lớn? `actual time` nhảy ở đâu?  
+□ Có `type = ALL` trên bảng lớn không?  
+□ Cột join của bảng trong đã có index chưa?  
+□ Hai cột join có CÙNG kiểu / độ dài / charset / collation không?  
+□ `rows` ước tính có lệch xa `rows` thật không?  -> ANALYZE TABLE  
+□ Bảng driving đã được lọc nhỏ nhất có thể chưa?  
+□ Có LEFT JOIN nào đang bị WHERE biến thành INNER JOIN không?  
+□ Có JOIN 1-n nào làm nhân dòng, sai SUM/COUNT không?  
+□ Có thể chuyển sang covering index không?  
+```
 
 # Tóm tắt
 
