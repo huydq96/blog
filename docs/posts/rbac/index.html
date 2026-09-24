@@ -1,0 +1,2365 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>RBAC: Phân Quyền Theo Vai Trò, Từ Mô Hình Đến Dòng Code | Huy Dang Blog</title>
+<meta name="keywords" content="security, rbac, authorization, golang, jwt">
+<meta name="description" content="RBAC là gì, mô hình chuẩn NIST, cách implement với JWT &#43; Go &#43; MySQL &#43; Redis, ưu nhược điểm và những chỗ RBAC không đủ dùng">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/rbac/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/rbac/">
+
+<meta name="twitter:title" content="RBAC: Phân Quyền Theo Vai Trò, Từ Mô Hình Đến Dòng Code | Huy Dang Blog" />
+<meta name="twitter:description" content="RBAC là gì, mô hình chuẩn NIST, cách implement với JWT &#43; Go &#43; MySQL &#43; Redis, ưu nhược điểm và những chỗ RBAC không đủ dùng" />
+<meta property="og:title" content="RBAC: Phân Quyền Theo Vai Trò, Từ Mô Hình Đến Dòng Code | Huy Dang Blog" />
+<meta property="og:description" content="RBAC là gì, mô hình chuẩn NIST, cách implement với JWT &#43; Go &#43; MySQL &#43; Redis, ưu nhược điểm và những chỗ RBAC không đủ dùng" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/rbac/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-09-23T09:00:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-09-23T09:00:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "RBAC: Phân Quyền Theo Vai Trò, Từ Mô Hình Đến Dòng Code",
+      "item": "https://blog.huydang.dev/posts/rbac/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "RBAC: Phân Quyền Theo Vai Trò, Từ Mô Hình Đến Dòng Code | Huy Dang Blog",
+  "name": "RBAC: Phân Quyền Theo Vai Trò, Từ Mô Hình Đến Dòng Code",
+  "description": "RBAC là gì, mô hình chuẩn NIST, cách implement với JWT + Go + MySQL + Redis, ưu nhược điểm và những chỗ RBAC không đủ dùng",
+  "keywords": [
+    "security", "rbac", "authorization", "golang", "jwt"
+  ],
+  "wordCount" : "7356",
+  "inLanguage": "en",
+  "datePublished": "2026-09-23T09:00:00+07:00",
+  "dateModified": "2026-09-23T09:00:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/rbac/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">RBAC: Phân Quyền Theo Vai Trò, Từ Mô Hình Đến Dòng Code</h1>
+    <div class="post-description">RBAC là gì, mô hình chuẩn NIST, cách implement với JWT &#43; Go &#43; MySQL &#43; Redis, ưu nhược điểm và những chỗ RBAC không đủ dùng</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>September 23, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/security/">Security</a><a href="https://blog.huydang.dev/tags/rbac/">Rbac</a><a href="https://blog.huydang.dev/tags/authorization/">Authorization</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/jwt/">Jwt</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>35 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#t%e1%bb%95ng-quan" aria-label="Tổng quan">Tổng quan</a><ul>
+                        
+                <li>
+                    <a href="#authentication--authorization" aria-label="Authentication ≠ Authorization">Authentication ≠ Authorization</a></li></ul>
+                </li>
+                <li>
+                    <a href="#rbac-l%c3%a0-g%c3%ac" aria-label="RBAC là gì?">RBAC là gì?</a><ul>
+                        
+                <li>
+                    <a href="#b%e1%bb%91n-th%c3%a0nh-ph%e1%ba%a7n" aria-label="Bốn thành phần">Bốn thành phần</a></li>
+                <li>
+                    <a href="#quy-%c6%b0%e1%bb%9bc-%c4%91%e1%ba%b7t-t%c3%aan-permission" aria-label="Quy ước đặt tên permission">Quy ước đặt tên permission</a></li></ul>
+                </li>
+                <li>
+                    <a href="#b%e1%bb%91n-nguy%c3%aan-t%e1%ba%afc-n%e1%bb%81n-t%e1%ba%a3ng" aria-label="Bốn nguyên tắc nền tảng">Bốn nguyên tắc nền tảng</a><ul>
+                        
+                <li>
+                    <a href="#1-least-privilege--%c4%91%e1%ba%b7c-quy%e1%bb%81n-t%e1%bb%91i-thi%e1%bb%83u" aria-label="1. Least Privilege — đặc quyền tối thiểu">1. Least Privilege — đặc quyền tối thiểu</a></li>
+                <li>
+                    <a href="#2-separation-of-duties--t%c3%a1ch-bi%e1%bb%87t-nhi%e1%bb%87m-v%e1%bb%a5" aria-label="2. Separation of Duties — tách biệt nhiệm vụ">2. Separation of Duties — tách biệt nhiệm vụ</a></li>
+                <li>
+                    <a href="#3-role-ph%e1%ba%a3n-%c3%a1nh-ch%e1%bb%a9c-n%c4%83ng-kh%c3%b4ng-ph%e1%ba%a3n-%c3%a1nh-con-ng%c6%b0%e1%bb%9di" aria-label="3. Role phản ánh chức năng, không phản ánh con người">3. Role phản ánh chức năng, không phản ánh con người</a></li>
+                <li>
+                    <a href="#4-deny-by-default--m%e1%ba%b7c-%c4%91%e1%bb%8bnh-t%e1%bb%ab-ch%e1%bb%91i" aria-label="4. Deny by Default — mặc định từ chối">4. Deny by Default — mặc định từ chối</a></li></ul>
+                </li>
+                <li>
+                    <a href="#m%c3%b4-h%c3%acnh-chu%e1%ba%a9n-nist--rbac0-%c4%91%e1%ba%bfn-rbac3" aria-label="Mô hình chuẩn NIST — RBAC0 đến RBAC3">Mô hình chuẩn NIST — RBAC0 đến RBAC3</a><ul>
+                        
+                <li>
+                    <a href="#role-hierarchy-trong-th%e1%bb%b1c-t%e1%ba%bf" aria-label="Role hierarchy trong thực tế">Role hierarchy trong thực tế</a></li></ul>
+                </li>
+                <li>
+                    <a href="#c%c3%a1ch-ho%e1%ba%a1t-%c4%91%e1%bb%99ng--lu%e1%bb%93ng-m%e1%bb%99t-request" aria-label="Cách hoạt động — luồng một request">Cách hoạt động — luồng một request</a></li>
+                <li>
+                    <a href="#implement-v%e1%bb%9bi-jwt-go-mysql-v%c3%a0-redis" aria-label="Implement với JWT, Go, MySQL và Redis">Implement với JWT, Go, MySQL và Redis</a><ul>
+                        
+                <li>
+                    <a href="#schema-mysql" aria-label="Schema MySQL">Schema MySQL</a></li>
+                <li>
+                    <a href="#%c4%91%e1%ba%b7t-g%c3%ac-v%c3%a0o-jwt-ba-chi%e1%ba%bfn-l%c6%b0%e1%bb%a3c" aria-label="Đặt gì vào JWT? Ba chiến lược">Đặt gì vào JWT? Ba chiến lược</a></li>
+                <li>
+                    <a href="#code-go--permission-l%c3%a0-ki%e1%bb%83u-c%c3%b3-t%c3%aan-kh%c3%b4ng-ph%e1%ba%a3i-string-tr%e1%ba%a7n" aria-label="Code Go — permission là kiểu có tên, không phải string trần">Code Go — permission là kiểu có tên, không phải string trần</a></li>
+                <li>
+                    <a href="#middleware-gin" aria-label="Middleware Gin">Middleware Gin</a></li>
+                <li>
+                    <a href="#resolver-c%c3%b3-cache--v%c3%a0-b%c3%a0i-to%c3%a1n-invalidation" aria-label="Resolver có cache — và bài toán invalidation">Resolver có cache — và bài toán invalidation</a></li>
+                <li>
+                    <a href="#thu-h%e1%bb%93i-quy%e1%bb%81n-t%e1%bb%a9c-th%c3%ac-v%e1%bb%9bi-jwt" aria-label="Thu hồi quyền tức thì với JWT">Thu hồi quyền tức thì với JWT</a></li></ul>
+                </li>
+                <li>
+                    <a href="#so-s%c3%a1nh-v%e1%bb%9bi-c%c3%a1c-m%c3%b4-h%c3%acnh-kh%c3%a1c" aria-label="So sánh với các mô hình khác">So sánh với các mô hình khác</a></li>
+                <li>
+                    <a href="#%c6%b0u-%c4%91i%e1%bb%83m-v%c3%a0-nh%c6%b0%e1%bb%a3c-%c4%91i%e1%bb%83m" aria-label="Ưu điểm và nhược điểm">Ưu điểm và nhược điểm</a><ul>
+                        
+                <li>
+                    <a href="#%c6%b0u-%c4%91i%e1%bb%83m" aria-label="Ưu điểm">Ưu điểm</a></li>
+                <li>
+                    <a href="#nh%c6%b0%e1%bb%a3c-%c4%91i%e1%bb%83m" aria-label="Nhược điểm">Nhược điểm</a><ul>
+                        
+                <li>
+                    <a href="#1-role-explosion--v%e1%ba%a5n-%c4%91%e1%bb%81-nghi%c3%aam-tr%e1%bb%8dng-nh%e1%ba%a5t" aria-label="1. Role explosion — vấn đề nghiêm trọng nhất">1. Role explosion — vấn đề nghiêm trọng nhất</a></li>
+                <li>
+                    <a href="#2-kh%c3%b4ng-bi%e1%bb%83u-di%e1%bb%85n-%c4%91%c6%b0%e1%bb%a3c-quy%e1%bb%81n-theo-t%e1%bb%abng-b%e1%ba%a3n-ghi" aria-label="2. Không biểu diễn được quyền theo từng bản ghi">2. Không biểu diễn được quyền theo từng bản ghi</a></li>
+                <li>
+                    <a href="#3-c%c3%a1c-nh%c6%b0%e1%bb%a3c-%c4%91i%e1%bb%83m-c%c3%b2n-l%e1%ba%a1i" aria-label="3. Các nhược điểm còn lại">3. Các nhược điểm còn lại</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#use-case-th%e1%bb%b1c-t%e1%ba%bf" aria-label="Use case thực tế">Use case thực tế</a><ul>
+                        
+                <li>
+                    <a href="#1-kubernetes-rbac--m%c3%b4-h%c3%acnh-s%c3%a1ch-gi%c3%a1o-khoa" aria-label="1. Kubernetes RBAC — mô hình sách giáo khoa">1. Kubernetes RBAC — mô hình sách giáo khoa</a></li>
+                <li>
+                    <a href="#2-aws-iam--kh%c3%b4ng-ph%e1%ba%a3i-rbac-thu%e1%ba%a7n-v%c3%a0-bi%e1%ba%bft-%c4%91i%e1%bb%81u-%c4%91%c3%b3-r%e1%ba%a5t-quan-tr%e1%bb%8dng" aria-label="2. AWS IAM — không phải RBAC thuần, và biết điều đó rất quan trọng">2. AWS IAM — không phải RBAC thuần, và biết điều đó rất quan trọng</a></li>
+                <li>
+                    <a href="#3-github--rbac-ph%c3%a2n-c%e1%ba%a5p-trong-th%e1%bb%b1c-t%e1%ba%bf" aria-label="3. GitHub — RBAC phân cấp trong thực tế">3. GitHub — RBAC phân cấp trong thực tế</a></li>
+                <li>
+                    <a href="#4-saas-%c4%91a-tenant--role-ph%e1%ba%a3i-g%e1%ba%afn-v%e1%bb%9bi-tenant" aria-label="4. SaaS đa tenant — role phải gắn với tenant">4. SaaS đa tenant — role phải gắn với tenant</a></li>
+                <li>
+                    <a href="#5-qu%e1%ba%a3n-tr%e1%bb%8b-n%e1%bb%99i-b%e1%bb%99--back-office" aria-label="5. Quản trị nội bộ / back-office">5. Quản trị nội bộ / back-office</a></li></ul>
+                </li>
+                <li>
+                    <a href="#anti-pattern-th%c6%b0%e1%bb%9dng-g%e1%ba%b7p" aria-label="Anti-pattern thường gặp">Anti-pattern thường gặp</a><ul>
+                        
+                <li>
+                    <a href="#anti-pattern-1--ki%e1%bb%83m-tra-role-thay-v%c3%ac-ki%e1%bb%83m-tra-permission" aria-label="Anti-pattern 1 — Kiểm tra ROLE thay vì kiểm tra PERMISSION">Anti-pattern 1 — Kiểm tra ROLE thay vì kiểm tra PERMISSION</a></li>
+                <li>
+                    <a href="#anti-pattern-2--ph%c3%a2n-quy%e1%bb%81n-ch%e1%bb%89-%e1%bb%9f-frontend" aria-label="Anti-pattern 2 — Phân quyền chỉ ở frontend">Anti-pattern 2 — Phân quyền chỉ ở frontend</a></li>
+                <li>
+                    <a href="#anti-pattern-3--g%c3%a1n-permission-th%e1%ba%b3ng-cho-user" aria-label="Anti-pattern 3 — Gán permission thẳng cho user">Anti-pattern 3 — Gán permission thẳng cho user</a></li>
+                <li>
+                    <a href="#anti-pattern-4--kh%c3%b4ng-ghi-log-c%c3%a1c-l%e1%ba%a7n-t%e1%bb%ab-ch%e1%bb%91i" aria-label="Anti-pattern 4 — Không ghi log các lần từ chối">Anti-pattern 4 — Không ghi log các lần từ chối</a></li>
+                <li>
+                    <a href="#anti-pattern-5--fail-open-khi-store-ph%c3%a2n-quy%e1%bb%81n-ch%e1%ba%bft" aria-label="Anti-pattern 5 — Fail open khi store phân quyền chết">Anti-pattern 5 — Fail open khi store phân quyền chết</a></li>
+                <li>
+                    <a href="#anti-pattern-6--route-m%e1%bb%9bi-qu%c3%aan-g%e1%ba%afn-middleware" aria-label="Anti-pattern 6 — Route mới quên gắn middleware">Anti-pattern 6 — Route mới quên gắn middleware</a></li></ul>
+                </li>
+                <li>
+                    <a href="#checklist-tri%e1%bb%83n-khai" aria-label="Checklist triển khai">Checklist triển khai</a></li>
+                <li>
+                    <a href="#t%c3%b3m-t%e1%ba%aft" aria-label="Tóm tắt">Tóm tắt</a></li>
+                <li>
+                    <a href="#tham-kh%e1%ba%a3o" aria-label="Tham khảo">Tham khảo</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="tổng-quan">Tổng quan<a hidden class="anchor" aria-hidden="true" href="#tổng-quan">¶</a></h1>
+<p>Trong <a href="../../posts/owasp/">OWASP Top 10</a>, <strong>Broken Access Control</strong> đứng ở vị trí <strong>A01</strong> — lỗ hổng phổ biến nhất, trên cả injection và lỗi mật mã. Không phải vì phân quyền khó về mặt kỹ thuật, mà vì nó <strong>dễ làm sai một cách im lặng</strong>: quên một middleware ở một route mới thêm, kiểm tra role ở frontend mà quên ở backend, hoặc kiểm tra &ldquo;được xem giao dịch&rdquo; nhưng quên kiểm tra &ldquo;được xem giao dịch <em>này</em>&rdquo;.</p>
+<p>RBAC (Role-Based Access Control) là câu trả lời phổ biến nhất cho bài toán đó. Bài này đi từ mô hình lý thuyết chuẩn, xuống tới schema MySQL và middleware Go thật, rồi nói thẳng về <strong>những chỗ RBAC không đủ dùng</strong> — phần mà phần lớn bài viết về RBAC bỏ qua, và cũng là phần khiến nhiều hệ thống có RBAC đầy đủ vẫn dính A01.</p>
+<hr>
+<h2 id="authentication--authorization">Authentication ≠ Authorization<a hidden class="anchor" aria-hidden="true" href="#authentication--authorization">¶</a></h2>
+<p>Hai khái niệm này bị dùng lẫn lộn liên tục, kể cả trong code review. Phân biệt rất đơn giản:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Authentication (AuthN)</strong></th>
+<th><strong>Authorization (AuthZ)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Câu hỏi</td>
+<td><strong>Bạn là ai?</strong></td>
+<td><strong>Bạn được làm gì?</strong></td>
+</tr>
+<tr>
+<td>Kiểm tra cái gì</td>
+<td>Mật khẩu, JWT signature, OTP, khoá API</td>
+<td>Role, permission, ownership, policy</td>
+</tr>
+<tr>
+<td>Xảy ra khi nào</td>
+<td><strong>Trước</strong></td>
+<td><strong>Sau</strong> AuthN</td>
+</tr>
+<tr>
+<td>Mã lỗi HTTP</td>
+<td><strong>401</strong> Unauthorized</td>
+<td><strong>403</strong> Forbidden</td>
+</tr>
+<tr>
+<td>Thất bại nghĩa là</td>
+<td>&ldquo;Tôi không biết bạn là ai&rdquo;</td>
+<td>&ldquo;Tôi biết bạn là ai, và bạn không được phép&rdquo;</td>
+</tr>
+<tr>
+<td>Thay đổi tần suất</td>
+<td>Hiếm (đổi mật khẩu)</td>
+<td>Thường xuyên (đổi chức vụ, thêm tính năng)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ <strong>Bẫy mã lỗi</strong>: HTTP 401 tên là &ldquo;Unauthorized&rdquo; nhưng thực chất nghĩa là <strong>chưa xác thực</strong>. Sai tên từ trong chuẩn RFC. Đúng ngữ nghĩa phải là: <strong>401 = chưa đăng nhập / token hỏng</strong>, <strong>403 = đã đăng nhập nhưng không đủ quyền</strong>. Trả nhầm 403 khi token hết hạn sẽ khiến client không biết đường refresh token.</p>
+<p>Một số hệ thống cố tình trả <strong>404 thay vì 403</strong> cho tài nguyên nhạy cảm, để không lộ ra rằng tài nguyên đó tồn tại. Đây là lựa chọn có chủ đích, không phải lỗi — nhưng phải nhất quán toàn hệ thống.</p>
+</blockquote>
+<hr>
+<h1 id="rbac-là-gì">RBAC là gì?<a hidden class="anchor" aria-hidden="true" href="#rbac-là-gì">¶</a></h1>
+<p>Ý tưởng cốt lõi chỉ có một câu:</p>
+<blockquote>
+<p><strong>Không gán quyền trực tiếp cho người. Gán quyền cho <em>vai trò</em>, rồi gán <em>vai trò</em> cho người.</strong></p>
+</blockquote>
+<p>Nghe có vẻ chỉ là thêm một lớp gián tiếp thừa thãi. Nhưng lớp gián tiếp đó đổi độ phức tạp từ <code>O(người × quyền)</code> xuống <code>O(người + quyền)</code> — và quan trọng hơn: nó khớp với <strong>cách tổ chức thật vận hành</strong>. Công ty không nghĩ &ldquo;cho anh Huy quyền xoá giao dịch&rdquo;, công ty nghĩ &ldquo;anh Huy là Kế toán trưởng, mà Kế toán trưởng thì được xoá giao dịch&rdquo;.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="rb-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<marker id="rb-arrT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="rb-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="480" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Một request đi qua hai cửa khác nhau</text>
+<rect x="40" y="52" width="130" height="58" rx="10" fill="#FFFFFF" stroke="#57534E" stroke-width="2" filter="url(#rb-sh)"/>
+<rect x="230" y="52" width="190" height="58" rx="10" fill="#E6FBF9" stroke="#0D9488" stroke-width="2.5" filter="url(#rb-sh)"/>
+<rect x="480" y="52" width="190" height="58" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2.5" filter="url(#rb-sh)"/>
+<rect x="730" y="52" width="130" height="58" rx="10" fill="#FFFFFF" stroke="#57534E" stroke-width="2" filter="url(#rb-sh)"/>
+<text x="105" y="78" text-anchor="middle" font-size="12" font-weight="700" fill="#374151">Client</text>
+<text x="105" y="96" text-anchor="middle" font-size="10" fill="#78716C">gửi kèm token</text>
+<text x="325" y="76" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">① AuthN — Bạn là ai?</text>
+<text x="325" y="94" text-anchor="middle" font-size="10" fill="#0F766E">verify chữ ký + hạn token</text>
+<text x="575" y="76" text-anchor="middle" font-size="12" font-weight="800" fill="#7C4A03">② AuthZ — Được làm gì?</text>
+<text x="575" y="94" text-anchor="middle" font-size="10" fill="#92400E">RBAC kiểm tra permission</text>
+<text x="795" y="78" text-anchor="middle" font-size="12" font-weight="700" fill="#374151">Handler</text>
+<text x="795" y="96" text-anchor="middle" font-size="10" fill="#78716C">xử lý nghiệp vụ</text>
+<line x1="172" y1="81" x2="226" y2="81" stroke="#57534E" stroke-width="2" marker-end="url(#rb-arr)"/>
+<line x1="422" y1="81" x2="476" y2="81" stroke="#57534E" stroke-width="2" marker-end="url(#rb-arr)"/>
+<line x1="672" y1="81" x2="726" y2="81" stroke="#57534E" stroke-width="2" marker-end="url(#rb-arr)"/>
+<rect x="258" y="124" width="134" height="26" rx="6" fill="#FFE9EC"/>
+<rect x="508" y="124" width="134" height="26" rx="6" fill="#FFE9EC"/>
+<text x="325" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">thất bại → 401</text>
+<text x="575" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">thất bại → 403</text>
+<line x1="40" y1="172" x2="860" y2="172" stroke="#E7E5E4" stroke-width="2"/>
+<text x="450" y="200" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Mô hình lõi của RBAC — hai quan hệ N:M nối tiếp</text>
+<text x="130" y="232" text-anchor="middle" font-size="12" font-weight="800" fill="#0D9488">USERS</text>
+<text x="430" y="232" text-anchor="middle" font-size="12" font-weight="800" fill="#D97706">ROLES</text>
+<text x="765" y="232" text-anchor="middle" font-size="12" font-weight="800" fill="#6366F1">PERMISSIONS</text>
+<rect x="245" y="218" width="58" height="20" rx="5" fill="#57534E"/>
+<rect x="558" y="218" width="58" height="20" rx="5" fill="#57534E"/>
+<text x="274" y="233" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">N : M</text>
+<text x="587" y="233" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">N : M</text>
+<rect x="60" y="250" width="140" height="44" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<rect x="60" y="310" width="140" height="44" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<rect x="60" y="370" width="140" height="44" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<text x="130" y="277" text-anchor="middle" font-size="12" font-weight="700" fill="#134E4A">An</text>
+<text x="130" y="337" text-anchor="middle" font-size="12" font-weight="700" fill="#134E4A">Binh</text>
+<text x="130" y="397" text-anchor="middle" font-size="12" font-weight="700" fill="#134E4A">Cuong</text>
+<rect x="350" y="250" width="160" height="44" rx="9" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<rect x="350" y="310" width="160" height="44" rx="9" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<rect x="350" y="370" width="160" height="44" rx="9" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="430" y="277" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">Admin</text>
+<text x="430" y="337" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">Accountant</text>
+<text x="430" y="397" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">Viewer</text>
+<rect x="660" y="232" width="210" height="40" rx="8" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.8"/>
+<rect x="660" y="284" width="210" height="40" rx="8" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.8"/>
+<rect x="660" y="336" width="210" height="40" rx="8" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.8"/>
+<rect x="660" y="388" width="210" height="40" rx="8" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.8"/>
+<text x="765" y="257" text-anchor="middle" font-size="11" font-family="monospace" fill="#3730A3">user:manage</text>
+<text x="765" y="309" text-anchor="middle" font-size="11" font-family="monospace" fill="#3730A3">transaction:write</text>
+<text x="765" y="361" text-anchor="middle" font-size="11" font-family="monospace" fill="#3730A3">transaction:read</text>
+<text x="765" y="413" text-anchor="middle" font-size="11" font-family="monospace" fill="#3730A3">budget:read</text>
+<line x1="202" y1="272" x2="346" y2="272" stroke="#0D9488" stroke-width="1.8" marker-end="url(#rb-arrT)"/>
+<line x1="202" y1="332" x2="346" y2="332" stroke="#0D9488" stroke-width="1.8" marker-end="url(#rb-arrT)"/>
+<path d="M202,338 C260,350 290,384 346,390" stroke="#0D9488" stroke-width="1.8" fill="none" marker-end="url(#rb-arrT)"/>
+<line x1="202" y1="392" x2="346" y2="392" stroke="#0D9488" stroke-width="1.8" marker-end="url(#rb-arrT)"/>
+<path d="M512,266 C560,262 610,254 656,252" stroke="#D97706" stroke-width="1.6" fill="none" marker-end="url(#rb-arr)"/>
+<path d="M512,278 C560,286 610,300 656,304" stroke="#D97706" stroke-width="1.6" fill="none" marker-end="url(#rb-arr)"/>
+<path d="M512,326 C560,318 610,308 656,306" stroke="#D97706" stroke-width="1.6" fill="none" marker-end="url(#rb-arr)"/>
+<path d="M512,338 C560,344 610,354 656,356" stroke="#D97706" stroke-width="1.6" fill="none" marker-end="url(#rb-arr)"/>
+<path d="M512,386 C560,378 610,362 656,360" stroke="#D97706" stroke-width="1.6" fill="none" marker-end="url(#rb-arr)"/>
+<path d="M512,398 C560,402 610,408 656,410" stroke="#D97706" stroke-width="1.6" fill="none" marker-end="url(#rb-arr)"/>
+<text x="130" y="440" text-anchor="middle" font-size="10" fill="#0F766E">1 user có thể có nhiều role</text>
+<text x="430" y="440" text-anchor="middle" font-size="10" fill="#92400E">role = chức năng công việc</text>
+<text x="765" y="440" text-anchor="middle" font-size="10" fill="#4338CA">permission = resource:action</text>
+<rect x="150" y="452" width="600" height="20" rx="6" fill="#CCFBF1"/>
+<text x="450" y="466" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">Quyền luôn đi qua ROLE — không bao giờ nối thẳng USER → PERMISSION</text>
+</svg>
+</div>
+<h2 id="bốn-thành-phần">Bốn thành phần<a hidden class="anchor" aria-hidden="true" href="#bốn-thành-phần">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Là gì</th>
+<th>Ví dụ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>User</strong> (Subject)</td>
+<td>Chủ thể thực hiện hành động</td>
+<td><code>user_42</code>, một service account, một API key</td>
+</tr>
+<tr>
+<td><strong>Role</strong></td>
+<td>Một <strong>chức năng công việc</strong>, không phải một con người</td>
+<td><code>accountant</code>, <code>support_agent</code>, <code>billing_admin</code></td>
+</tr>
+<tr>
+<td><strong>Permission</strong></td>
+<td>Một cặp <strong>(tài nguyên, hành động)</strong> được phép</td>
+<td><code>transaction:read</code>, <code>budget:delete</code></td>
+</tr>
+<tr>
+<td><strong>Session</strong></td>
+<td>Tập role <strong>đang được kích hoạt</strong> trong phiên hiện tại</td>
+<td>Token chứa <code>roles: [&quot;viewer&quot;]</code> dù user có 3 role</td>
+</tr>
+</tbody>
+</table>
+<p>Thành phần thứ tư — <strong>Session</strong> — hay bị bỏ qua nhưng rất quan trọng: nó cho phép một user <em>có</em> nhiều role nhưng chỉ <em>kích hoạt</em> một phần trong mỗi phiên. Đây chính là cơ sở của cơ chế &ldquo;sudo mode&rdquo; / &ldquo;elevated session&rdquo;: bạn là admin, nhưng phiên đăng nhập bình thường chỉ chạy với quyền thường; muốn dùng quyền admin phải xác thực lại. Mô hình <code>sudo</code> của Unix và &ldquo;Confirm access&rdquo; của GitHub đều là ý tưởng này.</p>
+<h2 id="quy-ước-đặt-tên-permission">Quy ước đặt tên permission<a hidden class="anchor" aria-hidden="true" href="#quy-ước-đặt-tên-permission">¶</a></h2>
+<p>Đây là quyết định nhỏ nhưng ảnh hưởng suốt đời dự án. Định dạng phổ biến và nên dùng:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">&lt;resource&gt;:&lt;action&gt;
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="n">transaction</span><span class="p">:</span><span class="n">read</span>          <span class="n">transaction</span><span class="p">:</span><span class="n">create</span>      <span class="n">transaction</span><span class="p">:</span><span class="n">delete</span>
+</span></span><span class="line"><span class="cl"><span class="n">budget</span><span class="p">:</span><span class="n">read</span>               <span class="n">budget</span><span class="p">:</span><span class="n">update</span>
+</span></span><span class="line"><span class="cl"><span class="n">user</span><span class="p">:</span><span class="n">manage</span>               <span class="n">report</span><span class="p">:</span><span class="k">export</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Vài nguyên tắc:</p>
+<ul>
+<li><strong>Danh từ số ít cho resource, động từ nguyên thể cho action.</strong> Nhất quán tuyệt đối — <code>transaction:read</code> chứ không lẫn lộn <code>transactions:read</code> và <code>transaction:view</code>.</li>
+<li><strong>Đặt tên theo <em>tài nguyên nghiệp vụ</em>, không theo <em>endpoint</em>.</strong> <code>transaction:read</code> chứ không phải <code>GET_/api/v1/transactions</code>. Endpoint sẽ đổi; khái niệm nghiệp vụ thì không.</li>
+<li><strong>Tách <code>read</code> và <code>list</code></strong> nếu xem một bản ghi và liệt kê toàn bộ là hai mức nhạy cảm khác nhau. Rất hay gặp trong fintech.</li>
+<li><strong>Cẩn thận với wildcard.</strong> <code>transaction:*</code> tiện nhưng nguy hiểm: thêm một action mới <code>transaction:export</code> là mọi role có wildcard tự động được quyền đó — không ai review, không ai biết. Nếu dùng wildcard, hãy giới hạn ở role <code>super_admin</code> và ghi log mỗi lần nó được dùng.</li>
+</ul>
+<hr>
+<h1 id="bốn-nguyên-tắc-nền-tảng">Bốn nguyên tắc nền tảng<a hidden class="anchor" aria-hidden="true" href="#bốn-nguyên-tắc-nền-tảng">¶</a></h1>
+<h2 id="1-least-privilege--đặc-quyền-tối-thiểu">1. Least Privilege — đặc quyền tối thiểu<a hidden class="anchor" aria-hidden="true" href="#1-least-privilege--đặc-quyền-tối-thiểu">¶</a></h2>
+<p>Mỗi role chỉ được đúng những permission cần để làm việc, không hơn một cái nào. Nghe hiển nhiên, nhưng trong thực tế nó bị phá theo hai cách:</p>
+<ul>
+<li><strong>Phình dần theo thời gian</strong>: role <code>support_agent</code> được thêm quyền mỗi khi có một ticket khó, và không bao giờ bị gỡ bớt. Sau hai năm nó gần bằng <code>admin</code>. Cần <strong>review định kỳ</strong> (access recertification), không chỉ cấp quyền một chiều.</li>
+<li><strong>Cấp quyền tạm mà quên thu</strong>: kỹ sư được cấp quyền production để debug sự cố, xong việc không ai gỡ. Giải pháp: role có <strong>hạn</strong> (<code>expires_at</code>), tự hết hiệu lực.</li>
+</ul>
+<h2 id="2-separation-of-duties--tách-biệt-nhiệm-vụ">2. Separation of Duties — tách biệt nhiệm vụ<a hidden class="anchor" aria-hidden="true" href="#2-separation-of-duties--tách-biệt-nhiệm-vụ">¶</a></h2>
+<p>Không một người nào được nắm trọn một quy trình nhạy cảm. Người <em>tạo</em> lệnh chuyển tiền không được là người <em>duyệt</em> lệnh đó. Có hai biến thể:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Static SoD (SSD)</strong></th>
+<th><strong>Dynamic SoD (DSD)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ràng buộc ở đâu</td>
+<td>Lúc <strong>gán</strong> role</td>
+<td>Lúc <strong>kích hoạt</strong> role trong phiên</td>
+</tr>
+<tr>
+<td>Quy tắc</td>
+<td>Một user <strong>không được có</strong> cả hai role xung đột</td>
+<td>Được có cả hai, nhưng <strong>không được dùng cùng lúc</strong></td>
+</tr>
+<tr>
+<td>Ví dụ</td>
+<td>Không ai vừa là <code>payment_creator</code> vừa là <code>payment_approver</code></td>
+<td>Có thể có cả hai, nhưng một phiên chỉ kích hoạt được một</td>
+</tr>
+<tr>
+<td>Đánh đổi</td>
+<td>An toàn hơn, cứng nhắc hơn</td>
+<td>Linh hoạt hơn, cần kiểm soát phiên chặt</td>
+</tr>
+</tbody>
+</table>
+<p>SSD dễ implement hơn nhiều: chỉ cần một bảng <code>role_conflicts</code> và một check lúc gán role. Với công ty nhỏ (ít người, kiêm nhiệm nhiều), DSD thực tế hơn.</p>
+<h2 id="3-role-phản-ánh-chức-năng-không-phản-ánh-con-người">3. Role phản ánh chức năng, không phản ánh con người<a hidden class="anchor" aria-hidden="true" href="#3-role-phản-ánh-chức-năng-không-phản-ánh-con-người">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">❌ role_huy, role_team_ketoan_tang_3, role_nguoi_moi
+</span></span><span class="line"><span class="cl">✅ accountant, transaction_approver, read_only_auditor
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nếu tên role chứa tên người, tên phòng ban cụ thể, hoặc tên một cá nhân — bạn đã quay lại mô hình gán quyền trực tiếp, chỉ là đổi nhãn. Phép thử: <strong>người rời công ty, role có sống tiếp không?</strong> Nếu không, đó không phải role.</p>
+<h2 id="4-deny-by-default--mặc-định-từ-chối">4. Deny by Default — mặc định từ chối<a hidden class="anchor" aria-hidden="true" href="#4-deny-by-default--mặc-định-từ-chối">¶</a></h2>
+<p>Không có permission nghĩa là <strong>không được phép</strong>, chứ không phải &ldquo;chưa quyết định&rdquo;. Điều này nghe hiển nhiên nhưng trong code nó có ý nghĩa rất cụ thể:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ❌ SAI: route mới thêm vào mặc định là PUBLIC
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">r</span> <span class="o">:=</span> <span class="nx">gin</span><span class="p">.</span><span class="nf">New</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="nx">r</span><span class="p">.</span><span class="nf">Use</span><span class="p">(</span><span class="nf">AuthMiddleware</span><span class="p">())</span>              <span class="c1">// chỉ xác thực, không phân quyền
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">r</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/transactions&#34;</span><span class="p">,</span> <span class="nx">h</span><span class="p">.</span><span class="nx">List</span><span class="p">)</span>       <span class="c1">// ai đăng nhập cũng gọi được
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">r</span><span class="p">.</span><span class="nf">DELETE</span><span class="p">(</span><span class="s">&#34;/transactions/:id&#34;</span><span class="p">,</span> <span class="nx">h</span><span class="p">.</span><span class="nx">Del</span><span class="p">)</span> <span class="c1">// ...kể cả cái này
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// ✅ ĐÚNG: mọi route phải khai báo permission, quên là compile/test fail
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">r</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;/transactions&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">RequirePermission</span><span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">PermTransactionRead</span><span class="p">),</span> <span class="nx">h</span><span class="p">.</span><span class="nx">List</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">r</span><span class="p">.</span><span class="nf">DELETE</span><span class="p">(</span><span class="s">&#34;/transactions/:id&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">RequirePermission</span><span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">PermTransactionDelete</span><span class="p">),</span> <span class="nx">h</span><span class="p">.</span><span class="nx">Del</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Cách bảo vệ nguyên tắc này bằng test tự động nằm ở <a href="#anti-pattern-6--route-m%E1%BB%9Bi-qu%C3%AAn-g%E1%BA%AFn-middleware">phần Anti-pattern</a> phía dưới.</p>
+<hr>
+<h1 id="mô-hình-chuẩn-nist--rbac0-đến-rbac3">Mô hình chuẩn NIST — RBAC0 đến RBAC3<a hidden class="anchor" aria-hidden="true" href="#mô-hình-chuẩn-nist--rbac0-đến-rbac3">¶</a></h1>
+<p>Năm 1996, Sandhu và cộng sự đưa ra một họ bốn mô hình RBAC, sau này thành chuẩn <strong>ANSI INCITS 359-2004</strong>. Biết được mình đang ở cấp nào giúp bạn không over-engineer.</p>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 450" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="nl2-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="nl2-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="450" fill="#FFFDF7" rx="16"/>
+<text x="440" y="30" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Bốn cấp độ RBAC — mỗi cấp thêm đúng một ý tưởng</text>
+<rect x="40" y="52" width="210" height="76" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#nl2-sh)"/>
+<rect x="40" y="146" width="210" height="76" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2.5" filter="url(#nl2-sh)"/>
+<rect x="40" y="240" width="210" height="76" rx="10" fill="#EEF2FF" stroke="#6366F1" stroke-width="2.5" filter="url(#nl2-sh)"/>
+<rect x="40" y="334" width="210" height="76" rx="10" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2.5" filter="url(#nl2-sh)"/>
+<text x="145" y="80" text-anchor="middle" font-size="14" font-weight="800" fill="#134E4A">RBAC₀ — Core</text>
+<text x="145" y="102" text-anchor="middle" font-size="11" fill="#0F766E">User · Role · Permission</text>
+<text x="145" y="119" text-anchor="middle" font-size="11" font-weight="700" fill="#0F766E">Session</text>
+<text x="145" y="174" text-anchor="middle" font-size="14" font-weight="800" fill="#7C4A03">RBAC₁ — Hierarchical</text>
+<text x="145" y="196" text-anchor="middle" font-size="11" fill="#92400E">RBAC₀ + role kế thừa</text>
+<text x="145" y="213" text-anchor="middle" font-size="11" font-weight="700" fill="#92400E">quyền của role cha</text>
+<text x="145" y="268" text-anchor="middle" font-size="14" font-weight="800" fill="#3730A3">RBAC₂ — Constrained</text>
+<text x="145" y="290" text-anchor="middle" font-size="11" fill="#4338CA">RBAC₀ + ràng buộc</text>
+<text x="145" y="307" text-anchor="middle" font-size="11" font-weight="700" fill="#4338CA">SoD tĩnh &amp; động</text>
+<text x="145" y="362" text-anchor="middle" font-size="14" font-weight="800" fill="#9F1239">RBAC₃ — Combined</text>
+<text x="145" y="384" text-anchor="middle" font-size="11" fill="#BE123C">RBAC₁ + RBAC₂</text>
+<text x="145" y="401" text-anchor="middle" font-size="11" font-weight="700" fill="#BE123C">đầy đủ nhất</text>
+<rect x="278" y="52" width="562" height="76" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.5"/>
+<rect x="278" y="146" width="562" height="76" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.5"/>
+<rect x="278" y="240" width="562" height="76" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.5"/>
+<rect x="278" y="334" width="562" height="76" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.5"/>
+<text x="298" y="76" font-size="11" font-weight="700" fill="#374151">Mức tối thiểu để gọi là RBAC. Gán user vào role, role vào permission.</text>
+<text x="298" y="96" font-size="11" fill="#57534E">Session cho phép kích hoạt một phần role trong mỗi phiên (nền của sudo mode).</text>
+<text x="298" y="118" font-size="11" font-weight="700" fill="#0F766E">👉 Đủ cho đại đa số ứng dụng web / SaaS giai đoạn đầu.</text>
+<text x="298" y="170" font-size="11" font-weight="700" fill="#374151">Role cha tự động có mọi quyền của role con — mô hình hoá cấp bậc tổ chức.</text>
+<text x="298" y="190" font-size="11" fill="#57534E">senior_accountant ⊃ accountant ⊃ viewer. Giảm mạnh số permission phải khai báo.</text>
+<text x="298" y="212" font-size="11" font-weight="700" fill="#92400E">⚠ Coi chừng vòng lặp kế thừa, và chi phí duyệt cây mỗi lần check.</text>
+<text x="298" y="264" font-size="11" font-weight="700" fill="#374151">Thêm ràng buộc: một số role không được cùng tồn tại trên một người.</text>
+<text x="298" y="284" font-size="11" fill="#57534E">SSD: chặn lúc gán role. DSD: cho phép gán nhưng chặn lúc kích hoạt cùng phiên.</text>
+<text x="298" y="306" font-size="11" font-weight="700" fill="#4338CA">👉 Bắt buộc với fintech, y tế, kế toán — nơi có yêu cầu tuân thủ.</text>
+<text x="298" y="358" font-size="11" font-weight="700" fill="#374151">Gộp cả kế thừa và ràng buộc. Mạnh nhất, nhưng cũng phức tạp nhất.</text>
+<text x="298" y="378" font-size="11" fill="#57534E">Cấp bậc + SoD dễ mâu thuẫn nhau: role cha kế thừa có thể vô tình vi phạm SoD.</text>
+<text x="298" y="400" font-size="11" font-weight="700" fill="#BE123C">👉 Chỉ làm khi thật sự cần — và phải có test kiểm chứng ràng buộc.</text>
+<line x1="145" y1="130" x2="145" y2="142" stroke="#57534E" stroke-width="2" marker-end="url(#nl2-arr)"/>
+<line x1="145" y1="224" x2="145" y2="236" stroke="#57534E" stroke-width="2" marker-end="url(#nl2-arr)"/>
+<line x1="145" y1="318" x2="145" y2="330" stroke="#57534E" stroke-width="2" marker-end="url(#nl2-arr)"/>
+<text x="440" y="436" text-anchor="middle" font-size="11" font-weight="700" fill="#57534E">Bắt đầu ở RBAC₀. Chỉ leo lên cấp trên khi có nhu cầu thật, không leo vì nghe hay.</text>
+</svg>
+</div>
+<h2 id="role-hierarchy-trong-thực-tế">Role hierarchy trong thực tế<a hidden class="anchor" aria-hidden="true" href="#role-hierarchy-trong-thực-tế">¶</a></h2>
+<p>Kế thừa role (<code>RBAC₁</code>) rất hấp dẫn nhưng có một bẫy: <strong>nó nhân số lượng query lên</strong>. Kiểm tra permission giờ không còn là một phép join phẳng mà là duyệt cây.</p>
+<p>Hai cách cài đặt:</p>
+<p><strong>Cách A — Closure table (nên dùng)</strong>: lưu sẵn <em>mọi</em> cặp tổ tiên–hậu duệ, kể cả gián tiếp.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">role_hierarchy</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">parent_role_id</span><span class="w"> </span><span class="nb">INT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">   </span><span class="c1">-- role cấp cao hơn
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="n">child_role_id</span><span class="w">  </span><span class="nb">INT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">   </span><span class="c1">-- role được kế thừa quyền
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="n">depth</span><span class="w">          </span><span class="nb">INT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">   </span><span class="c1">-- 0 = chính nó, 1 = con trực tiếp
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">parent_role_id</span><span class="p">,</span><span class="w"> </span><span class="n">child_role_id</span><span class="p">),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">KEY</span><span class="w"> </span><span class="n">idx_rh_child</span><span class="w"> </span><span class="p">(</span><span class="n">child_role_id</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Query permission vẫn là một phép join phẳng, không đệ quy — đổi lại phải cập nhật bảng này mỗi khi cấu trúc role đổi (hiếm khi xảy ra).</p>
+<p><strong>Cách B — Recursive CTE</strong>: giữ cấu trúc cây đơn giản (<code>roles.parent_id</code>) và duyệt bằng <code>WITH RECURSIVE</code>. Đỡ phải bảo trì, nhưng mỗi lần check là một query đệ quy — không nên đặt ở hot path nếu không cache.</p>
+<blockquote>
+<p><strong>Lời khuyên</strong>: với dưới ~20 role, đừng làm hierarchy. Cứ gán permission phẳng cho từng role. Chi phí trùng lặp một chút permission rẻ hơn nhiều so với chi phí debug một cây kế thừa sai.</p>
+</blockquote>
+<hr>
+<h1 id="cách-hoạt-động--luồng-một-request">Cách hoạt động — luồng một request<a hidden class="anchor" aria-hidden="true" href="#cách-hoạt-động--luồng-một-request">¶</a></h1>
+<p>Đây là phần nối RBAC với <a href="../../posts/jwt/">JWT</a>. Luồng đầy đủ của một request đã đăng nhập:</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="sq-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<marker id="sq-arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<marker id="sq-arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#FF6B6B"/></marker>
+<filter id="sq-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="560" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Một request đi qua tầng phân quyền</text>
+<rect x="34" y="46" width="150" height="40" rx="9" fill="#374151" filter="url(#sq-sh)"/>
+<rect x="250" y="46" width="200" height="40" rx="9" fill="#0D9488" filter="url(#sq-sh)"/>
+<rect x="520" y="46" width="150" height="40" rx="9" fill="#DC2626" filter="url(#sq-sh)"/>
+<rect x="730" y="46" width="140" height="40" rx="9" fill="#6366F1" filter="url(#sq-sh)"/>
+<text x="109" y="71" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Client</text>
+<text x="350" y="71" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">API — Middleware</text>
+<text x="595" y="71" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">Redis (cache)</text>
+<text x="800" y="71" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">MySQL</text>
+<line x1="109" y1="88" x2="109" y2="500" stroke="#D6D3D1" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="350" y1="88" x2="350" y2="500" stroke="#D6D3D1" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="595" y1="88" x2="595" y2="440" stroke="#D6D3D1" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="800" y1="88" x2="800" y2="400" stroke="#D6D3D1" stroke-width="2" stroke-dasharray="5 5"/>
+<line x1="112" y1="112" x2="346" y2="112" stroke="#57534E" stroke-width="2" marker-end="url(#sq-arr)"/>
+<text x="229" y="106" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">① GET /transactions + Bearer JWT</text>
+<rect x="258" y="130" width="184" height="42" rx="8" fill="#E6FBF9" stroke="#0D9488" stroke-width="1.8"/>
+<text x="350" y="148" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">② AuthN: verify chữ ký + exp</text>
+<text x="350" y="164" text-anchor="middle" font-size="10" fill="#0F766E">không chạm DB — sub = user_42</text>
+<line x1="353" y1="196" x2="591" y2="196" stroke="#57534E" stroke-width="2" marker-end="url(#sq-arr)"/>
+<text x="472" y="190" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">③ GET perms:v7:user_42</text>
+<line x1="591" y1="226" x2="353" y2="226" stroke="#0D9488" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#sq-arrG)"/>
+<text x="472" y="220" text-anchor="middle" font-size="10" font-weight="700" fill="#0F766E">④a HIT → trả về ngay (~0.2ms)</text>
+<rect x="150" y="248" width="700" height="132" rx="10" fill="#FFF9F0" stroke="#F8D48A" stroke-width="1.5" stroke-dasharray="6 4"/>
+<text x="172" y="270" font-size="11" font-weight="800" fill="#7C4A03">④b Nếu MISS — chỉ xảy ra lần đầu hoặc sau khi cache bị xoá</text>
+<line x1="353" y1="296" x2="796" y2="296" stroke="#D97706" stroke-width="2" marker-end="url(#sq-arr)"/>
+<text x="574" y="290" text-anchor="middle" font-size="10" font-weight="700" fill="#7C4A03">⑤ JOIN user_roles → role_permissions → permissions</text>
+<line x1="796" y1="324" x2="353" y2="324" stroke="#6366F1" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#sq-arr)"/>
+<text x="574" y="318" text-anchor="middle" font-size="10" font-weight="700" fill="#4338CA">⑥ ["transaction:read", "budget:read"]</text>
+<line x1="353" y1="356" x2="591" y2="356" stroke="#D97706" stroke-width="2" marker-end="url(#sq-arr)"/>
+<text x="472" y="350" text-anchor="middle" font-size="10" font-weight="700" fill="#7C4A03">⑦ SETEX perms:v7:user_42 300</text>
+<rect x="232" y="398" width="236" height="44" rx="8" fill="#FFF3DB" stroke="#F5A623" stroke-width="1.8"/>
+<text x="350" y="416" text-anchor="middle" font-size="10" font-weight="700" fill="#7C4A03">⑧ AuthZ: có "transaction:read"?</text>
+<text x="350" y="432" text-anchor="middle" font-size="10" fill="#92400E">so khớp với permission route yêu cầu</text>
+<line x1="346" y1="466" x2="112" y2="466" stroke="#0D9488" stroke-width="2.2" marker-end="url(#sq-arrG)"/>
+<text x="229" y="460" text-anchor="middle" font-size="10" font-weight="700" fill="#0F766E">⑨ CÓ → 200 OK + dữ liệu</text>
+<line x1="346" y1="492" x2="112" y2="492" stroke="#FF6B6B" stroke-width="2.2" marker-end="url(#sq-arrR)"/>
+<text x="229" y="486" text-anchor="middle" font-size="10" font-weight="700" fill="#9F1239">⑨' KHÔNG → 403 Forbidden</text>
+<rect x="500" y="452" width="380" height="72" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.5"/>
+<text x="520" y="474" font-size="11" font-weight="800" fill="#374151">Vì sao có chữ "v7" trong cache key?</text>
+<text x="520" y="494" font-size="10" fill="#57534E">Đổi permission của một ROLE ảnh hưởng tới MỌI user có role đó.</text>
+<text x="520" y="512" font-size="10" font-weight="700" fill="#0F766E">Tăng version → toàn bộ cache cũ thành mồ côi, tự hết hạn. 1 lệnh.</text>
+<text x="450" y="546" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Điểm mấu chốt: AuthN đọc từ TOKEN, AuthZ đọc từ SERVER — không tin quyền ghi trong token</text>
+</svg>
+</div>
+<p>Điểm quan trọng nhất của sơ đồ trên nằm ở dòng cuối: <strong>danh tính lấy từ token, nhưng quyền thì tra ở server</strong>. Chi tiết vì sao nằm ở phần tiếp theo.</p>
+<hr>
+<h1 id="implement-với-jwt-go-mysql-và-redis">Implement với JWT, Go, MySQL và Redis<a hidden class="anchor" aria-hidden="true" href="#implement-với-jwt-go-mysql-và-redis">¶</a></h1>
+<h2 id="schema-mysql">Schema MySQL<a hidden class="anchor" aria-hidden="true" href="#schema-mysql">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">roles</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">id</span><span class="w">          </span><span class="nb">INT</span><span class="w"> </span><span class="n">AUTO_INCREMENT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">code</span><span class="w">        </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span><span class="w">  </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">          </span><span class="c1">-- &#39;accountant&#39; — dùng trong code
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="n">name</span><span class="w">        </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">          </span><span class="c1">-- &#39;Kế toán viên&#39; — hiển thị cho người
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="n">description</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">created_at</span><span class="w">  </span><span class="n">DATETIME</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">uk_roles_code</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">)</span><span class="w"> </span><span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">permissions</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">id</span><span class="w">       </span><span class="nb">INT</span><span class="w"> </span><span class="n">AUTO_INCREMENT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">code</span><span class="w">     </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">             </span><span class="c1">-- &#39;transaction:read&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="n">resource</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span><span class="w">  </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">             </span><span class="c1">-- &#39;transaction&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="n">action</span><span class="w">   </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span><span class="w">  </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">             </span><span class="c1">-- &#39;read&#39;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">uk_permissions_code</span><span class="w"> </span><span class="p">(</span><span class="n">code</span><span class="p">),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">KEY</span><span class="w"> </span><span class="n">idx_permissions_resource</span><span class="w"> </span><span class="p">(</span><span class="n">resource</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">)</span><span class="w"> </span><span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">user_roles</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">user_id</span><span class="w">    </span><span class="nb">BIGINT</span><span class="w">   </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">role_id</span><span class="w">    </span><span class="nb">INT</span><span class="w">      </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">granted_by</span><span class="w"> </span><span class="nb">BIGINT</span><span class="w">   </span><span class="k">NULL</span><span class="p">,</span><span class="w">                   </span><span class="c1">-- ai cấp — phục vụ audit trail
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="n">granted_at</span><span class="w"> </span><span class="n">DATETIME</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">expires_at</span><span class="w"> </span><span class="n">DATETIME</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">                   </span><span class="c1">-- NULL = vĩnh viễn; có giá trị = quyền tạm
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span><span class="w"> </span><span class="n">role_id</span><span class="p">),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">KEY</span><span class="w"> </span><span class="n">idx_user_roles_role</span><span class="w"> </span><span class="p">(</span><span class="n">role_id</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">)</span><span class="w"> </span><span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">role_permissions</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">role_id</span><span class="w">       </span><span class="nb">INT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">permission_id</span><span class="w"> </span><span class="nb">INT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">role_id</span><span class="p">,</span><span class="w"> </span><span class="n">permission_id</span><span class="p">),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">KEY</span><span class="w"> </span><span class="n">idx_rp_permission</span><span class="w"> </span><span class="p">(</span><span class="n">permission_id</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">)</span><span class="w"> </span><span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Ba chi tiết đáng chú ý trong schema này:</p>
+<ol>
+<li><strong><code>PRIMARY KEY (user_id, role_id)</code></strong> vừa là khoá chính vừa là index cho truy vấn &ldquo;user này có role nào&rdquo; (nhờ tính chất leftmost prefix — xem <a href="../../posts/mysql-index-composite-vs-single/">bài về composite index</a>). Nhưng truy vấn ngược — &ldquo;role này đang gán cho ai&rdquo; — cần index riêng <code>idx_user_roles_role</code>. Thiếu nó, mọi màn hình quản trị liệt kê thành viên của một role sẽ quét toàn bảng.</li>
+<li><strong><code>expires_at</code></strong> biến &ldquo;cấp quyền tạm&rdquo; từ một quy trình thủ công (và hay quên) thành một ràng buộc dữ liệu. Nhớ đưa điều kiện hết hạn vào <strong>mọi</strong> query resolve permission.</li>
+<li><strong><code>granted_by</code></strong> là phần của audit trail. Với hệ thống tài chính, &ldquo;ai cấp quyền này cho ai, lúc nào&rdquo; là câu hỏi kiểm toán viên sẽ hỏi.</li>
+</ol>
+<p>Query resolve toàn bộ permission của một user:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="k">DISTINCT</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">code</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">FROM</span><span class="w">   </span><span class="n">user_roles</span><span class="w">       </span><span class="n">ur</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">JOIN</span><span class="w">   </span><span class="n">role_permissions</span><span class="w"> </span><span class="n">rp</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">rp</span><span class="p">.</span><span class="n">role_id</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="n">ur</span><span class="p">.</span><span class="n">role_id</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">JOIN</span><span class="w">   </span><span class="n">permissions</span><span class="w">      </span><span class="n">p</span><span class="w">  </span><span class="k">ON</span><span class="w"> </span><span class="n">p</span><span class="p">.</span><span class="n">id</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="n">rp</span><span class="p">.</span><span class="n">permission_id</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">WHERE</span><span class="w">  </span><span class="n">ur</span><span class="p">.</span><span class="n">user_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">?</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="p">(</span><span class="n">ur</span><span class="p">.</span><span class="n">expires_at</span><span class="w"> </span><span class="k">IS</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">OR</span><span class="w"> </span><span class="n">ur</span><span class="p">.</span><span class="n">expires_at</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">NOW</span><span class="p">());</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Đây là một <code>eq_ref</code> join chuỗi ba bảng qua khoá chính — rẻ, nhưng chạy <strong>mỗi request</strong> thì vẫn là gánh nặng không cần thiết. Đó là lý do có Redis ở bước sau.</p>
+<h2 id="đặt-gì-vào-jwt-ba-chiến-lược">Đặt gì vào JWT? Ba chiến lược<a hidden class="anchor" aria-hidden="true" href="#đặt-gì-vào-jwt-ba-chiến-lược">¶</a></h2>
+<p>Đây là quyết định thiết kế quan trọng nhất, và cũng là chỗ dễ sai nhất.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="c1">// Chiến lược A — chứa ROLE
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">{</span> <span class="nt">&#34;sub&#34;</span><span class="p">:</span> <span class="s2">&#34;user_42&#34;</span><span class="p">,</span> <span class="nt">&#34;roles&#34;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&#34;accountant&#34;</span><span class="p">],</span> <span class="nt">&#34;exp&#34;</span><span class="p">:</span> <span class="mi">1790000000</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Chiến lược B — chứa PERMISSION đã flatten
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">{</span> <span class="nt">&#34;sub&#34;</span><span class="p">:</span> <span class="s2">&#34;user_42&#34;</span><span class="p">,</span> <span class="nt">&#34;perms&#34;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&#34;transaction:read&#34;</span><span class="p">,</span><span class="s2">&#34;transaction:write&#34;</span><span class="p">,</span><span class="s2">&#34;budget:read&#34;</span><span class="p">],</span> <span class="nt">&#34;exp&#34;</span><span class="p">:</span> <span class="err">...</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Chiến lược C — chỉ chứa danh tính
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">{</span> <span class="nt">&#34;sub&#34;</span><span class="p">:</span> <span class="s2">&#34;user_42&#34;</span><span class="p">,</span> <span class="nt">&#34;exp&#34;</span><span class="p">:</span> <span class="mi">1790000000</span> <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><table>
+<thead>
+<tr>
+<th></th>
+<th><strong>A — roles trong token</strong></th>
+<th><strong>B — permissions trong token</strong></th>
+<th><strong>C — chỉ user_id</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kích thước token</td>
+<td>Nhỏ</td>
+<td><strong>Lớn</strong> — phình theo số permission</td>
+<td>Nhỏ nhất</td>
+</tr>
+<tr>
+<td>Tra cứu mỗi request</td>
+<td>1 lần role→perm (cache được)</td>
+<td><strong>0</strong></td>
+<td>1 lần user→perm (cache được)</td>
+</tr>
+<tr>
+<td>Đổi <strong>permission của role</strong></td>
+<td>Hiệu lực <strong>ngay</strong></td>
+<td>Chờ token hết hạn</td>
+<td>Hiệu lực <strong>ngay</strong></td>
+</tr>
+<tr>
+<td>Đổi <strong>role của user</strong></td>
+<td>Chờ token hết hạn</td>
+<td>Chờ token hết hạn</td>
+<td>Hiệu lực <strong>ngay</strong></td>
+</tr>
+<tr>
+<td>Thu hồi quyền tức thì</td>
+<td>✗</td>
+<td>✗</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Hoạt động khi store chết</td>
+<td>✓</td>
+<td>✓</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>Phù hợp với</td>
+<td>Hệ thống phân tán, nhiều service</td>
+<td>Edge/gateway không có store</td>
+<td><strong>Đa số ứng dụng web</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Khuyến nghị</strong>: dùng <strong>C + cache Redis</strong>. Lý do:</p>
+<ul>
+<li>Token nhỏ và ổn định. Header HTTP bị giới hạn ~8KB ở hầu hết reverse proxy (nginx mặc định <code>4 × 8k</code>); một user có 200 permission là đủ để làm hỏng request theo cách rất khó debug.</li>
+<li>Thu hồi quyền có hiệu lực ngay. Đây không phải chuyện lý thuyết: khi một tài khoản bị chiếm hoặc một nhân viên bị cho nghỉ việc, &ldquo;chờ 15 phút nữa token hết hạn&rdquo; là câu trả lời không chấp nhận được với hệ thống tài chính.</li>
+<li>Chi phí thực tế gần như bằng không nhờ cache — một lần <code>GET</code> Redis khoảng 0,2ms, so với vài chục ms của chính request.</li>
+</ul>
+<p>Chiến lược <strong>A</strong> là trung gian hợp lý nếu bạn có nhiều service và không muốn mọi service đều phụ thuộc vào một store phân quyền chung.</p>
+<blockquote>
+<p>🚫 <strong>Tuyệt đối không dùng B nếu chưa hiểu rõ hệ quả.</strong> Nó nghĩa là: trong khoảng thời gian bằng TTL của token, <strong>bạn không có cách nào gỡ quyền của một người</strong>. Xem thêm phần thu hồi token trong <a href="../../posts/jwt/#23-b%E1%BB%91n-c%C3%A1ch-v%C3%A1-v%C3%A0-gi%C3%A1-c%E1%BB%A7a-t%E1%BB%ABng-c%C3%A1ch">bài về JWT</a>.</p>
+</blockquote>
+<h2 id="code-go--permission-là-kiểu-có-tên-không-phải-string-trần">Code Go — permission là kiểu có tên, không phải string trần<a hidden class="anchor" aria-hidden="true" href="#code-go--permission-là-kiểu-có-tên-không-phải-string-trần">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/domain/auth/permission.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kn">package</span> <span class="nx">auth</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Permission là kiểu riêng, không dùng string trần — để compiler bắt lỗi
+</span></span></span><span class="line"><span class="cl"><span class="c1">// truyền nhầm tham số, và để gom mọi permission vào một chỗ duy nhất.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Permission</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">const</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">PermTransactionRead</span>   <span class="nx">Permission</span> <span class="p">=</span> <span class="s">&#34;transaction:read&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">PermTransactionCreate</span> <span class="nx">Permission</span> <span class="p">=</span> <span class="s">&#34;transaction:create&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">PermTransactionDelete</span> <span class="nx">Permission</span> <span class="p">=</span> <span class="s">&#34;transaction:delete&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">PermBudgetRead</span>        <span class="nx">Permission</span> <span class="p">=</span> <span class="s">&#34;budget:read&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">PermBudgetUpdate</span>      <span class="nx">Permission</span> <span class="p">=</span> <span class="s">&#34;budget:update&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">PermUserManage</span>        <span class="nx">Permission</span> <span class="p">=</span> <span class="s">&#34;user:manage&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// PermissionSet dùng map thay vì slice: kiểm tra O(1), và tự khử trùng lặp
+</span></span></span><span class="line"><span class="cl"><span class="c1">// khi một user có nhiều role cùng cấp một permission.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">PermissionSet</span> <span class="kd">map</span><span class="p">[</span><span class="nx">Permission</span><span class="p">]</span><span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="nx">PermissionSet</span><span class="p">)</span> <span class="nf">Has</span><span class="p">(</span><span class="nx">p</span> <span class="nx">Permission</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">_</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">[</span><span class="nx">p</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">ok</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Resolver nằm ở domain layer dưới dạng interface — implementation
+</span></span></span><span class="line"><span class="cl"><span class="c1">// (MySQL + Redis) thuộc infrastructure. Xem thêm bài về Layered Architecture.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">PermissionResolver</span> <span class="kd">interface</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">PermissionsOf</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">userID</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="nx">PermissionSet</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Vì sao dùng kiểu <code>Permission</code> thay vì <code>string</code>? Vì <code>RequirePermission(&quot;transaction:raed&quot;)</code> sẽ compile bình thường và fail âm thầm lúc chạy, còn <code>RequirePermission(auth.PermTransactionRaed)</code> fail ngay lúc build. Với code phân quyền, đổi lỗi runtime thành lỗi compile là một món hời.</p>
+<h2 id="middleware-gin">Middleware Gin<a hidden class="anchor" aria-hidden="true" href="#middleware-gin">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/presentation/auth/middleware.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kn">package</span> <span class="nx">auth</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">const</span> <span class="nx">ContextUserID</span> <span class="p">=</span> <span class="s">&#34;auth.user_id&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// RequirePermission trả về middleware yêu cầu user phải có ĐỦ TẤT CẢ
+</span></span></span><span class="line"><span class="cl"><span class="c1">// các permission được liệt kê (quan hệ AND).
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">RequirePermission</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">resolver</span> <span class="nx">domainauth</span><span class="p">.</span><span class="nx">PermissionResolver</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">logger</span>   <span class="o">*</span><span class="nx">zap</span><span class="p">.</span><span class="nx">Logger</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">required</span> <span class="o">...</span><span class="nx">domainauth</span><span class="p">.</span><span class="nx">Permission</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">HandlerFunc</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">required</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Fail-fast lúc khởi động: một route &#34;yêu cầu 0 permission&#34; gần như
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// luôn là lỗi gõ nhầm, và nó tạo ra một lỗ hổng im lặng.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nb">panic</span><span class="p">(</span><span class="s">&#34;RequirePermission: phải khai báo ít nhất 1 permission&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// AuthMiddleware (chạy trước) đã verify JWT và set giá trị này.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">userID</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetString</span><span class="p">(</span><span class="nx">ContextUserID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">userID</span> <span class="o">==</span> <span class="s">&#34;&#34;</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">errors</span><span class="p">.</span><span class="nf">RespondError</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">logger</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeUnauthenticated</span><span class="p">,</span> <span class="s">&#34;thiếu danh tính&#34;</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">c</span><span class="p">.</span><span class="nf">Abort</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nx">granted</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">resolver</span><span class="p">.</span><span class="nf">PermissionsOf</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Request</span><span class="p">.</span><span class="nf">Context</span><span class="p">(),</span> <span class="nx">userID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// Lỗi khi tra quyền =&gt; TỪ CHỐI, không bao giờ cho qua.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="c1">// &#34;Fail open&#34; ở tầng phân quyền là lỗi bảo mật, không phải
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="c1">// một sự đánh đổi về tính sẵn sàng.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="nx">errors</span><span class="p">.</span><span class="nf">RespondError</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">logger</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">c</span><span class="p">.</span><span class="nf">Abort</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">need</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">required</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="p">!</span><span class="nx">granted</span><span class="p">.</span><span class="nf">Has</span><span class="p">(</span><span class="nx">need</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nx">logger</span><span class="p">.</span><span class="nf">Info</span><span class="p">(</span><span class="s">&#34;từ chối truy cập&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="nx">zap</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;user_id&#34;</span><span class="p">,</span> <span class="nx">userID</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">                    <span class="nx">zap</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;missing_permission&#34;</span><span class="p">,</span> <span class="nb">string</span><span class="p">(</span><span class="nx">need</span><span class="p">)),</span>
+</span></span><span class="line"><span class="cl">                    <span class="nx">zap</span><span class="p">.</span><span class="nf">String</span><span class="p">(</span><span class="s">&#34;path&#34;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nf">FullPath</span><span class="p">()))</span>
+</span></span><span class="line"><span class="cl">                <span class="nx">errors</span><span class="p">.</span><span class="nf">RespondError</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">logger</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeForbidden</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                        <span class="s">&#34;thiếu quyền: &#34;</span><span class="o">+</span><span class="nb">string</span><span class="p">(</span><span class="nx">need</span><span class="p">)))</span>
+</span></span><span class="line"><span class="cl">                <span class="nx">c</span><span class="p">.</span><span class="nf">Abort</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nf">Next</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Hai quyết định trong đoạn code trên đáng nói rõ:</p>
+<ul>
+<li><strong><code>panic</code> khi danh sách permission rỗng.</strong> Đây là panic lúc <em>đăng ký route</em>, tức lúc khởi động app — không phải lúc phục vụ request. Nó biến một lỗi gõ nhầm im lặng thành một crash ngay khi deploy, trước khi có user nào đi qua route đó.</li>
+<li><strong>Lỗi khi tra quyền thì từ chối.</strong> Nếu Redis và MySQL cùng chết, hệ thống trả 500 cho mọi request — khó chịu, nhưng an toàn. Phương án ngược lại (&ldquo;store chết thì cho qua&rdquo;) biến một sự cố hạ tầng thành một sự cố bảo mật.</li>
+</ul>
+<p>Đăng ký route:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">tx</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nf">Group</span><span class="p">(</span><span class="s">&#34;/transactions&#34;</span><span class="p">,</span> <span class="nf">AuthMiddleware</span><span class="p">(</span><span class="nx">jwtVerifier</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">tx</span><span class="p">.</span><span class="nf">GET</span><span class="p">(</span><span class="s">&#34;&#34;</span><span class="p">,</span>        <span class="nf">RequirePermission</span><span class="p">(</span><span class="nx">res</span><span class="p">,</span> <span class="nx">log</span><span class="p">,</span> <span class="nx">auth</span><span class="p">.</span><span class="nx">PermTransactionRead</span><span class="p">),</span>   <span class="nx">h</span><span class="p">.</span><span class="nx">List</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">tx</span><span class="p">.</span><span class="nf">POST</span><span class="p">(</span><span class="s">&#34;&#34;</span><span class="p">,</span>       <span class="nf">RequirePermission</span><span class="p">(</span><span class="nx">res</span><span class="p">,</span> <span class="nx">log</span><span class="p">,</span> <span class="nx">auth</span><span class="p">.</span><span class="nx">PermTransactionCreate</span><span class="p">),</span> <span class="nx">h</span><span class="p">.</span><span class="nx">Create</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">tx</span><span class="p">.</span><span class="nf">DELETE</span><span class="p">(</span><span class="s">&#34;/:id&#34;</span><span class="p">,</span> <span class="nf">RequirePermission</span><span class="p">(</span><span class="nx">res</span><span class="p">,</span> <span class="nx">log</span><span class="p">,</span> <span class="nx">auth</span><span class="p">.</span><span class="nx">PermTransactionDelete</span><span class="p">),</span> <span class="nx">h</span><span class="p">.</span><span class="nx">Delete</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="resolver-có-cache--và-bài-toán-invalidation">Resolver có cache — và bài toán invalidation<a hidden class="anchor" aria-hidden="true" href="#resolver-có-cache--và-bài-toán-invalidation">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/infrastructure/auth/cached_resolver.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">cachedResolver</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">db</span>    <span class="o">*</span><span class="nx">persistence</span><span class="p">.</span><span class="nx">LoggingDB</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">rdb</span>   <span class="o">*</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Client</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ttl</span>   <span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span>       <span class="c1">// 5 phút là điểm cân bằng hợp lý
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">log</span>   <span class="o">*</span><span class="nx">zap</span><span class="p">.</span><span class="nx">Logger</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">cachedResolver</span><span class="p">)</span> <span class="nf">PermissionsOf</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">userID</span> <span class="kt">string</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span> <span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">PermissionSet</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ver</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nf">globalVersion</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">key</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;perms:v%d:%s&#34;</span><span class="p">,</span> <span class="nx">ver</span><span class="p">,</span> <span class="nx">userID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">raw</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">).</span><span class="nf">Result</span><span class="p">();</span> <span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">decodeSet</span><span class="p">(</span><span class="nx">raw</span><span class="p">),</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">!</span><span class="nx">errors</span><span class="p">.</span><span class="nf">Is</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">Nil</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>   <span class="c1">// lỗi Redis thật =&gt; trả lỗi, KHÔNG âm thầm bỏ qua cache
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">perms</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nf">loadFromDB</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">userID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Lỗi ghi cache không nên làm hỏng request — chỉ log lại.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nf">encodeSet</span><span class="p">(</span><span class="nx">perms</span><span class="p">),</span> <span class="nx">r</span><span class="p">.</span><span class="nx">ttl</span><span class="p">).</span><span class="nf">Err</span><span class="p">();</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">r</span><span class="p">.</span><span class="nx">log</span><span class="p">.</span><span class="nf">Warn</span><span class="p">(</span><span class="s">&#34;không ghi được cache permission&#34;</span><span class="p">,</span> <span class="nx">zap</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">perms</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Phần khó không phải là đọc cache, mà là <strong>xoá cache đúng lúc</strong>. Có hai loại thay đổi, và chúng cần hai cách xử lý khác nhau:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// (1) Đổi role CỦA MỘT USER  -&gt; chỉ cần xoá cache của đúng user đó
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">cachedResolver</span><span class="p">)</span> <span class="nf">InvalidateUser</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">userID</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ver</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nf">globalVersion</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Del</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;perms:v%d:%s&#34;</span><span class="p">,</span> <span class="nx">ver</span><span class="p">,</span> <span class="nx">userID</span><span class="p">)).</span><span class="nf">Err</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// (2) Đổi permission CỦA MỘT ROLE -&gt; ảnh hưởng MỌI user có role đó.
+</span></span></span><span class="line"><span class="cl"><span class="c1">//     Không dùng KEYS/SCAN để quét và xoá (chậm, và block Redis).
+</span></span></span><span class="line"><span class="cl"><span class="c1">//     Chỉ cần tăng version: toàn bộ key cũ lập tức thành mồ côi và
+</span></span></span><span class="line"><span class="cl"><span class="c1">//     tự biến mất theo TTL.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">cachedResolver</span><span class="p">)</span> <span class="nf">InvalidateAll</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Incr</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;perms:version&#34;</span><span class="p">).</span><span class="nf">Err</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Kỹ thuật <strong>version key</strong> này đáng nhớ: nó biến một thao tác xoá hàng loạt (có thể là hàng trăm nghìn key) thành <strong>một lệnh <code>INCR</code> duy nhất</strong>. Đánh đổi là bộ nhớ Redis tạm thời giữ cả key cũ lẫn mới trong khoảng một TTL — chấp nhận được với TTL 5 phút.</p>
+<blockquote>
+<p>⚠️ <strong>Đừng dùng <code>KEYS perms:*</code> rồi <code>DEL</code>.</strong> <code>KEYS</code> quét toàn bộ keyspace và <strong>block Redis single-thread</strong> trong suốt thời gian quét. Trên production với vài triệu key, đó là một sự cố ngừng dịch vụ tự gây ra.</p>
+</blockquote>
+<h2 id="thu-hồi-quyền-tức-thì-với-jwt">Thu hồi quyền tức thì với JWT<a hidden class="anchor" aria-hidden="true" href="#thu-hồi-quyền-tức-thì-với-jwt">¶</a></h2>
+<p>Nếu bạn buộc phải đặt role vào JWT (chiến lược A), vẫn có cách rút ngắn độ trễ thu hồi: thêm claim <code>pv</code> (permission version) vào token và so với giá trị lưu ở server.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Lúc phát hành token
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">claims</span> <span class="o">:=</span> <span class="nx">jwt</span><span class="p">.</span><span class="nx">MapClaims</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;sub&#34;</span><span class="p">:</span> <span class="nx">userID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;pv&#34;</span><span class="p">:</span>  <span class="nf">currentPermVersion</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">userID</span><span class="p">),</span>  <span class="c1">// đọc từ Redis/DB
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="s">&#34;exp&#34;</span><span class="p">:</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Add</span><span class="p">(</span><span class="mi">15</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">).</span><span class="nf">Unix</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Lúc verify — thêm một bước so sánh
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">if</span> <span class="nx">claims</span><span class="p">[</span><span class="s">&#34;pv&#34;</span><span class="p">]</span> <span class="o">!=</span> <span class="nf">currentPermVersion</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">userID</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Quyền đã đổi sau khi token được phát hành =&gt; buộc refresh
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">return</span> <span class="nx">ErrTokenStale</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nhưng nhìn kỹ: bước này <strong>vẫn phải tra store mỗi request</strong>. Nếu đằng nào cũng phải tra, thì tra thẳng permission (chiến lược C) vừa đơn giản hơn vừa chính xác hơn. Đây là lý do C thường thắng trong thực tế — lợi thế &ldquo;stateless&rdquo; của việc nhét quyền vào JWT sẽ biến mất ngay khi bạn cần thu hồi tức thì.</p>
+<hr>
+<h1 id="so-sánh-với-các-mô-hình-khác">So sánh với các mô hình khác<a hidden class="anchor" aria-hidden="true" href="#so-sánh-với-các-mô-hình-khác">¶</a></h1>
+<p>RBAC không phải mô hình duy nhất, và quan trọng hơn — <strong>nó không phải mô hình đủ cho mọi bài toán</strong>.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>ACL</strong></th>
+<th><strong>RBAC</strong></th>
+<th><strong>ABAC</strong></th>
+<th><strong>ReBAC</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Trả lời câu hỏi</td>
+<td>User X có trong danh sách của resource Y?</td>
+<td>Role của user có permission P?</td>
+<td>Thuộc tính có thoả policy?</td>
+<td>Có đường quan hệ từ user tới resource?</td>
+</tr>
+<tr>
+<td>Đơn vị gán quyền</td>
+<td>(user, resource)</td>
+<td>(user, role) + (role, perm)</td>
+<td>rule / policy</td>
+<td>quan hệ (tuple)</td>
+</tr>
+<tr>
+<td>Quyền theo <strong>từng bản ghi</strong></td>
+<td>✓</td>
+<td><strong>✗</strong></td>
+<td>✓</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>Số bản ghi phải lưu</td>
+<td><code>O(user × resource)</code> 💥</td>
+<td><code>O(user + role)</code></td>
+<td><code>O(số rule)</code></td>
+<td><code>O(số quan hệ)</code></td>
+</tr>
+<tr>
+<td>Trả lời &ldquo;ai xem được X?&rdquo;</td>
+<td>Dễ</td>
+<td>Dễ</td>
+<td><strong>Rất khó</strong></td>
+<td>Trung bình</td>
+</tr>
+<tr>
+<td>Độ phức tạp vận hành</td>
+<td>Thấp</td>
+<td><strong>Thấp</strong></td>
+<td>Cao</td>
+<td>Cao</td>
+</tr>
+<tr>
+<td>Ví dụ thật</td>
+<td>Quyền file Unix, S3 ACL</td>
+<td>Kubernetes RBAC, GitHub</td>
+<td>AWS IAM <code>Condition</code>, XACML</td>
+<td>Google Drive, Zanzibar</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ABAC</strong> (Attribute-Based) quyết định dựa trên thuộc tính của chủ thể, tài nguyên và môi trường: <em>&ldquo;cho phép nếu <code>user.department == document.department</code> VÀ giờ hiện tại trong khung hành chính VÀ IP thuộc dải nội bộ&rdquo;</em>. Cực kỳ linh hoạt, nhưng có một nhược điểm chí mạng: <strong>không trả lời được câu hỏi ngược</strong>. Muốn biết &ldquo;ai đang xem được tài liệu này&rdquo;, bạn phải duyệt qua mọi user và chạy toàn bộ policy engine cho từng người.</p>
+<p><strong>ReBAC</strong> (Relationship-Based) mô hình hoá quyền thành đồ thị quan hệ: <em>user → thành viên của → team → editor của → folder → chứa → document</em>. Đây là cách Google Drive hoạt động, và đã được chuẩn hoá qua bài báo <a href="https://research.google/pubs/pub48190/">Google Zanzibar</a> (2019). Các cài đặt mã nguồn mở: <strong>OpenFGA</strong>, <strong>SpiceDB</strong>, <strong>Ory Keto</strong>.</p>
+<div class="zoomable-diagram" style="max-width:860px;margin:2rem auto;">
+<svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="dc-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="dc-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="860" height="520" fill="#FFFDF7" rx="16"/>
+<text x="430" y="30" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Chọn mô hình phân quyền nào?</text>
+<rect x="300" y="50" width="260" height="42" rx="10" fill="#374151" filter="url(#dc-sh)"/>
+<text x="430" y="76" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Cần phân quyền cho hệ thống</text>
+<rect x="272" y="122" width="316" height="50" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2" filter="url(#dc-sh)"/>
+<text x="430" y="143" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">Quyền có phụ thuộc vào TỪNG BẢN GHI</text>
+<text x="430" y="161" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">cụ thể không? (ai sở hữu, ai được chia sẻ)</text>
+<rect x="40" y="208" width="270" height="72" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#dc-sh)"/>
+<text x="175" y="234" text-anchor="middle" font-size="14" font-weight="800" fill="#134E4A">RBAC</text>
+<text x="175" y="254" text-anchor="middle" font-size="11" fill="#0F766E">Quyền theo loại tài nguyên là đủ</text>
+<text x="175" y="271" text-anchor="middle" font-size="11" font-weight="700" fill="#0F766E">👉 Bắt đầu từ đây. Luôn luôn.</text>
+<rect x="470" y="208" width="350" height="50" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2" filter="url(#dc-sh)"/>
+<text x="645" y="229" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">Quan hệ có NHIỀU TẦNG không?</text>
+<text x="645" y="247" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">(team → folder → file → chia sẻ tiếp)</text>
+<rect x="470" y="296" width="350" height="76" rx="10" fill="#EEF2FF" stroke="#6366F1" stroke-width="2.5" filter="url(#dc-sh)"/>
+<text x="645" y="322" text-anchor="middle" font-size="14" font-weight="800" fill="#3730A3">ReBAC</text>
+<text x="645" y="342" text-anchor="middle" font-size="11" fill="#4338CA">Đồ thị quan hệ — Zanzibar / OpenFGA</text>
+<text x="645" y="359" text-anchor="middle" font-size="11" font-weight="700" fill="#4338CA">Google Drive, Notion, Figma</text>
+<rect x="470" y="396" width="350" height="76" rx="10" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2.5" filter="url(#dc-sh)"/>
+<text x="645" y="422" text-anchor="middle" font-size="14" font-weight="800" fill="#9F1239">RBAC + kiểm tra ownership</text>
+<text x="645" y="442" text-anchor="middle" font-size="11" fill="#BE123C">RBAC gác cổng route, domain check chủ sở hữu</text>
+<text x="645" y="459" text-anchor="middle" font-size="11" font-weight="700" fill="#BE123C">👉 Lựa chọn của hầu hết ứng dụng thật</text>
+<rect x="40" y="316" width="270" height="156" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.5"/>
+<text x="60" y="340" font-size="12" font-weight="800" fill="#374151">Còn ABAC thì sao?</text>
+<text x="60" y="362" font-size="11" fill="#57534E">Dùng khi quyền phụ thuộc NGỮ CẢNH:</text>
+<text x="60" y="380" font-size="11" fill="#57534E">giờ làm việc, dải IP, mức rủi ro,</text>
+<text x="60" y="398" font-size="11" fill="#57534E">trạng thái của chính bản ghi.</text>
+<text x="60" y="424" font-size="11" font-weight="700" fill="#9F1239">Nhược điểm lớn nhất:</text>
+<text x="60" y="442" font-size="11" fill="#9F1239">không trả lời được câu hỏi ngược</text>
+<text x="60" y="460" font-size="11" fill="#9F1239">"ai đang xem được tài nguyên X?"</text>
+<line x1="430" y1="94" x2="430" y2="118" stroke="#57534E" stroke-width="2" marker-end="url(#dc-arr)"/>
+<path d="M272,147 L175,147 L175,204" stroke="#0D9488" stroke-width="2" fill="none" marker-end="url(#dc-arr)"/>
+<path d="M588,147 L645,147 L645,204" stroke="#57534E" stroke-width="2" fill="none" marker-end="url(#dc-arr)"/>
+<path d="M500,260 L500,292" stroke="#6366F1" stroke-width="2" fill="none" marker-end="url(#dc-arr)"/>
+<path d="M790,260 L790,330 L790,392" stroke="#FF6B6B" stroke-width="2" fill="none" marker-end="url(#dc-arr)"/>
+<rect x="192" y="136" width="52" height="20" rx="5" fill="#0D9488"/>
+<rect x="596" y="136" width="62" height="20" rx="5" fill="#57534E"/>
+<rect x="452" y="266" width="52" height="20" rx="5" fill="#6366F1"/>
+<rect x="742" y="286" width="62" height="20" rx="5" fill="#FF6B6B"/>
+<text x="218" y="151" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">KHÔNG</text>
+<text x="627" y="151" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">CÓ</text>
+<text x="478" y="281" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">CÓ</text>
+<text x="773" y="301" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">KHÔNG</text>
+<text x="430" y="500" text-anchor="middle" font-size="12" font-weight="700" fill="#57534E">Không có mô hình nào "tốt nhất" — chỉ có mô hình khớp với hình dạng dữ liệu của bạn.</text>
+</svg>
+</div>
+<hr>
+<h1 id="ưu-điểm-và-nhược-điểm">Ưu điểm và nhược điểm<a hidden class="anchor" aria-hidden="true" href="#ưu-điểm-và-nhược-điểm">¶</a></h1>
+<h2 id="ưu-điểm">Ưu điểm<a hidden class="anchor" aria-hidden="true" href="#ưu-điểm">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Ưu điểm</th>
+<th>Vì sao quan trọng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Dễ hiểu với người không phải kỹ sư</strong></td>
+<td>Trưởng phòng nhân sự hiểu được &ldquo;gán role Kế toán&rdquo;, họ không hiểu được policy XACML</td>
+</tr>
+<tr>
+<td><strong>Onboarding / offboarding nhanh</strong></td>
+<td>Nhân viên mới: gán 1-2 role là xong. Nghỉ việc: gỡ hết role, một thao tác</td>
+</tr>
+<tr>
+<td><strong>Audit dễ</strong></td>
+<td>&ldquo;Ai là admin?&rdquo; = một câu query. Với ABAC, câu này gần như không trả lời được</td>
+</tr>
+<tr>
+<td><strong>Tách policy khỏi code</strong></td>
+<td>Đổi quyền của một role là đổi dữ liệu, không phải deploy lại</td>
+</tr>
+<tr>
+<td><strong>Là chuẩn công nghiệp</strong></td>
+<td>Có sẵn trong Kubernetes, Spring Security, Django, Laravel&hellip; không phải tự phát minh</td>
+</tr>
+<tr>
+<td><strong>Chi phí kiểm tra rẻ</strong></td>
+<td>Một phép tra tập hợp, <code>O(1)</code> — không có policy engine nào phải chạy</td>
+</tr>
+</tbody>
+</table>
+<h2 id="nhược-điểm">Nhược điểm<a hidden class="anchor" aria-hidden="true" href="#nhược-điểm">¶</a></h2>
+<h3 id="1-role-explosion--vấn-đề-nghiêm-trọng-nhất">1. Role explosion — vấn đề nghiêm trọng nhất<a hidden class="anchor" aria-hidden="true" href="#1-role-explosion--vấn-đề-nghiêm-trọng-nhất">¶</a></h3>
+<p>Mỗi khi xuất hiện một <strong>chiều</strong> nhu cầu mới, số role không cộng thêm mà <strong>nhân lên</strong>.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="re-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#FF6B6B"/></marker>
+<marker id="re-arrT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="re-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="440" fill="#FFFDF7" rx="16"/>
+<rect x="20" y="18" width="430" height="404" rx="14" fill="#FFF7F7" stroke="#FFC9CC" stroke-width="1.5"/>
+<rect x="466" y="18" width="414" height="404" rx="14" fill="#F2FCFB" stroke="#9BE5DC" stroke-width="1.5"/>
+<text x="235" y="44" text-anchor="middle" font-size="14" font-weight="800" fill="#9F1239">❌ Bệnh: nhân role theo từng chiều</text>
+<text x="673" y="44" text-anchor="middle" font-size="14" font-weight="800" fill="#134E4A">✅ Thuốc: tách chiều ra khỏi role</text>
+<rect x="44" y="60" width="118" height="34" rx="8" fill="#FFFFFF" stroke="#FF6B6B" stroke-width="1.8"/>
+<rect x="180" y="60" width="118" height="34" rx="8" fill="#FFFFFF" stroke="#FF6B6B" stroke-width="1.8"/>
+<rect x="316" y="60" width="110" height="34" rx="8" fill="#FFFFFF" stroke="#FF6B6B" stroke-width="1.8"/>
+<text x="103" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">3 phòng ban</text>
+<text x="239" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">4 cấp bậc</text>
+<text x="371" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">2 vùng</text>
+<text x="171" y="82" text-anchor="middle" font-size="14" font-weight="800" fill="#BE123C">×</text>
+<text x="307" y="82" text-anchor="middle" font-size="14" font-weight="800" fill="#BE123C">×</text>
+<rect x="100" y="112" width="270" height="44" rx="9" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2.5"/>
+<text x="235" y="140" text-anchor="middle" font-size="16" font-weight="800" fill="#9F1239">= 24 role phải tạo và bảo trì</text>
+<text x="235" y="180" text-anchor="middle" font-size="11" font-family="monospace" fill="#BE123C">sales_manager_north · sales_manager_south</text>
+<text x="235" y="198" text-anchor="middle" font-size="11" font-family="monospace" fill="#BE123C">sales_staff_north  · sales_staff_south</text>
+<text x="235" y="216" text-anchor="middle" font-size="11" font-family="monospace" fill="#BE123C">finance_manager_north · finance_manager_south</text>
+<text x="235" y="234" text-anchor="middle" font-size="11" font-family="monospace" fill="#A8A29E">... và 18 role nữa</text>
+<rect x="60" y="256" width="350" height="46" rx="9" fill="#FFFFFF" stroke="#FF6B6B" stroke-width="2"/>
+<text x="235" y="277" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">Thêm 1 phòng ban = thêm 8 role</text>
+<text x="235" y="294" text-anchor="middle" font-size="11" fill="#BE123C">Thêm 1 vùng = thêm 12 role</text>
+<rect x="60" y="318" width="350" height="86" rx="9" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="1.8"/>
+<text x="80" y="340" font-size="11" font-weight="800" fill="#9F1239">Hậu quả thật:</text>
+<text x="80" y="360" font-size="11" fill="#BE123C">• Không ai còn biết role nào cấp quyền gì</text>
+<text x="80" y="378" font-size="11" fill="#BE123C">• Admin gán đại role gần đúng → quyền thừa</text>
+<text x="80" y="396" font-size="11" fill="#BE123C">• Least Privilege sụp đổ trên thực tế</text>
+<rect x="490" y="60" width="176" height="34" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<rect x="684" y="60" width="172" height="34" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<text x="578" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">4 role (theo cấp bậc)</text>
+<text x="770" y="82" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">+ scope là DỮ LIỆU</text>
+<rect x="490" y="112" width="366" height="44" rx="9" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<text x="673" y="140" text-anchor="middle" font-size="16" font-weight="800" fill="#134E4A">= 4 role, không phải 24</text>
+<rect x="490" y="172" width="366" height="106" rx="9" fill="#FFFFFF" stroke="#14B8A6" stroke-width="1.8"/>
+<text x="510" y="194" font-size="11" font-weight="800" fill="#134E4A">user_roles giờ mang thêm phạm vi:</text>
+<text x="510" y="218" font-size="11" font-family="monospace" fill="#0F766E">(user_7, role=manager, dept=sales, region=north)</text>
+<text x="510" y="238" font-size="11" font-family="monospace" fill="#0F766E">(user_7, role=staff,   dept=finance, region=south)</text>
+<text x="510" y="262" font-size="11" fill="#0F766E">Role trả lời "LÀM GÌ", scope trả lời "Ở ĐÂU"</text>
+<rect x="490" y="294" width="366" height="110" rx="9" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.8"/>
+<text x="510" y="316" font-size="11" font-weight="800" fill="#134E4A">Vì sao hiệu quả:</text>
+<text x="510" y="336" font-size="11" fill="#0F766E">• Thêm phòng ban / vùng = thêm DỮ LIỆU, không thêm role</text>
+<text x="510" y="354" font-size="11" fill="#0F766E">• Số role giữ nguyên khi tổ chức phình to</text>
+<text x="510" y="372" font-size="11" fill="#0F766E">• Đây chính là RBAC lai một chút ABAC</text>
+<text x="510" y="394" font-size="11" font-weight="700" fill="#0F766E">• Đánh đổi: mọi phép check phải mang theo ngữ cảnh scope</text>
+<line x1="235" y1="98" x2="235" y2="108" stroke="#FF6B6B" stroke-width="2" marker-end="url(#re-arr)"/>
+<line x1="673" y1="98" x2="673" y2="108" stroke="#0D9488" stroke-width="2" marker-end="url(#re-arrT)"/>
+</svg>
+</div>
+<h3 id="2-không-biểu-diễn-được-quyền-theo-từng-bản-ghi">2. Không biểu diễn được quyền theo từng bản ghi<a hidden class="anchor" aria-hidden="true" href="#2-không-biểu-diễn-được-quyền-theo-từng-bản-ghi">¶</a></h3>
+<p>Đây là nhược điểm bị hiểu lầm nhiều nhất, và là <strong>nguyên nhân số một khiến hệ thống có RBAC đầy đủ vẫn dính lỗi A01</strong>.</p>
+<p>RBAC trả lời được: <em>&ldquo;Role này có được đọc giao dịch không?&rdquo;</em>
+RBAC <strong>không</strong> trả lời được: <em>&ldquo;User này có được đọc giao dịch <strong>này</strong> không?&rdquo;</em></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ✅ RBAC đã làm đúng phần của nó: user có permission transaction:read
+</span></span></span><span class="line"><span class="cl"><span class="c1">// ❌ Nhưng đây vẫn là lỗ hổng IDOR — đọc được giao dịch của người khác!
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">Handler</span><span class="p">)</span> <span class="nf">Get</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">txn</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">h</span><span class="p">.</span><span class="nx">repo</span><span class="p">.</span><span class="nf">GetByID</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nf">Param</span><span class="p">(</span><span class="s">&#34;id&#34;</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nx">txn</span><span class="p">)</span>      <span class="c1">// không hề kiểm tra txn có thuộc về người gọi không
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>RBAC là <strong>cửa vào toà nhà</strong>, không phải <strong>khoá từng căn phòng</strong>. Cần thêm một tầng kiểm tra quyền sở hữu ở tầng domain:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">Handler</span><span class="p">)</span> <span class="nf">Get</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">userID</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetString</span><span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">ContextUserID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">txn</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">h</span><span class="p">.</span><span class="nx">repo</span><span class="p">.</span><span class="nf">GetByID</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nf">Param</span><span class="p">(</span><span class="s">&#34;id&#34;</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Tầng thứ hai: RBAC cho biết ĐƯỢC ĐỌC GIAO DỊCH,
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// domain service cho biết ĐƯỢC ĐỌC GIAO DỊCH NÀY.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="p">!</span><span class="nx">h</span><span class="p">.</span><span class="nx">privacyService</span><span class="p">.</span><span class="nf">CanUserSeeTransaction</span><span class="p">(</span><span class="nx">userID</span><span class="p">,</span> <span class="nx">txn</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">errors</span><span class="p">.</span><span class="nf">RespondError</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">h</span><span class="p">.</span><span class="nx">log</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeForbidden</span><span class="p">,</span> <span class="s">&#34;không có quyền với bản ghi này&#34;</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nx">h</span><span class="p">.</span><span class="nf">present</span><span class="p">(</span><span class="nx">userID</span><span class="p">,</span> <span class="nx">txn</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Trong dự án Honeydue mình đang làm, đây chính là lý do tồn tại của <code>PrivacyService</code> ở tầng domain: RBAC (hoặc bất kỳ kiểm tra nào ở tầng route) không thể biết một giao dịch có <code>privacy_level = hidden</code> và người đang xem là bạn đời chứ không phải chủ sở hữu. <strong>Phân quyền theo loại tài nguyên nằm ở middleware; phân quyền theo từng bản ghi nằm ở domain.</strong> Trộn lẫn hai tầng này là công thức tạo lỗ hổng.</p>
+<h3 id="3-các-nhược-điểm-còn-lại">3. Các nhược điểm còn lại<a hidden class="anchor" aria-hidden="true" href="#3-các-nhược-điểm-còn-lại">¶</a></h3>
+<table>
+<thead>
+<tr>
+<th>Nhược điểm</th>
+<th>Biểu hiện</th>
+<th>Cách giảm nhẹ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Không xử lý được <strong>ngữ cảnh</strong></td>
+<td>Không diễn đạt được &ldquo;chỉ trong giờ hành chính&rdquo;, &ldquo;chỉ từ IP nội bộ&rdquo;</td>
+<td>Lai thêm ABAC cho đúng những rule cần</td>
+</tr>
+<tr>
+<td>Thay đổi cần <strong>thao tác thủ công</strong></td>
+<td>Quyền không tự động theo dữ liệu (thăng chức phải có người vào gán role)</td>
+<td>Đồng bộ từ hệ thống HR, hoặc dùng SCIM</td>
+</tr>
+<tr>
+<td><strong>Độ trễ thu hồi</strong> khi dùng JWT</td>
+<td>Gỡ role xong người dùng vẫn truy cập được tới khi token hết hạn</td>
+<td>Chiến lược C + cache, hoặc TTL ngắn</td>
+</tr>
+<tr>
+<td>Role <strong>phình dần</strong></td>
+<td>Role tích tụ permission qua năm tháng, không ai gỡ</td>
+<td>Review định kỳ + <code>expires_at</code> cho quyền tạm</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="use-case-thực-tế">Use case thực tế<a hidden class="anchor" aria-hidden="true" href="#use-case-thực-tế">¶</a></h1>
+<h2 id="1-kubernetes-rbac--mô-hình-sách-giáo-khoa">1. Kubernetes RBAC — mô hình sách giáo khoa<a hidden class="anchor" aria-hidden="true" href="#1-kubernetes-rbac--mô-hình-sách-giáo-khoa">¶</a></h2>
+<p>Kubernetes là ví dụ RBAC sạch nhất đang chạy ở quy mô lớn. Bốn đối tượng, ánh xạ gần như một-một với mô hình lý thuyết:</p>
+<table>
+<thead>
+<tr>
+<th>Kubernetes</th>
+<th>Tương ứng trong RBAC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Role</code> (trong một namespace)</td>
+<td>Tập permission, có phạm vi</td>
+</tr>
+<tr>
+<td><code>ClusterRole</code> (toàn cluster)</td>
+<td>Tập permission, toàn cục</td>
+</tr>
+<tr>
+<td><code>RoleBinding</code></td>
+<td>Gán role cho user/group/service-account</td>
+</tr>
+<tr>
+<td><code>ClusterRoleBinding</code></td>
+<td>Gán role toàn cục</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># Role: định nghĩa ĐƯỢC LÀM GÌ, trong namespace nào</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">rbac.authorization.k8s.io/v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Role</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l">honeydue</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">pod-reader</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">rules</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span>- <span class="nt">apiGroups</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&#34;&#34;</span><span class="p">]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">resources</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&#34;pods&#34;</span><span class="p">,</span><span class="w"> </span><span class="s2">&#34;pods/log&#34;</span><span class="p">]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">verbs</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&#34;get&#34;</span><span class="p">,</span><span class="w"> </span><span class="s2">&#34;list&#34;</span><span class="p">,</span><span class="w"> </span><span class="s2">&#34;watch&#34;</span><span class="p">]</span><span class="w">      </span><span class="c"># chính là &#34;action&#34; trong resource:action</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nn">---</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># RoleBinding: gán role đó CHO AI</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l">rbac.authorization.k8s.io/v1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">RoleBinding</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">metadata</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">namespace</span><span class="p">:</span><span class="w"> </span><span class="l">honeydue</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">read-pods</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">subjects</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span>- <span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">ServiceAccount</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">monitoring</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">roleRef</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l">Role</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l">pod-reader</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">apiGroup</span><span class="p">:</span><span class="w"> </span><span class="l">rbac.authorization.k8s.io</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Hai điểm đáng học từ thiết kế của Kubernetes:</p>
+<ul>
+<li><strong>Hoàn toàn cộng dồn (purely additive) — không có luật <code>deny</code>.</strong> Không có quyền nghĩa là bị từ chối, chấm hết. Điều này loại bỏ hẳn một lớp bug kinh điển: thứ tự ưu tiên giữa allow và deny. Khi mọi thứ chỉ là phép hợp, việc suy luận &ldquo;ai có quyền gì&rdquo; trở nên đơn giản.</li>
+<li><strong>Tách <code>Role</code> (có namespace) khỏi <code>ClusterRole</code> (toàn cục).</strong> Chính là kỹ thuật &ldquo;tách scope ra khỏi role&rdquo; đã nói ở trên, được đưa thẳng vào thiết kế API.</li>
+</ul>
+<h2 id="2-aws-iam--không-phải-rbac-thuần-và-biết-điều-đó-rất-quan-trọng">2. AWS IAM — không phải RBAC thuần, và biết điều đó rất quan trọng<a hidden class="anchor" aria-hidden="true" href="#2-aws-iam--không-phải-rbac-thuần-và-biết-điều-đó-rất-quan-trọng">¶</a></h2>
+<p>IAM hay bị gọi là RBAC vì có chữ &ldquo;role&rdquo;, nhưng <strong>IAM role không phải RBAC role</strong> — nó là một danh tính có thể <em>assume</em>, không phải một tập permission gán cho người. Bản thân cơ chế quyết định của IAM gần với <strong>PBAC/ABAC</strong> hơn:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;Effect&#34;</span><span class="p">:</span> <span class="s2">&#34;Allow&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;Action&#34;</span><span class="p">:</span> <span class="s2">&#34;s3:GetObject&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;Resource&#34;</span><span class="p">:</span> <span class="s2">&#34;arn:aws:s3:::my-bucket/*&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;Condition&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;IpAddress&#34;</span><span class="p">:</span>    <span class="p">{</span> <span class="nt">&#34;aws:SourceIp&#34;</span><span class="p">:</span> <span class="s2">&#34;10.0.0.0/8&#34;</span> <span class="p">},</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;StringEquals&#34;</span><span class="p">:</span> <span class="p">{</span> <span class="nt">&#34;aws:PrincipalTag/department&#34;</span><span class="p">:</span> <span class="s2">&#34;finance&#34;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Khối <code>Condition</code> chính là ABAC. Và khác với Kubernetes, IAM <strong>có <code>Deny</code> tường minh, và <code>Deny</code> luôn thắng <code>Allow</code></strong> — mạnh hơn, nhưng cũng khiến việc trả lời &ldquo;rốt cuộc user này có quyền gì&rdquo; trở nên khó hơn nhiều (đó là lý do AWS phải làm riêng công cụ IAM Policy Simulator).</p>
+<h2 id="3-github--rbac-phân-cấp-trong-thực-tế">3. GitHub — RBAC phân cấp trong thực tế<a hidden class="anchor" aria-hidden="true" href="#3-github--rbac-phân-cấp-trong-thực-tế">¶</a></h2>
+<p>GitHub dùng đúng <code>RBAC₁</code>: <code>Read ⊂ Triage ⊂ Write ⊂ Maintain ⊂ Admin</code>. Mỗi cấp bao trùm toàn bộ quyền của cấp dưới. Người dùng chỉ phải chọn một trong năm mức thay vì tích vào ba mươi ô permission.</p>
+<p>Bài học: <strong>role phân cấp là một quyết định về trải nghiệm người dùng nhiều hơn là về kỹ thuật.</strong> Nó đánh đổi tính linh hoạt (không thể tạo ra &ldquo;Write nhưng không được xoá branch&rdquo;) lấy sự đơn giản — và với đa số người dùng, đó là đánh đổi đúng.</p>
+<h2 id="4-saas-đa-tenant--role-phải-gắn-với-tenant">4. SaaS đa tenant — role phải gắn với tenant<a hidden class="anchor" aria-hidden="true" href="#4-saas-đa-tenant--role-phải-gắn-với-tenant">¶</a></h2>
+<p>Đây là chỗ nhiều SaaS làm sai ngay từ đầu. Một user có thể là <strong>Admin ở tổ chức A và Viewer ở tổ chức B</strong>. Nếu <code>user_roles</code> chỉ có <code>(user_id, role_id)</code>, bạn không diễn đạt được điều này — và nếu cố diễn đạt bằng cách tạo role <code>admin_org_A</code>, bạn đã bước thẳng vào role explosion.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">user_roles</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">user_id</span><span class="w">   </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">tenant_id</span><span class="w"> </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">          </span><span class="c1">-- chiều thứ ba, BẮT BUỘC
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="n">role_id</span><span class="w">   </span><span class="nb">INT</span><span class="w">    </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span><span class="w"> </span><span class="n">tenant_id</span><span class="p">,</span><span class="w"> </span><span class="n">role_id</span><span class="p">),</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">KEY</span><span class="w"> </span><span class="n">idx_ur_tenant_role</span><span class="w"> </span><span class="p">(</span><span class="n">tenant_id</span><span class="p">,</span><span class="w"> </span><span class="n">role_id</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">)</span><span class="w"> </span><span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Và mọi phép kiểm tra permission <strong>bắt buộc</strong> phải mang theo tenant:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ❌ Thiếu ngữ cảnh — sẽ cho qua nếu user là admin ở BẤT KỲ tổ chức nào
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">if</span> <span class="nx">perms</span><span class="p">.</span><span class="nf">Has</span><span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">PermUserManage</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ✅ Quyền luôn được tra trong phạm vi một tenant cụ thể
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">perms</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">resolver</span><span class="p">.</span><span class="nf">PermissionsOf</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">userID</span><span class="p">,</span> <span class="nx">tenantID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nx">perms</span><span class="p">.</span><span class="nf">Has</span><span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">PermUserManage</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Lỗi &ldquo;thiếu tenant trong phép kiểm tra quyền&rdquo; là một trong những lỗ hổng nghiêm trọng nhất của SaaS đa tenant — nó cho phép rò rỉ dữ liệu <strong>xuyên khách hàng</strong>. Hãy đưa <code>tenant_id</code> vào <em>chữ ký hàm</em> để compiler bắt buộc mọi call site phải cung cấp nó, thay vì để nó là một tham số tuỳ chọn.</p>
+<h2 id="5-quản-trị-nội-bộ--back-office">5. Quản trị nội bộ / back-office<a hidden class="anchor" aria-hidden="true" href="#5-quản-trị-nội-bộ--back-office">¶</a></h2>
+<p>Nơi RBAC toả sáng rõ nhất: tập người dùng nhỏ và ổn định, chức năng công việc rõ ràng, yêu cầu audit cao. Bộ role điển hình:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">support_l1        → đọc thông tin khách, không đọc dữ liệu tài chính
+</span></span><span class="line"><span class="cl">support_l2        → + đọc giao dịch, tạo yêu cầu hoàn tiền (không duyệt)
+</span></span><span class="line"><span class="cl">finance_operator  → duyệt hoàn tiền dưới hạn mức
+</span></span><span class="line"><span class="cl">finance_manager   → duyệt không giới hạn hạn mức
+</span></span><span class="line"><span class="cl">auditor           → đọc TẤT CẢ, ghi KHÔNG GÌ CẢ
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Để ý role <code>auditor</code>: chỉ đọc, không ghi bất cứ gì. Đây là ứng dụng trực tiếp của SoD — người kiểm tra hệ thống không được có khả năng thay đổi thứ mình đang kiểm tra.</p>
+<hr>
+<h1 id="anti-pattern-thường-gặp">Anti-pattern thường gặp<a hidden class="anchor" aria-hidden="true" href="#anti-pattern-thường-gặp">¶</a></h1>
+<h2 id="anti-pattern-1--kiểm-tra-role-thay-vì-kiểm-tra-permission">Anti-pattern 1 — Kiểm tra ROLE thay vì kiểm tra PERMISSION<a hidden class="anchor" aria-hidden="true" href="#anti-pattern-1--kiểm-tra-role-thay-vì-kiểm-tra-permission">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ❌ Tên role bị đóng cứng trong code nghiệp vụ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">if</span> <span class="nx">user</span><span class="p">.</span><span class="nx">Role</span> <span class="o">==</span> <span class="s">&#34;admin&#34;</span> <span class="o">||</span> <span class="nx">user</span><span class="p">.</span><span class="nx">Role</span> <span class="o">==</span> <span class="s">&#34;finance_manager&#34;</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">approveRefund</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ✅ Code chỉ quan tâm tới KHẢ NĂNG, không quan tâm ai có khả năng đó
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">if</span> <span class="nx">perms</span><span class="p">.</span><span class="nf">Has</span><span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">PermRefundApprove</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">approveRefund</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Vì sao quan trọng: với cách viết đầu, thêm một role mới được duyệt hoàn tiền đòi hỏi <strong>sửa code và deploy lại</strong> — và phải tìm cho hết mọi chỗ có chuỗi <code>&quot;admin&quot;</code> nằm rải rác trong codebase. Với cách thứ hai, đó chỉ là một dòng <code>INSERT</code> vào <code>role_permissions</code>.</p>
+<p>Có đúng <strong>một</strong> ngoại lệ hợp lệ: màn hình quản trị chính các role đó (UI quản lý role), nơi tên role là dữ liệu nghiệp vụ thật.</p>
+<h2 id="anti-pattern-2--phân-quyền-chỉ-ở-frontend">Anti-pattern 2 — Phân quyền chỉ ở frontend<a hidden class="anchor" aria-hidden="true" href="#anti-pattern-2--phân-quyền-chỉ-ở-frontend">¶</a></h2>
+<p>Ẩn nút &ldquo;Xoá&rdquo; trong React là <strong>trải nghiệm người dùng</strong>, không phải bảo mật. Kẻ tấn công không dùng UI của bạn — họ gọi thẳng API bằng <code>curl</code>. Quy tắc: <strong>mọi phép kiểm tra ở frontend phải có một phép kiểm tra tương ứng ở backend.</strong> Frontend quyết định <em>hiển thị gì</em>; backend quyết định <em>cho phép gì</em>.</p>
+<h2 id="anti-pattern-3--gán-permission-thẳng-cho-user">Anti-pattern 3 — Gán permission thẳng cho user<a hidden class="anchor" aria-hidden="true" href="#anti-pattern-3--gán-permission-thẳng-cho-user">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">user_permissions</span><span class="w"> </span><span class="p">(</span><span class="w">   </span><span class="c1">-- 🚩 dấu hiệu mô hình đang bị phá vỡ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="n">user_id</span><span class="w">       </span><span class="nb">BIGINT</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">permission_id</span><span class="w"> </span><span class="nb">INT</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Bảng này luôn xuất hiện với lý do &ldquo;chỉ là trường hợp đặc biệt tạm thời&rdquo;. Sáu tháng sau nó có 4.000 dòng và không ai dám đụng vào. Khi thấy nhu cầu này, hãy tự hỏi: <em>có bao nhiêu người cần đúng tổ hợp quyền này?</em> Nếu nhiều hơn một, đó là một <strong>role mới</strong>, hãy đặt tên cho nó.</p>
+<h2 id="anti-pattern-4--không-ghi-log-các-lần-từ-chối">Anti-pattern 4 — Không ghi log các lần từ chối<a hidden class="anchor" aria-hidden="true" href="#anti-pattern-4--không-ghi-log-các-lần-từ-chối">¶</a></h2>
+<p>Một loạt 403 liên tiếp từ cùng một tài khoản là tín hiệu tấn công rõ ràng nhất mà bạn có được. Không log lại, bạn mất luôn tín hiệu đó. Nhớ <a href="../../posts/owasp/">quy tắc không log dữ liệu nhạy cảm</a> — ghi <code>user_id</code>, permission còn thiếu và route, <strong>không</strong> ghi số tiền hay nội dung bản ghi.</p>
+<h2 id="anti-pattern-5--fail-open-khi-store-phân-quyền-chết">Anti-pattern 5 — Fail open khi store phân quyền chết<a hidden class="anchor" aria-hidden="true" href="#anti-pattern-5--fail-open-khi-store-phân-quyền-chết">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ❌ Redis chết =&gt; tất cả mọi người thành admin
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">perms</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">resolver</span><span class="p">.</span><span class="nf">PermissionsOf</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">userID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nf">Next</span><span class="p">()</span>   <span class="c1">// &#34;tạm cho qua để hệ thống không sập&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">return</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Đây là cách một sự cố hạ tầng biến thành một vụ rò rỉ dữ liệu. Tầng phân quyền phải <strong>luôn fail closed</strong>.</p>
+<h2 id="anti-pattern-6--route-mới-quên-gắn-middleware">Anti-pattern 6 — Route mới quên gắn middleware<a hidden class="anchor" aria-hidden="true" href="#anti-pattern-6--route-mới-quên-gắn-middleware">¶</a></h2>
+<p>Lỗi phổ biến nhất trong thực tế, và may mắn là dễ chặn nhất — bằng một bài test liệt kê mọi route đã đăng ký và khẳng định chúng từ chối request ẩn danh:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">TestMoiRouteDeuYeuCauXacThuc</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">router</span> <span class="o">:=</span> <span class="nf">buildRouter</span><span class="p">(</span><span class="nf">testDeps</span><span class="p">(</span><span class="nx">t</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Danh sách trắng TƯỜNG MINH — thêm route public phải sửa file này,
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// tức là phải đi qua code review.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">public</span> <span class="o">:=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">bool</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;GET /health&#34;</span><span class="p">:</span>         <span class="kc">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;POST /auth/login&#34;</span><span class="p">:</span>    <span class="kc">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;POST /auth/register&#34;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;POST /auth/refresh&#34;</span><span class="p">:</span>  <span class="kc">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">route</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">router</span><span class="p">.</span><span class="nf">Routes</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">key</span> <span class="o">:=</span> <span class="nx">route</span><span class="p">.</span><span class="nx">Method</span> <span class="o">+</span> <span class="s">&#34; &#34;</span> <span class="o">+</span> <span class="nx">route</span><span class="p">.</span><span class="nx">Path</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">public</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">t</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="nx">key</span><span class="p">,</span> <span class="kd">func</span><span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">testing</span><span class="p">.</span><span class="nx">T</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// Gọi KHÔNG kèm token
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="nx">req</span> <span class="o">:=</span> <span class="nx">httptest</span><span class="p">.</span><span class="nf">NewRequest</span><span class="p">(</span><span class="nx">route</span><span class="p">.</span><span class="nx">Method</span><span class="p">,</span> <span class="nf">concretePath</span><span class="p">(</span><span class="nx">route</span><span class="p">.</span><span class="nx">Path</span><span class="p">),</span> <span class="kc">nil</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">w</span> <span class="o">:=</span> <span class="nx">httptest</span><span class="p">.</span><span class="nf">NewRecorder</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">router</span><span class="p">.</span><span class="nf">ServeHTTP</span><span class="p">(</span><span class="nx">w</span><span class="p">,</span> <span class="nx">req</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">            <span class="nx">require</span><span class="p">.</span><span class="nf">Equal</span><span class="p">(</span><span class="nx">t</span><span class="p">,</span> <span class="nx">http</span><span class="p">.</span><span class="nx">StatusUnauthorized</span><span class="p">,</span> <span class="nx">w</span><span class="p">.</span><span class="nx">Code</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="s">&#34;route %s cho qua khi không có token — thiếu AuthMiddleware?&#34;</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">})</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// concretePath thay tham số động bằng giá trị giả: &#34;/transactions/:id&#34; -&gt; &#34;/transactions/1&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">concretePath</span><span class="p">(</span><span class="nx">p</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">string</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">parts</span> <span class="o">:=</span> <span class="nx">strings</span><span class="p">.</span><span class="nf">Split</span><span class="p">(</span><span class="nx">p</span><span class="p">,</span> <span class="s">&#34;/&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">seg</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">parts</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">strings</span><span class="p">.</span><span class="nf">HasPrefix</span><span class="p">(</span><span class="nx">seg</span><span class="p">,</span> <span class="s">&#34;:&#34;</span><span class="p">)</span> <span class="o">||</span> <span class="nx">strings</span><span class="p">.</span><span class="nf">HasPrefix</span><span class="p">(</span><span class="nx">seg</span><span class="p">,</span> <span class="s">&#34;*&#34;</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">parts</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span> <span class="p">=</span> <span class="s">&#34;1&#34;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">strings</span><span class="p">.</span><span class="nf">Join</span><span class="p">(</span><span class="nx">parts</span><span class="p">,</span> <span class="s">&#34;/&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Bài test này rẻ (chạy vài chục ms) và bắt được đúng cái lỗi hay xảy ra nhất: ai đó thêm một endpoint mới lúc 6 giờ chiều thứ Sáu và quên mất middleware. Danh sách trắng tường minh là phần quan trọng nhất — nó biến &ldquo;mở một route ra public&rdquo; thành một thay đổi hiện rõ trong diff.</p>
+<hr>
+<h1 id="checklist-triển-khai">Checklist triển khai<a hidden class="anchor" aria-hidden="true" href="#checklist-triển-khai">¶</a></h1>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">THIẾT KẾ
+</span></span><span class="line"><span class="cl">□ Permission đặt tên theo tài nguyên nghiệp vụ, không theo endpoint
+</span></span><span class="line"><span class="cl">□ Role đặt tên theo chức năng công việc, không theo tên người/phòng ban cụ thể
+</span></span><span class="line"><span class="cl">□ Bắt đầu ở RBAC₀ phẳng — chỉ thêm hierarchy khi đã &gt; 20 role
+</span></span><span class="line"><span class="cl">□ Đa tenant: tenant_id nằm trong user_roles VÀ trong chữ ký hàm check quyền
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">DỮ LIỆU
+</span></span><span class="line"><span class="cl">□ user_roles có expires_at cho quyền cấp tạm
+</span></span><span class="line"><span class="cl">□ user_roles có granted_by phục vụ audit
+</span></span><span class="line"><span class="cl">□ Có index cho cả hai chiều truy vấn (user→role và role→user)
+</span></span><span class="line"><span class="cl">□ Mọi query resolve permission đều lọc điều kiện hết hạn
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">CODE
+</span></span><span class="line"><span class="cl">□ Permission là kiểu có tên, không phải string trần
+</span></span><span class="line"><span class="cl">□ Kiểm tra PERMISSION, không kiểm tra tên ROLE
+</span></span><span class="line"><span class="cl">□ Mọi route khai báo permission tường minh — deny by default
+</span></span><span class="line"><span class="cl">□ Lỗi khi tra quyền =&gt; từ chối (fail closed), không bao giờ cho qua
+</span></span><span class="line"><span class="cl">□ Kiểm tra quyền sở hữu từng bản ghi ở tầng domain, tách khỏi RBAC ở middleware
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">VẬN HÀNH
+</span></span><span class="line"><span class="cl">□ Cache permission có cơ chế invalidate cho CẢ hai loại thay đổi (user và role)
+</span></span><span class="line"><span class="cl">□ Không dùng KEYS/SCAN để xoá cache hàng loạt — dùng version key
+</span></span><span class="line"><span class="cl">□ Ghi log mọi lần từ chối 403 (user_id + permission thiếu + route)
+</span></span><span class="line"><span class="cl">□ Có test khẳng định mọi route không nằm trong whitelist đều trả 401
+</span></span><span class="line"><span class="cl">□ Có quy trình review quyền định kỳ (access recertification)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Câu hỏi</th>
+<th>Trả lời ngắn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RBAC là gì?</td>
+<td>Gán quyền cho <strong>vai trò</strong>, gán vai trò cho <strong>người</strong> — không nối thẳng người với quyền</td>
+</tr>
+<tr>
+<td>401 hay 403?</td>
+<td>401 = chưa xác thực · 403 = đã xác thực nhưng không đủ quyền</td>
+</tr>
+<tr>
+<td>Bắt đầu từ đâu?</td>
+<td><code>RBAC₀</code> phẳng: user ↔ role ↔ permission. Đừng làm hierarchy sớm</td>
+</tr>
+<tr>
+<td>Đặt role vào JWT được không?</td>
+<td>Được, nhưng khi đó <strong>không thể thu hồi quyền tức thì</strong>. Mặc định nên: JWT chỉ chứa <code>sub</code>, permission tra ở server + cache Redis</td>
+</tr>
+<tr>
+<td>Xoá cache permission thế nào?</td>
+<td>Đổi role của user → xoá key của user. Đổi permission của role → <strong>tăng version key</strong>, không dùng <code>KEYS</code></td>
+</tr>
+<tr>
+<td>RBAC có chặn được IDOR không?</td>
+<td><strong>Không.</strong> RBAC là cửa toà nhà; khoá từng phòng phải làm ở tầng domain</td>
+</tr>
+<tr>
+<td>Role explosion xử lý sao?</td>
+<td>Tách các chiều (phòng ban, vùng, tenant) ra thành <strong>dữ liệu scope</strong>, không thành role mới</td>
+</tr>
+<tr>
+<td>Khi nào RBAC không đủ?</td>
+<td>Khi quyền phụ thuộc từng bản ghi (→ ReBAC) hoặc phụ thuộc ngữ cảnh (→ ABAC)</td>
+</tr>
+<tr>
+<td>Lỗi hay gặp nhất?</td>
+<td>Route mới quên middleware — chặn bằng test liệt kê route</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="tham-khảo">Tham khảo<a hidden class="anchor" aria-hidden="true" href="#tham-khảo">¶</a></h1>
+<ul>
+<li><a href="https://csrc.nist.gov/projects/role-based-access-control">NIST — Role Based Access Control</a> (chuẩn ANSI INCITS 359)</li>
+<li>Sandhu, Coyne, Feinstein, Youman — <em>Role-Based Access Control Models</em> (IEEE Computer, 1996) — nguồn gốc của RBAC₀–RBAC₃</li>
+<li><a href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/">Kubernetes — Using RBAC Authorization</a></li>
+<li><a href="https://research.google/pubs/pub48190/">Google Zanzibar: A Global Authorization System</a> — nền tảng của ReBAC</li>
+<li><a href="https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html">OWASP — Authorization Cheat Sheet</a></li>
+<li>Bài liên quan trên blog: <a href="../../posts/owasp/">OWASP Top 10</a> · <a href="../../posts/jwt/">JWT: Những Điều Cần Biết Trước Khi Chọn Nó</a> · <a href="../../posts/mysql-index-composite-vs-single/">MySQL Index: Composite vs Single</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>

@@ -2,13 +2,40 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://blog.huydang.dev/categories/</loc>
-    <lastmod>2026-09-21T10:00:00+07:00</lastmod>
+    <loc>https://blog.huydang.dev/tags/authorization/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/database/</loc>
-    <lastmod>2026-09-21T10:00:00+07:00</lastmod>
+    <loc>https://blog.huydang.dev/categories/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/golang/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/jwt/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/rbac/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/rbac/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/security/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/security/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/database/</loc>
     <lastmod>2026-09-21T10:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/join/</loc>
@@ -26,16 +53,7 @@
     <loc>https://blog.huydang.dev/tags/performance/</loc>
     <lastmod>2026-09-21T10:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/posts/</loc>
-    <lastmod>2026-09-21T10:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/</loc>
-    <lastmod>2026-09-21T10:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/posts/go-interview-p2/</loc>
-    <lastmod>2026-09-04T10:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/golang/</loc>
     <lastmod>2026-09-04T10:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/golang/</loc>
@@ -80,16 +98,7 @@
     <loc>https://blog.huydang.dev/tags/authentication/</loc>
     <lastmod>2026-08-25T10:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/jwt/</loc>
-    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/posts/jwt/</loc>
-    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/security/</loc>
-    <lastmod>2026-08-25T10:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/categories/security/</loc>
     <lastmod>2026-08-25T10:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/session/</loc>

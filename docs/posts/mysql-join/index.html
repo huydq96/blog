@@ -2390,17 +2390,33 @@ function toggleThemeListener() {
 </ul>
 <hr>
 <h1 id="checklist-khi-một-query-join-chậm">Checklist khi một query JOIN chậm<a hidden class="anchor" aria-hidden="true" href="#checklist-khi-một-query-join-chậm">¶</a></h1>
-<p>□ 1. Chạy EXPLAIN FORMAT=TREE  -&gt; thuật toán gì? Nested loop hay hash join?<br>
-□ 2. Chạy EXPLAIN ANALYZE      -&gt; node nào có <code>loops</code> lớn? <code>actual time</code> nhảy ở đâu?<br>
-□ 3. Có <code>type = ALL</code> trên bảng lớn không?<br>
-□ 4. Cột join của bảng trong đã có index chưa?<br>
-□ 5. Hai cột join có CÙNG kiểu / độ dài / charset / collation không?<br>
-□ 6. <code>rows</code> ước tính có lệch xa <code>rows</code> thật không?  -&gt; ANALYZE TABLE<br>
-□ 7. Bảng driving đã được lọc nhỏ nhất có thể chưa?<br>
-□ 8. Có LEFT JOIN nào đang bị WHERE biến thành INNER JOIN không?<br>
-□ 9. Có JOIN 1-n nào làm nhân dòng, sai SUM/COUNT không?<br>
-□ 10. Có thể chuyển sang covering index không?</p>
-<h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">□ Chạy EXPLAIN FORMAT=TREE  -&gt; thuật toán gì? Nested loop hay hash join?  
+</span></span><span class="line"><span class="cl">□ Chạy EXPLAIN ANALYZE      -&gt; node nào có `loops` lớn? `actual time` nhảy ở đâu?  
+</span></span><span class="line"><span class="cl">□ Có `type = ALL` trên bảng lớn không?  
+</span></span><span class="line"><span class="cl">□ Cột join của bảng trong đã có index chưa?  
+</span></span><span class="line"><span class="cl">□ Hai cột join có CÙNG kiểu / độ dài / charset / collation không?  
+</span></span><span class="line"><span class="cl">□ `rows` ước tính có lệch xa `rows` thật không?  -&gt; ANALYZE TABLE  
+</span></span><span class="line"><span class="cl">□ Bảng driving đã được lọc nhỏ nhất có thể chưa?  
+</span></span><span class="line"><span class="cl">□ Có LEFT JOIN nào đang bị WHERE biến thành INNER JOIN không?  
+</span></span><span class="line"><span class="cl">□ Có JOIN 1-n nào làm nhân dòng, sai SUM/COUNT không?  
+</span></span><span class="line"><span class="cl">□ Có thể chuyển sang covering index không?  
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
 <table>
 <thead>
 <tr>
