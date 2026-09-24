@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Khuôn bánh và ổ cắm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Be+Vietnam+Pro:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --bg:#F3F6F8; --surface:#FFFFFF; --ink:#1B2430; --muted:#5B6675; --line:#D3DBE3;
+  --oop:#B85A14; --oop-soft:#FBE8D6; --go:#0A86A8; --go-soft:#DBF2F8;
+  --bad:#C8323C; --good:#2A8552; --banana:#E5B21E; --leaf:#D3E8D0; --fur:#6B5A4E;
+  --f-display:"Baloo 2","Be Vietnam Pro",system-ui,sans-serif;
+  --f-body:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F151B; --surface:#17202A; --ink:#E7ECF1; --muted:#9BA8B6; --line:#2B3742;
+    --oop:#F0A060; --oop-soft:#3A2515; --go:#52C7E8; --go-soft:#0F303B;
+    --bad:#F06A72; --good:#5CC98A; --banana:#E8C24A; --leaf:#1E3825; --fur:#A08C7C;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F151B; --surface:#17202A; --ink:#E7ECF1; --muted:#9BA8B6; --line:#2B3742;
+  --oop:#F0A060; --oop-soft:#3A2515; --go:#52C7E8; --go-soft:#0F303B;
+  --bad:#F06A72; --good:#5CC98A; --banana:#E8C24A; --leaf:#1E3825; --fur:#A08C7C;
+}
+html{color-scheme:light;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;padding-inline:20px;}
+main{max-width:920px;margin:0 auto;padding-block:48px 80px;display:flex;flex-direction:column;gap:72px;}
+h1,h2{font-family:var(--f-display);font-weight:800;line-height:1.1;text-wrap:balance;margin:0;}
+h1{font-size:clamp(2.2rem,6vw,3.6rem);}
+h2{font-size:clamp(1.6rem,4vw,2.3rem);}
+p{margin:0;max-width:70ch;}
+.lead{font-size:1.2rem;color:var(--muted);}
+.chip{display:inline-block;font-family:var(--f-mono);font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:999px;}
+.chip.oop{background:var(--oop-soft);color:var(--oop);}
+.chip.go{background:var(--go-soft);color:var(--go);}
+.chip.both{background:var(--surface);color:var(--muted);border:1px solid var(--line);}
+.oop-t{color:var(--oop);} .go-t{color:var(--go);}
+section{display:flex;flex-direction:column;gap:14px;}
+.part{font-family:var(--f-display);font-size:1rem;font-weight:600;color:var(--muted);letter-spacing:.04em;border-top:2px dashed var(--line);padding-top:18px;}
+figure{margin:8px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;overflow-x:auto;}
+figure svg{display:block;width:100%;min-width:560px;height:auto;}
+svg text{font-family:var(--f-body);fill:var(--ink);}
+svg .t-big{font-family:var(--f-display);font-weight:800;font-size:26px;}
+svg .t-mid{font-weight:700;font-size:18px;}
+svg .t-sm{font-size:14px;fill:var(--muted);}
+svg .t-mono{font-family:var(--f-mono);font-size:15px;}
+svg .t-oop{fill:var(--oop);} svg .t-go{fill:var(--go);} svg .t-bad{fill:var(--bad);} svg .t-good{fill:var(--good);}
+.f-oop{fill:var(--oop-soft);stroke:var(--oop);stroke-width:3;}
+.f-go{fill:var(--go-soft);stroke:var(--go);stroke-width:3;}
+.f-card{fill:var(--surface);stroke:var(--line);stroke-width:2;}
+.ln{stroke:var(--muted);stroke-width:2.5;fill:none;}
+.ln-d{stroke:var(--muted);stroke-width:2.5;fill:none;stroke-dasharray:6 6;}
+.ln-oop{stroke:var(--oop);stroke-width:3;fill:none;}
+.ln-go{stroke:var(--go);stroke-width:3;fill:none;}
+.ln-bad{stroke:var(--bad);stroke-width:5;stroke-linecap:round;fill:none;}
+.ln-good{stroke:var(--good);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+.ink-fill{fill:var(--ink);}
+.pillars{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:4px;}
+.pillar{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;}
+.pillar b{font-family:var(--f-display);font-size:1.2rem;display:block;}
+.pillar span{color:var(--muted);font-size:.95rem;}
+.code2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+.code{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface);}
+.code header{font-family:var(--f-mono);font-size:.8rem;font-weight:600;padding:8px 14px;}
+.code.oop header{background:var(--oop-soft);color:var(--oop);}
+.code.go header{background:var(--go-soft);color:var(--go);}
+pre{margin:0;padding:14px;font-family:var(--f-mono);font-size:.88rem;line-height:1.55;overflow-x:auto;}
+pre .k{color:var(--oop);font-weight:600;} .code.go pre .k{color:var(--go);}
+pre .c{color:var(--muted);font-style:italic;}
+pre mark{background:var(--oop-soft);color:var(--oop);border-radius:4px;padding:0 3px;font-weight:600;}
+.note{font-size:.95rem;color:var(--muted);}
+code{font-family:var(--f-mono);font-size:.9em;background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:0 5px;}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.95rem;}
+th,td{text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top;}
+tr:last-child td{border-bottom:0;}
+th{font-family:var(--f-display);font-size:1.05rem;}
+th.oop-t,th.go-t{white-space:nowrap;}
+td:first-child{color:var(--muted);font-weight:500;}
+.final{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:28px 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;}
+.final div{font-family:var(--f-display);font-weight:800;font-size:clamp(1.4rem,3.5vw,2rem);line-height:1.15;}
+.final small{display:block;font-family:var(--f-body);font-weight:500;font-size:.95rem;color:var(--muted);margin-top:6px;}
+@media (max-width:480px){ main{gap:56px;padding-block:32px 56px;} figure{padding:10px;} }
+</style>
+<script>
+/* Theo theme của blog (PaperModX gắn class "dark" lên body) khi được nhúng qua iframe */
+(function(){
+  try{
+    var pb = window.parent !== window && window.parent.document.body;
+    if(!pb) return;
+    var sync = function(){ document.documentElement.setAttribute('data-theme', pb.classList.contains('dark') ? 'dark' : 'light'); };
+    sync();
+    new MutationObserver(sync).observe(pb, {attributes:true, attributeFilter:['class']});
+  }catch(e){}
+})();
+</script>
+</head>
+<body>
+
+<main>
+
+<!-- HERO -->
+<section>
+  <span class="chip both">Giải thích siêu dễ</span>
+  <h1><span class="oop-t">OOP</span> hỏi: “Bạn <u>là ai</u>?”<br><span class="go-t">Go</span> hỏi: “Bạn <u>làm được gì</u>?”</h1>
+  <p class="lead">Hai cách tổ chức code. Một bên như cây gia phả. Một bên như ổ cắm điện.</p>
+  <figure>
+    <svg viewBox="0 0 800 300" role="img" aria-label="Bên trái: cây gia phả Động vật sinh ra Chó và Mèo. Bên phải: một ổ cắm, ba phích cắm khác nhau đều cắm vừa.">
+      <!-- OOP tree -->
+      <text x="190" y="30" text-anchor="middle" class="t-big t-oop">OOP</text>
+      <rect x="120" y="48" width="140" height="50" rx="10" class="f-oop"/>
+      <text x="190" y="80" text-anchor="middle" class="t-mid">Động vật</text>
+      <path d="M190 98 V140 M100 140 H280 M100 140 V180 M280 140 V180" class="ln-oop"/>
+      <rect x="45" y="180" width="110" height="50" rx="10" class="f-oop"/>
+      <text x="100" y="212" text-anchor="middle" class="t-mid">Chó</text>
+      <rect x="225" y="180" width="110" height="50" rx="10" class="f-oop"/>
+      <text x="280" y="212" text-anchor="middle" class="t-mid">Mèo</text>
+      <text x="190" y="275" text-anchor="middle" class="t-sm">con sinh ra từ cha</text>
+
+      <text x="400" y="160" text-anchor="middle" class="t-big" style="fill:var(--muted)">vs</text>
+
+      <!-- Go socket -->
+      <text x="610" y="30" text-anchor="middle" class="t-big t-go">Go</text>
+      <rect x="555" y="45" width="110" height="80" rx="16" class="f-go"/>
+      <rect x="590" y="65" width="10" height="34" rx="3" class="ink-fill"/>
+      <rect x="620" y="65" width="10" height="34" rx="3" class="ink-fill"/>
+      <path d="M500 190 L580 130 M610 190 V130 M720 190 L640 130" class="ln-d"/>
+      <g>
+        <rect x="455" y="190" width="90" height="46" rx="8" class="f-card"/>
+        <rect x="483" y="176" width="8" height="16" class="ink-fill"/><rect x="509" y="176" width="8" height="16" class="ink-fill"/>
+        <text x="500" y="219" text-anchor="middle" class="t-mid">Chó</text>
+      </g>
+      <g>
+        <rect x="565" y="190" width="90" height="46" rx="8" class="f-card"/>
+        <rect x="593" y="176" width="8" height="16" class="ink-fill"/><rect x="619" y="176" width="8" height="16" class="ink-fill"/>
+        <text x="610" y="219" text-anchor="middle" class="t-mid">Robot</text>
+      </g>
+      <g>
+        <rect x="675" y="190" width="90" height="46" rx="8" class="f-card"/>
+        <rect x="703" y="176" width="8" height="16" class="ink-fill"/><rect x="729" y="176" width="8" height="16" class="ink-fill"/>
+        <text x="720" y="219" text-anchor="middle" class="t-mid">Radio</text>
+      </g>
+      <text x="610" y="275" text-anchor="middle" class="t-sm">vừa phích là cắm được</text>
+    </svg>
+  </figure>
+</section>
+
+<!-- PART 1: OOP -->
+<section>
+  <div class="part">Phần 1 · OOP là gì?</div>
+  <span class="chip oop">Class &amp; Object</span>
+  <h2>Class là cái khuôn. Object là cái bánh.</h2>
+  <p>Làm một khuôn, đúc ra bao nhiêu bánh cũng được. Mỗi bánh có nhân riêng.</p>
+  <figure>
+    <svg viewBox="0 0 800 260" role="img" aria-label="Một khuôn hình ngôi sao, mũi tên chỉ sang ba chiếc bánh ngôi sao: dâu, socola, trà xanh.">
+      <defs>
+        <polygon id="star" points="0,-80 20,-27.5 76,-24.7 32.3,10.5 47,64.7 0,34 -47,64.7 -32.3,10.5 -76,-24.7 -20,-27.5"/>
+      </defs>
+      <use href="#star" transform="translate(140,115)" fill="none" style="stroke:var(--oop);stroke-width:9;stroke-linejoin:round"/>
+      <text x="140" y="225" text-anchor="middle" class="t-mid t-oop">Class = khuôn</text>
+      <text x="140" y="247" text-anchor="middle" class="t-sm">class Banh</text>
+
+      <path d="M250 115 H330" class="ln"/><path d="M322 105 L336 115 L322 125" class="ln"/>
+
+      <use href="#star" transform="translate(430,115) scale(.62)" style="fill:#E9788C;stroke:var(--ink);stroke-width:3"/>
+      <use href="#star" transform="translate(575,115) scale(.62)" style="fill:#8A5A3C;stroke:var(--ink);stroke-width:3"/>
+      <use href="#star" transform="translate(720,115) scale(.62)" style="fill:#8DBF6A;stroke:var(--ink);stroke-width:3"/>
+      <text x="430" y="185" text-anchor="middle" class="t-sm">nhân: dâu</text>
+      <text x="575" y="185" text-anchor="middle" class="t-sm">nhân: socola</text>
+      <text x="720" y="185" text-anchor="middle" class="t-sm">nhân: trà xanh</text>
+      <text x="575" y="225" text-anchor="middle" class="t-mid">Object = từng chiếc bánh</text>
+      <text x="575" y="247" text-anchor="middle" class="t-sm">new Banh("dâu")</text>
+    </svg>
+  </figure>
+  <p class="note">OOP có 4 “trụ cột”. Mỗi cái một bức tranh:</p>
+</section>
+
+<!-- Encapsulation -->
+<section>
+  <span class="chip oop">Trụ 1 · Đóng gói</span>
+  <h2>Cất đồ vào hộp, chỉ mở qua nút bấm</h2>
+  <p>Không ai được thò tay sửa số dư. Muốn đổi thì phải bấm nút <code>nạp()</code> hoặc <code>rút()</code>.</p>
+  <figure>
+    <svg viewBox="0 0 800 240" role="img" aria-label="Một hộp khóa chứa số dư 500k. Bên trái có hai nút nạp và rút. Bên phải có mũi tên sửa trực tiếp bị chặn bằng dấu X.">
+      <rect x="250" y="45" width="290" height="160" rx="16" class="f-oop"/>
+      <path d="M380 45 V30 a15 15 0 0 1 30 0 V45" class="ln-oop"/>
+      <rect x="373" y="30" width="44" height="30" rx="6" style="fill:var(--oop)"/>
+      <text x="395" y="130" text-anchor="middle" class="t-big">số dư: 500k</text>
+      <text x="395" y="160" text-anchor="middle" class="t-sm">(bí mật bên trong)</text>
+
+      <rect x="150" y="78" width="130" height="38" rx="19" class="f-card" style="stroke:var(--good)"/>
+      <text x="215" y="103" text-anchor="middle" class="t-mono">nạp()</text>
+      <rect x="150" y="136" width="130" height="38" rx="19" class="f-card" style="stroke:var(--good)"/>
+      <text x="215" y="161" text-anchor="middle" class="t-mono">rút()</text>
+      <text x="75" y="130" text-anchor="middle" class="t-sm t-good" style="font-weight:700">cửa đúng</text>
+
+      <path d="M760 125 H560" class="ln"/><path d="M572 115 L558 125 L572 135" class="ln"/>
+      <text x="660" y="105" text-anchor="middle" class="t-mono">soDu = 1 tỷ</text>
+      <path d="M535 105 l30 40 M565 105 l-30 40" class="ln-bad"/>
+      <text x="660" y="160" text-anchor="middle" class="t-sm t-bad" style="font-weight:700">bị chặn</text>
+    </svg>
+  </figure>
+  <p class="note"><span class="go-t"><b>Go cũng có:</b></span> tên viết <code>thường</code> là khóa lại, tên viết <code>Hoa</code> là mở ra cho người khác dùng.</p>
+</section>
+
+<!-- Inheritance -->
+<section>
+  <span class="chip oop">Trụ 2 · Kế thừa</span>
+  <h2>Con có sẵn những gì cha có</h2>
+  <p>Chó và Chim không cần viết lại <code>ăn()</code>, <code>ngủ()</code>. Chỉ thêm tài riêng.</p>
+  <figure>
+    <svg viewBox="0 0 800 280" role="img" aria-label="Hộp cha Động vật có ăn và ngủ. Hai hộp con: Chó thêm sủa, Chim thêm bay, đều có mũi tên chỉ lên cha.">
+      <rect x="290" y="20" width="220" height="86" rx="14" class="f-oop"/>
+      <text x="400" y="56" text-anchor="middle" class="t-mid">Động vật</text>
+      <text x="400" y="86" text-anchor="middle" class="t-mono">ăn()  ngủ()</text>
+
+      <path d="M190 180 V145 H370 V122" class="ln-oop"/>
+      <path d="M610 180 V145 H430 V122" class="ln-oop"/>
+      <polygon points="370,108 360,124 380,124" class="f-oop"/>
+      <polygon points="430,108 420,124 440,124" class="f-oop"/>
+
+      <rect x="80" y="180" width="220" height="86" rx="14" class="f-card"/>
+      <text x="190" y="212" text-anchor="middle" class="t-mid">Chó</text>
+      <text x="190" y="240" text-anchor="middle" class="t-mono t-oop">+ sủa()</text>
+      <text x="190" y="258" text-anchor="middle" class="t-sm">ăn() ngủ() có sẵn</text>
+
+      <rect x="500" y="180" width="220" height="86" rx="14" class="f-card"/>
+      <text x="610" y="212" text-anchor="middle" class="t-mid">Chim</text>
+      <text x="610" y="240" text-anchor="middle" class="t-mono t-oop">+ bay()</text>
+      <text x="610" y="258" text-anchor="middle" class="t-sm">ăn() ngủ() có sẵn</text>
+    </svg>
+  </figure>
+</section>
+
+<!-- Polymorphism -->
+<section>
+  <span class="chip oop">Trụ 3 · Đa hình</span>
+  <h2>Cùng một lệnh, mỗi con làm một kiểu</h2>
+  <p>Bạn hô <code>kêu()</code>. Bạn không cần biết đó là con gì.</p>
+  <figure>
+    <svg viewBox="0 0 800 260" role="img" aria-label="Lệnh kêu tỏa ra ba con vật: chó kêu Gâu, mèo kêu Meo, vịt kêu Quạc.">
+      <rect x="30" y="100" width="130" height="56" rx="28" class="f-oop"/>
+      <text x="95" y="135" text-anchor="middle" class="t-mono" style="font-weight:600">kêu()</text>
+      <path d="M165 118 Q280 60 380 80 M165 128 H520 M165 138 Q400 60 650 80" class="ln-d"/>
+
+      <!-- dog -->
+      <ellipse cx="395" cy="92" rx="14" ry="26" style="fill:var(--fur)"/>
+      <ellipse cx="465" cy="92" rx="14" ry="26" style="fill:var(--fur)"/>
+      <circle cx="430" cy="95" r="38" class="f-card" style="stroke:var(--ink)"/>
+      <circle cx="418" cy="88" r="4" class="ink-fill"/><circle cx="442" cy="88" r="4" class="ink-fill"/>
+      <ellipse cx="430" cy="106" rx="8" ry="6" class="ink-fill"/>
+      <!-- cat -->
+      <polygon points="548,72 556,40 578,62" class="f-card" style="stroke:var(--ink)"/>
+      <polygon points="612,72 604,40 582,62" class="f-card" style="stroke:var(--ink)"/>
+      <circle cx="580" cy="95" r="38" class="f-card" style="stroke:var(--ink)"/>
+      <circle cx="568" cy="90" r="4" class="ink-fill"/><circle cx="592" cy="90" r="4" class="ink-fill"/>
+      <path d="M574 104 l6 5 l6 -5" class="ln" style="stroke:var(--ink)"/>
+      <path d="M548 104 H530 M548 110 H532 M612 104 H630 M612 110 H628" class="ln" style="stroke-width:1.5"/>
+      <!-- duck -->
+      <circle cx="725" cy="95" r="38" style="fill:var(--banana);stroke:var(--ink);stroke-width:2"/>
+      <circle cx="715" cy="86" r="4" class="ink-fill"/><circle cx="740" cy="86" r="4" class="ink-fill"/>
+      <ellipse cx="728" cy="108" rx="20" ry="9" style="fill:#E07A2E;stroke:var(--ink);stroke-width:2"/>
+
+      <g>
+        <rect x="380" y="160" width="100" height="44" rx="12" class="f-oop"/>
+        <text x="430" y="189" text-anchor="middle" class="t-mid">Gâu!</text>
+      </g>
+      <g>
+        <rect x="530" y="160" width="100" height="44" rx="12" class="f-oop"/>
+        <text x="580" y="189" text-anchor="middle" class="t-mid">Meo!</text>
+      </g>
+      <g>
+        <rect x="675" y="160" width="100" height="44" rx="12" class="f-oop"/>
+        <text x="725" y="189" text-anchor="middle" class="t-mid">Quạc!</text>
+      </g>
+      <text x="95" y="190" text-anchor="middle" class="t-sm">một lệnh</text>
+      <text x="580" y="240" text-anchor="middle" class="t-sm">ba kết quả</text>
+    </svg>
+  </figure>
+</section>
+
+<!-- Abstraction -->
+<section>
+  <span class="chip oop">Trụ 4 · Trừu tượng</span>
+  <h2>Lái xe không cần hiểu động cơ</h2>
+  <p>Chỉ cho người dùng thấy vô lăng, ga, phanh. Phần phức tạp giấu đi.</p>
+  <figure>
+    <svg viewBox="0 0 800 240" role="img" aria-label="Bên trái vô lăng và hai bàn đạp ga, phanh. Bên phải một hộp mờ chứa động cơ, hộp số, bugi, có dấu hỏi: không cần biết.">
+      <circle cx="170" cy="105" r="72" fill="none" style="stroke:var(--oop);stroke-width:12"/>
+      <circle cx="170" cy="105" r="16" style="fill:var(--oop)"/>
+      <path d="M170 105 L110 80 M170 105 L230 80 M170 105 V175" style="stroke:var(--oop);stroke-width:10;stroke-linecap:round"/>
+      <rect x="275" y="120" width="40" height="70" rx="6" class="f-card" style="stroke:var(--ink)"/>
+      <rect x="330" y="140" width="50" height="50" rx="6" class="f-card" style="stroke:var(--ink)"/>
+      <text x="295" y="212" text-anchor="middle" class="t-sm">ga</text>
+      <text x="355" y="212" text-anchor="middle" class="t-sm">phanh</text>
+      <text x="250" y="232" text-anchor="middle" class="t-mid t-oop">bạn chỉ thấy cái này</text>
+
+      <rect x="460" y="30" width="310" height="170" rx="16" fill="none" class="ln-d"/>
+      <text x="615" y="75" text-anchor="middle" class="t-mono" style="fill:var(--muted)">động cơ · piston</text>
+      <text x="615" y="105" text-anchor="middle" class="t-mono" style="fill:var(--muted)">hộp số · bugi</text>
+      <text x="615" y="135" text-anchor="middle" class="t-mono" style="fill:var(--muted)">xăng · ly hợp</text>
+      <text x="615" y="182" text-anchor="middle" class="t-big" style="fill:var(--muted)">?</text>
+      <text x="615" y="232" text-anchor="middle" class="t-sm">giấu bên trong — không cần biết</text>
+    </svg>
+  </figure>
+  <div class="pillars">
+    <div class="pillar"><b class="oop-t">Đóng gói</b><span>cất vào hộp, chỉ mở qua nút</span></div>
+    <div class="pillar"><b class="oop-t">Kế thừa</b><span>con có sẵn đồ của cha</span></div>
+    <div class="pillar"><b class="oop-t">Đa hình</b><span>cùng lệnh, khác cách làm</span></div>
+    <div class="pillar"><b class="oop-t">Trừu tượng</b><span>chỉ lộ phần cần dùng</span></div>
+  </div>
+</section>
+
+<!-- Problem -->
+<section>
+  <div class="part">Phần 2 · Kế thừa có vấn đề gì?</div>
+  <span class="chip oop">Vấn đề</span>
+  <h2>Muốn quả chuối, nhận cả con khỉ đột… và cả khu rừng</h2>
+  <p>Kế thừa dính chặt con vào cha. Lấy một thứ nhỏ là kéo theo cả cây gia phả. Cha đổi, con vỡ.</p>
+  <figure>
+    <svg viewBox="0 0 800 270" role="img" aria-label="Một khu rừng lớn, trong đó có con khỉ đột, trong tay nó là quả chuối. Chú thích: bạn muốn quả chuối, nhận được cả khỉ đột và cả khu rừng.">
+      <rect x="230" y="20" width="340" height="230" rx="24" style="fill:var(--leaf);stroke:var(--good);stroke-width:3"/>
+      <polygon points="275,90 300,40 325,90" style="fill:var(--good)"/><rect x="296" y="90" width="8" height="18" style="fill:var(--fur)"/>
+      <polygon points="485,80 515,25 545,80" style="fill:var(--good)"/><rect x="511" y="80" width="8" height="18" style="fill:var(--fur)"/>
+      <polygon points="255,215 275,175 295,215" style="fill:var(--good)"/>
+      <polygon points="520,225 540,185 560,225" style="fill:var(--good)"/>
+
+      <circle cx="400" cy="150" r="72" style="fill:var(--fur)"/>
+      <ellipse cx="400" cy="160" rx="42" ry="34" style="fill:#C9B2A0"/>
+      <circle cx="383" cy="128" r="6" class="ink-fill"/><circle cx="417" cy="128" r="6" class="ink-fill"/>
+      <path d="M385 172 Q400 180 415 172" class="ln" style="stroke:var(--ink)"/>
+      <path d="M455 175 Q490 160 482 118 Q475 150 450 160 Z" style="fill:var(--banana);stroke:var(--ink);stroke-width:2"/>
+
+      <text x="700" y="120" text-anchor="middle" class="t-mid">Bạn muốn:</text>
+      <text x="700" y="145" text-anchor="middle" class="t-mid" style="fill:var(--banana)">quả chuối</text>
+      <path d="M640 130 Q560 120 492 135" class="ln"/>
+
+      <text x="110" y="120" text-anchor="middle" class="t-mid">Nhận được:</text>
+      <text x="110" y="145" text-anchor="middle" class="t-sm">con khỉ đột</text>
+      <text x="110" y="167" text-anchor="middle" class="t-sm">+ cả khu rừng</text>
+      <path d="M170 140 Q240 140 325 150" class="ln"/>
+    </svg>
+  </figure>
+  <p class="note">Câu nói nổi tiếng của Joe Armstrong (người tạo ra Erlang).</p>
+</section>
+
+<!-- Go interface -->
+<section>
+  <div class="part">Phần 3 · Go làm thế nào?</div>
+  <span class="chip go">Interface</span>
+  <h2>Go không có class, không có kế thừa. Go có ổ cắm.</h2>
+  <p>Interface là hình dạng ổ cắm: “ai có <code>Speak()</code> thì cắm vào được”. Không hỏi bạn là con gì.</p>
+  <figure>
+    <svg viewBox="0 0 800 300" role="img" aria-label="Ổ cắm tên Speaker cần Speak. Chó có Speak cắm vừa, Robot có Speak cắm vừa, Cục đá không có Speak nên không cắm được.">
+      <rect x="320" y="20" width="160" height="110" rx="20" class="f-go"/>
+      <rect x="370" y="45" width="12" height="44" rx="3" class="ink-fill"/>
+      <rect x="418" y="45" width="12" height="44" rx="3" class="ink-fill"/>
+      <text x="400" y="118" text-anchor="middle" class="t-mono t-go" style="font-weight:600">Speaker</text>
+      <text x="560" y="62" class="t-sm">cần đúng 1 thứ:</text>
+      <text x="560" y="88" class="t-mono" style="font-weight:600">Speak()</text>
+
+      <path d="M150 185 L360 140 M400 185 V140 M650 185 L500 150" class="ln-d"/>
+
+      <!-- Dog plug -->
+      <rect x="138" y="170" width="12" height="22" class="ink-fill"/><rect x="178" y="170" width="12" height="22" class="ink-fill"/>
+      <rect x="90" y="190" width="150" height="70" rx="12" class="f-card" style="stroke:var(--go)"/>
+      <text x="165" y="222" text-anchor="middle" class="t-mid">Chó</text>
+      <text x="165" y="246" text-anchor="middle" class="t-mono t-sm">Speak() ✓</text>
+      <path d="M250 205 l10 12 l20 -24" class="ln-good"/>
+
+      <!-- Robot plug -->
+      <rect x="373" y="170" width="12" height="22" class="ink-fill"/><rect x="413" y="170" width="12" height="22" class="ink-fill"/>
+      <rect x="325" y="190" width="150" height="70" rx="12" class="f-card" style="stroke:var(--go)"/>
+      <text x="400" y="222" text-anchor="middle" class="t-mid">Robot</text>
+      <text x="400" y="246" text-anchor="middle" class="t-mono t-sm">Speak() ✓</text>
+      <path d="M485 205 l10 12 l20 -24" class="ln-good"/>
+
+      <!-- Rock -->
+      <path d="M580 260 Q565 215 600 195 Q640 175 690 192 Q725 210 715 260 Z" style="fill:var(--line);stroke:var(--muted);stroke-width:3"/>
+      <text x="648" y="232" text-anchor="middle" class="t-mid">Cục đá</text>
+      <text x="648" y="285" text-anchor="middle" class="t-sm t-bad">không có Speak()</text>
+      <path d="M735 195 l24 24 M759 195 l-24 24" class="ln-bad"/>
+    </svg>
+  </figure>
+  <p class="note">Chó và Robot chẳng họ hàng gì nhau. Vẫn dùng chung được.</p>
+</section>
+
+<!-- Implicit -->
+<section>
+  <span class="chip both">Khác biệt lớn nhất</span>
+  <h2><span class="oop-t">Java</span> bắt đeo thẻ. <span class="go-t">Go</span> chỉ ướm thử.</h2>
+  <p>Java: phải ghi rõ <code>implements Speaker</code> từ trước. Go: không cần ghi gì cả — có đủ hàm là tự khớp.</p>
+  <figure>
+    <svg viewBox="0 0 800 280" role="img" aria-label="Bên trái: người đeo thẻ implements Speaker đứng trước bảo vệ kiểm tra danh sách. Bên phải: người không đeo thẻ đi qua một khe có hình khớp đúng.">
+      <!-- left: badge -->
+      <text x="200" y="30" text-anchor="middle" class="t-big t-oop">Java / C#</text>
+      <circle cx="140" cy="90" r="26" class="f-card" style="stroke:var(--ink)"/>
+      <rect x="105" y="122" width="70" height="100" rx="18" class="f-card" style="stroke:var(--ink)"/>
+      <rect x="84" y="150" width="112" height="36" rx="6" class="f-oop"/>
+      <text x="140" y="165" text-anchor="middle" style="font-family:var(--f-mono);font-size:11px;fill:var(--oop);font-weight:600">implements</text>
+      <text x="140" y="180" text-anchor="middle" style="font-family:var(--f-mono);font-size:11px;fill:var(--oop);font-weight:600">Speaker</text>
+      <rect x="240" y="70" width="110" height="140" rx="10" class="f-card"/>
+      <text x="295" y="98" text-anchor="middle" class="t-sm" style="font-weight:700">Danh sách</text>
+      <path d="M258 120 H332 M258 145 H332 M258 170 H310" class="ln"/>
+      <path d="M342 120 l6 6 l10 -12" class="ln-good" style="stroke-width:3"/>
+      <text x="200" y="255" text-anchor="middle" class="t-sm">“Tên bạn có trong danh sách chưa?”</text>
+
+      <line x1="400" y1="40" x2="400" y2="250" style="stroke:var(--line);stroke-width:2"/>
+
+      <!-- right: shape fit -->
+      <text x="600" y="30" text-anchor="middle" class="t-big t-go">Go</text>
+      <path d="M470 60 H730 V230 H470 Z M570 100 v30 h-12 v70 h84 v-70 h-12 v-30 h-20 v30 h-20 v-30 Z" fill-rule="evenodd" class="f-go"/>
+      <rect x="564" y="136" width="72" height="58" rx="6" style="fill:var(--good);opacity:.85"/>
+      <rect x="574" y="106" width="12" height="32" style="fill:var(--good);opacity:.85"/>
+      <rect x="614" y="106" width="12" height="32" style="fill:var(--good);opacity:.85"/>
+      <text x="600" y="171" text-anchor="middle" style="font-family:var(--f-mono);font-size:12px;fill:#fff;font-weight:600">Dog</text>
+      <text x="600" y="255" text-anchor="middle" class="t-sm">“Bạn vừa khuôn không? Vừa thì vào.”</text>
+    </svg>
+  </figure>
+  <div class="code2">
+    <div class="code oop">
+      <header>Java — khai báo tường minh</header>
+<pre><span class="k">interface</span> Speaker {
+  String speak();
+}
+
+<span class="k">class</span> Dog <mark>implements Speaker</mark> {
+  <span class="k">public</span> String speak() {
+    <span class="k">return</span> "Gâu";
+  }
+}</pre>
+    </div>
+    <div class="code go">
+      <header>Go — ngầm định</header>
+<pre><span class="k">type</span> Speaker <span class="k">interface</span> {
+  Speak() string
+}
+
+<span class="k">type</span> Dog <span class="k">struct</span>{}
+
+<span class="c">// không ghi "implements" ở đâu cả</span>
+<span class="k">func</span> (Dog) Speak() string {
+  <span class="k">return</span> "Gâu"
+}</pre>
+    </div>
+  </div>
+  <p class="note">Nhờ vậy bạn có thể viết interface <b>sau</b>, cho cả những type của thư viện người khác — họ không cần sửa code.</p>
+</section>
+
+<!-- Composition -->
+<section>
+  <span class="chip go">Thay cho kế thừa</span>
+  <h2>Không “là con của”, mà “lắp ghép từ”</h2>
+  <p>Go ghép các mảnh nhỏ như Lego (gọi là <b>embedding</b>). Cần gì lắp nấy, thừa thì tháo.</p>
+  <figure>
+    <svg viewBox="0 0 800 250" role="img" aria-label="Ba khối Lego: Động cơ, Bánh xe, Radio, cộng lại thành khối Xe hơi.">
+      <defs>
+        <g id="stud"><rect x="0" y="0" width="22" height="12" rx="3"/></g>
+      </defs>
+      <!-- blocks -->
+      <g style="fill:var(--go-soft);stroke:var(--go);stroke-width:3">
+        <use href="#stud" x="45" y="78"/><use href="#stud" x="95" y="78"/>
+        <rect x="30" y="90" width="120" height="64" rx="8"/>
+      </g>
+      <text x="90" y="128" text-anchor="middle" class="t-mid">Động cơ</text>
+      <text x="175" y="130" text-anchor="middle" class="t-big" style="fill:var(--muted)">+</text>
+      <g style="fill:var(--go-soft);stroke:var(--go);stroke-width:3">
+        <use href="#stud" x="215" y="78"/><use href="#stud" x="265" y="78"/>
+        <rect x="200" y="90" width="120" height="64" rx="8"/>
+      </g>
+      <text x="260" y="128" text-anchor="middle" class="t-mid">Bánh xe</text>
+      <text x="345" y="130" text-anchor="middle" class="t-big" style="fill:var(--muted)">+</text>
+      <g style="fill:var(--go-soft);stroke:var(--go);stroke-width:3">
+        <use href="#stud" x="385" y="78"/><use href="#stud" x="435" y="78"/>
+        <rect x="370" y="90" width="120" height="64" rx="8"/>
+      </g>
+      <text x="430" y="128" text-anchor="middle" class="t-mid">Radio</text>
+      <text x="520" y="130" text-anchor="middle" class="t-big" style="fill:var(--muted)">=</text>
+
+      <!-- car stack -->
+      <g style="fill:var(--go-soft);stroke:var(--go);stroke-width:3">
+        <use href="#stud" x="590" y="18"/><use href="#stud" x="660" y="18"/>
+        <rect x="570" y="30" width="150" height="46" rx="6"/>
+        <rect x="570" y="80" width="150" height="46" rx="6"/>
+        <rect x="570" y="130" width="150" height="46" rx="6"/>
+      </g>
+      <text x="645" y="59" text-anchor="middle" class="t-sm" style="fill:var(--ink)">Radio</text>
+      <text x="645" y="109" text-anchor="middle" class="t-sm" style="fill:var(--ink)">Động cơ</text>
+      <text x="645" y="159" text-anchor="middle" class="t-sm" style="fill:var(--ink)">Bánh xe</text>
+      <text x="645" y="210" text-anchor="middle" class="t-big t-go">Xe hơi</text>
+      <text x="260" y="210" text-anchor="middle" class="t-sm">Xe hơi <tspan style="font-weight:700;fill:var(--ink)">có</tspan> động cơ — không phải <tspan style="font-weight:700;fill:var(--ink)">là</tspan> động cơ</text>
+    </svg>
+  </figure>
+  <div class="code go">
+    <header>Go — embedding</header>
+<pre><span class="k">type</span> Car <span class="k">struct</span> {
+  Engine   <span class="c">// lắp mảnh Động cơ vào</span>
+  Wheels
+  Radio
+}
+
+car.Start()   <span class="c">// gọi thẳng hàm của Engine, như thể của Car</span></pre>
+  </div>
+</section>
+
+<!-- Table -->
+<section>
+  <div class="part">Phần 4 · Đặt cạnh nhau</div>
+  <h2>So sánh nhanh</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th></th><th class="oop-t">OOP cổ điển (Java, C#)</th><th class="go-t">Go</th></tr></thead>
+      <tbody>
+        <tr><td>Khuôn mẫu</td><td><code>class</code></td><td><code>struct</code> + method</td></tr>
+        <tr><td>Tái sử dụng</td><td>Kế thừa — “là một”</td><td>Lắp ghép — “có một”</td></tr>
+        <tr><td>Đăng ký interface</td><td>Phải ghi <code>implements</code></td><td>Không cần, tự khớp</td></tr>
+        <tr><td>Đa hình</td><td>Qua class cha hoặc interface</td><td>Chỉ qua interface</td></tr>
+        <tr><td>Cỡ interface</td><td>Thường to, nhiều hàm</td><td>Thường 1–2 hàm (<code>io.Reader</code>, <code>fmt.Stringer</code>)</td></tr>
+        <tr><td>Đóng gói</td><td><code>private</code> / <code>public</code></td><td>chữ <code>thường</code> / chữ <code>Hoa</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Final -->
+<section>
+  <h2>Nhớ một câu thôi</h2>
+  <div class="final">
+    <div class="oop-t">OOP: “Bạn thuộc họ nào?”<small>Xếp code theo cây gia phả.</small></div>
+    <div class="go-t">Go: “Bạn làm được gì?”<small>Có đủ hàm là cắm vừa ổ.</small></div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

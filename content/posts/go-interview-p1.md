@@ -475,6 +475,8 @@ Interfaces trong Go tập trung vào **hành vi** thay vì **kế thừa**. Khá
 - **Structural typing** cho phép đa hình mà không cần hệ thống phân cấp phức tạp.
 - **Đơn giản** với việc chỉ định nghĩa method signatures.
 
+<p style="margin-top:0.75rem;"><a href="/pages/oop-vs-go.html" target="_blank" rel="noopener">Xem thêm OOP vs Go dễ hiểu ↗</a></p>
+
 # Xem thêm
 
 <div style="margin:1.5rem 0;text-align:left;">
