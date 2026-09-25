@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dayladau Interview Prep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}/*!
+  Theme: GitHub Dark
+  Description: Dark theme as seen on github.com
+  Author: github.com
+  Maintainer: @Hirse
+  Updated: 2021-05-15
+
+  Outdated base version: https://github.com/primer/github-syntax-dark
+  Current colors taken from GitHub's CSS
+*/.hljs{color:#c9d1d9;background:#0d1117}.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#ff7b72}.hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#d2a8ff}.hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-variable{color:#79c0ff}.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#a5d6ff}.hljs-built_in,.hljs-symbol{color:#ffa657}.hljs-code,.hljs-comment,.hljs-formula{color:#8b949e}.hljs-name,.hljs-quote,.hljs-selector-pseudo,.hljs-selector-tag{color:#7ee787}.hljs-subst{color:#c9d1d9}.hljs-section{color:#1f6feb;font-weight:700}.hljs-bullet{color:#f2cc60}.hljs-emphasis{color:#c9d1d9;font-style:italic}.hljs-strong{color:#c9d1d9;font-weight:700}.hljs-addition{color:#aff5b4;background-color:#033a16}.hljs-deletion{color:#ffdcd7;background-color:#67060c}</style>
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#ffffff; --surface-2:#f0eee8; --text:#1d1c1a; --muted:#6b6862;
+  --border:#e2dfd7; --accent:#0e7c66; --accent-soft:#e0f2ec; --warn:#b4570d; --warn-soft:#fbeedd;
+  --mix:#5b4bb7; --mix-soft:#ecE9fb; --code-bg:#1e1f24; --code-text:#e6e6e6; --ok:#177a3c; --no:#b0322a;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121311; --surface:#1b1c1a; --surface-2:#232421; --text:#ecebe6; --muted:#9d9a93;
+    --border:#2f302c; --accent:#3cc6a3; --accent-soft:#16332b; --warn:#f0a35c; --warn-soft:#3a2816;
+    --mix:#a99bf5; --mix-soft:#27233f; --code-bg:#0d0e10; --ok:#4fc97a; --no:#ef7a70;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121311; --surface:#1b1c1a; --surface-2:#232421; --text:#ecebe6; --muted:#9d9a93;
+  --border:#2f302c; --accent:#3cc6a3; --accent-soft:#16332b; --warn:#f0a35c; --warn-soft:#3a2816;
+  --mix:#a99bf5; --mix-soft:#27233f; --code-bg:#0d0e10; --ok:#4fc97a; --no:#ef7a70;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Be Vietnam Pro",system-ui,sans-serif;font-size:15.5px;line-height:1.65}
+a{color:var(--accent)}
+code{font-family:"JetBrains Mono",monospace;font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+pre{margin:12px 0;border-radius:10px;overflow-x:auto;background:var(--code-bg)}
+pre code{display:block;padding:14px 16px;background:transparent;color:var(--code-text);font-size:13px;line-height:1.55}
+.layout{display:grid;grid-template-columns:270px 1fr;max-width:1320px;margin:0 auto}
+aside{position:sticky;top:0;height:100vh;overflow-y:auto;padding:28px 18px;border-right:1px solid var(--border)}
+aside h1{font-size:18px;margin:0 0 4px;letter-spacing:-.01em}
+aside .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+aside nav a{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:8px;color:var(--text);text-decoration:none;font-size:14px}
+aside nav a:hover{background:var(--surface-2)}
+aside nav a span{color:var(--muted);font-size:12px}
+.progress{margin:18px 0;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.bar{height:6px;border-radius:4px;background:var(--surface-2);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+main{padding:28px 32px 80px;min-width:0}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-bottom:1px solid var(--border);margin-bottom:22px}
+.toolbar input[type=search]{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);font:inherit}
+.chip{padding:7px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+.chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.legend{font-size:13px;color:var(--muted);margin:-8px 0 20px}
+section.grp{margin-bottom:40px}
+section.grp>h2{font-size:22px;margin:0 0 6px;letter-spacing:-.01em}
+section.grp>p.intro{color:var(--muted);margin:0 0 16px}
+article.q{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+article.q header{display:flex;gap:12px;align-items:flex-start}
+.num{flex:none;width:32px;height:32px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center;font-weight:600;font-size:13px}
+article.q h3{font-size:15.5px;font-weight:600;margin:4px 0 0;flex:1}
+.tag{flex:none;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;margin-top:4px;white-space:nowrap}
+.tag.kn{background:var(--accent-soft);color:var(--accent)}
+.tag.exp{background:var(--warn-soft);color:var(--warn)}
+.tag.mix{background:var(--mix-soft);color:var(--mix)}
+details{margin-top:10px}
+summary{cursor:pointer;color:var(--accent);font-weight:500;font-size:14px;user-select:none}
+.ans{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+.ans p{margin:8px 0}
+.ans ul,.ans ol{margin:6px 0;padding-left:22px}
+.ans li{margin:3px 0}
+.hint{border-left:3px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.hint b:first-child{color:var(--warn)}
+.to{border-left:3px solid var(--mix);background:var(--mix-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0;display:block;overflow-x:auto}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--surface-2)}
+.self{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
+.self button{font:inherit;font-size:12.5px;padding:4px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
+.self button.on.yes{background:var(--ok);border-color:var(--ok);color:#fff}
+.self button.on.no{background:var(--no);border-color:var(--no);color:#fff}
+.self textarea{width:100%;min-height:54px;margin-top:6px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font:inherit;font-size:13.5px;resize:vertical;display:none}
+.self textarea.show{display:block}
+.hidden{display:none!important}
+.theme{position:fixed;right:16px;bottom:16px;z-index:9}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  aside{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:18px 16px}
+  aside nav{display:flex;flex-wrap:wrap;gap:4px}
+  aside nav a span{display:none}
+  main{padding:16px 16px 80px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <h1>Dayladau · Golang Backend</h1>
+  <div class="sub">Bộ câu hỏi phỏng vấn + đáp án</div>
+  <div class="progress">
+    <div style="font-size:13px"><b id="pDone">0</b>/<span id="pTotal">0</span> câu đã đánh dấu "Đã gặp / Nắm được"</div>
+    <div class="bar"><i id="pBar"></i></div>
+  </div>
+  <nav id="toc"></nav>
+</aside>
+
+<main>
+<div class="toolbar">
+  <input type="search" id="search" placeholder="Tìm câu hỏi, từ khoá (overbook, ledger, SKIP LOCKED...)">
+  <button class="chip active" data-f="all">Tất cả</button>
+  <button class="chip" data-f="kn">Kiến thức</button>
+  <button class="chip" data-f="exp">Kinh nghiệm</button>
+  <button class="chip" data-f="mix">Kết hợp</button>
+  <button class="chip" data-f="todo">Chưa đánh dấu</button>
+  <button class="chip" id="expandAll">Mở tất cả</button>
+</div>
+<p class="legend"><b style="color:var(--accent)">Kiến thức</b>: có đáp án chuẩn · <b style="color:var(--warn)">Kinh nghiệm</b>: gợi ý hướng trả lời, tự đối chiếu với dự án đã làm · <b style="color:var(--mix)">Kết hợp</b>: có đáp án kỹ thuật + nên kèm ví dụ thực tế. Trạng thái và ghi chú được lưu trong trình duyệt.</p>
+
+<!-- ============ 1 ============ -->
+<section class="grp" id="g1" data-title="1. Giới thiệu & kinh nghiệm">
+<h2>1. Giới thiệu &amp; kinh nghiệm</h2>
+<p class="intro">Trả lời theo STAR (Situation – Task – Action – Result), luôn có số liệu cụ thể và kết quả đo được.</p>
+
+<article class="q" data-type="exp">
+<header><span class="num">1</span><h3>Kể về một luồng tiền end-to-end bạn đã build ở 9Pay: state machine gồm những trạng thái nào, và xử lý trạng thái "pending/unknown" từ ngân hàng thế nào?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<div class="hint"><b>Khung trả lời:</b> vẽ nhanh state machine → nói rõ điểm "không chắc chắn" → cơ chế reconcile → kết quả.</div>
+<ul>
+<li><b>Trạng thái mẫu:</b> <code>INIT → PROCESSING → SUCCESS | FAILED | UNKNOWN(PENDING) → REVERSED/REFUNDED</code>.</li>
+<li><b>Điểm ăn tiền:</b> timeout khi gọi bank <i>không có nghĩa là thất bại</i>. Không bao giờ tự đánh FAILED rồi cho retry chuyển tiền tiếp, vì có thể bị chi 2 lần.</li>
+<li><b>Xử lý UNKNOWN:</b> job query trạng thái theo <code>ref_id</code> với backoff; quá N lần thì đưa vào hàng đợi xử lý thủ công, đối chiếu file đối soát cuối ngày.</li>
+<li><b>Idempotency:</b> mỗi lệnh có <code>client_ref</code> unique gửi sang bank để bank chặn trùng.</li>
+<li><b>Kết quả:</b> tỷ lệ giao dịch treo, thời gian xử lý khiếu nại, số vụ lệch đối soát/tháng (nếu có số).</li>
+</ul>
+<p><b>Nối sang Dayladau:</b> "Luồng khách trả tiền → giữ chỗ → xác nhận cũng có trạng thái unknown khi gateway timeout, em sẽ áp dụng đúng cách này."</p>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">2</span><h3>Bạn đã gặp sự cố nào liên quan tới tiền (double charge, lệch đối soát, callback mất)? Root cause, cách fix, và làm gì để không lặp lại?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<div class="hint"><b>Tự kiểm tra:</b> bạn đã từng gặp case nào trong các case dưới đây chưa?</div>
+<ul>
+<li><b>Callback đến 2 lần</b> → cộng tiền 2 lần. Fix: unique <code>(provider, provider_txn_id)</code> + update có điều kiện trạng thái.</li>
+<li><b>Callback mất</b> → đơn treo pending dù khách đã bị trừ tiền. Fix: job chủ động query gateway.</li>
+<li><b>Retry sau timeout</b> → chuyển tiền 2 lần. Fix: idempotency key phía đối tác.</li>
+<li><b>Race giữa callback và job hết hạn</b> → đơn vừa PAID vừa EXPIRED. Fix: CAS update <code>WHERE status = ?</code>.</li>
+<li><b>Lệch do timezone/cut-off</b> khi đối soát theo ngày.</li>
+</ul>
+<p>Kết thúc bằng phần <b>phòng ngừa</b>: alert, dashboard, test case mới, postmortem. Người phỏng vấn chú ý nhất phần này.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">3</span><h3>E-invoicing: xử lý hóa đơn phát hành thất bại, hoặc cần điều chỉnh/thay thế sau khi đã phát hành thế nào? (Hoàn tiền một phần thì hóa đơn hoa hồng xử lý sao?)</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Tách <b>nghiệp vụ</b> (đơn đã hoàn tất) và <b>phát hành hóa đơn</b> (tác vụ bất đồng bộ qua queue, retry được). Hóa đơn lỗi không được chặn luồng đặt phòng.</li>
+<li>Hóa đơn đã phát hành thì không sửa hay xóa, chỉ lập <b>hóa đơn điều chỉnh</b> hoặc <b>hóa đơn thay thế</b> theo quy định hiện hành (Nghị định 123/2020, sửa đổi bởi Nghị định 70/2025). Mỗi hóa đơn liên kết tới hóa đơn gốc.</li>
+<li>Với Dayladau, platform thường xuất hóa đơn cho <b>phần hoa hồng</b> (hoặc toàn bộ tùy mô hình). Hoàn tiền một phần làm giảm hoa hồng thì lập hóa đơn điều chỉnh giảm.</li>
+<li>Idempotency: key theo <code>(booking_id, invoice_type, version)</code> để retry không phát hành trùng.</li>
+</ul>
+<div class="hint"><b>Lưu ý:</b> nên hỏi ngược: "Hiện Dayladau xuất hóa đơn cho khách theo tổng tiền phòng hay chỉ phí dịch vụ?" Câu hỏi này cho thấy bạn hiểu mô hình marketplace.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">4</span><h3>Vì sao chuyển từ fintech sang travel? Theo bạn phần nào khó hơn?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Không nói xấu công ty cũ. Nhấn vào <b>sự liên tục</b>: travel marketplace = fintech (thu hộ, escrow, payout, đối soát) + bài toán tồn kho theo thời gian.</li>
+<li><b>Khó hơn ở travel:</b> inventory theo thời gian liên tục (đặc biệt theo giờ), đồng bộ đa kênh không có transaction chung, trải nghiệm realtime khi search.</li>
+<li><b>Khó hơn ở fintech:</b> yêu cầu compliance và độ chính xác tiền tuyệt đối. Đây là thứ bạn mang sang được.</li>
+</ul>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="grp" id="g2" data-title="2. Golang core">
+<h2>2. Golang core (production)</h2>
+
+<article class="q" data-type="mix">
+<header><span class="num">5</span><h3>Goroutine leak: phát hiện trên production thế nào? Cho ví dụ thực tế.</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Dấu hiệu:</b> metric <code>go_goroutines</code> (Prometheus) tăng đều không giảm, memory tăng theo.</li>
+<li><b>Điều tra:</b> <code>net/http/pprof</code> → <code>/debug/pprof/goroutine?debug=1</code>, group theo stack xem nhiều goroutine kẹt ở đâu (thường là <code>chan send</code>, <code>chan receive</code>, <code>select</code>, <code>IO wait</code>).</li>
+<li><b>Nguyên nhân hay gặp:</b> gửi vào unbuffered channel mà không ai nhận (caller đã return do timeout), thiếu <code>ctx.Done()</code> trong vòng lặp worker, <code>resp.Body</code> không close, <code>time.Ticker</code> không Stop.</li>
+<li><b>Test:</b> <code>go.uber.org/goleak</code> trong <code>TestMain</code>.</li>
+</ul>
+<pre><code class="language-go">// Leak: caller timeout thì goroutine kẹt mãi ở ch &lt;- v
+func fetch(ctx context.Context) (int, error) {
+    ch := make(chan int)          // fix: make(chan int, 1)
+    go func() { ch &lt;- slowCall() }()
+    select {
+    case v := &lt;-ch:
+        return v, nil
+    case &lt;-ctx.Done():
+        return 0, ctx.Err()
+    }
+}</code></pre>
+<div class="hint"><b>Kinh nghiệm:</b> nếu từng debug leak ở consumer Kafka hoặc WebSocket thì kể ngắn gọn, đó là ví dụ rất tốt.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">6</span><h3>Timeout khi gọi payment gateway thì transaction DB đang mở xử lý thế nào? Có nên rollback khi ctx cancel mà gateway có thể đã trừ tiền?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<p><b>Ý chính:</b> câu hỏi là cái bẫy. <b>Không giữ DB transaction mở trong lúc gọi HTTP ra ngoài</b>, vì vừa giữ lock/connection lâu, vừa không có cách "rollback" phía gateway.</p>
+<ol>
+<li>Tx1: tạo <code>payment_attempts(status=PENDING, idempotency_key)</code> → commit.</li>
+<li>Gọi gateway với ctx timeout riêng.</li>
+<li>Tx2: cập nhật kết quả. Nếu timeout thì chuyển <code>UNKNOWN</code>, <b>không</b> đánh FAILED.</li>
+<li>Reconcile job / webhook sẽ chốt trạng thái cuối.</li>
+</ol>
+<p>Lưu ý: dùng <code>context.WithoutCancel(ctx)</code> (Go 1.21+) cho bước ghi kết quả, để client đóng request không làm mất bản ghi trạng thái.</p>
+<pre><code class="language-go">func (s *Service) Charge(ctx context.Context, b Booking) error {
+    att, err := s.repo.CreateAttempt(ctx, b.ID, b.Amount) // commit ngay
+    if err != nil { return err }
+
+    cctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+    defer cancel()
+    res, err := s.gw.Charge(cctx, gateway.ChargeReq{RefID: att.RefID, Amount: b.Amount})
+
+    wctx := context.WithoutCancel(ctx)
+    switch {
+    case err == nil:
+        return s.repo.MarkAttempt(wctx, att.ID, res.Status, res.ProviderTxnID)
+    case gateway.IsTimeout(err) || errors.Is(err, context.DeadlineExceeded):
+        return s.repo.MarkAttempt(wctx, att.ID, StatusUnknown, "") // reconcile sau
+    default:
+        return s.repo.MarkAttempt(wctx, att.ID, StatusFailed, "")
+    }
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">7</span><h3>Phân biệt lỗi retryable và non-retryable khi gọi third-party. Dùng errors.Is/As, sentinel error hay custom type?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Retryable:</b> network error, timeout <i>với request idempotent</i>, HTTP 429/502/503/504, mã lỗi "system busy" của đối tác.</li>
+<li><b>Non-retryable:</b> 400/401/403/422, sai chữ ký, số dư không đủ, thẻ bị từ chối.</li>
+<li><b>Sentinel</b> (<code>var ErrNotFound = errors.New(...)</code>) phù hợp cho so sánh đơn giản. <b>Custom type</b> phù hợp khi cần mang thêm dữ liệu (mã lỗi đối tác, HTTP status). Wrap bằng <code>%w</code> để giữ chain.</li>
+</ul>
+<pre><code class="language-go">type ProviderError struct {
+    HTTPStatus int
+    Code       string
+    Retryable  bool
+}
+func (e *ProviderError) Error() string { return e.Code }
+
+func isRetryable(err error) bool {
+    var pe *ProviderError
+    if errors.As(err, &amp;pe) { return pe.Retryable }
+    var ne net.Error
+    return errors.As(err, &amp;ne) &amp;&amp; ne.Timeout()
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">8</span><h3>Mutex vs channel vs singleflight: dùng cái nào để chống cache stampede khi nhiều request cùng query tồn phòng một homestay hot?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<p><b><code>singleflight</code></b> (<code>golang.org/x/sync/singleflight</code>): gộp các request cùng key thành 1 lần gọi DB, các request khác chờ và dùng chung kết quả. Mutex toàn cục sẽ serialize mọi key; channel thì phải tự dựng lại cơ chế này.</p>
+<pre><code class="language-go">var g singleflight.Group
+
+func (s *Svc) Availability(ctx context.Context, roomID int64, day string) (*Avail, error) {
+    key := fmt.Sprintf("avail:%d:%s", roomID, day)
+    if v, ok := s.cache.Get(key); ok { return v.(*Avail), nil }
+
+    v, err, _ := g.Do(key, func() (any, error) {
+        a, err := s.repo.LoadAvailability(context.WithoutCancel(ctx), roomID, day)
+        if err == nil { s.cache.Set(key, a, 30*time.Second) }
+        return a, err
+    })
+    if err != nil { return nil, err }
+    return v.(*Avail), nil
+}</code></pre>
+<div class="to"><b>Trade-off:</b> singleflight chỉ gộp <i>trong 1 pod</i>. N pod thì vẫn có N query; muốn gộp toàn cụm phải có lock Redis (phức tạp hơn). Kết hợp thêm TTL jitter để key không hết hạn cùng lúc. Cache tồn phòng chỉ dùng cho <b>search/hiển thị</b>; bước đặt phòng luôn kiểm tra lại trên DB.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">9</span><h3>Graceful shutdown trên Kubernetes: SIGTERM, preStop, drain HTTP server, dừng worker đang xử lý dở.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ol>
+<li>K8s gửi SIGTERM và đồng thời gỡ pod khỏi Endpoints. Hai việc này <b>không đồng bộ</b>, nên thêm <code>preStop: sleep 5-10s</code> để kube-proxy/ingress kịp ngừng route traffic vào.</li>
+<li>App: fail readiness → <code>srv.Shutdown(ctx)</code> (ngừng nhận kết nối mới, chờ request đang chạy) → dừng consumer/worker (commit offset xong mới thoát) → đóng DB.</li>
+<li><code>terminationGracePeriodSeconds</code> phải lớn hơn tổng thời gian trên.</li>
+</ol>
+<pre><code class="language-go">func main() {
+    ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
+    defer stop()
+
+    srv := &amp;http.Server{Addr: ":8080", Handler: router()}
+    var wg sync.WaitGroup
+    wg.Add(1)
+    go func() { defer wg.Done(); worker.Run(ctx) }() // worker tự thoát khi ctx.Done()
+
+    go func() {
+        if err := srv.ListenAndServe(); err != nil &amp;&amp; !errors.Is(err, http.ErrServerClosed) {
+            log.Fatal(err)
+        }
+    }()
+
+    &lt;-ctx.Done()
+    health.SetNotReady()
+    shCtx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+    defer cancel()
+    _ = srv.Shutdown(shCtx)
+    wg.Wait()
+    db.Close()
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">10</span><h3>Cấu trúc project Go của bạn (layered/clean/hexagonal)? Trade-off với team nhỏ cần ship nhanh.</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<p>Gợi ý cấu trúc thực dụng theo domain (package-by-feature):</p>
+<pre><code>cmd/api, cmd/worker
+internal/
+  booking/   handler.go service.go repo.go model.go
+  payment/   ... gateway/{vnpay,momo}
+  pricing/
+  ledger/
+  platform/  db, config, logger, httpx
+migrations/</code></pre>
+<ul>
+<li>Interface <b>định nghĩa ở phía dùng</b> (consumer side), chỉ tạo interface khi có ≥2 implementation hoặc cần mock.</li>
+<li>Transaction xuyên repo: truyền <code>*sql.Tx</code> qua hàm <code>WithTx(ctx, func(tx) error)</code>.</li>
+</ul>
+<div class="to"><b>Trade-off:</b> Clean/hexagonal đầy đủ dễ test và dễ thay adapter, nhưng nhiều boilerplate, chậm với team nhỏ. Package-by-feature + interface tối thiểu ship nhanh, chỉ cần giữ kỷ luật "domain không import handler".</div>
+<div class="hint"><b>Kinh nghiệm:</b> nói cấu trúc bạn dùng ở 9Pay (Gin/Echo/Goravel) và điều bạn sẽ thay đổi nếu làm lại.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">11</span><h3>Connection pool MySQL trong database/sql: MaxOpenConns, MaxIdleConns, ConnMaxLifetime set dựa trên gì? Pool cạn thì triệu chứng là gì?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><code>MaxOpenConns</code> ≈ (MySQL <code>max_connections</code> × ~70%) / số pod (tính cả lúc HPA scale tối đa và rolling update có pod dư).</li>
+<li><code>MaxIdleConns</code> = gần bằng MaxOpen để tránh mở/đóng liên tục.</li>
+<li><code>ConnMaxLifetime</code> &lt; <code>wait_timeout</code> của MySQL và &lt; idle timeout của proxy/LB (Cloud SQL Proxy, ProxySQL); thường 3–5 phút.</li>
+<li><b>Triệu chứng cạn pool:</b> latency tăng mà CPU DB thấp; <code>db.Stats().WaitCount</code> và <code>WaitDuration</code> tăng. Nguyên nhân hay gặp: tx giữ lâu (gọi HTTP trong tx), <code>rows</code> không <code>Close()</code>.</li>
+</ul>
+<pre><code class="language-go">db.SetMaxOpenConns(40)
+db.SetMaxIdleConns(40)
+db.SetConnMaxLifetime(4 * time.Minute)
+db.SetConnMaxIdleTime(2 * time.Minute)
+// export db.Stats() ra Prometheus: InUse, Idle, WaitCount, WaitDuration</code></pre>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="grp" id="g3" data-title="3. SQL / MySQL">
+<h2>3. SQL / MySQL</h2>
+<p class="intro">JD ghi rõ là yêu cầu bắt buộc. Chuẩn bị viết SQL tay và đọc EXPLAIN.</p>
+
+<article class="q" data-type="kn">
+<header><span class="num">12</span><h3>Thiết kế schema rooms, bookings, room_blocks cho đặt phòng theo giờ.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<pre><code class="language-sql">CREATE TABLE rooms (
+  id            BIGINT PRIMARY KEY AUTO_INCREMENT,
+  host_id       BIGINT NOT NULL,
+  district_id   INT NOT NULL,
+  buffer_min    SMALLINT NOT NULL DEFAULT 30,   -- thời gian dọn phòng
+  status        TINYINT NOT NULL,
+  version       INT NOT NULL DEFAULT 0,
+  KEY idx_host (host_id),
+  KEY idx_district_status (district_id, status)
+);
+
+CREATE TABLE bookings (
+  id               BIGINT PRIMARY KEY AUTO_INCREMENT,
+  code             VARCHAR(20) NOT NULL UNIQUE,
+  room_id          BIGINT NOT NULL,
+  guest_id         BIGINT NOT NULL,
+  start_at         DATETIME NOT NULL,          -- UTC
+  end_at           DATETIME NOT NULL,          -- UTC, exclusive
+  block_end_at     DATETIME NOT NULL,          -- end_at + buffer
+  status           TINYINT NOT NULL,
+  hold_expires_at  DATETIME NULL,
+  total_amount     BIGINT NOT NULL,            -- VND
+  channel          VARCHAR(20) NOT NULL,       -- app, web, ctv, airbnb...
+  created_at       DATETIME NOT NULL,
+  KEY idx_room_time (room_id, block_end_at, start_at, status),
+  KEY idx_guest (guest_id, created_at)
+);
+
+CREATE TABLE room_blocks (      -- chủ nhà tự khoá hoặc import iCal
+  id          BIGINT PRIMARY KEY AUTO_INCREMENT,
+  room_id     BIGINT NOT NULL,
+  start_at    DATETIME NOT NULL,
+  end_at      DATETIME NOT NULL,
+  source      VARCHAR(20) NOT NULL,         -- manual, ical_airbnb...
+  external_uid VARCHAR(255) NULL,
+  UNIQUE KEY uq_ext (room_id, source, external_uid),
+  KEY idx_room_time (room_id, end_at, start_at)
+);</code></pre>
+<p>Lưu <code>block_end_at</code> sẵn (đã cộng buffer) để query overlap không phải tính toán, tránh không dùng được index. Giá chi tiết snapshot sang bảng <code>booking_price_items</code>.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">13</span><h3>Viết query kiểm tra phòng trống cho khoảng [start, end).</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<p>Hai khoảng [a1,a2) và [b1,b2) giao nhau khi và chỉ khi <code>a1 &lt; b2 AND b1 &lt; a2</code>. Tính cả buffer dọn phòng và booking đang giữ chỗ chưa hết hạn.</p>
+<pre><code class="language-sql">-- :start, :end là khoảng khách muốn; :end_buf = :end + buffer của phòng
+SELECT 1 FROM bookings
+WHERE room_id = :room_id
+  AND start_at     &lt; :end_buf
+  AND block_end_at &gt; :start
+  AND ( status IN (2,3,4)                         -- paid, confirmed, checked_in
+        OR (status = 1 AND hold_expires_at &gt; UTC_TIMESTAMP()) )  -- đang giữ chỗ
+LIMIT 1;
+
+SELECT 1 FROM room_blocks
+WHERE room_id = :room_id AND start_at &lt; :end_buf AND end_at &gt; :start
+LIMIT 1;</code></pre>
+<p>Điểm cộng: điều kiện <code>hold_expires_at &gt; NOW()</code> giúp việc hết hạn giữ chỗ có hiệu lực <b>ngay lập tức về mặt logic</b>, dù cron dọn dẹp có chạy trễ.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">14</span><h3>Index nào cho query trên? (room_id, start_at, end_at) hay (room_id, end_at)? Giải thích bằng EXPLAIN.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>B-tree chỉ dùng được <b>1 điều kiện range</b> để thu hẹp; cột range thứ 2 chỉ lọc trong index (index condition pushdown).</li>
+<li>Ở hệ thống booking, phần lớn dữ liệu là booking <b>trong quá khứ</b>. Query luôn hỏi khoảng gần hiện tại, nên <code>end_at &gt; :start</code> loại được gần hết dữ liệu cũ. Vì vậy chọn <code>(room_id, block_end_at, start_at, status)</code>: range trên <code>block_end_at</code>, còn <code>start_at</code>/<code>status</code> lọc ngay trong index (covering, không cần đọc row).</li>
+<li>Nếu chọn <code>(room_id, start_at)</code> thì <code>start_at &lt; :end</code> khớp với <i>toàn bộ lịch sử</i> của phòng, số rows quét tăng dần theo thời gian.</li>
+</ul>
+<p><b>Đọc EXPLAIN:</b> cần thấy <code>type=range</code>, <code>key=idx_room_time</code>, <code>rows</code> nhỏ, <code>Extra: Using where; Using index</code> (covering). Nếu thấy <code>type=ALL</code> hoặc <code>Using filesort</code> thì cần xem lại.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">15</span><h3>Search "homestay trống ở Cầu Giấy 14h–18h hôm nay, giá &lt; 300k" trên 3000+ phòng: MySQL thuần có chịu được không? Khi nào cần Elasticsearch/Redis?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>3000 phòng là nhỏ. MySQL: lọc <code>rooms</code> theo district/giá (index) ra vài trăm phòng → <code>NOT EXISTS</code> overlap với bookings/blocks. Với index đúng, query chạy vài chục ms. <b>Chưa cần ES</b> chỉ vì availability.</li>
+<li><b>Khi nào cần ES:</b> full-text (tên, tiện ích), geo-distance "gần tôi", facet/aggregation, ranking cá nhân hóa, số listing tăng lên hàng chục nghìn.</li>
+<li><b>Mô hình lai:</b> ES trả danh sách ứng viên (lọc tĩnh + geo + rank) → MySQL/Redis kiểm tra availability realtime cho top N.</li>
+<li><b>Redis:</b> cache kết quả search theo (district, date, slot) TTL ngắn, hoặc bitmap theo slot 30 phút cho mỗi phòng/ngày (48 bit) để AND nhanh.</li>
+</ul>
+<div class="to"><b>Trade-off:</b> ES có độ trễ đồng bộ (CDC/Kafka), nên có thể hiện phòng đã hết. Chấp nhận được cho search, nhưng bước đặt phòng phải kiểm tra lại trên DB. Bitmap Redis nhanh nhưng phải giữ đồng bộ và rời rạc hoá thời gian.</div>
+<div class="hint"><b>Kinh nghiệm:</b> nhắc dự án có dùng Elasticsearch (index mapping, sync từ MySQL qua Kafka/CDC) nếu có.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">16</span><h3>Isolation level mặc định của InnoDB? Phantom read ảnh hưởng kiểm tra overlap thế nào? Gap lock/next-key lock có cứu được không?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Mặc định <b>REPEATABLE READ</b>. <code>SELECT</code> thường đọc <b>snapshot</b>: 2 transaction cùng chạy đều không thấy overlap → cùng INSERT → <b>overbook</b>. Đây là "write skew", không phải lỗi cấu hình.</li>
+<li><code>SELECT ... FOR UPDATE</code> trên range dùng next-key lock, về lý thuyết chặn insert vào khoảng đó. Tuy nhiên: phạm vi lock phụ thuộc index được chọn; điều kiện 2 cột range khiến lock rộng hơn cần thiết; khi khoảng trống thì 2 tx đều lấy được gap lock (gap lock không xung đột nhau) → cả hai INSERT → <b>deadlock</b>.</li>
+<li><b>Cách ổn định hơn:</b> khoá row cha <code>SELECT id FROM rooms WHERE id=? FOR UPDATE</code> để serialize mọi thao tác ghi trên cùng 1 phòng (xem câu 21).</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">17</span><h3>Đọc EXPLAIN / EXPLAIN ANALYZE thế nào: type, rows, Using filesort, Using temporary?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<table>
+<tr><th>Trường</th><th>Ý nghĩa / cần chú ý</th></tr>
+<tr><td><code>type</code></td><td>Tốt → xấu: <code>const, eq_ref, ref, range, index, ALL</code>. <code>index</code> = quét toàn bộ index, <code>ALL</code> = full scan.</td></tr>
+<tr><td><code>key</code>, <code>key_len</code></td><td>Index được chọn; key_len cho biết dùng được bao nhiêu cột của composite index.</td></tr>
+<tr><td><code>rows</code>, <code>filtered</code></td><td>Ước lượng số rows quét, % còn lại sau WHERE. rows lớn mà filtered thấp thì index chưa đủ chọn lọc.</td></tr>
+<tr><td><code>Using index</code></td><td>Covering index, tốt.</td></tr>
+<tr><td><code>Using filesort</code></td><td>ORDER BY không theo index. Nên thêm cột sort vào cuối composite index.</td></tr>
+<tr><td><code>Using temporary</code></td><td>GROUP BY/DISTINCT cần bảng tạm, thường chậm với dữ liệu lớn.</td></tr>
+</table>
+<p><code>EXPLAIN ANALYZE</code> (MySQL 8.0.18+) chạy thật và cho <i>actual time</i> và <i>actual rows</i>. So với ước lượng để phát hiện statistics lệch (<code>ANALYZE TABLE</code>).</p>
+<div class="hint"><b>Kinh nghiệm:</b> chuẩn bị 1 case slow query cụ thể: query gì, EXPLAIN ra sao, sửa index/viết lại thế nào, latency giảm từ bao nhiêu xuống bao nhiêu.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">18</span><h3>Deadlock trong MySQL: đọc SHOW ENGINE INNODB STATUS và cách tránh.</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Mục <code>LATEST DETECTED DEADLOCK</code>: 2 transaction, câu SQL của mỗi bên, lock đang giữ (<code>HOLDS THE LOCK</code>) và đang chờ (<code>WAITING FOR</code>), transaction nào bị rollback. Bật <code>innodb_print_all_deadlocks</code> để log mọi deadlock.</li>
+<li><b>Tránh:</b> lock theo thứ tự nhất quán (ví dụ luôn sort theo <code>room_id</code> tăng dần khi đặt nhiều phòng); transaction ngắn; lock row cha thay vì range; index đúng để lock ít rows.</li>
+<li><b>Chấp nhận:</b> deadlock là bình thường ở tải cao. Code phải <b>retry</b> khi gặp lỗi 1213 (deadlock) hoặc 1205 (lock wait timeout).</li>
+</ul>
+<pre><code class="language-go">func withRetry(ctx context.Context, db *sql.DB, fn func(*sql.Tx) error) error {
+    for i := 0; i &lt; 3; i++ {
+        err := inTx(ctx, db, fn)
+        var me *mysql.MySQLError
+        if errors.As(err, &amp;me) &amp;&amp; (me.Number == 1213 || me.Number == 1205) {
+            time.Sleep(time.Duration(20*(i+1)) * time.Millisecond)
+            continue
+        }
+        return err
+    }
+    return ErrTooMuchContention
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">19</span><h3>Pagination cho danh sách đơn của chủ nhà hàng chục nghìn đơn: offset vs keyset/cursor.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<pre><code class="language-sql">-- Offset: MySQL vẫn phải đọc và bỏ qua 20000 rows
+SELECT ... FROM bookings WHERE host_id=? ORDER BY created_at DESC, id DESC LIMIT 20 OFFSET 20000;
+
+-- Keyset: nhảy thẳng vào index (host_id, created_at, id)
+SELECT ... FROM bookings
+WHERE host_id = ?
+  AND (created_at, id) &lt; (?, ?)      -- cursor từ trang trước
+ORDER BY created_at DESC, id DESC
+LIMIT 20;</code></pre>
+<p>Lưu ý: MySQL tối ưu row constructor <code>(a,b) &lt; (x,y)</code> không tốt ở một số version; an toàn hơn thì viết <code>created_at &lt; ? OR (created_at = ? AND id &lt; ?)</code>.</p>
+<div class="to"><b>Trade-off:</b> Keyset nhanh ổn định và không bị lặp/sót khi có đơn mới chen vào, nhưng không nhảy tới "trang 57" được. Admin cần nhảy trang thì dùng offset có giới hạn, hoặc deferred join (<code>SELECT id</code> theo offset trước, rồi JOIN lấy cột).</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">20</span><h3>Lưu tiền bằng kiểu gì (DECIMAL vs BIGINT)? Timezone cho booking theo giờ: lưu UTC hay local, xử lý "qua đêm 9pm–9am" thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Tiền:</b> VND không có phần lẻ nên <code>BIGINT</code> đơn vị đồng là đơn giản, nhanh, map thẳng <code>int64</code>. Đa tiền tệ thì dùng <code>BIGINT</code> minor unit + cột <code>currency</code>, hoặc <code>DECIMAL(19,4)</code>. <b>Không bao giờ dùng float.</b> Làm tròn hoa hồng: chốt quy tắc (làm tròn xuống cho platform/lên cho host) và phần dư đi vào account nào.</li>
+<li><b>Thời gian:</b> lưu <code>DATETIME</code> ở UTC (tránh <code>TIMESTAMP</code> vì giới hạn năm 2038 và phụ thuộc session time_zone), DSN <code>parseTime=true&amp;loc=UTC</code>. Hiển thị và tính luật theo <code>Asia/Ho_Chi_Minh</code>. Việt Nam không có DST, nhưng vẫn nên làm đúng từ đầu.</li>
+<li><b>Qua đêm 9pm–9am:</b> booking vẫn chỉ là 1 khoảng tuyệt đối <code>[start_at, end_at)</code>. "Combo qua đêm" là khái niệm <b>pricing</b> (gói giá), không phải kiểu inventory riêng. Cách này giúp logic overlap dùng chung cho mọi loại gói.</li>
+<li>"Hôm nay" cho báo cáo phải tính theo giờ VN: <code>[00:00 VN, 24:00 VN)</code> quy đổi ra UTC rồi mới query.</li>
+</ul>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="grp" id="g4" data-title="4. Booking & tồn phòng">
+<h2>4. Booking, lịch &amp; tồn phòng theo thời gian</h2>
+<p class="intro">Trọng tâm của Dayladau: inventory là khoảng thời gian liên tục (theo giờ), không phải theo đêm.</p>
+
+<article class="q" data-type="kn">
+<header><span class="num">21</span><h3>Chống overbooking khi 2 khách cùng đặt một phòng cùng khung giờ: so sánh các cách.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<table>
+<tr><th>Cách</th><th>Ưu</th><th>Nhược</th></tr>
+<tr><td><b>Lock row cha</b> <code>rooms FOR UPDATE</code></td><td>Đơn giản, đúng tuyệt đối, dùng được giờ lẻ</td><td>Serialize theo phòng; tx phải ngắn. Với homestay (1 phòng ít khi có hàng trăm người đặt cùng giây) thì hoàn toàn chấp nhận được</td></tr>
+<tr><td><b>Bảng slot</b> + <code>UNIQUE(room_id, slot_start)</code></td><td>DB tự chặn, không cần lock tường minh</td><td>Rời rạc hoá (30 phút/slot → 48 row/ngày/phòng), đổi độ phân giải khó, nhiều row</td></tr>
+<tr><td><b>Redis lock</b></td><td>Nhanh, giảm tải DB</td><td>Lock hết hạn giữa chừng, cần fencing token; vẫn phải có ràng buộc ở DB</td></tr>
+<tr><td><b>Optimistic</b> (<code>rooms.version</code>)</td><td>Không giữ lock</td><td>Retry nhiều khi tranh chấp cao (Flash Sale)</td></tr>
+</table>
+<p><b>Đề xuất:</b> lock row <code>rooms</code> + kiểm tra overlap trong cùng transaction. MySQL không có exclusion constraint như PostgreSQL (<code>EXCLUDE USING gist</code>), nên phải dựa vào lock.</p>
+<pre><code class="language-go">func (r *Repo) CreateHold(ctx context.Context, in HoldInput) (*Booking, error) {
+    var b *Booking
+    err := withRetry(ctx, r.db, func(tx *sql.Tx) error {
+        var buffer int
+        // 1. Serialize mọi ghi trên cùng phòng
+        if err := tx.QueryRowContext(ctx,
+            `SELECT buffer_min FROM rooms WHERE id = ? AND status = 1 FOR UPDATE`,
+            in.RoomID).Scan(&amp;buffer); err != nil {
+            return err
+        }
+        endBuf := in.End.Add(time.Duration(buffer) * time.Minute)
+
+        // 2. Kiểm tra overlap (đọc sau lock nên thấy dữ liệu mới nhất)
+        var x int
+        err := tx.QueryRowContext(ctx, `
+            SELECT 1 FROM bookings
+            WHERE room_id = ? AND start_at &lt; ? AND block_end_at &gt; ?
+              AND (status IN (2,3,4) OR (status = 1 AND hold_expires_at &gt; UTC_TIMESTAMP()))
+            UNION ALL
+            SELECT 1 FROM room_blocks
+            WHERE room_id = ? AND start_at &lt; ? AND end_at &gt; ?
+            LIMIT 1`,
+            in.RoomID, endBuf, in.Start, in.RoomID, endBuf, in.Start).Scan(&amp;x)
+        if err == nil { return ErrNotAvailable }
+        if !errors.Is(err, sql.ErrNoRows) { return err }
+
+        // 3. Tạo giữ chỗ
+        b = &amp;Booking{RoomID: in.RoomID, Start: in.Start, End: in.End, BlockEnd: endBuf,
+            Status: StatusPendingPayment, HoldExpiresAt: time.Now().UTC().Add(10 * time.Minute)}
+        return r.insertBooking(ctx, tx, b)
+    })
+    return b, err
+}</code></pre>
+<p>Lưu ý: <code>SELECT ... FOR UPDATE</code> trên row đã lock thì đọc <b>bản mới nhất</b> (locking read), không đọc snapshot. Còn query overlap là plain SELECT, nhưng vì mọi writer đều phải lấy lock row <code>rooms</code> trước nên không còn write skew. Chính xác hơn nữa, có thể dùng <code>FOR SHARE</code>/<code>FOR UPDATE</code> cho query overlap, hoặc đặt isolation <code>READ COMMITTED</code> cho tx này.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">22</span><h3>Luồng hold → pay → confirm: giữ chỗ bao lâu, nhả chỗ bằng gì? Callback thành công đến sau khi đã nhả chỗ và phòng đã bị người khác đặt thì sao?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Thời gian giữ:</b> 10–15 phút, đồng bộ với thời hạn link thanh toán của gateway (VNPay/MoMo đều cho set expire). Hold ≥ thời hạn gateway, để khách không thể trả tiền khi chỗ đã nhả.</li>
+<li><b>Hết hạn:</b> logic nằm ở query (<code>hold_expires_at &gt; NOW()</code>), nên hết hạn là có hiệu lực ngay. Cron/delayed queue chỉ để <b>dọn trạng thái</b> và hoàn voucher, không ảnh hưởng tính đúng đắn. Delayed message (Kafka không hỗ trợ sẵn; dùng Redis ZSET hoặc Cloud Tasks) chính xác hơn cron nhưng thêm hạ tầng.</li>
+<li><b>Callback đến muộn:</b>
+<ol>
+<li>Luôn ghi nhận tiền vào (payment SUCCESS). Tiền đã vào thì phải hạch toán.</li>
+<li>Trong tx: lock phòng, kiểm tra lại overlap. Nếu còn trống thì confirm (dù hold đã quá hạn).</li>
+<li>Nếu đã bị đặt: chuyển <code>PAID_UNFULFILLABLE</code> → tự động hoàn tiền + thông báo + gợi ý phòng tương tự, có thể tặng voucher. Tất cả đi qua state machine và có alert.</li>
+</ol></li>
+</ul>
+<pre><code class="language-go">func (s *Svc) OnPaymentSucceeded(ctx context.Context, bookingID int64, pay Payment) error {
+    return s.repo.InTx(ctx, func(tx Tx) error {
+        b, err := tx.LockBookingAndRoom(ctx, bookingID)
+        if err != nil { return err }
+        if b.Status == StatusConfirmed { return nil } // idempotent
+        if err := tx.RecordPayment(ctx, pay); err != nil { return err }
+
+        if b.Status == StatusPendingPayment || tx.StillAvailable(ctx, b) {
+            return tx.Transition(ctx, b, StatusConfirmed)
+        }
+        if err := tx.Transition(ctx, b, StatusPaidUnfulfillable); err != nil { return err }
+        return tx.EnqueueOutbox(ctx, "refund.requested", RefundReq{BookingID: b.ID, Reason: "slot_taken"})
+    })
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">23</span><h3>Thiết kế state machine của booking. Transition nào hợp lệ? Enforce ở đâu?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<pre><code>PENDING_PAYMENT → PAID → CONFIRMED → CHECKED_IN → COMPLETED → SETTLED
+       ↓            ↓         ↓            ↓            ↓
+    EXPIRED     PAID_UNFULFILLABLE  CANCELLED → REFUNDED   DISPUTED → (RESOLVED)</code></pre>
+<p><b>Enforce ở cả hai nơi:</b> code (bảng transition, 1 chỗ duy nhất) + DB (<b>compare-and-swap</b> <code>WHERE status = ?</code>) để 2 luồng song song (callback vs job hết hạn) không cùng thắng. Mỗi transition ghi <code>booking_events</code> để audit.</p>
+<pre><code class="language-go">var allowed = map[Status][]Status{
+    PendingPayment: {Paid, Expired, Cancelled},
+    Paid:           {Confirmed, PaidUnfulfillable, Cancelled},
+    Confirmed:      {CheckedIn, Cancelled},
+    CheckedIn:      {Completed},
+    Completed:      {Settled, Disputed},
+    Cancelled:      {Refunded},
+}
+
+func (r *Repo) Transition(ctx context.Context, tx *sql.Tx, b *Booking, to Status, reason string) error {
+    if !slices.Contains(allowed[b.Status], to) {
+        return fmt.Errorf("%w: %s -&gt; %s", ErrInvalidTransition, b.Status, to)
+    }
+    res, err := tx.ExecContext(ctx,
+        `UPDATE bookings SET status = ?, updated_at = UTC_TIMESTAMP() WHERE id = ? AND status = ?`,
+        to, b.ID, b.Status)
+    if err != nil { return err }
+    if n, _ := res.RowsAffected(); n == 0 { return ErrConcurrentUpdate }
+    _, err = tx.ExecContext(ctx,
+        `INSERT INTO booking_events(booking_id, from_status, to_status, reason, created_at)
+         VALUES (?,?,?,?,UTC_TIMESTAMP())`, b.ID, b.Status, to, reason)
+    b.Status = to
+    return err
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">24</span><h3>Buffer dọn phòng giữa 2 lượt theo giờ: config của chủ nhà hay hệ thống? Ảnh hưởng query tồn phòng thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Config theo <b>phòng</b> (chủ nhà đặt, hệ thống có default và min), vì mỗi căn dọn nhanh chậm khác nhau.</li>
+<li>Buffer phải được áp dụng <b>hai phía</b>: booking mới không được bắt đầu trong buffer của booking trước, và kết thúc + buffer của booking mới không được đè lên booking sau. Cách đơn giản: lưu <code>block_end_at = end_at + buffer</code> lúc tạo, và khi check thì dùng <code>:end + buffer</code> so với <code>start_at</code> của booking khác.</li>
+<li>Chủ nhà <b>đổi buffer</b> sau này: booking cũ giữ <code>block_end_at</code> đã snapshot (không làm vỡ lịch đã bán); buffer mới chỉ áp dụng cho booking mới.</li>
+<li>Hiển thị: khung giờ khả dụng cho khách phải trừ buffer, để khách không chọn được giờ không đặt được.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">25</span><h3>Gia hạn giờ (ở thêm 2h), đổi giờ, check-out sớm: xử lý inventory và tiền ra sao?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Gia hạn:</b> tạo <b>booking_amendment</b> (không sửa đè booking gốc). Lock phòng, kiểm tra overlap cho phần <code>[end_at, new_end)</code> loại trừ chính booking này. Tạo payment mới cho phần chênh lệch, giữ chỗ phần gia hạn như một hold. Thanh toán xong mới cập nhật <code>end_at</code> và ghi ledger bổ sung.</li>
+<li><b>Đổi giờ:</b> kiểm tra khoảng mới (trừ chính nó) → tính lại giá theo snapshot quy tắc lúc đổi → chênh lệch dương thì thu thêm, âm thì hoàn theo chính sách.</li>
+<li><b>Check-out sớm:</b> thường không hoàn tiền (theo policy), nhưng có thể <b>trả lại inventory</b> để bán Last Minute: cập nhật <code>block_end_at</code> sớm hơn, không đổi số tiền.</li>
+<li>Mọi thay đổi đều qua state machine + event, và báo cáo doanh thu dựa trên ledger chứ không đọc <code>bookings.total_amount</code>.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">26</span><h3>Đồng bộ lịch đa kênh (iCal Airbnb/Booking/Agoda): iCal có độ trễ, làm sao giảm overbook? Khi overbook vẫn xảy ra thì quy trình là gì?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Hai chiều:</b> import iCal của OTA thành <code>room_blocks</code> (upsert theo <code>UID</code>, xóa block không còn trong feed); export iCal URL của Dayladau để OTA block lại.</li>
+<li><b>Độ trễ:</b> Dayladau poll được thường xuyên (5–10 phút, ưu tiên phòng có lịch gần). Nhưng chiều ngược lại do OTA quyết định (Airbnb có thể vài giờ mới kéo 1 lần). Đó là giới hạn của iCal.</li>
+<li><b>Giảm rủi ro:</b> với phòng đa kênh, <b>fetch iCal on-demand ngay trước khi confirm</b> (có timeout, fail thì vẫn confirm hoặc đưa vào review tùy policy); giữ buffer; dùng Channel Manager API (push realtime) thay iCal khi có đối tác.</li>
+<li><b>Khi overbook:</b> phát hiện (job so sánh block mới với booking đã confirm) → alert chủ nhà và CS → đổi phòng tương đương hoặc hủy + hoàn 100% + bồi thường voucher → ghi nhận để tính điểm tin cậy của chủ nhà/kênh.</li>
+<li>Parse iCal: xử lý <code>DTSTART;VALUE=DATE</code> (all-day, theo ngày), timezone, feed lỗi/rỗng. Feed rỗng bất thường <b>không được xóa hết block</b>.</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> nếu chưa làm iCal/channel manager thì nói thẳng, nhưng liên hệ với kinh nghiệm đồng bộ dữ liệu với hệ thống ngoài (ngân hàng, đối tác) có độ trễ.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">27</span><h3>Pricing engine: giá theo giờ, combo qua đêm, cuối tuần, Last Minute, Flash Sale, voucher. Đảm bảo giá lúc search = giá lúc thanh toán? Snapshot giá thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Pipeline rule theo thứ tự cố định:</b> giá gốc (theo gói giờ/qua đêm/ngày) → điều chỉnh theo ngày (cuối tuần/lễ) → khuyến mãi platform (Last Minute/Flash Sale, chọn cái tốt nhất hoặc theo quy tắc stack) → voucher → phí. Hàm thuần <code>Quote(input, rules, now) → PriceBreakdown</code>, dễ unit test.</li>
+<li><b>Quote token:</b> khi khách vào bước thanh toán, tạo <code>price_quote</code> có TTL (≈ thời gian hold), lưu breakdown. Booking dùng quote đó, không tính lại, nên giá không đổi giữa chừng dù Flash Sale vừa hết.</li>
+<li><b>Snapshot:</b> <code>booking_price_items(type, description, amount, funded_by)</code>, ghi rõ khoản giảm do platform hay host chịu. Thông tin này quyết định hạch toán hoa hồng.</li>
+<li>Last Minute phụ thuộc <code>now</code>: truyền <code>now</code> vào hàm (không gọi <code>time.Now()</code> bên trong) để test được.</li>
+</ul>
+<pre><code class="language-go">type Rule interface {
+    Apply(q *Quote, in QuoteInput) // thêm line item vào q
+}
+
+func (e *Engine) Quote(in QuoteInput) Quote {
+    q := Quote{Currency: "VND"}
+    for _, r := range e.rules { // BaseRate, DayOfWeek, LastMinute, FlashSale, Voucher
+        r.Apply(&amp;q, in)
+    }
+    q.Total = q.Sum()
+    return q
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">28</span><h3>Voucher có giới hạn lượt dùng: chống dùng vượt quota khi Flash Sale có spike.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<pre><code class="language-sql">-- Atomic ở MySQL: điều kiện nằm trong UPDATE
+UPDATE vouchers SET used_count = used_count + 1
+WHERE id = ? AND used_count &lt; max_uses AND NOW() BETWEEN start_at AND end_at;
+-- RowsAffected = 0 → hết lượt
+
+-- Mỗi user 1 lần: unique key
+CREATE TABLE voucher_redemptions (
+  voucher_id BIGINT, user_id BIGINT, booking_id BIGINT, status TINYINT,
+  UNIQUE KEY uq_user (voucher_id, user_id)
+);</code></pre>
+<ul>
+<li>Làm trong cùng tx với tạo hold. Hold hết hạn/hủy thì <b>hoàn lượt</b> (<code>used_count - 1</code>, redemption → RELEASED).</li>
+<li><b>Redis</b> (<code>DECR</code> hoặc Lua script kiểm tra + trừ) cho spike rất lớn: DB không phải gánh hot row, nhưng phải đồng bộ lại với DB, và nếu Redis mất dữ liệu thì có thể phát vượt.</li>
+</ul>
+<div class="to"><b>Trade-off:</b> MySQL <code>UPDATE ... WHERE used &lt; max</code> đúng tuyệt đối nhưng tạo hot row (serialize trên 1 dòng). Với quy mô Dayladau thường đủ. Redis chịu tải cao hơn nhưng phức tạp hơn và có thể lệch.</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="grp" id="g5" data-title="5. Thanh toán & đối soát">
+<h2>5. Thanh toán, hoàn tiền, đối soát</h2>
+<p class="intro">Thế mạnh từ 9Pay. Mỗi câu nên kèm 1 ví dụ thực tế.</p>
+
+<article class="q" data-type="kn">
+<header><span class="num">29</span><h3>Idempotency khi tạo payment và khi nhận webhook/IPN: key lưu ở đâu, unique constraint gì?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>API từ client:</b> header <code>Idempotency-Key</code> (UUID do app sinh). Bảng <code>idempotency_keys(key PK, user_id, request_hash, status, response_body, created_at)</code>. Trùng key + khác hash thì trả 422; đang xử lý thì trả 409; đã xong thì trả lại response cũ.</li>
+<li><b>Webhook:</b> <code>payment_events</code> với <code>UNIQUE(provider, provider_txn_id, event_type)</code>. INSERT trước; lỗi duplicate (1062) thì trả 200 luôn.</li>
+<li><b>Gọi ra ngoài:</b> <code>ref_id</code> của mình gửi sang gateway (<code>vnp_TxnRef</code>, <code>orderId</code>...) là unique.</li>
+</ul>
+<pre><code class="language-go">func (h *Handler) VNPayIPN(c *gin.Context) {
+    evt, err := h.vnpay.ParseAndVerify(c.Request.URL.Query()) // verify chữ ký
+    if err != nil { c.JSON(200, vnpayResp("97", "Invalid signature")); return }
+
+    err = h.svc.HandlePaymentEvent(c.Request.Context(), evt)
+    switch {
+    case err == nil, errors.Is(err, ErrDuplicateEvent):
+        c.JSON(200, vnpayResp("00", "Confirm Success"))
+    case errors.Is(err, ErrAmountMismatch):
+        c.JSON(200, vnpayResp("04", "Invalid amount"))
+    default:
+        c.JSON(200, vnpayResp("99", "Unknown error")) // để gateway retry
+    }
+}
+
+func (s *Svc) HandlePaymentEvent(ctx context.Context, e Event) error {
+    return s.repo.InTx(ctx, func(tx Tx) error {
+        if err := tx.InsertEvent(ctx, e); err != nil {
+            if isDuplicate(err) { return ErrDuplicateEvent }
+            return err
+        }
+        att, err := tx.LockAttemptByRef(ctx, e.RefID)
+        if err != nil { return err }
+        if att.Amount != e.Amount { return ErrAmountMismatch }
+        return s.applyResult(ctx, tx, att, e) // CAS trạng thái + ledger + outbox
+    })
+}</code></pre>
+<p>Luôn kiểm tra <b>số tiền</b> và <b>trạng thái hiện tại</b> của đơn, không chỉ chữ ký.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">30</span><h3>Webhook đến trễ, đến 2 lần, sai thứ tự, hoặc không đến: có cơ chế query chủ động không?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>2 lần:</b> unique event (câu 29).</li>
+<li><b>Sai thứ tự</b> (ví dụ REFUNDED đến trước SUCCESS): state machine chỉ cho transition hợp lệ; event không áp dụng được thì lưu lại và xử lý sau, hoặc quyết định dựa trên trạng thái cuối lấy từ API query.</li>
+<li><b>Không đến:</b> job reconcile quét <code>payment_attempts</code> ở trạng thái PENDING/UNKNOWN quá X phút → gọi API query transaction của gateway → áp dụng kết quả qua <b>cùng một hàm</b> với webhook (single source of logic).</li>
+<li><b>Redirect return URL</b> của khách không phải nguồn tin cậy, chỉ để hiển thị. Chốt trạng thái bằng IPN hoặc query.</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> kể cơ chế tương tự ở 9Pay (job query trạng thái giao dịch với ngân hàng, tần suất, số lần thử, escalate thủ công).</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">31</span><h3>Verify chữ ký callback, chống replay. Timeout khi gọi gateway thì trạng thái đơn là gì?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Chữ ký:</b> HMAC-SHA512/SHA256 trên chuỗi tham số đã sort theo quy định của gateway, so sánh bằng <code>hmac.Equal</code> (constant-time). Secret lấy từ Secret Manager, không hard-code.</li>
+<li><b>Chống replay:</b> kiểm tra timestamp trong khoảng cho phép (nếu gateway có), unique event ID, IP allowlist của gateway (lớp phụ).</li>
+<li><b>Timeout:</b> đơn giữ <code>PENDING_PAYMENT</code>, attempt ở <code>UNKNOWN</code>. Không báo khách "thất bại" ngay, hiển thị "đang xác nhận". Reconcile sẽ chốt.</li>
+</ul>
+<pre><code class="language-go">func verify(params url.Values, secret, got string) bool {
+    keys := make([]string, 0, len(params))
+    for k := range params {
+        if k != "vnp_SecureHash" &amp;&amp; k != "vnp_SecureHashType" { keys = append(keys, k) }
+    }
+    sort.Strings(keys)
+    var sb strings.Builder
+    for i, k := range keys {
+        if i &gt; 0 { sb.WriteByte('&amp;') }
+        sb.WriteString(k + "=" + url.QueryEscape(params.Get(k)))
+    }
+    mac := hmac.New(sha512.New, []byte(secret))
+    mac.Write([]byte(sb.String()))
+    expected := hex.EncodeToString(mac.Sum(nil))
+    return hmac.Equal([]byte(expected), []byte(strings.ToLower(got)))
+}</code></pre>
+<p>(Quy tắc encode cụ thể theo tài liệu từng gateway. Đây là điểm hay sai khi tích hợp.)</p>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">32</span><h3>Ledger: thiết kế double-entry cho luồng khách trả → platform giữ (escrow) → sau checkout 24h chia cho chủ nhà trừ 15–20% hoa hồng.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<p><b>Nguyên tắc:</b> mỗi transaction có tổng Nợ = tổng Có; entry là <b>append-only</b>, sửa sai bằng bút toán đảo; số dư = SUM(entries), có thể cache vào bảng <code>account_balances</code>.</p>
+<p>Ví dụ: phòng 1.000.000đ, voucher platform 50.000đ (khách trả 950.000đ), hoa hồng 17%, phí gateway 1,1%.</p>
+<table>
+<tr><th>Sự kiện</th><th>Nợ (Debit)</th><th>Có (Credit)</th></tr>
+<tr><td>Khách thanh toán</td><td>Gateway Receivable 950.000<br>Promo Expense 50.000</td><td>Host Escrow 1.000.000</td></tr>
+<tr><td>Phí gateway</td><td>Gateway Fee Expense 10.450</td><td>Gateway Receivable 10.450</td></tr>
+<tr><td>Gateway settle về bank</td><td>Bank 939.550</td><td>Gateway Receivable 939.550</td></tr>
+<tr><td>Checkout + 24h không tranh chấp</td><td>Host Escrow 1.000.000</td><td>Host Payable 830.000<br>Commission Revenue 170.000</td></tr>
+<tr><td>Payout cho host</td><td>Host Payable 830.000</td><td>Bank 830.000</td></tr>
+</table>
+<pre><code class="language-sql">CREATE TABLE ledger_accounts (id BIGINT PRIMARY KEY, code VARCHAR(64), owner_type VARCHAR(16), owner_id BIGINT, UNIQUE(code, owner_type, owner_id));
+CREATE TABLE ledger_transactions (id BIGINT PRIMARY KEY, type VARCHAR(32), ref_type VARCHAR(16), ref_id BIGINT,
+  idempotency_key VARCHAR(64) UNIQUE, created_at DATETIME);
+CREATE TABLE ledger_entries (id BIGINT PRIMARY KEY, txn_id BIGINT, account_id BIGINT,
+  direction TINYINT,  -- 1 debit, -1 credit
+  amount BIGINT CHECK (amount &gt; 0), KEY(account_id, id));</code></pre>
+<pre><code class="language-go">func (l *Ledger) Post(ctx context.Context, tx *sql.Tx, t Txn) error {
+    var sum int64
+    for _, e := range t.Entries { sum += int64(e.Dir) * e.Amount }
+    if sum != 0 { return ErrUnbalanced } // bất biến quan trọng nhất
+    // insert ledger_transactions (idempotency_key unique) rồi insert entries
+    ...
+}</code></pre>
+<div class="to"><b>Trade-off:</b> ledger chuẩn tốn công hơn cột <code>host_balance</code>, nhưng là nền cho đối soát, hoàn tiền sau payout, báo cáo kế toán và audit. Với marketplace thu hộ tiền thì gần như bắt buộc.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">33</span><h3>Hoàn tiền toàn phần/một phần theo chính sách hủy, hoàn voucher. Refund qua gateway thất bại thì sao? Hoàn sau khi đã payout cho chủ nhà thì sao?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Tính tiền hoàn</b> bằng hàm thuần từ policy snapshot lúc đặt (ví dụ hủy trước 24h hoàn 100%, 2–24h hoàn 50%, &lt; 2h không hoàn). Voucher platform thường không hoàn thành tiền mà trả lại voucher.</li>
+<li><b>Refund entity riêng</b>: <code>refunds(id, booking_id, amount, status, provider_refund_id, idempotency_key)</code>, trạng thái <code>REQUESTED → PROCESSING → SUCCEEDED | FAILED → MANUAL</code>. Gateway lỗi thì retry có idempotency key. Quá hạn refund của gateway (một số ví/thẻ giới hạn số ngày) thì chuyển khoản thủ công và ghi lại.</li>
+<li><b>Hạch toán</b> tỷ lệ giữa phần host và hoa hồng: hoàn 50% thì đảo 50% escrow; phần hoa hồng giữ theo chính sách.</li>
+<li><b>Sau khi đã payout:</b> không đòi ngay được, nên ghi <b>Host Receivable</b> (số dư âm của host) và <b>trừ vào kỳ payout sau</b>. Không trừ hết được thì CS/kế toán xử lý. Platform tạm ứng tiền hoàn cho khách.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">34</span><h3>Đối soát với cổng thanh toán hằng ngày: các loại lệch và cách xử lý.</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Đầu vào:</b> file settlement/API của gateway (T+1), dữ liệu <code>payment_attempts</code> + ledger nội bộ, sao kê ngân hàng (tiền về thực tế). Đây là <b>đối soát 3 bên</b>.</li>
+<li><b>Ghép</b> theo <code>ref_id</code>/<code>provider_txn_id</code>; cửa sổ ngày theo cut-off của gateway (thường không phải 00:00 VN).</li>
+<li><b>Các loại lệch:</b>
+<ul>
+<li>Gateway có, mình không có (hoặc mình còn PENDING) → callback mất, cập nhật qua reconcile.</li>
+<li>Mình SUCCESS, gateway không có → nguy hiểm, cần điều tra ngay (giả mạo callback? lỗi logic?).</li>
+<li>Lệch số tiền/phí → sai cấu hình phí hoặc hoàn một phần.</li>
+<li>Lệch ngày → giao dịch sát cut-off, tự động khớp ở ngày kế tiếp.</li>
+</ul></li>
+<li><b>Đầu ra:</b> bảng <code>recon_results</code> + dashboard + alert; tự sửa với loại an toàn, còn lại chuyển người duyệt. Job chạy lại nhiều lần vẫn cho cùng kết quả (idempotent).</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> đây là câu bạn nên kể chuyện ở 9Pay: định dạng file đối soát ngân hàng, cut-off, tỷ lệ tự khớp, case lệch khó nhất từng gặp.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">35</span><h3>Payout cho hàng trăm/nghìn chủ nhà: batch, retry, chống chi trùng, tài khoản ngân hàng sai.</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Tạo payout:</b> job gom Host Payable theo kỳ → <code>payouts(host_id, period, amount, status)</code> với <code>UNIQUE(host_id, period)</code>, nên chạy lại cũng không tạo trùng. Trong cùng tx ghi ledger Host Payable → Payout In-Transit.</li>
+<li><b>Thực thi:</b> gọi API chi hộ/chuyển khoản với <code>reference = payout_id</code> (idempotent phía bank). Timeout thì <code>UNKNOWN</code> → query, <b>không chuyển lại</b>.</li>
+<li><b>Tài khoản sai:</b> verify tên chủ tài khoản (name inquiry qua NAPAS) lúc chủ nhà đăng ký/đổi TK; đổi TK cần OTP + thời gian chờ (chống chiếm tài khoản). Chuyển thất bại thì đảo ledger về Host Payable, thông báo chủ nhà.</li>
+<li><b>Kiểm soát:</b> ngưỡng số tiền cần duyệt tay, tổng batch phải khớp tổng ledger trước khi chạy, maker-checker.</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> nối với kinh nghiệm chuyển tiền/tích hợp ngân hàng ở 9Pay (chi hộ, NAPAS 247, name inquiry).</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">36</span><h3>Hoa hồng cho 500+ cộng tác viên: attribution booking cho CTV, tính và chi trả thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Attribution:</b> link/mã giới thiệu của CTV → lưu <code>referral_code</code> (cookie/deep link, có thời hạn, last-click hoặc first-click theo policy) → snapshot vào <code>bookings.affiliate_id</code> lúc tạo đơn. Không tính lại về sau.</li>
+<li><b>Tính:</b> chỉ ghi nhận khi booking <b>COMPLETED/SETTLED</b> (tránh trả cho đơn bị hủy/hoàn). Hoa hồng CTV được trích từ phần hoa hồng platform (ledger: Commission Revenue → Affiliate Payable).</li>
+<li><b>Chống gian lận:</b> CTV tự đặt cho mình, nhiều đơn cùng thiết bị/thẻ, tỷ lệ hủy cao.</li>
+<li><b>Chi trả:</b> dùng lại pipeline payout như host (câu 35), thường theo tháng. Chú ý thuế TNCN khấu trừ.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">37</span><h3>Tranh chấp (khách báo phòng không đúng mô tả): hold payout ra sao trong state machine?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Khách mở tranh chấp trong cửa sổ (trước checkout + 24h) → booking <code>DISPUTED</code>. Job settle chỉ xử lý booking <code>COMPLETED</code> và <code>dispute_window_end &lt; now</code> và không có dispute mở, nên tiền tự động nằm lại escrow.</li>
+<li>Kết quả xử lý: hoàn toàn bộ/một phần cho khách (đảo escrow → refund), hoặc bác bỏ → settle bình thường.</li>
+<li>Race: job settle và khách mở dispute cùng lúc, nên cần CAS trạng thái (<code>WHERE status = COMPLETED</code>) để chỉ một bên thắng.</li>
+<li>Lưu bằng chứng (ảnh, chat) và SLA xử lý; dispute quá hạn thì escalate.</li>
+</ul>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="grp" id="g6" data-title="6. Tích hợp bên thứ ba">
+<h2>6. Tích hợp bên thứ ba</h2>
+
+<article class="q" data-type="exp">
+<header><span class="num">38</span><h3>Quy trình khi nhận tài liệu API của một đối tác mới: đọc gì, hỏi lại gì, test sandbox thế nào?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<div class="hint"><b>Checklist nên kể</b> (đối chiếu với lần tích hợp ngân hàng/đối tác gần nhất của bạn):</div>
+<ul>
+<li><b>Auth &amp; bảo mật:</b> ký request, verify callback, rotate key, IP whitelist, mTLS.</li>
+<li><b>Idempotency:</b> field nào để chống trùng? Retry có an toàn không?</li>
+<li><b>Trạng thái:</b> danh sách mã lỗi đầy đủ, mã nào là "chưa rõ kết quả", có API query trạng thái không?</li>
+<li><b>Callback:</b> retry policy của họ, thứ tự, format response mong đợi.</li>
+<li><b>Giới hạn:</b> rate limit, timeout khuyến nghị, giờ bảo trì, cut-off đối soát, file đối soát.</li>
+<li><b>Môi trường:</b> sandbox có giả lập được lỗi/timeout không, dữ liệu test, quy trình UAT/go-live.</li>
+</ul>
+<p>Sản phẩm đầu ra: tài liệu mapping lên Confluence, danh sách câu hỏi gửi đối tác, test case cho từng mã lỗi, rollout sau feature flag.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">39</span><h3>Thiết kế adapter/interface để thêm cổng thanh toán mới (VNPay, MoMo, ZaloPay…) mà không sửa core.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<pre><code class="language-go">type Gateway interface {
+    Code() string
+    CreatePayment(ctx context.Context, req CreatePaymentReq) (*CreatePaymentRes, error) // trả redirect URL/deeplink/QR
+    ParseCallback(r *http.Request) (*CallbackEvent, error)                             // verify + chuẩn hoá
+    Query(ctx context.Context, refID string) (*TxnStatus, error)
+    Refund(ctx context.Context, req RefundReq) (*RefundRes, error)
+}
+
+type Registry struct{ m map[string]Gateway }
+func (r *Registry) Get(code string) (Gateway, error) { ... }
+
+// Core chỉ làm việc với model chuẩn hoá:
+type CallbackEvent struct {
+    Provider      string
+    RefID         string
+    ProviderTxnID string
+    Amount        int64
+    Status        PaymentStatus // SUCCESS | FAILED | PENDING
+    Raw           json.RawMessage
+}</code></pre>
+<ul>
+<li>Route webhook <code>/webhooks/payments/:provider</code> → registry → <code>ParseCallback</code> → service chung.</li>
+<li>Mỗi adapter có bộ test riêng với fixture request/response thật từ sandbox.</li>
+<li>Cấu hình (merchant code, secret) theo từng gateway trong Secret Manager. Bật/tắt gateway qua feature flag.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">40</span><h3>Retry với exponential backoff + jitter, circuit breaker, timeout budget. Khi nào KHÔNG được retry?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<pre><code class="language-go">func Retry(ctx context.Context, max int, base time.Duration, fn func() error) error {
+    var err error
+    for i := 0; i &lt; max; i++ {
+        if err = fn(); err == nil || !isRetryable(err) {
+            return err
+        }
+        d := base &lt;&lt; i                                    // 100ms, 200ms, 400ms...
+        d = d/2 + time.Duration(rand.Int64N(int64(d/2))) // equal jitter
+        select {
+        case &lt;-time.After(d):
+        case &lt;-ctx.Done():
+            return ctx.Err()
+        }
+    }
+    return err
+}</code></pre>
+<ul>
+<li><b>Không retry:</b> request không idempotent (tạo giao dịch/chuyển tiền mà đối tác không có idempotency key), lỗi 4xx nghiệp vụ, khi ctx đã hết budget.</li>
+<li><b>Timeout budget:</b> tổng thời gian retry phải nhỏ hơn timeout của request gốc. Không retry ở nhiều tầng cùng lúc (retry amplification).</li>
+<li><b>Circuit breaker</b> (<code>sony/gobreaker</code>): đối tác lỗi liên tục thì mở mạch, fail fast và fallback (ẩn phương thức thanh toán đó trên app), tránh cạn goroutine/connection.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">41</span><h3>Gửi thông báo (mã check-in, nhắc giờ, xác nhận đơn): outbox pattern để DB commit xong mới gửi.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<p><b>Vấn đề:</b> gửi ZNS/SMS trong tx rồi tx rollback thì khách nhận tin sai; commit rồi mới gửi mà app crash giữa chừng thì mất tin. <b>Outbox:</b> ghi event vào bảng <code>outbox</code> <i>cùng transaction</i> với nghiệp vụ, rồi relay đọc outbox và publish (Kafka/gửi trực tiếp) với at-least-once. Consumer phải idempotent.</p>
+<pre><code class="language-go">// Trong tx nghiệp vụ
+tx.ExecContext(ctx, `INSERT INTO outbox(topic, key, payload, created_at) VALUES (?,?,?,UTC_TIMESTAMP())`,
+    "booking.confirmed", b.Code, payload)
+
+// Relay (chạy nhiều pod an toàn nhờ SKIP LOCKED)
+func (r *Relay) tick(ctx context.Context) error {
+    return r.db.InTx(ctx, func(tx *sql.Tx) error {
+        rows, err := tx.QueryContext(ctx, `
+            SELECT id, topic, key, payload FROM outbox
+            WHERE published_at IS NULL ORDER BY id LIMIT 100
+            FOR UPDATE SKIP LOCKED`)
+        if err != nil { return err }
+        msgs := scanOutbox(rows)
+        for _, m := range msgs {
+            if err := r.producer.Publish(ctx, m.Topic, m.Key, m.Payload); err != nil { return err }
+        }
+        return markPublished(ctx, tx, ids(msgs))
+    })
+}</code></pre>
+<div class="to"><b>Trade-off:</b> outbox polling đơn giản, thêm độ trễ vài trăm ms; CDC (Debezium đọc binlog) không cần polling nhưng thêm hạ tầng. Message "nhắc check-in trước 30 phút" là delayed job, không phải outbox.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">42</span><h3>Đối tác đổi API hoặc down vài giờ: phát hiện và giảm thiểu thế nào?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li><b>Phát hiện:</b> metric success rate/latency theo từng đối tác + alert ngưỡng; synthetic check; log lỗi parse response (đối tác đổi schema âm thầm).</li>
+<li><b>Giảm thiểu:</b> circuit breaker + ẩn phương thức thanh toán lỗi, gợi ý phương thức khác; thông báo qua kênh dự phòng (ZNS lỗi thì chuyển SMS); queue lại để gửi sau.</li>
+<li><b>Sau sự cố:</b> reconcile các giao dịch trong khoảng lỗi, liên hệ đối tác, postmortem.</li>
+</ul>
+<div class="hint"><b>Tự đối chiếu:</b> đã có lần ngân hàng/đối tác bảo trì đột xuất hoặc đổi response mà không báo chưa? Bạn phát hiện bằng gì, mất bao lâu?</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 7 ============ -->
+<section class="grp" id="g7" data-title="7. Background job & báo cáo">
+<h2>7. Background job &amp; báo cáo</h2>
+
+<article class="q" data-type="kn">
+<header><span class="num">43</span><h3>Job hết hạn giữ chỗ, auto-complete, payout T+24h, sync iCal, nhắc nhở: chạy trên K8s nhiều replica thì tránh chạy trùng thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<table>
+<tr><th>Cách</th><th>Khi nào dùng</th></tr>
+<tr><td>K8s <b>CronJob</b> (<code>concurrencyPolicy: Forbid</code>)</td><td>Job theo lịch, chạy tách khỏi API pod. Lưu ý CronJob có thể chạy trùng/bỏ lỡ trong vài trường hợp, nên job vẫn phải idempotent</td></tr>
+<tr><td><b><code>FOR UPDATE SKIP LOCKED</code></b> (MySQL 8)</td><td>Nhiều worker cùng xử lý 1 hàng đợi trong DB, chia việc tự nhiên, không cần leader</td></tr>
+<tr><td><b>Leader election</b> (K8s Lease, <code>client-go/leaderelection</code>)</td><td>Scheduler chạy trong app, chỉ 1 pod làm leader</td></tr>
+<tr><td><b>Lock Redis/MySQL</b> <code>GET_LOCK()</code></td><td>Đơn giản, nhưng phải xử lý mất lock</td></tr>
+</table>
+<pre><code class="language-go">// Worker nhả giữ chỗ hết hạn: chạy nhiều pod song song an toàn
+const q = `SELECT id FROM bookings
+           WHERE status = 1 AND hold_expires_at &lt; UTC_TIMESTAMP()
+           ORDER BY hold_expires_at LIMIT 200
+           FOR UPDATE SKIP LOCKED`
+// với mỗi id: Transition(PendingPayment → Expired) + hoàn voucher, cùng tx</code></pre>
+<p>Index cho query trên: <code>(status, hold_expires_at)</code>.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">44</span><h3>Job chết giữa chừng thì resume và đảm bảo idempotent thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Xử lý theo <b>từng item nhỏ</b>, mỗi item 1 transaction; trạng thái item nằm trong DB (<code>payouts.status</code>), không nằm trong bộ nhớ job.</li>
+<li><b>Checkpoint</b> cho job duyệt dữ liệu lớn: lưu <code>last_processed_id</code>; chạy lại thì tiếp từ đó.</li>
+<li>Mọi side effect có key duy nhất: <code>UNIQUE(host_id, period)</code>, idempotency key khi gọi bank, <code>INSERT ... ON DUPLICATE KEY</code>.</li>
+<li>Item kẹt ở trạng thái trung gian (PROCESSING) quá lâu: có <code>locked_until</code>/lease để worker khác nhận lại. Với lệnh chuyển tiền thì <b>query trước khi làm lại</b>.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">45</span><h3>Báo cáo doanh thu/tỷ lệ lấp đầy cho chủ nhà: query OLTP, read replica, pre-aggregate hay data warehouse?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<table>
+<tr><th>Cách</th><th>Ưu</th><th>Nhược</th></tr>
+<tr><td>Query trực tiếp primary</td><td>Realtime, dễ</td><td>Ảnh hưởng luồng đặt phòng, không nên</td></tr>
+<tr><td>Read replica</td><td>Tách tải, vẫn là SQL quen</td><td>Replica lag; query nặng vẫn chậm</td></tr>
+<tr><td>Bảng pre-aggregate (<code>host_daily_stats</code>) cập nhật bởi job/event</td><td>Dashboard chủ nhà nhanh, rẻ</td><td>Phải xử lý dữ liệu đến trễ, hoàn tiền làm thay đổi số liệu cũ (re-aggregate theo ngày)</td></tr>
+<tr><td>Data warehouse (BigQuery) qua CDC/ETL</td><td>Phân tích tuỳ ý cho đội vận hành, không ảnh hưởng OLTP</td><td>Trễ phút–giờ, thêm chi phí và pipeline</td></tr>
+</table>
+<p><b>Đề xuất:</b> dashboard chủ nhà dùng pre-aggregate (+ hôm nay tính realtime từ replica); đội vận hành/BI dùng BigQuery. Số liệu tiền lấy từ <b>ledger</b> để khớp với đối soát.</p>
+<div class="hint"><b>Kinh nghiệm:</b> nếu từng làm báo cáo trên MongoDB aggregation/Elasticsearch thì kể và so sánh.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">46</span><h3>Tính occupancy rate cho booking theo giờ (khác với theo đêm) như thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Định nghĩa:</b> <code>occupancy = giờ đã bán / giờ có thể bán</code> trong kỳ. Giờ có thể bán = giờ mở bán − giờ chủ nhà tự khoá (có thể loại hoặc giữ block từ OTA tùy mục đích báo cáo).</li>
+<li>Cắt booking theo ranh giới ngày (booking qua đêm 21h–9h chia vào 2 ngày) theo giờ VN.</li>
+<li>Có thể báo cáo thêm: <b>doanh thu/giờ khả dụng</b> (tương tự RevPAR), phân bố theo khung giờ trong ngày (giúp chủ nhà định giá, và là cơ sở cho tính năng "combo giờ tốt").</li>
+</ul>
+<pre><code class="language-sql">-- Giờ đã bán của 1 phòng trong ngày D (UTC range [d0, d1))
+SELECT SUM(TIMESTAMPDIFF(MINUTE, GREATEST(start_at, :d0), LEAST(end_at, :d1))) / 60 AS sold_hours
+FROM bookings
+WHERE room_id = :room AND status IN (3,4,5,6)
+  AND start_at &lt; :d1 AND end_at &gt; :d0;</code></pre>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 8 ============ -->
+<section class="grp" id="g8" data-title="8. System design">
+<h2>8. System design</h2>
+<p class="intro">Khung chung: làm rõ yêu cầu và quy mô → API → data model → luồng chính → điểm nóng (consistency, concurrency) → mở rộng → vận hành.</p>
+
+<article class="q" data-type="kn">
+<header><span class="num">47</span><h3>Thiết kế hệ thống đặt phòng theo giờ cho 3000+ listing, peak khi có Flash Sale.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem khung đáp án</summary><div class="ans">
+<ol>
+<li><b>Hỏi rõ:</b> số booking/ngày, peak QPS search và booking, độ phân giải thời gian (15/30 phút?), đa phòng trong 1 listing không, thanh toán bắt buộc trước không.</li>
+<li><b>Ước lượng:</b> vài nghìn listing, vài nghìn–chục nghìn booking/ngày. Tải đọc (search) gấp 100–1000 lần tải ghi, nên bài toán chính là <b>search</b> và <b>tính đúng khi ghi</b>, không phải throughput ghi.</li>
+<li><b>API:</b> <code>GET /search</code>, <code>GET /rooms/:id/availability?date=</code>, <code>POST /quotes</code>, <code>POST /bookings</code> (Idempotency-Key) → trả payment URL, <code>POST /webhooks/payments/:provider</code>, <code>POST /bookings/:id/cancel</code>.</li>
+<li><b>Data:</b> schema câu 12 + quotes, payments, ledger, outbox.</li>
+<li><b>Luồng ghi:</b> quote → hold (lock row room, câu 21) → payment → webhook → confirm → outbox → notification/smart lock code.</li>
+<li><b>Flash Sale:</b> cache search (Redis, TTL ngắn, singleflight); pre-compute danh sách phòng sale; rate limit theo user; voucher atomic; hàng đợi ảo nếu cực lớn. Phòng hot nhận nhiều hold cùng lúc thì lock row chỉ serialize trong phạm vi 1 phòng, nên chấp nhận được.</li>
+<li><b>Hạ tầng:</b> Go API stateless trên K8s + HPA; MySQL primary + read replica (search/report đọc replica); Redis; Kafka/PubSub cho event.</li>
+<li><b>Vận hành:</b> metric tỷ lệ hold → paid, overbook count (phải = 0), p99 latency tạo booking, alert webhook lỗi.</li>
+</ol>
+<div class="to"><b>Điểm ăn tiền:</b> chủ động nói "search có thể stale, nhưng booking phải đúng tuyệt đối", và chỉ ra chính xác chỗ đảm bảo tính đúng.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">48</span><h3>Thiết kế payment + payout + reconciliation cho marketplace nhận tiền hộ chủ nhà.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem khung đáp án</summary><div class="ans">
+<ul>
+<li><b>Thành phần:</b> Payment Service (gateway adapters, attempts, webhook, reconcile), Ledger (double-entry, câu 32), Settlement job (checkout + 24h, trừ dispute), Payout Service (câu 35), Recon Service (câu 34), Refund Service (câu 33).</li>
+<li><b>Nguyên tắc:</b> ledger là nguồn sự thật về tiền; mọi thao tác tiền có idempotency key; trạng thái unknown được xử lý tường minh; giao dịch không bao giờ xóa, chỉ đảo.</li>
+<li><b>Luồng:</b> Pay → Escrow → (T+24h) → Host Payable + Commission → Payout batch → Bank; đối soát hằng ngày ở 3 lớp (gateway ↔ nội bộ ↔ bank).</li>
+<li><b>Tuân thủ:</b> tiền thu hộ, hóa đơn điện tử phần hoa hồng, khấu trừ thuế (nếu áp dụng), lưu vết audit.</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> đây là sân nhà của bạn. Vẽ lại kiến trúc 9Pay đã làm (ẩn thông tin nhạy cảm) rồi map sang Dayladau.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">49</span><h3>Channel manager: đồng bộ tồn phòng 2 chiều giữa Dayladau và các OTA.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem khung đáp án</summary><div class="ans">
+<ul>
+<li><b>Mức 1 – iCal</b> (đang dùng): pull/export, trễ, chỉ có block (không giá, không chi tiết khách). Chi tiết ở câu 26.</li>
+<li><b>Mức 2 – API OTA/Channel Manager</b>: push availability và giá khi có thay đổi (ARI updates), nhận booking qua webhook. Cần: hàng đợi thay đổi theo phòng (gộp nhiều thay đổi liên tiếp, debounce), retry, đối chiếu định kỳ full snapshot để sửa trôi dữ liệu.</li>
+<li><b>Nguồn sự thật:</b> Dayladau là master inventory. Mỗi thay đổi (booking, hủy, chủ nhà khoá) sinh event <code>inventory.changed(room_id)</code> → worker tính lại lịch và đẩy ra các kênh.</li>
+<li><b>Khác biệt mô hình:</b> OTA thường bán <b>theo đêm</b>, Dayladau bán <b>theo giờ</b>. Một booking theo giờ trong ngày có thể phải block cả đêm đó trên OTA (hoặc không, tùy khung giờ). Cần rule map rõ ràng, và đây là câu nên hỏi ngược.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">50</span><h3>Monolith hay microservices cho team size của họ? Tách service nào trước, dùng Kafka ở đâu, eventual consistency ảnh hưởng tồn phòng thế nào?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Team backend nhỏ–vừa: <b>modular monolith</b> (các module rõ ranh giới, câu 10) thường hiệu quả hơn microservices. Transaction trong 1 DB giúp booking + voucher + ledger nhất quán dễ dàng.</li>
+<li><b>Tách trước</b> những phần có đặc tính khác biệt: Notification (I/O nhiều, lỗi không ảnh hưởng core), iCal/Channel sync (job nặng, gọi ngoài), Search (nếu sang ES), Reporting. <b>Không tách</b> Booking–Inventory–Pricing hold khỏi nhau, vì chúng cần transaction chung.</li>
+<li><b>Kafka/PubSub:</b> event sau commit (qua outbox) cho notification, analytics, search index, channel sync.</li>
+<li><b>Eventual consistency:</b> chấp nhận ở read model (search, dashboard), <b>không chấp nhận</b> ở quyết định giữ chỗ. Nếu tách Inventory ra service riêng thì phải dùng saga (hold → pay → confirm/compensate).</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> nói về kiến trúc microservices bạn đã làm (gRPC, Kafka): cái gì tốt, cái gì là chi phí thật (debug phân tán, data consistency, vận hành). Điều này cho thấy bạn không "microservices hóa" máy móc.</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 9 ============ -->
+<section class="grp" id="g9" data-title="9. Testing">
+<h2>9. Testing</h2>
+<p class="intro">JD nói rõ: viết test là yêu cầu công việc. Chuẩn bị nói cụ thể bạn test gì, bằng công cụ gì.</p>
+
+<article class="q" data-type="kn">
+<header><span class="num">51</span><h3>Test luồng đặt phòng có race condition thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<p>Test integration với <b>MySQL thật</b> (mock không tái hiện được lock), bắn N goroutine cùng đặt 1 phòng cùng khung giờ, assert đúng 1 thành công. Chạy thêm <code>go test -race</code> để bắt data race trong code Go.</p>
+<pre><code class="language-go">func TestCreateHold_NoOverbooking(t *testing.T) {
+    repo := newTestRepo(t) // MySQL từ testcontainers, migrate sẵn
+    roomID := seedRoom(t, repo)
+    start := time.Date(2026, 10, 1, 7, 0, 0, 0, time.UTC)
+
+    const n = 20
+    var ok atomic.Int32
+    var wg sync.WaitGroup
+    ready := make(chan struct{})
+    for i := 0; i &lt; n; i++ {
+        wg.Add(1)
+        go func(i int) {
+            defer wg.Done()
+            &lt;-ready // cho tất cả xuất phát cùng lúc
+            _, err := repo.CreateHold(context.Background(), HoldInput{
+                RoomID: roomID, GuestID: int64(i),
+                Start: start, End: start.Add(2 * time.Hour),
+            })
+            if err == nil { ok.Add(1) } else if !errors.Is(err, ErrNotAvailable) {
+                t.Errorf("unexpected error: %v", err)
+            }
+        }(i)
+    }
+    close(ready)
+    wg.Wait()
+    require.EqualValues(t, 1, ok.Load())
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">52</span><h3>Unit test vs integration test với MySQL thật (testcontainers, dockertest) vs mock repository: chọn ra sao?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Unit test thuần</b> (không mock): logic thuần như pricing, refund policy, state machine, ledger balancing. Nhanh, nhiều, table-driven.</li>
+<li><b>Mock repository</b> (gomock/mockery): service orchestration, ví dụ "gateway lỗi thì attempt chuyển UNKNOWN". Dễ viết nhưng có thể test sai hành vi DB thật.</li>
+<li><b>Integration với MySQL thật</b> (<code>testcontainers-go</code> module mysql): repository, SQL, lock, unique constraint, migration. Chậm hơn; tối ưu bằng 1 container cho cả package + mỗi test trong 1 tx rollback, hoặc truncate.</li>
+<li>CI: unit test mỗi commit; integration test ở PR; có <code>-race</code>.</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> nói thật tỉ lệ test bạn đang viết ở 9Pay, dùng thư viện gì (testify, gomock, testcontainers...), và một bug mà test đã bắt được trước khi lên production.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">53</span><h3>Mock third-party (gateway, iCal): httptest.Server, interface + mock, contract test?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b><code>httptest.Server</code></b> để test <b>adapter</b> (build request, ký, parse response, xử lý timeout/5xx) với fixture JSON lấy từ sandbox thật.</li>
+<li><b>Interface mock</b> để test <b>service</b> dùng adapter.</li>
+<li><b>Contract/recorded test</b> (go-vcr): chạy định kỳ với sandbox để phát hiện đối tác đổi API.</li>
+</ul>
+<pre><code class="language-go">func TestVNPayQuery_Timeout(t *testing.T) {
+    srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        time.Sleep(200 * time.Millisecond)
+    }))
+    defer srv.Close()
+
+    gw := vnpay.New(vnpay.Config{BaseURL: srv.URL, Timeout: 50 * time.Millisecond})
+    _, err := gw.Query(context.Background(), "REF123")
+    require.True(t, gateway.IsTimeout(err))
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">54</span><h3>Table-driven test cho pricing/chính sách hủy/tính hoàn tiền: ví dụ edge case.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<pre><code class="language-go">func TestRefundAmount(t *testing.T) {
+    vn := time.FixedZone("ICT", 7*3600)
+    checkin := time.Date(2026, 10, 1, 21, 0, 0, 0, vn) // gói qua đêm 21h
+    policy := Policy{FullBefore: 24 * time.Hour, HalfBefore: 2 * time.Hour}
+
+    tests := []struct {
+        name     string
+        cancelAt time.Time
+        paid     int64
+        want     int64
+    }{
+        {"trước 24h hoàn 100%", checkin.Add(-25 * time.Hour), 500_000, 500_000},
+        {"đúng mốc 24h", checkin.Add(-24 * time.Hour), 500_000, 500_000},
+        {"còn 3h hoàn 50%", checkin.Add(-3 * time.Hour), 500_000, 250_000},
+        {"số lẻ làm tròn xuống", checkin.Add(-3 * time.Hour), 333_333, 166_666},
+        {"còn 1h không hoàn", checkin.Add(-1 * time.Hour), 500_000, 0},
+        {"hủy sau check-in", checkin.Add(time.Minute), 500_000, 0},
+    }
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got := policy.RefundAmount(tt.paid, checkin, tt.cancelAt)
+            require.Equal(t, tt.want, got)
+        })
+    }
+}</code></pre>
+<p>Edge case khác nên kể: booking qua nửa đêm/qua ngày cuối tháng, Last Minute + voucher cùng lúc (thứ tự áp dụng, không âm tiền), Flash Sale kết thúc giữa lúc quote và pay, giá cuối tuần cho booking từ tối thứ 6 sang sáng thứ 7, gia hạn giờ vượt sang khung giá khác.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">55</span><h3>Coverage bao nhiêu là đủ? Test cái gì trước khi thời gian hạn chế?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Không chạy theo con số. Ưu tiên theo <b>rủi ro × tần suất thay đổi</b>: tiền (ledger, refund, pricing), concurrency (hold/voucher), state machine, adapter gateway.</li>
+<li>Code "keo dán" (handler map request, config) chỉ cần vài happy-path test.</li>
+<li>Mỗi bug production phải có regression test trước khi fix.</li>
+<li>Có thể đặt ngưỡng coverage cho package domain quan trọng (ví dụ ≥ 80%) thay vì cả repo.</li>
+</ul>
+<div class="hint"><b>Tự đối chiếu:</b> team bạn hiện có ngưỡng coverage trong CI không? Bạn đã từng đẩy văn hoá test trong team chưa?</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="grp" id="g10" data-title="10. Vận hành & K8s">
+<h2>10. Vận hành, K8s, thay đổi hệ thống đang chạy</h2>
+
+<article class="q" data-type="mix">
+<header><span class="num">56</span><h3>Thêm column/index vào bảng bookings hàng triệu row không downtime.</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>MySQL 8 online DDL:</b> <code>ALGORITHM=INSTANT</code> cho ADD COLUMN (8.0.12+ ở cuối bảng, 8.0.29+ ở vị trí bất kỳ), chỉ đổi metadata. Tạo index: <code>ALGORITHM=INPLACE, LOCK=NONE</code>, vẫn đọc ghi được nhưng tốn I/O, tăng replica lag.</li>
+<li>Luôn khai báo <code>ALGORITHM</code>/<code>LOCK</code> tường minh: nếu không hỗ trợ thì MySQL báo lỗi thay vì âm thầm copy bảng và khoá.</li>
+<li>Ngay cả INSTANT cũng cần <b>metadata lock</b>; nếu có tx dài đang giữ bảng thì DDL chờ và mọi query sau xếp hàng sau DDL, gây sự cố. Đặt <code>lock_wait_timeout</code> thấp, chạy giờ thấp điểm, kill tx dài.</li>
+<li>Đổi kiểu cột, bảng rất lớn: <b>gh-ost</b>/<b>pt-online-schema-change</b> (copy sang bảng ma, throttle theo replica lag, cutover). Cloud SQL/RDS: kiểm tra hỗ trợ.</li>
+</ul>
+<pre><code class="language-sql">SET SESSION lock_wait_timeout = 5;
+ALTER TABLE bookings ADD COLUMN affiliate_id BIGINT NULL, ALGORITHM=INSTANT;
+ALTER TABLE bookings ADD INDEX idx_affiliate (affiliate_id, created_at), ALGORITHM=INPLACE, LOCK=NONE;</code></pre>
+<div class="hint"><b>Kinh nghiệm:</b> kể một lần migrate bảng lớn (hoặc sự cố MDL nếu từng gặp).</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">57</span><h3>Đổi schema kiểu breaking (ví dụ tách bảng giá) theo expand–migrate–contract; deploy code tương thích 2 chiều.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ol>
+<li><b>Expand:</b> thêm bảng/cột mới (không xóa gì). Code v1 vẫn chạy bình thường.</li>
+<li><b>Dual write:</b> deploy v2 ghi vào cả cũ và mới, vẫn đọc từ cũ.</li>
+<li><b>Backfill:</b> job copy dữ liệu cũ theo batch (theo id, có throttle), idempotent.</li>
+<li><b>Verify:</b> so sánh dữ liệu 2 nơi (shadow read, log khác biệt).</li>
+<li><b>Switch read:</b> v3 đọc từ mới (sau feature flag, bật dần).</li>
+<li><b>Contract:</b> ngừng ghi cũ, sau một thời gian mới xóa cột/bảng cũ.</li>
+</ol>
+<p>Vì rolling update có v(n) và v(n+1) chạy cùng lúc, mỗi bước phải tương thích với phiên bản liền kề, và rollback về bước trước phải an toàn.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">58</span><h3>Rolling update + readiness/liveness probe; migration chạy ở đâu (init container, job riêng)?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Readiness:</b> sẵn sàng nhận traffic (DB kết nối được, cache warm). Fail thì bị gỡ khỏi Service nhưng không restart. <b>Liveness:</b> process bị treo thì restart. <b>Không</b> check DB trong liveness: DB chập chờn sẽ khiến toàn bộ pod bị restart hàng loạt.</li>
+<li>Rolling: <code>maxUnavailable: 0, maxSurge: 25%</code> + <code>PodDisruptionBudget</code>.</li>
+<li><b>Migration:</b> chạy bằng <b>K8s Job riêng</b> trong pipeline CI/CD trước khi deploy app (golang-migrate/goose/atlas). Không chạy trong init container của mỗi pod: N pod sẽ cùng chạy migration, cần lock và làm chậm startup. Migration phải backward compatible (câu 57).</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">59</span><h3>Observability: log/metrics/tracing cần gì để debug "khách trả tiền rồi mà đơn vẫn pending"?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Log có cấu trúc</b> (<code>slog</code>/zap) với <code>booking_code</code>, <code>payment_ref</code>, <code>provider_txn_id</code>, <code>trace_id</code> ở mọi dòng liên quan. Lưu raw webhook (đã che dữ liệu nhạy cảm) trong <code>payment_events</code>.</li>
+<li><b>Tracing</b> (OpenTelemetry): tạo booking → gọi gateway → webhook → confirm → outbox → notification.</li>
+<li><b>Metrics:</b> số attempt PENDING quá 10 phút, webhook nhận/lỗi theo provider, tuổi message cũ nhất trong outbox, reconcile fix count.</li>
+<li><b>Công cụ nội bộ:</b> trang admin tra cứu 1 booking hiển thị timeline <code>booking_events</code> + payment events, và nút "đồng bộ lại với gateway" (gọi Query, có audit).</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> nhắc stack monitoring đã dùng (Prometheus/Grafana, ELK, Sentry...) và một case được giải quyết nhờ nó.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">60</span><h3>Một incident production bạn từng xử lý: timeline, cách tìm root cause, postmortem.</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<div class="hint"><b>Khung:</b> phát hiện (alert hay khách báo?) → giảm thiểu trước (rollback, tắt feature, scale) → điều tra root cause (log, metric, pprof, slow log) → fix triệt để → postmortem không đổ lỗi (5 whys, action items có owner và deadline).</div>
+<ul>
+<li>Chọn incident có yếu tố <b>tiền hoặc dữ liệu</b> sẽ khớp JD nhất.</li>
+<li>Nêu con số: thời gian phát hiện, thời gian khắc phục, số giao dịch ảnh hưởng.</li>
+<li>Nhấn vai trò của bạn: "em là người..." và bài học mang theo.</li>
+</ul>
+<p><b>Ứng viên gợi ý để đối chiếu:</b> DB pool cạn do query chậm, Kafka consumer lag gây trễ xử lý, callback ngân hàng lỗi hàng loạt, deploy làm hỏng migration, memory leak.</p>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 11 ============ -->
+<section class="grp" id="g11" data-title="11. Behavioral">
+<h2>11. Behavioral</h2>
+<p class="intro">Khớp với "chủ động, tự đặt câu hỏi, chịu trách nhiệm tới cùng". Mỗi câu chuẩn bị 1 câu chuyện STAR 1–2 phút.</p>
+
+<article class="q" data-type="exp">
+<header><span class="num">61</span><h3>Kể lần requirement mơ hồ, bạn đã đặt câu hỏi gì và thay đổi thiết kế ra sao.</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Nêu câu hỏi <b>cụ thể</b> bạn đã hỏi PO/BA, ví dụ: "Nếu ngân hàng trả timeout thì hiển thị gì cho người dùng?", "Hoàn tiền một phần có xuất hóa đơn điều chỉnh không?"</li>
+<li>Câu hỏi đó đã phát hiện ra case nào bị bỏ sót, và tránh được rework bao nhiêu.</li>
+<li>Thói quen của bạn: viết lại requirement thành acceptance criteria/edge case trên Jira/Confluence rồi xin xác nhận.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">62</span><h3>Khi review code bạn tập trung vào gì? Kể lần bạn phản đối một thiết kế.</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li><b>Thứ tự ưu tiên:</b> đúng nghiệp vụ và an toàn tiền (idempotency, race, transaction) → lỗi và edge case → test → khả năng vận hành (log, metric) → dễ đọc/đặt tên. Nhắc rằng style thì để linter (golangci-lint) lo.</li>
+<li><b>Phản đối thiết kế:</b> đưa dữ liệu/ví dụ cụ thể, đề xuất phương án thay thế, và nếu team vẫn chọn khác thì "disagree and commit".</li>
+</ul>
+<div class="hint"><b>Tự đối chiếu:</b> có lần nào bạn phát hiện lỗi race/double-charge trong review không? Đó là câu chuyện hoàn hảo cho vị trí này.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">63</span><h3>Lần bạn cải tiến một phần code/hệ thống cũ khó chịu mà không ai giao việc.</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Vấn đề cụ thể gây đau (chậm, lỗi lặp, khó sửa) và cách bạn <b>đo</b> nó.</li>
+<li>Cách thuyết phục team/lead dành thời gian, cách làm an toàn (feature flag, từng bước, có test).</li>
+<li>Kết quả đo được sau khi cải tiến.</li>
+</ul>
+<p>Câu này khớp với điểm cộng "cải tiến hệ thống lớn đang chạy mà không gián đoạn dịch vụ".</p>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">64</span><h3>Trade-off giữa deadline kinh doanh (Flash Sale sắp chạy) và chất lượng kỹ thuật, bạn quyết định thế nào?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li><b>Không thương lượng:</b> tính đúng của tiền và tồn phòng, cùng các test cho phần đó.</li>
+<li><b>Có thể hoãn:</b> refactor, tối ưu, UI admin. Ghi rõ tech debt (ticket, owner, hạn trả).</li>
+<li>Giảm phạm vi thay vì giảm chất lượng: ship bản tối thiểu sau feature flag, có kill switch, theo dõi sát khi chạy.</li>
+<li>Minh bạch rủi ro với PO/lead để họ cùng quyết định.</li>
+</ul>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 12 ============ -->
+<section class="grp" id="g12" data-title="12. Câu hỏi hỏi ngược">
+<h2>12. Câu hỏi nên hỏi ngược nhà tuyển dụng</h2>
+<article class="q" data-type="exp">
+<header><span class="num">★</span><h3>Danh sách câu hỏi cho cuối buổi phỏng vấn</h3><span class="tag exp">Chuẩn bị</span></header>
+<details open><summary>Xem danh sách</summary><div class="ans">
+<ul>
+<li>Hiện tại chống overbook giữa booking theo giờ và lịch từ OTA đang làm thế nào? Pain point lớn nhất?</li>
+<li>Booking theo giờ trên Dayladau được map sang OTA (bán theo đêm) ra sao?</li>
+<li>Kiến trúc hiện tại là monolith hay service? Team backend bao nhiêu người? Chạy trên GCP hay AWS?</li>
+<li>Đang tích hợp những cổng thanh toán nào? Đối soát và payout cho chủ nhà tự động tới đâu?</li>
+<li>Xuất hóa đơn cho khách theo tổng tiền phòng hay chỉ phí dịch vụ?</li>
+<li>Quy trình on-call/incident, và bao nhiêu % thời gian dành cho tech debt?</li>
+<li>Kỳ vọng cụ thể với người vào vị trí này trong 3 tháng đầu?</li>
+</ul>
+</div></details>
+</article>
+</section>
+
+</main>
+</div>
+
+<button class="chip theme" id="themeBtn" title="Đổi giao diện sáng/tối">◐</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+<script>
+(function(){
+  var store = {};
+  function load(){ try { store = JSON.parse(localStorage.getItem('dld-prep') || '{}'); } catch(e){ store = {}; } }
+  function save(){ try { localStorage.setItem('dld-prep', JSON.stringify(store)); } catch(e){} }
+  load();
+
+  var cards = Array.prototype.slice.call(document.querySelectorAll('article.q'));
+  var groups = Array.prototype.slice.call(document.querySelectorAll('section.grp'));
+
+  // TOC
+  var toc = document.getElementById('toc');
+  groups.forEach(function(g){
+    var a = document.createElement('a');
+    a.href = '#' + g.id;
+    a.innerHTML = g.dataset.title + ' <span>' + g.querySelectorAll('article.q').length + '</span>';
+    toc.appendChild(a);
+  });
+
+  // Self-assessment block
+  cards.forEach(function(c){
+    var id = c.querySelector('.num').textContent.trim();
+    c.dataset.id = id;
+    var st = store[id] || {};
+    var isExp = c.dataset.type === 'exp';
+    var box = document.createElement('div');
+    box.className = 'self';
+    box.innerHTML =
+      '<span>' + (isExp ? 'Bạn đã gặp use case này?' : 'Tự đánh giá:') + '</span>' +
+      '<button class="yes">' + (isExp ? 'Đã gặp' : 'Nắm được') + '</button>' +
+      '<button class="no">' + (isExp ? 'Chưa gặp' : 'Cần ôn') + '</button>' +
+      '<button class="note-btn">Ghi chú</button>' +
+      '<textarea placeholder="Ghi chú: dự án, số liệu, câu chuyện STAR..."></textarea>';
+    c.appendChild(box);
+    var yes = box.querySelector('.yes'), no = box.querySelector('.no'),
+        nb = box.querySelector('.note-btn'), ta = box.querySelector('textarea');
+    function paint(){
+      yes.classList.toggle('on', st.s === 'yes');
+      no.classList.toggle('on', st.s === 'no');
+    }
+    ta.value = st.n || '';
+    if (st.n) ta.classList.add('show');
+    paint();
+    yes.onclick = function(){ st.s = st.s === 'yes' ? null : 'yes'; store[id] = st; save(); paint(); progress(); applyFilter(); };
+    no.onclick = function(){ st.s = st.s === 'no' ? null : 'no'; store[id] = st; save(); paint(); progress(); applyFilter(); };
+    nb.onclick = function(){ ta.classList.toggle('show'); if (ta.classList.contains('show')) ta.focus(); };
+    ta.oninput = function(){ st.n = ta.value; store[id] = st; save(); };
+  });
+
+  function progress(){
+    var total = cards.length, done = 0;
+    cards.forEach(function(c){ var s = store[c.dataset.id]; if (s && s.s === 'yes') done++; });
+    document.getElementById('pDone').textContent = done;
+    document.getElementById('pTotal').textContent = total;
+    document.getElementById('pBar').style.width = (done / total * 100) + '%';
+  }
+
+  var filter = 'all', term = '';
+  function applyFilter(){
+    cards.forEach(function(c){
+      var s = store[c.dataset.id];
+      var okF = filter === 'all' || c.dataset.type === filter || (filter === 'todo' && !(s && s.s));
+      var okT = !term || c.textContent.toLowerCase().indexOf(term) !== -1;
+      c.classList.toggle('hidden', !(okF && okT));
+    });
+    groups.forEach(function(g){
+      var any = g.querySelectorAll('article.q:not(.hidden)').length > 0;
+      g.classList.toggle('hidden', !any);
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-f]'), function(b){
+    b.onclick = function(){
+      document.querySelectorAll('.chip[data-f]').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active'); filter = b.dataset.f; applyFilter();
+    };
+  });
+  document.getElementById('search').oninput = function(e){
+    term = e.target.value.trim().toLowerCase(); applyFilter();
+    if (term) cards.forEach(function(c){ if (!c.classList.contains('hidden')) { var d = c.querySelector('details'); if (d) d.open = true; } });
+  };
+  var expanded = false;
+  document.getElementById('expandAll').onclick = function(){
+    expanded = !expanded;
+    document.querySelectorAll('details').forEach(function(d){ d.open = expanded; });
+    this.textContent = expanded ? 'Thu gọn tất cả' : 'Mở tất cả';
+  };
+
+  // Theme
+  var root = document.documentElement;
+  try { var t = localStorage.getItem('dld-theme'); if (t) root.dataset.theme = t; } catch(e){}
+  document.getElementById('themeBtn').onclick = function(){
+    var dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('dld-theme', root.dataset.theme); } catch(e){}
+  };
+
+  progress();
+  if (window.hljs) { hljs.highlightAll(); }
+})();
+</script>
+</body>
+</html>
