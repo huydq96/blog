@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xipat Fullstack Prep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>pre code.hljs{display:block;overflow-x:auto;padding:1em}code.hljs{padding:3px 5px}/*!
+  Theme: GitHub Dark
+  Description: Dark theme as seen on github.com
+  Author: github.com
+  Maintainer: @Hirse
+  Updated: 2021-05-15
+
+  Outdated base version: https://github.com/primer/github-syntax-dark
+  Current colors taken from GitHub's CSS
+*/.hljs{color:#c9d1d9;background:#0d1117}.hljs-doctag,.hljs-keyword,.hljs-meta .hljs-keyword,.hljs-template-tag,.hljs-template-variable,.hljs-type,.hljs-variable.language_{color:#ff7b72}.hljs-title,.hljs-title.class_,.hljs-title.class_.inherited__,.hljs-title.function_{color:#d2a8ff}.hljs-attr,.hljs-attribute,.hljs-literal,.hljs-meta,.hljs-number,.hljs-operator,.hljs-selector-attr,.hljs-selector-class,.hljs-selector-id,.hljs-variable{color:#79c0ff}.hljs-meta .hljs-string,.hljs-regexp,.hljs-string{color:#a5d6ff}.hljs-built_in,.hljs-symbol{color:#ffa657}.hljs-code,.hljs-comment,.hljs-formula{color:#8b949e}.hljs-name,.hljs-quote,.hljs-selector-pseudo,.hljs-selector-tag{color:#7ee787}.hljs-subst{color:#c9d1d9}.hljs-section{color:#1f6feb;font-weight:700}.hljs-bullet{color:#f2cc60}.hljs-emphasis{color:#c9d1d9;font-style:italic}.hljs-strong{color:#c9d1d9;font-weight:700}.hljs-addition{color:#aff5b4;background-color:#033a16}.hljs-deletion{color:#ffdcd7;background-color:#67060c}</style>
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#ffffff; --surface-2:#f0eee8; --text:#1d1c1a; --muted:#6b6862;
+  --border:#e2dfd7; --accent:#0e7c66; --accent-soft:#e0f2ec; --warn:#b4570d; --warn-soft:#fbeedd;
+  --mix:#5b4bb7; --mix-soft:#ecE9fb; --code-bg:#1e1f24; --code-text:#e6e6e6; --ok:#177a3c; --no:#b0322a;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121311; --surface:#1b1c1a; --surface-2:#232421; --text:#ecebe6; --muted:#9d9a93;
+    --border:#2f302c; --accent:#3cc6a3; --accent-soft:#16332b; --warn:#f0a35c; --warn-soft:#3a2816;
+    --mix:#a99bf5; --mix-soft:#27233f; --code-bg:#0d0e10; --ok:#4fc97a; --no:#ef7a70;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121311; --surface:#1b1c1a; --surface-2:#232421; --text:#ecebe6; --muted:#9d9a93;
+  --border:#2f302c; --accent:#3cc6a3; --accent-soft:#16332b; --warn:#f0a35c; --warn-soft:#3a2816;
+  --mix:#a99bf5; --mix-soft:#27233f; --code-bg:#0d0e10; --ok:#4fc97a; --no:#ef7a70;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Be Vietnam Pro",system-ui,sans-serif;font-size:15.5px;line-height:1.65}
+a{color:var(--accent)}
+code{font-family:"JetBrains Mono",monospace;font-size:.86em;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+:not(pre)>code{overflow-wrap:anywhere}
+pre{margin:12px 0;border-radius:10px;overflow-x:auto;background:var(--code-bg)}
+pre code{display:block;padding:14px 16px;background:transparent;color:var(--code-text);font-size:13px;line-height:1.55}
+.layout{display:grid;grid-template-columns:270px 1fr;max-width:1320px;margin:0 auto}
+aside{position:sticky;top:0;height:100vh;overflow-y:auto;padding:28px 18px;border-right:1px solid var(--border)}
+aside h1{font-size:18px;margin:0 0 4px;letter-spacing:-.01em}
+aside .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+aside nav a{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;border-radius:8px;color:var(--text);text-decoration:none;font-size:14px}
+aside nav a:hover{background:var(--surface-2)}
+aside nav a span{color:var(--muted);font-size:12px}
+.progress{margin:18px 0;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+.bar{height:6px;border-radius:4px;background:var(--surface-2);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+main{padding:28px 32px 80px;min-width:0}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-bottom:1px solid var(--border);margin-bottom:22px}
+.toolbar input[type=search]{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);font:inherit}
+.chip{padding:7px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:13px;cursor:pointer}
+.chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.legend{font-size:13px;color:var(--muted);margin:-8px 0 20px}
+section.grp{margin-bottom:40px}
+section.grp>h2{font-size:22px;margin:0 0 6px;letter-spacing:-.01em}
+section.grp>p.intro{color:var(--muted);margin:0 0 16px}
+article.q{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:12px}
+article.q header{display:flex;gap:12px;align-items:flex-start}
+.num{flex:none;width:32px;height:32px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center;font-weight:600;font-size:13px}
+article.q h3{font-size:15.5px;font-weight:600;margin:4px 0 0;flex:1}
+.tag{flex:none;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:999px;margin-top:4px;white-space:nowrap}
+.tag.kn{background:var(--accent-soft);color:var(--accent)}
+.tag.exp{background:var(--warn-soft);color:var(--warn)}
+.tag.mix{background:var(--mix-soft);color:var(--mix)}
+details{margin-top:10px}
+summary{cursor:pointer;color:var(--accent);font-weight:500;font-size:14px;user-select:none}
+.ans{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)}
+.ans p{margin:8px 0}
+.ans ul,.ans ol{margin:6px 0;padding-left:22px}
+.ans li{margin:3px 0}
+.hint{border-left:3px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+.hint b:first-child{color:var(--warn)}
+.to{border-left:3px solid var(--mix);background:var(--mix-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0;display:block;overflow-x:auto}
+th,td{border:1px solid var(--border);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--surface-2)}
+.self{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:13px;color:var(--muted)}
+.self button{font:inherit;font-size:12.5px;padding:4px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
+.self button.on.yes{background:var(--ok);border-color:var(--ok);color:#fff}
+.self button.on.no{background:var(--no);border-color:var(--no);color:#fff}
+.self textarea{width:100%;min-height:54px;margin-top:6px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);font:inherit;font-size:13.5px;resize:vertical;display:none}
+.self textarea.show{display:block}
+.hidden{display:none!important}
+.theme{position:fixed;right:16px;bottom:16px;z-index:9}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  aside{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:18px 16px}
+  aside nav{display:flex;flex-wrap:wrap;gap:4px}
+  aside nav a span{display:none}
+  main{padding:16px 16px 80px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <h1>Xipat · Fullstack Developer</h1>
+  <div class="sub">Trustify / Omega · câu hỏi + đáp án</div>
+  <div class="progress">
+    <div style="font-size:13px"><b id="pDone">0</b>/<span id="pTotal">0</span> câu đã đánh dấu "Đã gặp / Nắm được"</div>
+    <div class="bar"><i id="pBar"></i></div>
+  </div>
+  <nav id="toc"></nav>
+</aside>
+
+<main>
+<div class="toolbar">
+  <input type="search" id="search" placeholder="Tìm câu hỏi, từ khoá (webhook, cache, crawl, React...)">
+  <button class="chip active" data-f="all">Tất cả</button>
+  <button class="chip" data-f="kn">Kiến thức</button>
+  <button class="chip" data-f="exp">Kinh nghiệm</button>
+  <button class="chip" data-f="mix">Kết hợp</button>
+  <button class="chip" data-f="todo">Chưa đánh dấu</button>
+  <button class="chip" id="expandAll">Mở tất cả</button>
+</div>
+<p class="legend"><b style="color:var(--accent)">Kiến thức</b>: có đáp án chuẩn · <b style="color:var(--warn)">Kinh nghiệm</b>: gợi ý hướng trả lời, tự đối chiếu với dự án đã làm · <b style="color:var(--mix)">Kết hợp</b>: có đáp án kỹ thuật + nên kèm ví dụ thực tế. Trạng thái và ghi chú được lưu trong trình duyệt.</p>
+
+<!-- ============ 0 ============ -->
+<section class="grp" id="g0" data-title="0. Bối cảnh sản phẩm">
+<h2>0. Bối cảnh: Xipat / Omega và Trustify</h2>
+<p class="intro">Đọc trước khi ôn. Phần này giúp câu trả lời của bạn "nói đúng ngôn ngữ" của sản phẩm.</p>
+<article class="q" data-type="kn">
+<header><span class="num">i</span><h3>Xipat làm gì và vì sao JD nhấn mạnh review, crawling, Shopify?</h3><span class="tag kn">Bối cảnh</span></header>
+<details open><summary>Xem tóm tắt</summary><div class="ans">
+<ul>
+<li><b>Xipat Flexible Solutions</b> (Hà Nội, thành lập 2008, 51–200 người). Sản phẩm chính là <b>Omega / Omegatheme</b>: các app SaaS cho merchant trên Shopify, WooCommerce, BigCommerce. Ví dụ: Trustify (reviews), Omega Facebook Pixels, Synctrack PayPal, Blockify Fraud Filter, QuoteSnap, Pareto Quantity Breaks, Consentik.</li>
+<li><b>Trustify: Product Reviews</b> khớp gần như từng dòng JD:
+<ul>
+<li>Import review từ AliExpress (không giới hạn ở gói Free), Amazon (gói Growth trở lên) và CSV. Có tích hợp Etsy, Facebook, Google Reviews. → JD: <i>thu thập dữ liệu review từ nhiều nguồn, crawling, anti-crawling, proxy</i>.</li>
+<li>Widget: review box, carousel, pop-up, trang tất cả review, review có ảnh/video. → JD: <i>tối ưu trang hiển thị lượng lớn dữ liệu</i>.</li>
+<li>Email xin review sau mua hàng, email follow-up, NPS survey, Shopify Flow.</li>
+<li>Google review snippets, Google Shopping reviews, dịch review sang nhiều ngôn ngữ. → JD: <i>AI, data transformation</i>.</li>
+</ul></li>
+<li><b>Bài toán kỹ thuật cốt lõi:</b> SaaS <b>multi-tenant</b> với hàng chục nghìn shop; <b>tải đọc rất lớn</b> (widget hiện trên mọi trang sản phẩm của mọi shop); <b>tải ghi theo đợt</b> (import hàng nghìn review một lần); phụ thuộc API/HTML bên thứ ba có thể đổi hoặc chặn bất cứ lúc nào.</li>
+</ul>
+<div class="hint"><b>Lợi thế của bạn:</b> Go, MySQL/MongoDB/Elasticsearch/Redis, Kafka, tích hợp đối tác qua API (9Pay). <b>Khoảng trống cần chuẩn bị:</b> ReactJS (JD ghi là must-have) và Shopify API. Hai phần này nên ôn kỹ nhất (mục 6 và 9).</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 1 ============ -->
+<section class="grp" id="g1" data-title="1. Giới thiệu & kinh nghiệm">
+<h2>1. Giới thiệu &amp; kinh nghiệm</h2>
+<p class="intro">Trả lời theo STAR, có số liệu. Mỗi câu chuyện nên nối sang được một bài toán của Trustify.</p>
+
+<article class="q" data-type="exp">
+<header><span class="num">1</span><h3>Giới thiệu bản thân và một hệ thống bạn tự hào nhất.</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>30 giây đầu: 5+ năm backend, Go là chính (Gin/Echo), PHP/Laravel; MySQL, MongoDB, Elasticsearch, Redis, Kafka; domain fintech, cloud, security, social media.</li>
+<li>Chọn <b>một</b> hệ thống có đặc điểm giống Xipat: dữ liệu lớn, tích hợp nhiều nguồn ngoài, xử lý bất đồng bộ. Ví dụ: pipeline xử lý giao dịch qua Kafka ở 9Pay, hoặc hệ thống social media nếu từng có thu thập/xử lý nội dung người dùng.</li>
+<li>Nói rõ: quy mô (req/s, số bản ghi), vai trò của bạn, quyết định thiết kế quan trọng, kết quả đo được.</li>
+</ul>
+<div class="hint"><b>Tự đối chiếu:</b> dự án social media trước đây có phần thu thập/xử lý UGC (bài viết, comment) không? Nếu có, đó là câu chuyện khớp nhất với "dữ liệu review".</div>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">2</span><h3>Bạn làm frontend/ReactJS đến mức nào? Kể một tính năng fullstack bạn làm từ đầu đến cuối.</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li><b>Thành thật về mức độ</b>, nhưng chứng minh làm được: dự án React đã làm (admin dashboard, trang nội bộ…), hiểu hooks, quản lý state, gọi API, tối ưu render.</li>
+<li>Nếu React còn yếu: nói rõ bạn đang bù bằng cách nào (side project, đọc code base…) và nhấn mạnh rằng backend vững giúp bạn thiết kế API "đúng nhu cầu frontend" (phân trang, field selection, error format).</li>
+<li>Tính năng end-to-end: từ API → DB → UI → deploy → đo lường.</li>
+</ul>
+<div class="hint"><b>Lưu ý:</b> JD ghi React là <b>must-have</b>. Nên chuẩn bị sẵn 1 demo nhỏ (ví dụ widget hiển thị review có phân trang + filter) để nói chuyện cụ thể nếu bị hỏi sâu. Xem mục 9.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">3</span><h3>Bạn đã từng tích hợp API bên thứ ba nào? Khó khăn lớn nhất là gì?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Ở 9Pay: tích hợp ngân hàng, cổng e-invoice. Các khó khăn điển hình: ký/verify chữ ký, timeout và trạng thái không rõ, retry an toàn (idempotency), callback trùng/mất, đối soát.</li>
+<li><b>Nối sang Xipat:</b> Shopify/Etsy/Google cũng có OAuth, webhook HMAC, rate limit, đổi version API. Cách tư duy giống nhau: adapter riêng cho từng nguồn, retry có backoff, theo dõi tỷ lệ lỗi theo nguồn.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">4</span><h3>Vì sao chuyển từ fintech sang sản phẩm SaaS e-commerce?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Muốn làm <b>product</b>: tác động trực tiếp tới hàng chục nghìn merchant toàn cầu, vòng phản hồi nhanh (A/B test, rating trên App Store).</li>
+<li>Muốn mở rộng sang fullstack và bài toán dữ liệu lớn (crawling, ETL, AI).</li>
+<li>Mang theo từ fintech: kỷ luật về tính đúng dữ liệu, idempotency, monitoring, xử lý sự cố.</li>
+</ul>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="grp" id="g2" data-title="2. Backend: Go & Node.js">
+<h2>2. Backend: Golang &amp; Node.js</h2>
+<p class="intro">JD ưu tiên Go nhưng chấp nhận Node/Python/PHP. Nên nắm cả mô hình concurrency của Node để so sánh.</p>
+
+<article class="q" data-type="kn">
+<header><span class="num">5</span><h3>Thiết kế worker pool trong Go để import 50.000 review cho một shop: giới hạn concurrency, xử lý lỗi, dừng khi bị cancel.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<p>Dùng <code>errgroup</code> với <code>SetLimit</code> để giới hạn số goroutine. Lỗi từng item thì ghi lại, <b>không</b> hủy cả job; chỉ dừng khi context bị cancel. Ghi DB theo <b>batch</b> thay vì từng dòng.</p>
+<pre><code class="language-go">func (s *Importer) Import(ctx context.Context, shopID int64, items []RawReview) (Result, error) {
+    g, ctx := errgroup.WithContext(ctx)
+    g.SetLimit(16) // giới hạn song song
+
+    out := make(chan Review, 256)
+    var failed atomic.Int64
+
+    // Producer: normalize song song
+    go func() {
+        defer close(out)
+        for _, it := range items {
+            it := it
+            g.Go(func() error {
+                r, err := s.normalize(ctx, shopID, it)
+                if err != nil {
+                    failed.Add(1) // lỗi từng item không làm hỏng cả job
+                    return nil
+                }
+                select {
+                case out &lt;- r:
+                case &lt;-ctx.Done():
+                    return ctx.Err()
+                }
+                return nil
+            })
+        }
+        _ = g.Wait()
+    }()
+
+    // Consumer: ghi DB theo batch 500
+    batch := make([]Review, 0, 500)
+    var saved int
+    for r := range out {
+        batch = append(batch, r)
+        if len(batch) == cap(batch) {
+            if err := s.repo.UpsertBatch(ctx, batch); err != nil { return Result{}, err }
+            saved += len(batch)
+            batch = batch[:0]
+        }
+    }
+    if len(batch) &gt; 0 {
+        if err := s.repo.UpsertBatch(ctx, batch); err != nil { return Result{}, err }
+        saved += len(batch)
+    }
+    return Result{Saved: saved, Failed: int(failed.Load())}, ctx.Err()
+}</code></pre>
+<div class="to"><b>Trade-off:</b> job lớn nên chạy ở <b>worker riêng</b> qua queue (không trong request HTTP), lưu tiến độ để resume và hiển thị % cho merchant. Concurrency phụ thuộc vào thứ chặn bạn: DB (giới hạn bởi pool) hay nguồn bên ngoài (giới hạn bởi rate limit). Đặt riêng cho từng loại.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">6</span><h3>Node.js event loop hoạt động thế nào? Vì sao một hàm parse JSON/HTML nặng có thể làm "đứng" cả server? So với Go thì sao?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Node chạy JS trên <b>một thread</b>; I/O (network, file) được libuv xử lý bất đồng bộ, callback được đưa lại vào event loop. Các phase: timers → pending callbacks → poll (I/O) → check (<code>setImmediate</code>) → close. Microtask (Promise) chạy sau mỗi callback.</li>
+<li>Code <b>CPU-bound</b> (parse HTML lớn bằng cheerio, <code>JSON.parse</code> file vài chục MB, regex nặng) chiếm thread chính → mọi request khác phải chờ. Giải pháp: <code>worker_threads</code>, tách sang service/worker riêng, stream parsing, hoặc chia nhỏ việc.</li>
+<li><b>Go:</b> goroutine được scheduler phân phối lên nhiều OS thread (GOMAXPROCS), có preemption, nên một goroutine CPU-bound không chặn các request khác. Đây là lý do Go phù hợp cho worker parse/normalize dữ liệu.</li>
+</ul>
+<div class="to"><b>Trade-off:</b> Node mạnh ở I/O-bound, chia sẻ code/type với frontend React (TypeScript), hệ sinh thái Shopify (Shopify CLI, <code>@shopify/shopify-api</code>, template Remix/React Router) rất tốt. Go mạnh ở CPU-bound, concurrency, memory ổn định, binary nhỏ. Kiến trúc hợp lý: app Shopify (OAuth, admin UI) bằng Node theo template chính thức; pipeline crawl/ETL và API đọc tải cao bằng Go.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">7</span><h3>Context, timeout và cancel khi gọi API bên ngoài (Shopify, Etsy, Google) trong Go.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Không dùng <code>http.DefaultClient</code> (không có timeout). Tạo client riêng cho từng nguồn với <code>Timeout</code>, <code>Transport</code> có <code>MaxIdleConnsPerHost</code>, <code>IdleConnTimeout</code>.</li>
+<li>Mỗi call dùng <code>http.NewRequestWithContext</code> với ctx có deadline; luôn <code>defer resp.Body.Close()</code> và đọc hết body (để connection được tái sử dụng).</li>
+<li>Giới hạn kích thước body đọc vào (<code>io.LimitReader</code>) để một response bất thường không làm tràn memory.</li>
+</ul>
+<pre><code class="language-go">var shopifyClient = &amp;http.Client{
+    Timeout: 20 * time.Second,
+    Transport: &amp;http.Transport{
+        MaxIdleConns:        200,
+        MaxIdleConnsPerHost: 50,
+        IdleConnTimeout:     90 * time.Second,
+    },
+}
+
+func getJSON(ctx context.Context, url string, v any) error {
+    req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+    resp, err := shopifyClient.Do(req)
+    if err != nil { return err }
+    defer resp.Body.Close()
+    if resp.StatusCode &gt;= 300 {
+        io.Copy(io.Discard, io.LimitReader(resp.Body, 1&lt;&lt;16))
+        return &amp;HTTPError{Status: resp.StatusCode, RetryAfter: resp.Header.Get("Retry-After")}
+    }
+    return json.NewDecoder(io.LimitReader(resp.Body, 10&lt;&lt;20)).Decode(v)
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">8</span><h3>Rate limit gọi ra ngoài: mỗi shop có quota Shopify riêng, mỗi nguồn crawl có giới hạn riêng. Thiết kế limiter thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Một process:</b> <code>golang.org/x/time/rate</code> (token bucket), map limiter theo key (<code>shop_domain</code> hoặc <code>source_host</code>), dọn key không dùng.</li>
+<li><b>Nhiều worker/pod:</b> limiter phân tán trên Redis (Lua script token bucket hoặc sliding window), vì quota là của shop chứ không phải của pod.</li>
+<li><b>Thích ứng (adaptive):</b> đọc header/phản hồi của nguồn (Shopify trả <code>throttleStatus</code> trong GraphQL, <code>Retry-After</code> khi 429) để tự giảm tốc thay vì cố định.</li>
+</ul>
+<pre><code class="language-go">type Limiters struct {
+    mu sync.Mutex
+    m  map[string]*rate.Limiter
+}
+
+func (l *Limiters) Wait(ctx context.Context, key string, rps float64, burst int) error {
+    l.mu.Lock()
+    lim, ok := l.m[key]
+    if !ok {
+        lim = rate.NewLimiter(rate.Limit(rps), burst)
+        l.m[key] = lim
+    }
+    l.mu.Unlock()
+    return lim.Wait(ctx) // chặn tới khi có token hoặc ctx hết hạn
+}</code></pre>
+<div class="to"><b>Trade-off:</b> limiter local đơn giản, không phụ thuộc Redis, nhưng N pod sẽ gọi gấp N lần quota. Redis limiter đúng toàn cụm nhưng thêm 1 round-trip mỗi call. Cách lai: phân shard theo shop (cùng shop luôn vào cùng worker, ví dụ Kafka partition key = shop_id) để limiter local vẫn đúng.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">9</span><h3>Cấu trúc code để thêm nguồn review mới (Etsy, TikTok, Temu…) mà không sửa core.</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<pre><code class="language-go">// Mỗi nguồn implement interface này
+type Source interface {
+    Name() string                                              // "aliexpress", "amazon", "etsy"...
+    Parse(input string) (ProductRef, error)                    // URL/ID người dùng nhập → ref chuẩn
+    Fetch(ctx context.Context, ref ProductRef, cursor string) (Page, error)
+}
+
+type Page struct {
+    Reviews    []RawReview
+    NextCursor string // "" = hết
+}
+
+// Model chuẩn hoá dùng chung cho toàn bộ pipeline
+type RawReview struct {
+    Source, ExternalID, Author, Country, Body, Lang string
+    Rating     int
+    Photos     []string
+    ReviewedAt time.Time
+    Raw        json.RawMessage // giữ bản gốc để debug/parse lại
+}
+
+var registry = map[string]Source{}
+func Register(s Source) { registry[s.Name()] = s }</code></pre>
+<ul>
+<li>Core (dedup, clean, lưu, đếm rating, publish lên widget) chỉ làm việc với <code>RawReview</code>.</li>
+<li>Mỗi adapter có fixture HTML/JSON thật để test parser. Khi nguồn đổi layout, test và alert sẽ báo.</li>
+<li>Lưu <code>Raw</code> để khi sửa parser có thể <b>re-parse</b> mà không cần crawl lại.</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> liên hệ với adapter cổng thanh toán/ngân hàng bạn đã làm ở 9Pay: cùng một pattern.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">10</span><h3>Graceful shutdown cho worker đang xử lý job import/crawl khi deploy.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Nhận SIGTERM → ngừng nhận job mới → cho job đang chạy hoàn thành phần hiện tại (hoặc lưu checkpoint) → ack/commit → thoát. Đặt <code>terminationGracePeriodSeconds</code> đủ lớn.</li>
+<li>Job dài (import 50k review) phải <b>resume được</b>: lưu cursor/page đã xử lý vào DB. Nếu bị kill, job được giao lại và chạy tiếp từ checkpoint, không làm lại từ đầu.</li>
+<li>Ghi idempotent (upsert theo khóa unique) nên xử lý lặp một phần cũng không tạo bản trùng.</li>
+</ul>
+<pre><code class="language-go">ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
+defer stop()
+for {
+    job, err := queue.Next(ctx) // trả lỗi khi ctx bị cancel
+    if err != nil { break }
+    // dùng ctx riêng có hạn để job kịp lưu checkpoint
+    jctx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 25*time.Second)
+    runWithCheckpoint(jctx, job)
+    cancel()
+}</code></pre>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="grp" id="g3" data-title="3. SQL & thiết kế dữ liệu">
+<h2>3. Cơ sở dữ liệu quan hệ &amp; thiết kế dữ liệu review</h2>
+
+<article class="q" data-type="kn">
+<header><span class="num">11</span><h3>Thiết kế schema cho hệ thống review multi-tenant (nhiều shop, nhiều nguồn, ảnh/video, trạng thái duyệt).</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<pre><code class="language-sql">CREATE TABLE shops (
+  id           BIGINT PRIMARY KEY AUTO_INCREMENT,
+  domain       VARCHAR(255) NOT NULL UNIQUE,   -- xxx.myshopify.com
+  platform     VARCHAR(20)  NOT NULL,          -- shopify, woocommerce...
+  plan         VARCHAR(20)  NOT NULL,
+  installed_at DATETIME NOT NULL,
+  uninstalled_at DATETIME NULL
+);
+
+CREATE TABLE reviews (
+  id            BIGINT PRIMARY KEY AUTO_INCREMENT,
+  shop_id       BIGINT NOT NULL,
+  product_id    BIGINT NOT NULL,           -- id sản phẩm trên Shopify
+  source        VARCHAR(20) NOT NULL,      -- native, aliexpress, amazon, csv...
+  external_id   VARCHAR(128) NULL,         -- id ở nguồn
+  content_hash  BINARY(16) NOT NULL,       -- md5(author|body|date) khi không có external_id
+  rating        TINYINT NOT NULL,
+  author        VARCHAR(255),
+  country       CHAR(2),
+  body          TEXT,
+  lang          VARCHAR(8),
+  has_media     BOOLEAN NOT NULL DEFAULT FALSE,
+  status        TINYINT NOT NULL,          -- pending, published, hidden, spam
+  is_pinned     BOOLEAN NOT NULL DEFAULT FALSE,
+  reviewed_at   DATETIME NOT NULL,
+  created_at    DATETIME NOT NULL,
+  UNIQUE KEY uq_dedup (shop_id, product_id, source, content_hash),
+  KEY idx_widget (shop_id, product_id, status, is_pinned, reviewed_at, id)
+);
+
+CREATE TABLE review_media (
+  id        BIGINT PRIMARY KEY AUTO_INCREMENT,
+  review_id BIGINT NOT NULL,
+  type      TINYINT NOT NULL,         -- image, video
+  url       VARCHAR(1024) NOT NULL,   -- đã copy về CDN của mình
+  KEY idx_review (review_id)
+);
+
+-- Bảng tổng hợp đọc nhanh cho widget và rich snippet
+CREATE TABLE product_rating_stats (
+  shop_id    BIGINT NOT NULL,
+  product_id BIGINT NOT NULL,
+  cnt        INT NOT NULL,
+  sum_rating INT NOT NULL,
+  c1 INT, c2 INT, c3 INT, c4 INT, c5 INT,
+  updated_at DATETIME NOT NULL,
+  PRIMARY KEY (shop_id, product_id)
+);</code></pre>
+<ul>
+<li><b><code>shop_id</code> là cột đầu</b> trong mọi index: mọi query đều lọc theo tenant, và sau này có thể shard theo shop.</li>
+<li>Ảnh/video <b>copy về storage/CDN của mình</b>, không hotlink ảnh AliExpress (link hết hạn, bị chặn referer, chậm).</li>
+<li>Gỡ app: đánh dấu <code>uninstalled_at</code>, xoá dữ liệu theo webhook <code>shop/redact</code> (mục 6).</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">12</span><h3>Widget hiển thị review: sort theo "pinned trước, mới nhất", lọc theo số sao / có ảnh, phân trang. Viết query và chọn index.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<pre><code class="language-sql">-- Trang đầu
+SELECT id, rating, author, body, has_media, reviewed_at
+FROM reviews
+WHERE shop_id = ? AND product_id = ? AND status = 1
+ORDER BY is_pinned DESC, reviewed_at DESC, id DESC
+LIMIT 10;
+
+-- Trang tiếp theo: keyset cursor (is_pinned, reviewed_at, id) của dòng cuối
+WHERE shop_id = ? AND product_id = ? AND status = 1
+  AND (is_pinned &lt; ?
+       OR (is_pinned = ? AND reviewed_at &lt; ?)
+       OR (is_pinned = ? AND reviewed_at = ? AND id &lt; ?))</code></pre>
+<ul>
+<li>Index <code>(shop_id, product_id, status, is_pinned, reviewed_at, id)</code> khớp đúng thứ tự WHERE bằng (=) rồi ORDER BY, nên MySQL đọc theo index (không filesort) và dừng sau 10 dòng. MySQL 8 hỗ trợ index giảm dần (<code>DESC</code>) nếu cần trộn chiều sort.</li>
+<li><b>Lọc theo sao</b> (<code>rating = 5</code>) chen giữa sẽ phá thứ tự index. Có hai cách: thêm index riêng <code>(shop_id, product_id, status, rating, reviewed_at, id)</code>, hoặc chấp nhận quét thêm vì mỗi sản phẩm thường chỉ vài trăm review.</li>
+<li>Số review theo từng mức sao lấy từ <code>product_rating_stats</code>, không <code>COUNT(*)</code> mỗi lần.</li>
+</ul>
+<div class="to"><b>Trade-off:</b> keyset nhanh và ổn định nhưng không nhảy tới "trang 7" được. Widget review thường dùng "Xem thêm" (load more), nên keyset là hợp lý. Trang quản trị cần số trang thì dùng offset có giới hạn.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">13</span><h3>Import 50.000 review và tránh trùng khi merchant import lại cùng sản phẩm. Bulk insert/upsert thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Khóa dedup:</b> <code>(shop_id, product_id, source, external_id)</code> nếu nguồn có ID, nếu không thì hash nội dung đã chuẩn hoá (trim, lowercase, gộp khoảng trắng) + tác giả + ngày.</li>
+<li><b>Batch insert</b> 500–1000 dòng/câu lệnh (giới hạn bởi <code>max_allowed_packet</code> và số placeholder 65.535 của MySQL).</li>
+<li><code>INSERT ... ON DUPLICATE KEY UPDATE</code> cập nhật những field có thể đổi (rating/body) nhưng <b>không đè</b> trạng thái merchant đã chỉnh (hidden, pinned).</li>
+<li>Sau batch: cập nhật lại <code>product_rating_stats</code> bằng 1 câu aggregate cho các product bị ảnh hưởng.</li>
+</ul>
+<pre><code class="language-go">func (r *Repo) UpsertBatch(ctx context.Context, rows []Review) error {
+    if len(rows) == 0 { return nil }
+    var sb strings.Builder
+    args := make([]any, 0, len(rows)*9)
+    sb.WriteString(`INSERT INTO reviews
+      (shop_id, product_id, source, content_hash, rating, author, body, reviewed_at, status, created_at) VALUES `)
+    for i, x := range rows {
+        if i &gt; 0 { sb.WriteByte(',') }
+        sb.WriteString("(?,?,?,?,?,?,?,?,?,UTC_TIMESTAMP())")
+        args = append(args, x.ShopID, x.ProductID, x.Source, x.Hash[:], x.Rating, x.Author, x.Body, x.ReviewedAt, x.Status)
+    }
+    sb.WriteString(` ON DUPLICATE KEY UPDATE rating = VALUES(rating), body = VALUES(body)`) // giữ nguyên status
+    _, err := r.db.ExecContext(ctx, sb.String(), args...)
+    return err
+}</code></pre>
+<p>Ghi chú: MySQL 8.0.20+ khuyến nghị cú pháp alias (<code>INSERT ... AS new ON DUPLICATE KEY UPDATE rating = new.rating</code>) thay cho <code>VALUES()</code> đã deprecated.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">14</span><h3>Tính điểm trung bình và số review mỗi sản phẩm: tính realtime hay lưu sẵn? Giữ đồng bộ thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Widget sao (star badge) hiện ở <b>trang danh sách sản phẩm</b>, có khi 50 sản phẩm/trang. <code>AVG()</code> realtime cho từng sản phẩm là quá đắt, nên <b>lưu sẵn</b> vào <code>product_rating_stats</code>.</li>
+<li><b>Cập nhật:</b>
+<ul>
+<li>Tăng/giảm ngay trong cùng transaction với thao tác đơn lẻ (thêm, ẩn, xóa 1 review).</li>
+<li>Sau import lớn: tính lại bằng <code>INSERT ... SELECT ... GROUP BY ... ON DUPLICATE KEY UPDATE</code> cho các product bị ảnh hưởng.</li>
+<li>Job đối chiếu định kỳ để sửa lệch (vì cập nhật kiểu cộng/trừ lâu ngày có thể trôi).</li>
+</ul></li>
+<li>Đồng bộ số này lên <b>Shopify metafield</b> (<code>reviews.rating</code>, <code>reviews.rating_count</code>) để theme và Google đọc được (xem câu 37).</li>
+</ul>
+<pre><code class="language-sql">INSERT INTO product_rating_stats (shop_id, product_id, cnt, sum_rating, c1,c2,c3,c4,c5, updated_at)
+SELECT shop_id, product_id, COUNT(*), SUM(rating),
+       SUM(rating=1), SUM(rating=2), SUM(rating=3), SUM(rating=4), SUM(rating=5), UTC_TIMESTAMP()
+FROM reviews
+WHERE shop_id = ? AND product_id IN (?) AND status = 1
+GROUP BY shop_id, product_id
+ON DUPLICATE KEY UPDATE cnt = VALUES(cnt), sum_rating = VALUES(sum_rating),
+  c1=VALUES(c1), c2=VALUES(c2), c3=VALUES(c3), c4=VALUES(c4), c5=VALUES(c5), updated_at = VALUES(updated_at);</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">15</span><h3>Bảng reviews lên hàng trăm triệu dòng. Bạn mở rộng thế nào: partition, archive, shard, đổi database?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ol>
+<li><b>Trước tiên</b>: index đúng + cache (phần lớn tải là đọc widget) + read replica. Thường giải quyết được rất lâu.</li>
+<li><b>Dọn dữ liệu</b>: xoá dữ liệu shop đã gỡ app quá thời hạn; tách <code>body</code>/raw ra bảng hoặc storage khác để bảng chính gọn.</li>
+<li><b>Partition</b> MySQL (ví dụ <code>PARTITION BY HASH(shop_id)</code>): giảm kích thước index mỗi partition, nhưng khóa unique phải chứa cột partition và không giảm tải CPU/IO tổng của 1 server.</li>
+<li><b>Shard theo shop_id</b> (Vitess, hoặc tự route: bảng <code>shop → shard</code>): mở rộng ngang thật sự. Vì mọi query đều theo shop nên shard rất tự nhiên. Shop rất lớn có thể có shard riêng.</li>
+<li><b>Tìm kiếm/thống kê</b> (full-text, lọc phức tạp, analytics) đưa sang Elasticsearch/OpenSearch hoặc ClickHouse thay vì ép MySQL.</li>
+</ol>
+<div class="hint"><b>Kinh nghiệm:</b> bạn đã từng vận hành bảng lớn cỡ nào (MySQL/MongoDB)? Đã dùng partition hoặc tách dữ liệu sang Elasticsearch chưa? Kể lý do và kết quả.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">16</span><h3>Có một query báo cáo chậm 8 giây trên trang admin. Quy trình bạn xử lý?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ol>
+<li><b>Tái hiện</b> với tham số thật (shop lớn nhất thường là shop chậm nhất); lấy từ slow query log hoặc APM.</li>
+<li><code>EXPLAIN ANALYZE</code>: xem <code>type</code> (ALL/index = quét toàn bộ), <code>rows</code> ước lượng vs thực tế, <code>Using filesort</code>, <code>Using temporary</code>.</li>
+<li>Sửa theo thứ tự chi phí thấp → cao: thêm/sửa composite index (cột bằng → cột range/sort, covering index); viết lại query (tránh hàm trên cột được index, tách OR thành UNION, bỏ <code>SELECT *</code>); pre-aggregate; cache; chuyển sang read replica hoặc kho phân tích.</li>
+<li>Đo lại, và thêm alert/test để không tái phát.</li>
+</ol>
+<div class="hint"><b>Kinh nghiệm:</b> chuẩn bị đúng 1 câu chuyện slow query có số liệu "trước/sau" (ví dụ 8s → 80ms). Nhà tuyển dụng thường hỏi sâu vào cái này.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">17</span><h3>MySQL hay PostgreSQL cho sản phẩm này? Khác biệt nào ảnh hưởng thiết kế?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<table>
+<tr><th>Khía cạnh</th><th>MySQL (InnoDB)</th><th>PostgreSQL</th></tr>
+<tr><td>Clustered index</td><td>Dữ liệu sắp theo PK; PK nên nhỏ, tăng dần</td><td>Heap + index riêng; cần VACUUM</td></tr>
+<tr><td>JSON</td><td><code>JSON</code> + generated column để index</td><td><code>JSONB</code> + GIN index mạnh hơn</td></tr>
+<tr><td>Full-text</td><td>FULLTEXT cơ bản</td><td><code>tsvector</code> tốt hơn, có <code>pg_trgm</code></td></tr>
+<tr><td>Index đặc biệt</td><td>Hạn chế</td><td>Partial index (<code>WHERE status = 1</code>), expression index</td></tr>
+<tr><td>Upsert</td><td><code>ON DUPLICATE KEY UPDATE</code></td><td><code>ON CONFLICT ... DO UPDATE</code></td></tr>
+<tr><td>Vận hành/replica</td><td>Phổ biến, đơn giản, Vitess để shard</td><td>Citus để shard; tính năng phong phú hơn</td></tr>
+</table>
+<p>Với review: <b>partial index</b> chỉ trên review đã publish và <b>JSONB</b> cho metadata thay đổi theo nguồn là điểm cộng của PostgreSQL. Nếu công ty đang dùng MySQL thì vẫn làm tốt được với generated column + composite index.</p>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="grp" id="g4" data-title="4. NoSQL & caching">
+<h2>4. NoSQL &amp; caching</h2>
+
+<article class="q" data-type="mix">
+<header><span class="num">18</span><h3>Lưu review trong MongoDB hay MySQL? Khi nào dùng DynamoDB?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>MongoDB:</b> hợp với dữ liệu thô từ nhiều nguồn có cấu trúc khác nhau (raw crawl), embed media trong document, schema thay đổi nhanh. Cần chú ý index compound theo <code>{shop_id, product_id, status, reviewed_at}</code> và giới hạn kích thước document 16MB (không embed vô hạn review vào product).</li>
+<li><b>MySQL:</b> hợp với dữ liệu đã chuẩn hoá cần ràng buộc unique (dedup), transaction (cập nhật stats), báo cáo SQL.</li>
+<li><b>DynamoDB:</b> truy cập theo key với tải cực lớn, không lo vận hành. Thiết kế theo access pattern: <code>PK = SHOP#id#PRODUCT#id</code>, <code>SK = REVIEW#reviewed_at#id</code> → query 1 partition là ra danh sách đã sort. Nhược điểm: query ngoài pattern rất khó, phải dùng GSI, chi phí theo RCU/WCU.</li>
+</ul>
+<div class="to"><b>Gợi ý kiến trúc:</b> raw crawl → MongoDB/S3 (lưu bản gốc, dễ re-parse); review đã làm sạch → MySQL/Postgres (nguồn sự thật); bản đọc cho widget → cache/CDN. Mỗi kho đúng việc của nó.</div>
+<div class="hint"><b>Kinh nghiệm:</b> bạn đã dùng MongoDB ở dự án nào, cho dữ liệu gì? Có gặp vấn đề về index hoặc aggregation chậm không?</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">19</span><h3>Caching cho widget review: cache gì, ở tầng nào, invalidate thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<p>Widget là tải lớn nhất (mọi lượt xem trang sản phẩm của mọi shop). Dùng nhiều tầng cache:</p>
+<ol>
+<li><b>CDN/edge</b> (Cloudflare/CloudFront): response JSON của trang review đầu tiên, <code>Cache-Control: public, max-age=60, stale-while-revalidate=600</code>. Phần lớn request không chạm tới server.</li>
+<li><b>Redis</b>: key theo <code>shop:product:filter:page</code>, TTL vài phút.</li>
+<li><b>In-process</b> (LRU) cho cấu hình widget của shop (màu, layout), thay đổi ít.</li>
+</ol>
+<p><b>Invalidate:</b> khó nhất là biết khi nào xoá. Cách thực dụng: đưa <b>version</b> vào key: <code>reviews:v{ver}:{shop}:{product}:...</code>. Mỗi khi review của product thay đổi thì <code>INCR ver:{shop}:{product}</code>; key cũ tự hết hạn. Với CDN: purge theo cache tag/surrogate key (<code>shop-123-product-456</code>) hoặc chấp nhận TTL ngắn.</p>
+<pre><code class="language-go">func (c *Cache) ReviewsKey(ctx context.Context, shop, product int64, f Filter) (string, error) {
+    ver, err := c.rdb.Get(ctx, fmt.Sprintf("ver:%d:%d", shop, product)).Int64()
+    if err != nil &amp;&amp; !errors.Is(err, redis.Nil) { return "", err }
+    return fmt.Sprintf("rv:%d:%d:%d:%s", ver, shop, product, f.Hash()), nil
+}
+
+// Khi review thay đổi (publish/hide/import xong)
+func (c *Cache) Bump(ctx context.Context, shop, product int64) error {
+    return c.rdb.Incr(ctx, fmt.Sprintf("ver:%d:%d", shop, product)).Err()
+}</code></pre>
+<div class="to"><b>Trade-off:</b> TTL ngắn thì đơn giản nhưng merchant sửa xong có thể phải đợi 1 phút mới thấy (nên giải thích trong UI, hoặc gắn query <code>?v=</code> khi preview). Purge chủ động thì cập nhật ngay nhưng phức tạp hơn và có giới hạn số lần purge của CDN.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">20</span><h3>Cache stampede / thundering herd khi key của một shop rất lớn hết hạn. Xử lý thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>singleflight</b> trong mỗi process: nhiều request cùng key chỉ gọi DB 1 lần.</li>
+<li><b>Lock ngắn trên Redis</b> (<code>SET key NX PX 3000</code>) để chỉ 1 pod rebuild, các pod khác trả bản cũ (stale) hoặc chờ ngắn.</li>
+<li><b>Stale-while-revalidate</b>: lưu kèm thời điểm "mềm" hết hạn; quá hạn mềm thì vẫn trả dữ liệu cũ và refresh nền.</li>
+<li><b>TTL có jitter</b> (ví dụ 300s ± 10%) để các key không hết hạn cùng lúc.</li>
+<li><b>Probabilistic early refresh</b> (XFetch): refresh sớm với xác suất tăng dần khi gần hết hạn.</li>
+</ul>
+<pre><code class="language-go">var sf singleflight.Group
+
+func (s *Svc) GetReviews(ctx context.Context, key string, load func() ([]byte, error)) ([]byte, error) {
+    if b, err := s.rdb.Get(ctx, key).Bytes(); err == nil {
+        return b, nil
+    }
+    v, err, _ := sf.Do(key, func() (any, error) {
+        b, err := load()
+        if err == nil {
+            ttl := 300*time.Second + time.Duration(rand.Int64N(30))*time.Second // jitter
+            s.rdb.Set(context.WithoutCancel(ctx), key, b, ttl)
+        }
+        return b, err
+    })
+    if err != nil { return nil, err }
+    return v.([]byte), nil
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">21</span><h3>Redis vs Memcached. Và những cấu trúc Redis nào hữu ích cho sản phẩm này?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Memcached:</b> chỉ key-value, đa luồng, đơn giản, không persistence; tốt cho cache thuần.</li>
+<li><b>Redis:</b> nhiều cấu trúc dữ liệu, persistence (RDB/AOF), replication, Lua script, pub/sub, stream. Gần như luôn được chọn vì dùng được cho nhiều việc hơn cache.</li>
+<li>Ứng dụng cụ thể:
+<ul>
+<li><b>String/Hash</b>: cache JSON widget, cấu hình shop.</li>
+<li><b>Sorted set</b>: hàng đợi job theo thời điểm chạy (gửi email xin review sau N ngày), rate limit sliding window.</li>
+<li><b>Set / Bloom filter</b> (RedisBloom): kiểm tra nhanh review đã crawl chưa.</li>
+<li><b>HyperLogLog</b>: đếm số lượt xem widget không trùng (unique visitor) với bộ nhớ cố định.</li>
+<li><b>Stream</b>: hàng đợi nhẹ khi chưa cần Kafka.</li>
+</ul></li>
+</ul>
+<div class="to"><b>Lưu ý vận hành:</b> đặt <code>maxmemory-policy allkeys-lru</code> cho Redis làm cache; tách instance cache với instance dùng làm queue/lock (vì không được để eviction xoá job).</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="grp" id="g5" data-title="5. REST & GraphQL API">
+<h2>5. Thiết kế REST &amp; GraphQL API</h2>
+
+<article class="q" data-type="kn">
+<header><span class="num">22</span><h3>REST hay GraphQL cho admin app và cho widget storefront? Trade-off?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<table>
+<tr><th></th><th>REST</th><th>GraphQL</th></tr>
+<tr><td>Cache HTTP/CDN</td><td>Dễ (GET + URL)</td><td>Khó (thường là POST một endpoint); cần persisted query/GET</td></tr>
+<tr><td>Over/under-fetching</td><td>Dễ bị, phải thêm endpoint</td><td>Client chọn field cần</td></tr>
+<tr><td>Nhiều màn hình phức tạp</td><td>Nhiều round-trip</td><td>1 query lấy nhiều resource</td></tr>
+<tr><td>Bảo mật/hiệu năng</td><td>Dễ giới hạn</td><td>Cần giới hạn độ sâu, độ phức tạp (query cost)</td></tr>
+</table>
+<p><b>Đề xuất:</b> <b>widget storefront dùng REST GET</b> (cache được ở CDN, payload nhỏ, ổn định). <b>Admin app có thể dùng GraphQL</b> (nhiều màn hình, bảng, filter; team frontend tự chọn field). Đồng thời phía backend vẫn phải <i>gọi</i> Shopify Admin GraphQL API.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">23</span><h3>Vấn đề N+1 trong GraphQL (danh sách review, mỗi review lấy media và product). Giải quyết thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<p>Resolver <code>Review.media</code> chạy 1 query cho mỗi review → 1 + N query. Giải pháp: <b>DataLoader</b> gom các ID được yêu cầu trong cùng một tick, rồi query 1 lần với <code>IN (...)</code>, sau đó trả về đúng thứ tự.</p>
+<pre><code class="language-go">// gqlgen + github.com/graph-gophers/dataloader/v7
+func newMediaLoader(repo *Repo) *dataloader.Loader[int64, []Media] {
+    return dataloader.NewBatchedLoader(func(ctx context.Context, ids []int64) []*dataloader.Result[[]Media] {
+        rows, err := repo.MediaByReviewIDs(ctx, ids) // SELECT ... WHERE review_id IN (?)
+        byID := map[int64][]Media{}
+        for _, m := range rows { byID[m.ReviewID] = append(byID[m.ReviewID], m) }
+        out := make([]*dataloader.Result[[]Media], len(ids))
+        for i, id := range ids {
+            out[i] = &amp;dataloader.Result[[]Media]{Data: byID[id], Error: err}
+        }
+        return out
+    }, dataloader.WithWait[int64, []Media](2*time.Millisecond))
+}
+
+// Resolver
+func (r *reviewResolver) Media(ctx context.Context, obj *model.Review) ([]*model.Media, error) {
+    return loadersFrom(ctx).Media.Load(ctx, obj.ID)() // loader tạo mới cho mỗi request
+}</code></pre>
+<p>Loader phải được tạo <b>theo từng request</b> (gắn vào context bằng middleware), tránh rò dữ liệu giữa các shop.</p>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">24</span><h3>Chuẩn thiết kế REST API: versioning, lỗi, phân trang, idempotency, rate limit.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Resource rõ ràng:</b> <code>GET /v1/shops/{id}/products/{pid}/reviews?rating=5&amp;has_media=1&amp;cursor=…&amp;limit=20</code>, <code>PATCH /v1/reviews/{id}</code> (ẩn/pin), <code>POST /v1/imports</code> → trả <code>202 Accepted</code> + <code>import_id</code> để theo dõi tiến độ.</li>
+<li><b>Lỗi thống nhất:</b> <code>{"error":{"code":"IMPORT_SOURCE_BLOCKED","message":"…","details":{…}}}</code>, HTTP status đúng nghĩa (400/401/403/404/409/422/429/5xx).</li>
+<li><b>Phân trang:</b> cursor mã hoá (base64 của khóa sort), trả <code>next_cursor</code>.</li>
+<li><b>Idempotency:</b> <code>Idempotency-Key</code> cho POST tạo job import, tránh merchant bấm 2 lần tạo 2 job.</li>
+<li><b>Rate limit:</b> theo shop, trả header <code>X-RateLimit-*</code>/<code>Retry-After</code> khi 429.</li>
+<li><b>Versioning:</b> <code>/v1</code> trên URL cho API công khai; thay đổi tương thích (thêm field) không cần version mới.</li>
+<li><b>Tác vụ dài:</b> trả 202 + polling endpoint, hoặc đẩy tiến độ qua WebSocket/SSE (bạn đã có kinh nghiệm WebSocket).</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">25</span><h3>Bảo mật API widget công khai (không cần login) khỏi bị abuse: spam submit review, scrape dữ liệu, DDoS.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Đọc:</b> đi qua CDN (hấp thụ phần lớn tải), rate limit theo IP ở edge, chỉ trả field công khai (không lộ email khách).</li>
+<li><b>Ghi (khách gửi review):</b> CAPTCHA/Turnstile, rate limit theo IP + email, honeypot field, xác minh "verified buyer" bằng cách đối chiếu đơn hàng (link xin review có token ký HMAC gắn với order).</li>
+<li><b>Nội dung:</b> kiểm tra spam/từ ngữ thô tục, giới hạn kích thước ảnh/video, quét file upload, review mới vào trạng thái pending theo cấu hình của shop.</li>
+<li>Gọi từ Shopify storefront qua <b>App Proxy</b> thì phải verify tham số <code>signature</code> do Shopify ký (xem câu 31).</li>
+</ul>
+<pre><code class="language-go">// Token trong link xin review gửi qua email: không cần login vẫn xác định được đơn hàng
+func signReviewToken(secret []byte, shopID, orderID, productID int64, exp time.Time) string {
+    payload := fmt.Sprintf("%d.%d.%d.%d", shopID, orderID, productID, exp.Unix())
+    mac := hmac.New(sha256.New, secret)
+    mac.Write([]byte(payload))
+    return base64.RawURLEncoding.EncodeToString([]byte(payload)) + "." +
+        base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+}</code></pre>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="grp" id="g6" data-title="6. Shopify & e-commerce API">
+<h2>6. Shopify &amp; API nền tảng e-commerce</h2>
+<p class="intro">Nice-to-have nhưng là lõi của sản phẩm. Nếu chưa làm Shopify, nắm các khái niệm này là đủ để nói chuyện tự tin.</p>
+
+<article class="q" data-type="kn">
+<header><span class="num">26</span><h3>Luồng cài đặt app Shopify (OAuth) diễn ra thế nào? Những điểm bảo mật cần kiểm tra?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ol>
+<li>Merchant bấm Install → Shopify gọi app với <code>shop</code>, <code>hmac</code>, <code>timestamp</code>.</li>
+<li>App kiểm tra <code>hmac</code> và định dạng <code>shop</code> (<code>^[a-z0-9][a-z0-9-]*\.myshopify\.com$</code>), sinh <code>state</code> (nonce) lưu vào cookie, redirect tới <code>https://{shop}/admin/oauth/authorize?client_id&amp;scope&amp;redirect_uri&amp;state</code>.</li>
+<li>Merchant đồng ý → Shopify redirect về callback với <code>code</code>, <code>hmac</code>, <code>state</code>, <code>shop</code>.</li>
+<li>App kiểm tra lại <code>hmac</code>, <code>state</code> khớp cookie, <code>shop</code> hợp lệ → POST <code>/admin/oauth/access_token</code> đổi <code>code</code> lấy access token → lưu token (mã hoá) → đăng ký webhook → chuyển vào app.</li>
+</ol>
+<p><b>Hiện nay:</b> với embedded app, Shopify khuyến nghị <b>Shopify managed installation</b> (khai báo scope trong <code>shopify.app.toml</code>) + <b>token exchange</b>: frontend lấy <i>session token</i> (JWT do App Bridge cấp), backend đổi lấy access token. Không còn phải tự làm redirect OAuth. Nên nói được cả hai cách.</p>
+<pre><code class="language-go">// Verify hmac trên query của OAuth callback
+func verifyOAuthHMAC(q url.Values, secret string) bool {
+    got := q.Get("hmac")
+    keys := make([]string, 0, len(q))
+    for k := range q { if k != "hmac" &amp;&amp; k != "signature" { keys = append(keys, k) } }
+    sort.Strings(keys)
+    parts := make([]string, len(keys))
+    for i, k := range keys { parts[i] = k + "=" + q.Get(k) }
+    mac := hmac.New(sha256.New, []byte(secret))
+    mac.Write([]byte(strings.Join(parts, "&amp;")))
+    return hmac.Equal([]byte(hex.EncodeToString(mac.Sum(nil))), []byte(got))
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">27</span><h3>Nhận webhook Shopify (orders/fulfilled, products/update, app/uninstalled): verify, xử lý trùng, xử lý chậm.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Verify:</b> header <code>X-Shopify-Hmac-Sha256</code> = base64(HMAC-SHA256(<b>raw body</b>, app secret)). Phải đọc raw body <b>trước</b> khi parse JSON.</li>
+<li><b>Trả lời nhanh:</b> Shopify chờ khoảng 5 giây; quá hạn hoặc trả lỗi thì sẽ retry (nhiều lần trong vài giờ), lỗi liên tục có thể khiến subscription bị xoá. Vì vậy: verify → đẩy vào queue → trả 200 ngay; xử lý ở worker.</li>
+<li><b>Trùng lặp:</b> webhook là at-least-once; dedup bằng header <code>X-Shopify-Event-Id</code> (hoặc <code>X-Shopify-Webhook-Id</code>) lưu vào Redis/DB với TTL.</li>
+<li><b>Sai thứ tự:</b> so sánh <code>updated_at</code> trong payload với dữ liệu đã lưu, bỏ qua bản cũ hơn.</li>
+<li><b>Bị lỡ:</b> job đối soát định kỳ (ví dụ lấy đơn đã fulfilled trong 24h qua) để không bỏ sót email xin review.</li>
+</ul>
+<pre><code class="language-go">func (h *Handler) ShopifyWebhook(c *gin.Context) {
+    body, err := io.ReadAll(io.LimitReader(c.Request.Body, 5&lt;&lt;20))
+    if err != nil { c.Status(400); return }
+
+    mac := hmac.New(sha256.New, h.secret)
+    mac.Write(body)
+    expected := base64.StdEncoding.EncodeToString(mac.Sum(nil))
+    if !hmac.Equal([]byte(expected), []byte(c.GetHeader("X-Shopify-Hmac-Sha256"))) {
+        c.Status(401); return
+    }
+
+    evt := WebhookEvent{
+        ID:    c.GetHeader("X-Shopify-Event-Id"),
+        Topic: c.GetHeader("X-Shopify-Topic"),
+        Shop:  c.GetHeader("X-Shopify-Shop-Domain"),
+        Body:  body,
+    }
+    if err := h.queue.Publish(c.Request.Context(), evt); err != nil {
+        c.Status(500); return // để Shopify retry
+    }
+    c.Status(200)
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">28</span><h3>Các webhook bắt buộc (GDPR/compliance) và xử lý khi shop gỡ app.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>App công khai trên App Store <b>bắt buộc</b> xử lý 3 compliance webhook:
+<ul>
+<li><code>customers/data_request</code>: khách yêu cầu xem dữ liệu của họ → tổng hợp review/email của khách đó gửi cho merchant.</li>
+<li><code>customers/redact</code>: xoá dữ liệu cá nhân của 1 khách (email, tên trên review, lịch sử email gửi).</li>
+<li><code>shop/redact</code>: gửi khoảng 48 giờ sau khi shop gỡ app → xoá dữ liệu của shop.</li>
+</ul></li>
+<li><code>app/uninstalled</code>: đánh dấu shop gỡ app, vô hiệu hoá token, dừng các job (email, crawl) của shop đó ngay.</li>
+<li>Thiết kế: xoá theo batch ở job nền (không xoá hàng triệu dòng trong 1 transaction), ghi log để chứng minh đã xoá.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">29</span><h3>Rate limit của Shopify Admin API: REST và GraphQL khác nhau thế nào? Đồng bộ toàn bộ sản phẩm của một shop 100.000 sản phẩm thì làm sao?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>REST</b> (đã là legacy; app công khai mới phải dùng GraphQL): leaky bucket tính theo <b>số request</b>, trả header <code>X-Shopify-Shop-Api-Call-Limit</code>, 429 kèm <code>Retry-After</code>.</li>
+<li><b>GraphQL Admin API:</b> tính theo <b>điểm chi phí (query cost)</b>. Mỗi query có <code>requestedQueryCost</code>/<code>actualQueryCost</code>; bucket có <code>maximumAvailable</code> và <code>restoreRate</code> (điểm/giây) tuỳ plan của shop. Thông tin trả trong <code>extensions.cost.throttleStatus</code> → dùng để tự điều tốc.</li>
+<li><b>Dữ liệu lớn → Bulk Operations:</b> gửi <code>bulkOperationRunQuery</code> với query lấy toàn bộ products, Shopify chạy bất đồng bộ, xong thì gửi webhook <code>bulk_operations/finish</code> (hoặc poll), trả về URL file <b>JSONL</b>. Đọc file theo dòng (stream), không load hết vào memory. Không bị giới hạn bởi rate limit thông thường.</li>
+</ul>
+<pre><code class="language-go">// Stream JSONL từ bulk operation: mỗi dòng là 1 object, con có __parentId
+func streamJSONL(ctx context.Context, r io.Reader, handle func(json.RawMessage) error) error {
+    sc := bufio.NewScanner(r)
+    sc.Buffer(make([]byte, 0, 1&lt;&lt;20), 16&lt;&lt;20) // dòng có thể dài
+    for sc.Scan() {
+        if err := ctx.Err(); err != nil { return err }
+        if err := handle(json.RawMessage(sc.Bytes())); err != nil { return err }
+    }
+    return sc.Err()
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">30</span><h3>Hiển thị widget lên storefront của merchant: Theme App Extension, App Embed, ScriptTag khác nhau thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Theme App Extension – App block:</b> merchant kéo-thả block "Product reviews" vào vị trí mong muốn trong theme editor (theme Online Store 2.0). Code Liquid + JS/CSS do Shopify host trên CDN của họ. Gỡ app là block tự biến mất, không để lại code rác trong theme.</li>
+<li><b>App embed block:</b> script nổi/toàn cục (pop-up review, floating widget, chèn JSON-LD), merchant bật/tắt trong theme editor.</li>
+<li><b>ScriptTag</b> (cách cũ): chèn file JS vào mọi trang; không hỗ trợ cho trang theme OS 2.0 với app mới, ảnh hưởng tốc độ trang. Tránh dùng.</li>
+<li><b>Dữ liệu:</b> Liquid đọc trực tiếp <b>metafield</b> (rating, count) để render sao ngay từ HTML (tốt cho SEO và không bị nháy layout), phần danh sách review tải bằng JS từ API/CDN của app.</li>
+</ul>
+<div class="to"><b>Trade-off render:</b> render bằng Liquid từ metafield thì nhanh và SEO tốt nhưng chỉ chứa được dữ liệu tổng hợp nhỏ; tải bằng JS thì linh hoạt (filter, phân trang) nhưng thêm request và cần tối ưu bundle (xem câu 49).</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">31</span><h3>App Proxy là gì và vì sao cần verify chữ ký?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>App Proxy cho phép storefront gọi <code>https://shop.com/apps/reviews/...</code> (cùng domain của shop), Shopify chuyển tiếp tới server của app. Lợi ích: không bị CORS, URL cùng domain, có thể trả Liquid để render trong layout của theme.</li>
+<li>Shopify thêm query <code>shop</code>, <code>logged_in_customer_id</code>, <code>timestamp</code>, <code>signature</code>. Server <b>phải verify</b> <code>signature</code> để biết request thực sự qua Shopify (nếu không, ai cũng giả được <code>logged_in_customer_id</code>).</li>
+<li>Cách tính: sắp xếp các tham số (trừ <code>signature</code>) theo key, nối dạng <code>key=value</code> <b>không có dấu &amp;</b> (giá trị mảng nối bằng dấu phẩy), HMAC-SHA256 với app secret, so sánh hex.</li>
+</ul>
+<pre><code class="language-go">func verifyProxy(q url.Values, secret string) bool {
+    keys := make([]string, 0, len(q))
+    for k := range q { if k != "signature" { keys = append(keys, k) } }
+    sort.Strings(keys)
+    var sb strings.Builder
+    for _, k := range keys { sb.WriteString(k + "=" + strings.Join(q[k], ",")) }
+    mac := hmac.New(sha256.New, []byte(secret))
+    mac.Write([]byte(sb.String()))
+    return hmac.Equal([]byte(hex.EncodeToString(mac.Sum(nil))), []byte(q.Get("signature")))
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">32</span><h3>Import review từ Etsy, Google, Amazon, AliExpress: nguồn nào có API, nguồn nào phải crawl, giới hạn gì?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<table>
+<tr><th>Nguồn</th><th>Cách lấy</th><th>Lưu ý</th></tr>
+<tr><td>Etsy</td><td>Etsy Open API v3 (OAuth 2.0 + PKCE), endpoint review theo shop/listing</td><td>Chỉ lấy được review shop của chính merchant đã cấp quyền; có rate limit theo app</td></tr>
+<tr><td>Google (Place)</td><td>Places API: Place Details chỉ trả <b>tối đa 5 review</b></td><td>Muốn lấy toàn bộ review của doanh nghiệp mình: <b>Google Business Profile API</b> (merchant phải là chủ location, cấp quyền OAuth)</td></tr>
+<tr><td>Amazon</td><td>SP-API dành cho seller, <b>không</b> có API công khai lấy review sản phẩm</td><td>Thường phải crawl; rủi ro chặn cao, cần cân nhắc điều khoản</td></tr>
+<tr><td>AliExpress / Alibaba</td><td>Không có API review công khai cho bên thứ ba</td><td>Crawl trang/endpoint nội bộ; layout và cơ chế chống bot thay đổi thường xuyên</td></tr>
+<tr><td>CSV / app khác</td><td>Merchant upload; migrate từ Judge.me, Loox, Shopify Product Reviews…</td><td>Map cột linh hoạt, validate, báo lỗi từng dòng</td></tr>
+</table>
+<div class="to"><b>Điểm ăn tiền:</b> nhắc đến yếu tố pháp lý/điều khoản và chính sách của Google về review: ưu tiên API chính thức khi có; với nguồn phải crawl, chỉ lấy dữ liệu công khai cần thiết, tôn trọng rate limit, và để merchant chịu trách nhiệm chọn sản phẩm nguồn của mình.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">33</span><h3>Bạn đã từng làm Shopify app / WooCommerce plugin chưa? Nếu chưa, bạn sẽ bắt đầu thế nào?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Nếu chưa: nói thẳng, rồi chứng minh bạn đã tìm hiểu: Shopify CLI tạo app từ template (React Router/Remix + Polaris + App Bridge), Partner dashboard, development store, theme app extension, webhooks qua <code>shopify.app.toml</code>, GraphQL Admin API.</li>
+<li>Nếu có thời gian trước phỏng vấn: dựng thử 1 app nhỏ trên development store (ví dụ hiển thị số đơn hàng và đọc metafield sản phẩm). Kể lại quá trình làm sẽ thuyết phục hơn mọi lời giải thích.</li>
+<li>Với WooCommerce: PHP/WordPress hooks, REST API của WooCommerce dùng consumer key/secret. Đây là chỗ kinh nghiệm Laravel/PHP của bạn có ích.</li>
+</ul>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 7 ============ -->
+<section class="grp" id="g7" data-title="7. Crawling & anti-crawling">
+<h2>7. Hệ thống thu thập dữ liệu (crawling)</h2>
+<p class="intro">Trả lời ở mức kiến trúc và độ tin cậy. Luôn nhắc tới việc tôn trọng điều khoản, rate limit, và ưu tiên API chính thức.</p>
+
+<article class="q" data-type="kn">
+<header><span class="num">34</span><h3>Thiết kế hệ thống crawl review từ nhiều nguồn cho hàng chục nghìn shop, mỗi shop import theo yêu cầu.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem khung đáp án</summary><div class="ans">
+<pre><code>Merchant bấm Import ─▶ API tạo import_job (202) ─▶ Queue (Kafka/Redis/SQS, key = source)
+                                                          │
+                     ┌────────────────────────────────────┘
+                     ▼
+        Scheduler: rate limit theo nguồn + theo shop, ưu tiên theo plan
+                     ▼
+        Fetcher pool (HTTP client / headless browser khi bắt buộc)
+          - retry + backoff, phát hiện bị chặn, đổi IP egress
+                     ▼
+        Raw store (S3/MongoDB: HTML/JSON gốc + metadata)
+                     ▼
+        Parser (theo adapter) ─▶ Normalize/Clean/Dedup ─▶ MySQL ─▶ cập nhật stats + cache
+                     ▼
+        Tiến độ job (DB/Redis) ─▶ UI hiển thị %; lỗi ─▶ thông báo merchant</code></pre>
+<ul>
+<li><b>Tách fetch và parse:</b> parser hỏng thì sửa và re-parse từ raw store, không phải crawl lại (giảm tải lên nguồn và giảm rủi ro bị chặn).</li>
+<li><b>Ưu tiên &amp; công bằng:</b> một shop import 100 sản phẩm không được chiếm hết worker. Dùng hàng đợi theo shop hoặc giới hạn số task đồng thời mỗi shop.</li>
+<li><b>Cache theo sản phẩm nguồn:</b> nhiều shop dropship cùng 1 sản phẩm AliExpress, nên crawl 1 lần dùng cho nhiều shop trong một khoảng thời gian.</li>
+<li><b>Quan sát:</b> tỷ lệ thành công theo nguồn, số review/request, thời gian mỗi trang, tỷ lệ bị chặn, độ trễ hàng đợi.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">35</span><h3>Gặp IP blocking, rate limit, CAPTCHA từ nguồn: xử lý thế nào cho hệ thống ổn định và có trách nhiệm?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Giảm khả năng bị chặn bằng cách cư xử tốt:</b> giới hạn tốc độ theo domain, backoff khi gặp 429/503, tôn trọng <code>Retry-After</code>, chỉ lấy trang cần thiết, cache kết quả, crawl lặp lại ít nhất có thể (incremental: chỉ lấy review mới).</li>
+<li><b>Phát hiện bị chặn</b> không chỉ qua status code: trang trả 200 nhưng là trang CAPTCHA/đăng nhập, HTML thiếu selector mong đợi, số review bằng 0 bất thường. Phân loại lỗi để không retry vô ích.</li>
+<li><b>Hạ tầng egress:</b> pool proxy (datacenter/residential) do nhà cung cấp hợp pháp quản lý, theo dõi sức khoẻ từng IP, loại IP lỗi; circuit breaker theo nguồn khi tỷ lệ bị chặn tăng cao để tránh "đốt" toàn bộ pool.</li>
+<li><b>Khi gặp CAPTCHA:</b> coi là tín hiệu dừng/giảm tốc, không cố vượt. Chuyển job sang trạng thái chờ, báo cho merchant thời gian dự kiến, hoặc gợi ý cách thay thế (upload CSV).</li>
+<li><b>Bền vững:</b> ưu tiên API chính thức/feed đối tác khi có, rà soát điều khoản sử dụng của nguồn cùng team pháp lý.</li>
+</ul>
+<div class="hint"><b>Lưu ý khi trả lời:</b> nhà tuyển dụng muốn thấy bạn hiểu độ tin cậy và chi phí vận hành, chứ không phải mẹo vượt bảo vệ. Tập trung vào: phát hiện, điều tốc, cô lập lỗi, và trải nghiệm của merchant.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">36</span><h3>HTTP client thuần hay headless browser (Playwright/Chromedp)? Khi nào dùng cái nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<table>
+<tr><th></th><th>HTTP client + parser (net/http + goquery)</th><th>Headless browser</th></tr>
+<tr><td>Chi phí</td><td>Rất rẻ: vài MB RAM, hàng trăm request/s mỗi worker</td><td>Đắt: 100–300MB RAM mỗi tab, chậm hơn nhiều lần</td></tr>
+<tr><td>Dữ liệu render bằng JS</td><td>Không lấy được (trừ khi gọi thẳng endpoint JSON)</td><td>Lấy được</td></tr>
+<tr><td>Độ ổn định</td><td>Hỏng khi đổi HTML/endpoint</td><td>Hỏng khi đổi UI; thêm lỗi timeout/memory</td></tr>
+</table>
+<p><b>Chiến lược:</b> mặc định HTTP. Mở DevTools xem trang lấy review từ endpoint JSON nào, gọi thẳng endpoint đó (nhanh và dữ liệu sạch hơn). Chỉ dùng browser cho nguồn bắt buộc, chạy ở pool riêng có giới hạn số tab, tái sử dụng browser, chặn tải ảnh/font để tiết kiệm.</p>
+<pre><code class="language-go">doc, err := goquery.NewDocumentFromReader(resp.Body)
+if err != nil { return nil, err }
+var out []RawReview
+doc.Find("[data-review-id]").Each(func(_ int, s *goquery.Selection) {
+    id, _ := s.Attr("data-review-id")
+    out = append(out, RawReview{
+        ExternalID: id,
+        Author:     strings.TrimSpace(s.Find(".author").Text()),
+        Body:       strings.TrimSpace(s.Find(".content").Text()),
+        Rating:     parseStars(s.Find(".stars").AttrOr("aria-label", "")),
+    })
+})
+if len(out) == 0 &amp;&amp; looksLikeChallengePage(doc) {
+    return nil, ErrBlocked // phân loại lỗi để scheduler giảm tốc
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">37</span><h3>Nguồn đổi layout và parser trả về 0 review cho hàng loạt shop. Phát hiện và xử lý thế nào?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Phát hiện sớm:</b> metric "review trung bình mỗi trang" và "tỷ lệ trang parse rỗng" theo nguồn; alert khi lệch mạnh so với baseline. Synthetic check: vài sản phẩm "chuẩn" được crawl mỗi giờ và so sánh với kết quả biết trước.</li>
+<li><b>Giảm thiệt hại:</b> tự động <b>tạm dừng</b> nguồn đó (circuit breaker), giữ job ở trạng thái chờ thay vì đánh dấu "hoàn tất với 0 review" (merchant tưởng sản phẩm không có review).</li>
+<li><b>Sửa:</b> cập nhật parser + fixture test mới, <b>re-parse từ raw store</b> cho các job bị ảnh hưởng, rồi resume hàng đợi.</li>
+<li><b>Phòng ngừa:</b> parser nên dựa vào dữ liệu có cấu trúc (JSON nhúng trong trang, JSON-LD, endpoint API) hơn là CSS class dễ đổi; nhiều chiến lược fallback.</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> nếu từng gặp tình huống đối tác (ngân hàng) đổi định dạng response/file đối soát mà không báo, kể lại: cách phát hiện, thời gian khắc phục, việc phòng ngừa sau đó.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">38</span><h3>Đảm bảo độ tin cậy của dữ liệu review: thiếu, trùng, sai, giả mạo.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Đầy đủ:</b> so tổng số review nguồn hiển thị với số đã lấy; ghi nhận "đã lấy X/Y" cho merchant.</li>
+<li><b>Trùng:</b> khóa dedup (câu 13); near-duplicate (cùng nội dung, khác khoảng trắng/emoji) bằng chuẩn hoá + hash, hoặc SimHash/MinHash cho văn bản gần giống.</li>
+<li><b>Sai:</b> validate rating trong 1–5, ngày không ở tương lai, ngôn ngữ phát hiện được, ảnh tải được.</li>
+<li><b>Chất lượng/giả mạo:</b> lọc spam, nội dung quá ngắn, chứa link, từ ngữ thô tục; đánh dấu nguồn rõ ràng (review import ≠ review từ khách thật của shop). Đây cũng là yêu cầu về tính minh bạch (quy định của FTC về review giả, chính sách Google). Merchant có tuỳ chọn lọc trước khi publish (ví dụ chỉ lấy ≥ 4 sao, có ảnh, theo quốc gia).</li>
+</ul>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 8 ============ -->
+<section class="grp" id="g8" data-title="8. ETL & data pipeline">
+<h2>8. ETL, làm sạch &amp; đồng bộ dữ liệu</h2>
+
+<article class="q" data-type="kn">
+<header><span class="num">39</span><h3>Batch hay streaming cho pipeline review? Thiết kế ETL thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Streaming (Kafka):</b> sự kiện theo thời gian thực: khách gửi review mới, webhook order fulfilled → lên lịch email xin review, review được duyệt → cập nhật stats/cache/metafield. Độ trễ thấp.</li>
+<li><b>Batch:</b> import lớn, tính lại thống kê, đồng bộ metafield hàng loạt, xuất feed Google Shopping, báo cáo. Đơn giản, dễ chạy lại.</li>
+<li><b>Nguyên tắc ETL:</b>
+<ul>
+<li>Extract giữ bản gốc (raw) bất biến.</li>
+<li>Transform là hàm thuần, có version (<code>parser_version</code>, <code>cleaner_version</code>) để biết dữ liệu được xử lý bằng logic nào và có thể chạy lại.</li>
+<li>Load idempotent (upsert theo khóa).</li>
+<li>Mỗi bước có metric đầu vào/đầu ra/lỗi; bản ghi lỗi vào dead-letter để xem lại.</li>
+</ul></li>
+</ul>
+<div class="to"><b>Trade-off:</b> streaming nhanh nhưng phức tạp (thứ tự, exactly-once, replay); batch dễ hiểu, dễ chạy lại nhưng trễ. Phần lớn sản phẩm SaaS kết hợp cả hai: event cho đường "nóng", batch cho đối soát và tính lại.</div>
+<div class="hint"><b>Kinh nghiệm:</b> đây là chỗ nên kể về Kafka ở 9Pay: topic/partition key, consumer group, xử lý message lỗi, consumer lag.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">40</span><h3>Làm sạch dữ liệu review: những bước nào? Viết hàm chuẩn hoá trong Go.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ol>
+<li>Decode HTML entity, bỏ thẻ HTML/script (chống XSS khi hiển thị lại trên storefront).</li>
+<li>Chuẩn hoá Unicode (NFC), gộp khoảng trắng, bỏ ký tự điều khiển.</li>
+<li>Chuẩn hoá rating về 1–5 (nguồn có thể là 0–100% hoặc 0–10), ngày về UTC.</li>
+<li>Phát hiện ngôn ngữ; ẩn danh tác giả (ví dụ "J***n") theo tuỳ chọn, chuẩn hoá mã quốc gia.</li>
+<li>Lọc: nội dung rỗng/quá ngắn, chứa URL/email/số điện thoại, nhắc tới tên nền tảng nguồn ("AliExpress", "seller") nếu merchant muốn ẩn.</li>
+<li>Tính hash để dedup.</li>
+</ol>
+<pre><code class="language-go">var (
+    spaceRe = regexp.MustCompile(`\s+`)
+    urlRe   = regexp.MustCompile(`(?i)https?://\S+|www\.\S+`)
+    policy  = bluemonday.StrictPolicy() // bỏ toàn bộ HTML
+)
+
+func CleanBody(s string) string {
+    s = html.UnescapeString(s)
+    s = policy.Sanitize(s)
+    s = norm.NFC.String(s)
+    s = urlRe.ReplaceAllString(s, "")
+    s = strings.Map(func(r rune) rune {
+        if unicode.IsControl(r) &amp;&amp; r != '\n' { return -1 }
+        return r
+    }, s)
+    return strings.TrimSpace(spaceRe.ReplaceAllString(s, " "))
+}
+
+func ContentHash(author, body string, at time.Time) [16]byte {
+    key := strings.ToLower(author) + "|" + strings.ToLower(body) + "|" + at.UTC().Format("2006-01-02")
+    return md5.Sum([]byte(key)) // dùng để dedup, không dùng cho bảo mật
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">41</span><h3>Đồng bộ dữ liệu giữa hệ thống của app và Shopify (sản phẩm bị xoá/đổi handle, metafield rating). Giữ nhất quán thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Nguồn sự thật:</b> sản phẩm thuộc Shopify (mình chỉ lưu bản sao tối thiểu: id, handle, title, ảnh); review thuộc app (Shopify metafield chỉ là bản sao để hiển thị/SEO).</li>
+<li><b>Shopify → app:</b> webhook <code>products/update</code>, <code>products/delete</code> + full sync định kỳ bằng Bulk Operation để sửa phần webhook bị lỡ. Luôn liên kết theo <b>product ID</b>, không theo handle (handle có thể đổi).</li>
+<li><b>App → Shopify:</b> khi stats thay đổi, đưa vào hàng đợi "cần đồng bộ metafield" (gộp nhiều thay đổi của cùng product trong vài giây = debounce), rồi gọi <code>metafieldsSet</code> (tối đa 25 metafield mỗi lần gọi) với rate limit theo shop.</li>
+<li><b>Đối soát:</b> job so sánh stats nội bộ với metafield đã ghi, sửa chỗ lệch.</li>
+</ul>
+<pre><code class="language-graphql">mutation SetRating($metafields: [MetafieldsSetInput!]!) {
+  metafieldsSet(metafields: $metafields) {
+    metafields { key namespace value }
+    userErrors { field message code }
+  }
+}
+# variables: ownerId = "gid://shopify/Product/123", namespace "reviews", key "rating",
+# type "rating", value "{\"value\":\"4.7\",\"scale_min\":\"1.0\",\"scale_max\":\"5.0\"}"
+# và key "rating_count", type "number_integer"</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">42</span><h3>Rich snippet và Google Shopping reviews: cần sinh dữ liệu gì? Lưu ý chính sách?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Rich snippet (sao trên kết quả tìm kiếm):</b> chèn JSON-LD <code>Product</code> có <code>aggregateRating</code> (+ một số <code>review</code>) vào trang sản phẩm qua app embed/Liquid. Dữ liệu phải <b>khớp</b> với nội dung hiển thị trên trang, và chỉ có <b>một</b> khối Product (tránh xung đột với JSON-LD của theme hoặc app khác).</li>
+<li><b>Google Shopping (Product Ratings):</b> xuất feed XML theo schema Product Reviews của Google Merchant Center (định kỳ, chỉ gửi phần thay đổi), map với GTIN/SKU/MPN của sản phẩm. Đây là bài toán batch ETL.</li>
+<li><b>Chính sách:</b> Google không hiển thị review "tự đánh giá" cho doanh nghiệp (LocalBusiness/Organization); review sản phẩm thì được. Feed Product Ratings có quy định về nội dung, và có thể không chấp nhận review không đến từ khách mua thật. Cần cho phép merchant chọn loại review nào đưa vào feed.</li>
+</ul>
+<pre><code class="language-html">&lt;script type="application/ld+json"&gt;
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.title }}",
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ product.metafields.reviews.rating.value.rating }}",
+    "reviewCount": "{{ product.metafields.reviews.rating_count }}"
+  }
+}
+&lt;/script&gt;</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">43</span><h3>Email xin review sau mua hàng: gửi sau N ngày kể từ khi giao, follow-up nếu chưa trả lời. Thiết kế scheduler?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Webhook <code>orders/fulfilled</code> (hoặc fulfillment delivered) → tạo <code>review_requests(order_id, send_at, status, attempt)</code> với <code>UNIQUE(shop_id, order_id, type)</code>.</li>
+<li>Worker quét <code>status = scheduled AND send_at &lt;= now</code> bằng <code>FOR UPDATE SKIP LOCKED</code> (nhiều worker chạy an toàn), hoặc dùng Redis sorted set (score = send_at).</li>
+<li>Trước khi gửi, kiểm tra lại: shop còn cài app và trong quota gói, khách chưa unsubscribe, đơn chưa bị hoàn, khách chưa viết review. Gửi theo <b>múi giờ của khách</b>, tránh giờ đêm.</li>
+<li>Follow-up: sau khi gửi lần 1, tạo bản ghi lần 2 với <code>send_at</code> mới; huỷ nếu khách đã review.</li>
+<li>Theo dõi delivered/open/click/bounce qua webhook của nhà cung cấp email (SES, SendGrid…), tự tắt địa chỉ bounce.</li>
+</ul>
+<pre><code class="language-sql">SELECT id FROM review_requests
+WHERE status = 0 AND send_at &lt;= UTC_TIMESTAMP()
+ORDER BY send_at
+LIMIT 200
+FOR UPDATE SKIP LOCKED;   -- index (status, send_at)</code></pre>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 9 ============ -->
+<section class="grp" id="g9" data-title="9. Frontend ReactJS">
+<h2>9. Frontend: ReactJS</h2>
+<p class="intro">Must-have trong JD. Nên ôn chắc hooks, render, tối ưu danh sách lớn và đặc thù của widget nhúng.</p>
+
+<article class="q" data-type="kn">
+<header><span class="num">44</span><h3>Trang admin hiển thị 10.000 review để merchant duyệt/ẩn hàng loạt. Tối ưu thế nào để không giật lag?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Không tải hết:</b> phân trang/infinite scroll phía server (cursor), filter/sort/search ở server.</li>
+<li><b>Virtualization:</b> chỉ render các dòng đang nhìn thấy (<code>@tanstack/react-virtual</code>, <code>react-window</code>), DOM luôn ~30 dòng dù danh sách dài.</li>
+<li><b>Tránh re-render thừa:</b> <code>React.memo</code> cho dòng, giữ callback ổn định (<code>useCallback</code>), lưu trạng thái chọn dưới dạng <code>Set</code> id thay vì sửa từng object; không tạo object/array mới trong props mỗi lần render.</li>
+<li><b>Tìm kiếm:</b> debounce input (300ms), huỷ request cũ (<code>AbortController</code>; React Query tự làm).</li>
+<li><b>Thao tác hàng loạt:</b> "chọn tất cả 10.000 kết quả khớp filter" gửi <b>filter</b> lên server thay vì gửi 10.000 id; server xử lý dạng job, UI cập nhật lạc quan (optimistic) và hiển thị tiến độ.</li>
+</ul>
+<pre><code class="language-tsx">function ReviewTable({ rows }: { rows: Review[] }) {
+  const parentRef = useRef&lt;HTMLDivElement&gt;(null);
+  const v = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () =&gt; parentRef.current,
+    estimateSize: () =&gt; 72,
+    overscan: 8,
+  });
+  return (
+    &lt;div ref={parentRef} style={{ height: 600, overflow: 'auto' }}&gt;
+      &lt;div style={{ height: v.getTotalSize(), position: 'relative' }}&gt;
+        {v.getVirtualItems().map(item =&gt; (
+          &lt;ReviewRow
+            key={rows[item.index].id}
+            review={rows[item.index]}
+            style={{ position: 'absolute', top: 0, transform: `translateY(${item.start}px)`, width: '100%' }}
+          /&gt;
+        ))}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+const ReviewRow = memo(function ReviewRow({ review, style }: { review: Review; style: CSSProperties }) {
+  return &lt;div style={style}&gt;{review.author} · {review.rating}★ · {review.body}&lt;/div&gt;;
+});</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">45</span><h3>Quản lý state và dữ liệu từ server: Redux, Context, Zustand hay React Query?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Server state</b> (danh sách review, stats): dùng <b>TanStack Query</b> (React Query) hoặc SWR. Có sẵn cache, dedup request, refetch, phân trang, optimistic update, invalidate sau mutation. Phần lớn "state" trong admin app thuộc loại này.</li>
+<li><b>Client/UI state</b> (modal mở, dòng đang chọn, filter tạm): <code>useState</code>/<code>useReducer</code> cục bộ; state dùng chung nhiều nơi thì Zustand hoặc Context (Context đổi giá trị sẽ render lại mọi consumer, nên không hợp cho state thay đổi liên tục).</li>
+<li><b>Redux Toolkit:</b> hợp với app lớn, nhiều người, cần quy ước chặt và devtools; RTK Query tương tự React Query.</li>
+<li><b>URL state:</b> filter/sort/page nên nằm trên URL để chia sẻ link và giữ khi reload.</li>
+</ul>
+<pre><code class="language-tsx">const qc = useQueryClient();
+const hide = useMutation({
+  mutationFn: (id: number) =&gt; api.patch(`/reviews/${id}`, { status: 'hidden' }),
+  onMutate: async (id) =&gt; {               // cập nhật lạc quan
+    await qc.cancelQueries({ queryKey: ['reviews', filter] });
+    const prev = qc.getQueryData&lt;Review[]&gt;(['reviews', filter]);
+    qc.setQueryData&lt;Review[]&gt;(['reviews', filter], old =&gt; old?.filter(r =&gt; r.id !== id));
+    return { prev };
+  },
+  onError: (_e, _id, ctx) =&gt; qc.setQueryData(['reviews', filter], ctx?.prev), // rollback
+  onSettled: () =&gt; qc.invalidateQueries({ queryKey: ['reviews'] }),
+});</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">46</span><h3>Giải thích useEffect, dependency array và các lỗi hay gặp (stale closure, gọi API 2 lần, race condition).</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><code>useEffect</code> chạy <b>sau</b> khi render được commit; dependency array quyết định khi nào chạy lại; hàm cleanup chạy trước lần chạy kế tiếp và khi unmount.</li>
+<li><b>Gọi 2 lần ở dev:</b> React 18 StrictMode cố ý mount → unmount → mount để phát hiện effect thiếu cleanup. Đây không phải bug production.</li>
+<li><b>Stale closure:</b> callback giữ giá trị state cũ do thiếu dependency. Sửa bằng cách khai báo đủ dependency, dùng functional update <code>setCount(c =&gt; c + 1)</code>, hoặc <code>useRef</code>.</li>
+<li><b>Race condition:</b> đổi filter nhanh, response cũ về sau ghi đè response mới. Sửa bằng <code>AbortController</code> trong cleanup (hoặc dùng React Query).</li>
+<li>Không dùng effect cho thứ tính được từ props/state: tính trực tiếp khi render hoặc dùng <code>useMemo</code>.</li>
+</ul>
+<pre><code class="language-tsx">useEffect(() =&gt; {
+  const ctrl = new AbortController();
+  fetch(`/api/reviews?rating=${rating}`, { signal: ctrl.signal })
+    .then(r =&gt; r.json())
+    .then(setReviews)
+    .catch(e =&gt; { if (e.name !== 'AbortError') setError(e); });
+  return () =&gt; ctrl.abort(); // huỷ request cũ khi rating đổi
+}, [rating]);</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">47</span><h3>useMemo, useCallback, React.memo: khi nào thực sự cần? Reconciliation và key hoạt động thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Component render lại khi state của nó đổi hoặc cha render lại. <code>React.memo</code> bỏ qua render nếu props bằng nhau (so sánh nông). <code>useCallback</code>/<code>useMemo</code> giữ tham chiếu ổn định để <code>memo</code> có tác dụng, hoặc để tránh tính toán nặng.</li>
+<li><b>Chỉ dùng khi đo thấy chậm</b> (React DevTools Profiler) hoặc với danh sách lớn/tính toán nặng. Dùng tràn lan làm code khó đọc mà lợi ích không đáng kể. React Compiler (React 19) có thể tự động memo hoá.</li>
+<li><b>Key:</b> React so sánh danh sách con theo <code>key</code>. Dùng id ổn định, <b>không</b> dùng index khi danh sách có thể sắp xếp lại/xoá/chèn (sẽ gây sai state của dòng, ví dụ checkbox bị nhảy sang dòng khác).</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">48</span><h3>Admin app Shopify dùng Polaris và App Bridge để làm gì? Xác thực request từ admin app lên backend thế nào?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Polaris:</b> design system của Shopify (component, hướng dẫn UX); dùng nó để app trông "native" trong Shopify Admin, đây cũng là một tiêu chí khi xét duyệt app/huy hiệu "Built for Shopify". Hiện Shopify đang chuyển sang Polaris web components.</li>
+<li><b>App Bridge:</b> cho app (chạy trong iframe của Admin) giao tiếp với Shopify Admin: điều hướng, toast, modal, save bar, resource picker và lấy <b>session token</b>.</li>
+<li><b>Xác thực:</b> frontend lấy session token (JWT ngắn hạn ~1 phút, ký bằng app secret HS256) gửi kèm header <code>Authorization: Bearer</code>. Backend verify chữ ký, <code>exp</code>/<code>nbf</code>, <code>aud</code> = API key, <code>dest</code> là shop hợp lệ, rồi lấy shop từ <code>dest</code>. Không dùng cookie (iframe bên thứ ba hay bị trình duyệt chặn cookie).</li>
+</ul>
+<pre><code class="language-go">type ShopifyClaims struct {
+    Dest string `json:"dest"` // https://shop.myshopify.com
+    jwt.RegisteredClaims
+}
+
+func ShopFromSessionToken(raw, apiKey, secret string) (string, error) {
+    tok, err := jwt.ParseWithClaims(raw, &amp;ShopifyClaims{}, func(t *jwt.Token) (any, error) {
+        return []byte(secret), nil
+    }, jwt.WithValidMethods([]string{"HS256"}), jwt.WithAudience(apiKey), jwt.WithLeeway(5*time.Second))
+    if err != nil { return "", err }
+    u, err := url.Parse(tok.Claims.(*ShopifyClaims).Dest)
+    if err != nil { return "", err }
+    return u.Host, nil
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">49</span><h3>Widget review nhúng vào storefront của hàng nghìn theme khác nhau: làm sao để nhẹ, không làm chậm trang và không vỡ CSS?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Bundle nhỏ:</b> widget không cần cả React (≈ 40KB+ gzip với react-dom). Dùng Preact (~4KB), vanilla JS/web component, hoặc tách code: phần sao/summary render từ Liquid, phần danh sách chỉ tải khi người dùng cuộn tới (<code>IntersectionObserver</code> + dynamic import).</li>
+<li><b>Không chặn render:</b> script <code>defer</code>/<code>async</code>, giữ chỗ trước bằng kích thước cố định để không gây CLS (layout shift), ảnh lazy-load, có <code>width/height</code>, dùng ảnh resize qua CDN (WebP/AVIF).</li>
+<li><b>Cô lập CSS:</b> Shadow DOM (theme không phá được style của widget và ngược lại), hoặc prefix class + CSS variables để merchant chỉnh màu/font theo theme.</li>
+<li><b>Dữ liệu:</b> trang review đầu tiên lấy từ CDN; chỉ tải thêm khi người dùng bấm.</li>
+<li><b>Đo lường:</b> Core Web Vitals (LCP, INP, CLS) với và không có widget. Shopify App Store kiểm tra ảnh hưởng của app tới hiệu năng storefront.</li>
+</ul>
+<div class="to"><b>Trade-off:</b> Shadow DOM cô lập tốt nhưng merchant khó tự chèn CSS tuỳ biến (cần expose <code>::part</code>/CSS variables). Prefix class thì dễ tuỳ biến nhưng dễ bị CSS của theme ảnh hưởng.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">50</span><h3>SSR, CSR, SSG khác nhau thế nào? Next.js/Remix có lợi gì cho trang hiển thị nhiều review (SEO)?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>CSR:</b> HTML rỗng + JS tải dữ liệu; nhẹ server, nhưng chậm hiển thị lần đầu và SEO kém hơn. Hợp với admin app (sau đăng nhập, không cần SEO).</li>
+<li><b>SSR:</b> server render HTML mỗi request; nội dung có ngay cho người dùng và bot; tốn tài nguyên server.</li>
+<li><b>SSG/ISR:</b> render sẵn lúc build hoặc theo chu kỳ, phục vụ từ CDN; nhanh nhất, hợp với nội dung ít thay đổi (ví dụ trang "tất cả review" công khai của shop).</li>
+<li>Với review trên storefront Shopify, phần cần SEO (sao, số review, JSON-LD) nên có trong HTML ban đầu qua Liquid/metafield, thay vì phụ thuộc JS.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">51</span><h3>Bạn phối hợp với Designer thế nào? Kể một lần bạn đề xuất thay đổi UI/UX.</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Nhận design (Figma): kiểm tra trạng thái loading/empty/error, responsive, độ dài nội dung thực tế (review rất dài/rất ngắn, tên tiếng Ả Rập/RTL), accessibility (contrast, focus, alt ảnh).</li>
+<li>Đề xuất dựa trên ràng buộc kỹ thuật hoặc dữ liệu: ví dụ "load more" thay cho phân trang số để giảm request; skeleton thay spinner để giảm layout shift.</li>
+</ul>
+<div class="hint"><b>Tự đối chiếu:</b> bạn đã từng làm việc trực tiếp với designer chưa? Nếu chủ yếu làm backend, có thể kể về việc thiết kế API cùng frontend dev để màn hình tải nhanh hơn.</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="grp" id="g10" data-title="10. Hiệu năng & mở rộng">
+<h2>10. Hiệu năng &amp; system design</h2>
+
+<article class="q" data-type="kn">
+<header><span class="num">52</span><h3>System design: API widget review phục vụ 50.000 shop, peak vài nghìn request/giây, p99 &lt; 200ms.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem khung đáp án</summary><div class="ans">
+<ol>
+<li><b>Làm rõ:</b> tỷ lệ đọc/ghi (đọc áp đảo), độ tươi chấp nhận được (vài chục giây đến 1 phút là ổn), phân bố tải (một số shop lớn chiếm phần lớn traffic, nhất là dịp Black Friday/Cyber Monday).</li>
+<li><b>Đường đọc:</b> CDN (cache theo shop/product/filter, SWR) → API Go stateless (autoscale) → Redis → MySQL replica. Mục tiêu: &gt; 90% request trả từ CDN.</li>
+<li><b>Đường ghi:</b> submit review/import → MySQL primary → event Kafka → cập nhật stats, bump cache version, đồng bộ metafield, re-index search.</li>
+<li><b>Payload:</b> trả đúng field cần, nén gzip/brotli, ảnh qua CDN ảnh có resize.</li>
+<li><b>Chống quá tải:</b> rate limit tại edge, timeout và circuit breaker tới DB; khi DB chậm thì trả dữ liệu cache cũ thay vì lỗi (degrade gracefully).</li>
+<li><b>Chuẩn bị BFCM:</b> load test trước, scale sẵn, đóng băng deploy, warm cache cho shop lớn.</li>
+<li><b>Quan sát:</b> cache hit ratio theo tầng, p50/p95/p99, tỷ lệ lỗi, top shop theo traffic.</li>
+</ol>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">53</span><h3>Profiling một service Go đang tốn CPU/memory bất thường: bạn làm gì?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li>Bật <code>net/http/pprof</code> ở port nội bộ; lấy <code>profile?seconds=30</code> (CPU), <code>heap</code>, <code>allocs</code>, <code>goroutine</code>; phân tích bằng <code>go tool pprof -http</code> (flame graph).</li>
+<li>Thường gặp ở hệ thống xử lý dữ liệu: <code>json.Unmarshal</code> object lớn, regex biên dịch lại trong vòng lặp, nối chuỗi trong loop (dùng <code>strings.Builder</code>), cấp phát slice không có capacity, đọc cả file vào memory thay vì stream, goroutine leak.</li>
+<li>Giảm cấp phát: tái sử dụng buffer (<code>sync.Pool</code>), dùng decoder streaming.</li>
+<li>Viết <code>Benchmark</code> + <code>-benchmem</code> để chứng minh trước/sau. Đặt <code>GOMEMLIMIT</code> theo memory limit của container.</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> chuẩn bị 1 ví dụ dùng pprof thật nếu có (kể cả case nhỏ).</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">54</span><h3>Multi-tenant: làm sao để một shop "khổng lồ" không làm chậm các shop khác (noisy neighbor)?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Giới hạn theo tenant:</b> rate limit API theo shop, giới hạn số job import đồng thời theo shop, quota theo gói.</li>
+<li><b>Hàng đợi công bằng:</b> không dùng 1 FIFO chung cho tất cả; dùng nhiều hàng theo mức ưu tiên/gói, hoặc round-robin giữa các shop.</li>
+<li><b>Cô lập tài nguyên:</b> worker pool riêng cho job nặng (import, export); shop rất lớn có thể dùng shard DB riêng.</li>
+<li><b>Query:</b> luôn có <code>LIMIT</code>, timeout cho query (<code>MAX_EXECUTION_TIME</code> trong MySQL); không có endpoint nào trả "toàn bộ review của shop" trong 1 lần.</li>
+<li><b>Bảo mật tenant:</b> mọi query bắt buộc có <code>shop_id</code> lấy từ token đã xác thực (không lấy từ tham số người dùng gửi lên); có test kiểm tra không truy cập chéo được dữ liệu shop khác.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">55</span><h3>Tìm kiếm review theo từ khóa, lọc theo nhiều tiêu chí trên hàng chục triệu review: MySQL FULLTEXT hay Elasticsearch?</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>MySQL FULLTEXT:</b> không cần thêm hệ thống, đủ cho tìm kiếm đơn giản trong phạm vi 1 shop. Hạn chế: xếp hạng kém, hỗ trợ ngôn ngữ (tiếng Việt, CJK cần parser ngram), khó làm facet.</li>
+<li><b>Elasticsearch/OpenSearch:</b> analyzer theo ngôn ngữ, ranking (BM25), facet/aggregation (đếm theo sao, quốc gia), highlight. Phải đồng bộ dữ liệu (CDC hoặc event Kafka) và chấp nhận trễ vài giây.</li>
+<li><b>Thiết kế index:</b> routing theo <code>shop_id</code> để mỗi query chỉ chạm 1 shard; hoặc index riêng cho shop lớn; mapping có field <code>body</code> (text, analyzer đa ngôn ngữ) và các field keyword để filter.</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> bạn đã dùng Elasticsearch, hãy kể cách bạn đồng bộ dữ liệu từ DB chính sang ES và xử lý khi hai bên lệch nhau.</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 11 ============ -->
+<section class="grp" id="g11" data-title="11. A/B testing">
+<h2>11. A/B testing</h2>
+
+<article class="q" data-type="kn">
+<header><span class="num">56</span><h3>Triển khai A/B test cho layout widget (carousel vs grid) trên storefront: chia nhóm, đo lường, phân tích.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Chia nhóm ổn định:</b> hash(<code>experiment_id + visitor_id</code>) mod 100. Cùng một khách luôn thấy cùng một biến thể, không cần lưu trạng thái ở server. <code>visitor_id</code> lưu trong cookie/localStorage của storefront.</li>
+<li><b>Đơn vị chia:</b> theo khách (visitor) hay theo shop? Thay đổi trong admin app (onboarding, pricing page) thì chia theo <b>shop</b>; thay đổi widget mà khách thấy thì chia theo <b>visitor</b>.</li>
+<li><b>Chỉ số:</b> chọn trước 1 chỉ số chính (ví dụ tỷ lệ add-to-cart trên trang có widget, tỷ lệ click vào review) và các chỉ số bảo vệ (LCP/CLS không được xấu đi, tỷ lệ lỗi JS).</li>
+<li><b>Ghi sự kiện:</b> exposure (khách thực sự nhìn thấy widget) + conversion, gửi theo batch (<code>navigator.sendBeacon</code>).</li>
+<li><b>Phân tích:</b> tính trước cỡ mẫu và thời gian chạy (ít nhất 1–2 chu kỳ tuần); không dừng sớm khi "thấy thắng" (peeking làm tăng tỷ lệ kết luận sai); kiểm tra tỷ lệ chia thực tế đúng 50/50 (sample ratio mismatch).</li>
+</ul>
+<pre><code class="language-go">// Chia biến thể ổn định, không cần lưu DB
+func Variant(expID, visitorID string, weights []int) int {
+    h := fnv.New32a()
+    h.Write([]byte(expID + ":" + visitorID))
+    bucket := int(h.Sum32() % 100)
+    acc := 0
+    for i, w := range weights { // ví dụ [50, 50] hoặc [90, 10]
+        acc += w
+        if bucket &lt; acc { return i }
+    }
+    return 0
+}</code></pre>
+<div class="to"><b>Trade-off:</b> tự xây (feature flag + hash + event vào data warehouse) thì rẻ và linh hoạt nhưng phải tự làm phần thống kê; dùng công cụ (GrowthBook, PostHog, Statsig) thì có sẵn thống kê và dashboard nhưng có chi phí và phụ thuộc bên ngoài.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">57</span><h3>Bạn đánh giá tính khả thi kỹ thuật của một thử nghiệm sản phẩm thế nào? Đã từng làm feature flag/A/B test chưa?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Các câu hỏi cần trả lời: Có đo được chỉ số chính không (đã có tracking chưa)? Đủ traffic để có kết quả trong thời gian hợp lý không? Biến thể ảnh hưởng tới hiệu năng/SEO không? Tắt nhanh được không (kill switch)? Chi phí dọn code sau thử nghiệm?</li>
+<li>Đề xuất phiên bản nhỏ nhất kiểm chứng được giả thuyết.</li>
+</ul>
+<div class="hint"><b>Tự đối chiếu:</b> ở 9Pay có dùng feature flag để rollout dần (ví dụ bật tính năng chuyển tiền mới cho 5% người dùng) không? Đó là kinh nghiệm gần với A/B testing.</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 12 ============ -->
+<section class="grp" id="g12" data-title="12. AI tools & AI features">
+<h2>12. AI tools &amp; tính năng AI</h2>
+
+<article class="q" data-type="exp">
+<header><span class="num">58</span><h3>Bạn dùng AI tools (Cursor, Claude, Copilot, ChatGPT) trong công việc thế nào? Kiểm soát chất lượng ra sao?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Kể cụ thể workflow của bạn: Cursor cho autocomplete và refactor; AI để viết test case, giải thích code lạ, viết script migration, đọc tài liệu API mới (Shopify/đối tác), soạn tài liệu kỹ thuật/Confluence.</li>
+<li><b>Kiểm soát:</b> đọc lại mọi dòng, chạy test, không đưa secret/dữ liệu khách hàng vào prompt, cẩn trọng với API "bịa" (kiểm tra lại với tài liệu chính thức), đặc biệt với code liên quan tới tiền/bảo mật.</li>
+<li>Có số liệu nếu được: ví dụ thời gian viết test giảm X%.</li>
+</ul>
+<div class="hint"><b>Gợi ý:</b> nhắc một ví dụ dùng AI để tìm hiểu nhanh một codebase hoặc API mới. Điều này liên quan trực tiếp tới việc bạn sẽ phải nhanh chóng làm quen với Shopify.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="kn">
+<header><span class="num">59</span><h3>Đề xuất tính năng AI cho app review và cách triển khai: tóm tắt review, dịch, phân loại cảm xúc, phát hiện spam.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Tóm tắt review ("Khách hàng nói gì")</b> theo sản phẩm: chạy batch khi có đủ review mới (không gọi LLM mỗi lần xem trang), lưu kết quả, hiển thị kèm nhãn "AI-generated" và cho merchant duyệt/sửa.</li>
+<li><b>Dịch review</b> sang ngôn ngữ của khách: dịch một lần, cache theo <code>(review_id, lang)</code>; chọn model rẻ cho dịch hàng loạt.</li>
+<li><b>Phân loại</b> (cảm xúc, chủ đề: giao hàng/chất lượng/kích cỡ; spam/thô tục): dùng model nhỏ/rẻ hoặc embedding + classifier; LLM cho phần khó.</li>
+<li><b>Gợi ý trả lời review</b> cho merchant.</li>
+<li><b>Kỹ thuật:</b> pipeline bất đồng bộ qua queue; output có cấu trúc (JSON schema) và validate; giới hạn chi phí theo gói của shop; cache theo hash nội dung; retry khi bị rate limit; đánh giá chất lượng trên bộ mẫu trước khi bật rộng; lọc thông tin cá nhân trước khi gửi ra bên ngoài.</li>
+</ul>
+<div class="to"><b>Trade-off:</b> LLM chất lượng cao nhưng đắt và chậm; model nhỏ rẻ, nhanh nhưng kém hơn với nội dung khó. Phân tầng: model rẻ xử lý số đông, model mạnh cho các trường hợp không chắc chắn.</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 13 ============ -->
+<section class="grp" id="g13" data-title="13. Test, DevOps, monitoring">
+<h2>13. Testing, DevOps &amp; monitoring</h2>
+
+<article class="q" data-type="kn">
+<header><span class="num">60</span><h3>Test parser crawl và test tích hợp Shopify mà không gọi API thật mỗi lần.</h3><span class="tag kn">Kiến thức</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>Golden file:</b> lưu HTML/JSON thật của nguồn vào <code>testdata/</code>, test parser so với kết quả mong đợi. Khi nguồn đổi, thêm fixture mới.</li>
+<li><b>httptest.Server</b> giả Shopify/Etsy, trả 429/500/timeout để test retry và rate limit.</li>
+<li><b>Contract test định kỳ</b> (không chạy mỗi commit) với nguồn thật/development store để phát hiện thay đổi.</li>
+<li>Frontend: React Testing Library cho component, Playwright cho luồng chính (cài app → import → widget hiển thị).</li>
+</ul>
+<pre><code class="language-go">func TestAliParser(t *testing.T) {
+    cases := []struct{ file string; wantCount int; wantFirst string }{
+        {"testdata/ali_page1.html", 20, "Great quality"},
+        {"testdata/ali_empty.html", 0, ""},
+    }
+    for _, tc := range cases {
+        t.Run(tc.file, func(t *testing.T) {
+            f, err := os.Open(tc.file)
+            require.NoError(t, err)
+            defer f.Close()
+            got, err := ParseAli(f)
+            require.NoError(t, err)
+            require.Len(t, got, tc.wantCount)
+            if tc.wantCount &gt; 0 { require.Contains(t, got[0].Body, tc.wantFirst) }
+        })
+    }
+}</code></pre>
+</div></details>
+</article>
+
+<article class="q" data-type="mix">
+<header><span class="num">61</span><h3>CI/CD, Docker và monitoring bạn đã dùng. Cho dịch vụ crawl/ETL thì cần theo dõi chỉ số gì?</h3><span class="tag mix">Kết hợp</span></header>
+<details><summary>Xem đáp án</summary><div class="ans">
+<ul>
+<li><b>CI/CD:</b> lint (golangci-lint, ESLint), test, build Docker multi-stage (image Go nhỏ, distroless), scan image, deploy staging → production theo rolling/canary, migration chạy riêng trước deploy.</li>
+<li><b>Chỉ số API:</b> RED (rate, error, duration) theo endpoint; cache hit ratio.</li>
+<li><b>Chỉ số crawl/ETL:</b> độ dài và tuổi của hàng đợi (consumer lag), job thành công/thất bại theo nguồn, tỷ lệ bị chặn, review lấy được/giờ, thời gian hoàn thành 1 job import (merchant quan tâm nhất), số bản ghi vào dead-letter.</li>
+<li><b>Chỉ số sản phẩm:</b> số email xin review đã gửi/mở/được trả lời, số review mới mỗi ngày.</li>
+<li>Log có cấu trúc kèm <code>shop</code>, <code>job_id</code>, <code>source</code>; tracing (OpenTelemetry); lỗi frontend qua Sentry.</li>
+</ul>
+<div class="hint"><b>Kinh nghiệm:</b> nói stack bạn đã dùng thật (GitLab CI/GitHub Actions, Docker, Nginx, Prometheus/Grafana, ELK…) và một alert đã giúp bạn phát hiện sự cố sớm.</div>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 14 ============ -->
+<section class="grp" id="g14" data-title="14. Behavioral">
+<h2>14. Behavioral &amp; làm việc nhóm</h2>
+
+<article class="q" data-type="exp">
+<header><span class="num">62</span><h3>Kể về một vấn đề kỹ thuật phức tạp bạn tự giải quyết độc lập.</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Cấu trúc: triệu chứng → giả thuyết → cách kiểm chứng (log, metric, pprof, tái hiện) → nguyên nhân gốc → cách sửa → phòng ngừa.</li>
+<li>Ưu tiên câu chuyện về dữ liệu hoặc hiệu năng (khớp JD): query chậm, memory leak, consumer Kafka bị lag, lệch dữ liệu giữa hai hệ thống.</li>
+</ul>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">63</span><h3>Requirement từ Product Owner chưa rõ hoặc không khả thi về kỹ thuật, bạn làm gì?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li>Hỏi để hiểu <b>mục tiêu</b> (vấn đề của merchant là gì) thay vì chỉ hỏi yêu cầu. Viết lại thành acceptance criteria + edge case, xin xác nhận.</li>
+<li>Không nói "không làm được"; đưa phương án thay thế kèm chi phí/rủi ro (ví dụ "import realtime từ Amazon không khả thi vì rate limit, nhưng có thể đồng bộ hằng ngày và báo cho merchant").</li>
+</ul>
+<div class="hint"><b>Tự đối chiếu:</b> kể một lần ở 9Pay bạn phát hiện requirement thiếu case (ví dụ trạng thái pending từ ngân hàng) và đề xuất bổ sung.</div>
+</div></details>
+</article>
+
+<article class="q" data-type="exp">
+<header><span class="num">64</span><h3>Bạn review code của người khác thế nào? Bạn học công nghệ mới nhanh bằng cách nào?</h3><span class="tag exp">Kinh nghiệm</span></header>
+<details><summary>Gợi ý hướng trả lời</summary><div class="ans">
+<ul>
+<li><b>Review:</b> đúng nghiệp vụ → lỗi/edge case/bảo mật (thiếu <code>shop_id</code> trong query là lỗi nghiêm trọng ở SaaS multi-tenant) → hiệu năng (N+1, thiếu index) → test → dễ đọc. Góp ý kèm lý do và gợi ý, phân biệt "bắt buộc sửa" với "gợi ý".</li>
+<li><b>Học nhanh:</b> đọc tài liệu chính thức, làm 1 ví dụ chạy được ngay, đọc code base hiện có, dùng AI để hỏi đáp nhưng kiểm chứng lại. Ví dụ cụ thể: bạn đã học Goravel/một framework mới trong bao lâu và áp dụng vào dự án gì.</li>
+</ul>
+</div></details>
+</article>
+</section>
+
+<!-- ============ 15 ============ -->
+<section class="grp" id="g15" data-title="15. Câu hỏi hỏi ngược">
+<h2>15. Câu hỏi nên hỏi ngược nhà tuyển dụng</h2>
+<article class="q" data-type="exp">
+<header><span class="num">★</span><h3>Danh sách câu hỏi cho cuối buổi phỏng vấn</h3><span class="tag exp">Chuẩn bị</span></header>
+<details open><summary>Xem danh sách</summary><div class="ans">
+<ul>
+<li>Vị trí này làm chủ yếu cho Trustify hay cho nhiều app trong hệ Omega? Tỷ lệ backend/frontend dự kiến?</li>
+<li>Backend hiện viết bằng gì (Go, Node, PHP)? Có kế hoạch chuyển dần sang Go không?</li>
+<li>Pipeline import review đang chạy thế nào? Khó khăn lớn nhất hiện nay là độ ổn định của nguồn, chi phí proxy, hay tốc độ?</li>
+<li>Widget phục vụ bao nhiêu request/ngày, cache ở đâu, và đã có vấn đề hiệu năng nào trên storefront chưa?</li>
+<li>A/B testing hiện làm bằng công cụ gì? Ai quyết định thử nghiệm?</li>
+<li>Team đang dùng AI tools nào, và có kế hoạch tính năng AI nào cho sản phẩm?</li>
+<li>Quy trình review code, release và on-call? Kỳ vọng với người mới trong 3 tháng đầu?</li>
+</ul>
+</div></details>
+</article>
+</section>
+
+</main>
+</div>
+
+<button class="chip theme" id="themeBtn" title="Đổi giao diện sáng/tối">◐</button>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+<script>
+(function(){
+  var store = {};
+  function load(){ try { store = JSON.parse(localStorage.getItem('xipat-prep') || '{}'); } catch(e){ store = {}; } }
+  function save(){ try { localStorage.setItem('xipat-prep', JSON.stringify(store)); } catch(e){} }
+  load();
+
+  var cards = Array.prototype.slice.call(document.querySelectorAll('article.q'));
+  var groups = Array.prototype.slice.call(document.querySelectorAll('section.grp'));
+
+  // TOC
+  var toc = document.getElementById('toc');
+  groups.forEach(function(g){
+    var a = document.createElement('a');
+    a.href = '#' + g.id;
+    a.innerHTML = g.dataset.title + ' <span>' + g.querySelectorAll('article.q').length + '</span>';
+    toc.appendChild(a);
+  });
+
+  // Self-assessment block
+  cards.forEach(function(c){
+    var id = c.querySelector('.num').textContent.trim();
+    c.dataset.id = id;
+    var st = store[id] || {};
+    var isExp = c.dataset.type === 'exp';
+    var box = document.createElement('div');
+    box.className = 'self';
+    box.innerHTML =
+      '<span>' + (isExp ? 'Bạn đã gặp use case này?' : 'Tự đánh giá:') + '</span>' +
+      '<button class="yes">' + (isExp ? 'Đã gặp' : 'Nắm được') + '</button>' +
+      '<button class="no">' + (isExp ? 'Chưa gặp' : 'Cần ôn') + '</button>' +
+      '<button class="note-btn">Ghi chú</button>' +
+      '<textarea placeholder="Ghi chú: dự án, số liệu, câu chuyện STAR..."></textarea>';
+    c.appendChild(box);
+    var yes = box.querySelector('.yes'), no = box.querySelector('.no'),
+        nb = box.querySelector('.note-btn'), ta = box.querySelector('textarea');
+    function paint(){
+      yes.classList.toggle('on', st.s === 'yes');
+      no.classList.toggle('on', st.s === 'no');
+    }
+    ta.value = st.n || '';
+    if (st.n) ta.classList.add('show');
+    paint();
+    yes.onclick = function(){ st.s = st.s === 'yes' ? null : 'yes'; store[id] = st; save(); paint(); progress(); applyFilter(); };
+    no.onclick = function(){ st.s = st.s === 'no' ? null : 'no'; store[id] = st; save(); paint(); progress(); applyFilter(); };
+    nb.onclick = function(){ ta.classList.toggle('show'); if (ta.classList.contains('show')) ta.focus(); };
+    ta.oninput = function(){ st.n = ta.value; store[id] = st; save(); };
+  });
+
+  function progress(){
+    var total = cards.length, done = 0;
+    cards.forEach(function(c){ var s = store[c.dataset.id]; if (s && s.s === 'yes') done++; });
+    document.getElementById('pDone').textContent = done;
+    document.getElementById('pTotal').textContent = total;
+    document.getElementById('pBar').style.width = (done / total * 100) + '%';
+  }
+
+  var filter = 'all', term = '';
+  function applyFilter(){
+    cards.forEach(function(c){
+      var s = store[c.dataset.id];
+      var okF = filter === 'all' || c.dataset.type === filter || (filter === 'todo' && !(s && s.s));
+      var okT = !term || c.textContent.toLowerCase().indexOf(term) !== -1;
+      c.classList.toggle('hidden', !(okF && okT));
+    });
+    groups.forEach(function(g){
+      var any = g.querySelectorAll('article.q:not(.hidden)').length > 0;
+      g.classList.toggle('hidden', !any);
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.chip[data-f]'), function(b){
+    b.onclick = function(){
+      document.querySelectorAll('.chip[data-f]').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active'); filter = b.dataset.f; applyFilter();
+    };
+  });
+  document.getElementById('search').oninput = function(e){
+    term = e.target.value.trim().toLowerCase(); applyFilter();
+    if (term) cards.forEach(function(c){ if (!c.classList.contains('hidden')) { var d = c.querySelector('details'); if (d) d.open = true; } });
+  };
+  var expanded = false;
+  document.getElementById('expandAll').onclick = function(){
+    expanded = !expanded;
+    document.querySelectorAll('details').forEach(function(d){ d.open = expanded; });
+    this.textContent = expanded ? 'Thu gọn tất cả' : 'Mở tất cả';
+  };
+
+  // Theme
+  var root = document.documentElement;
+  try { var t = localStorage.getItem('xipat-theme'); if (t) root.dataset.theme = t; } catch(e){}
+  document.getElementById('themeBtn').onclick = function(){
+    var dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    root.dataset.theme = dark ? 'light' : 'dark';
+    try { localStorage.setItem('xipat-theme', root.dataset.theme); } catch(e){}
+  };
+
+  progress();
+  if (window.hljs) { hljs.highlightAll(); }
+})();
+</script>
+</body>
+</html>
