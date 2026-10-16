@@ -2,22 +2,46 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://blog.huydang.dev/tags/authorization/</loc>
-    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
+    <loc>https://blog.huydang.dev/tags/caching/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/data-structures/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/performance/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/redis/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/system-design/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/system-design/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/system-design-p01-redis/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2026-10-16T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/authorization/</loc>
     <lastmod>2026-09-23T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/golang/</loc>
     <lastmod>2026-09-23T09:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/</loc>
-    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/tags/jwt/</loc>
-    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/posts/</loc>
     <lastmod>2026-09-23T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/rbac/</loc>
@@ -30,9 +54,6 @@
     <lastmod>2026-09-23T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/security/</loc>
-    <lastmod>2026-09-23T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/</loc>
     <lastmod>2026-09-23T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/database/</loc>
@@ -50,9 +71,6 @@
     <loc>https://blog.huydang.dev/posts/mysql-join/</loc>
     <lastmod>2026-09-21T10:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/performance/</loc>
-    <lastmod>2026-09-21T10:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/posts/go-interview-p2/</loc>
     <lastmod>2026-09-04T10:00:00+07:00</lastmod>
   </url><url>
@@ -65,16 +83,7 @@
     <loc>https://blog.huydang.dev/tags/backend/</loc>
     <lastmod>2026-08-29T09:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/caching/</loc>
-    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/posts/backend-interview-cheatsheet/</loc>
-    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/system-design/</loc>
-    <lastmod>2026-08-29T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/categories/system-design/</loc>
     <lastmod>2026-08-29T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/architecture/</loc>
