@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>System Design P03: Redis Đã Có Pub/Sub, Sao Còn Cần Streams? | Huy Dang Blog</title>
+<meta name="keywords" content="system-design, redis, event-driven, kafka, golang">
+<meta name="description" content="Pub/Sub mất tin khi worker offline, Streams thì không. Đo thật sự khác biệt, ngữ nghĩa fan-out, PEL, idempotency — và khi nào thì nên dùng Kafka.">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/system-design-p03-pubsub-vs-streams/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/system-design-p03-pubsub-vs-streams/">
+
+<meta name="twitter:title" content="System Design P03: Redis Đã Có Pub/Sub, Sao Còn Cần Streams? | Huy Dang Blog" />
+<meta name="twitter:description" content="Pub/Sub mất tin khi worker offline, Streams thì không. Đo thật sự khác biệt, ngữ nghĩa fan-out, PEL, idempotency — và khi nào thì nên dùng Kafka." />
+<meta property="og:title" content="System Design P03: Redis Đã Có Pub/Sub, Sao Còn Cần Streams? | Huy Dang Blog" />
+<meta property="og:description" content="Pub/Sub mất tin khi worker offline, Streams thì không. Đo thật sự khác biệt, ngữ nghĩa fan-out, PEL, idempotency — và khi nào thì nên dùng Kafka." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/system-design-p03-pubsub-vs-streams/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-10-17T10:30:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-10-17T10:30:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "System Design P03: Redis Đã Có Pub/Sub, Sao Còn Cần Streams?",
+      "item": "https://blog.huydang.dev/posts/system-design-p03-pubsub-vs-streams/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "System Design P03: Redis Đã Có Pub/Sub, Sao Còn Cần Streams? | Huy Dang Blog",
+  "name": "System Design P03: Redis Đã Có Pub\/Sub, Sao Còn Cần Streams?",
+  "description": "Pub/Sub mất tin khi worker offline, Streams thì không. Đo thật sự khác biệt, ngữ nghĩa fan-out, PEL, idempotency — và khi nào thì nên dùng Kafka.",
+  "keywords": [
+    "system-design", "redis", "event-driven", "kafka", "golang"
+  ],
+  "wordCount" : "3930",
+  "inLanguage": "en",
+  "datePublished": "2026-10-17T10:30:00+07:00",
+  "dateModified": "2026-10-17T10:30:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/system-design-p03-pubsub-vs-streams/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">System Design P03: Redis Đã Có Pub/Sub, Sao Còn Cần Streams?</h1>
+    <div class="post-description">Pub/Sub mất tin khi worker offline, Streams thì không. Đo thật sự khác biệt, ngữ nghĩa fan-out, PEL, idempotency — và khi nào thì nên dùng Kafka.</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>October 17, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/system-design/">System Design</a><a href="https://blog.huydang.dev/tags/redis/">Redis</a><a href="https://blog.huydang.dev/tags/event-driven/">Event-Driven</a><a href="https://blog.huydang.dev/tags/kafka/">Kafka</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>19 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#t%e1%bb%95ng-quan" aria-label="Tổng quan">Tổng quan</a></li>
+                <li>
+                    <a href="#t%c3%acnh-hu%e1%bb%91ng-xu%e1%ba%a5t-file-b%c3%a1o-c%c3%a1o" aria-label="Tình huống: xuất file báo cáo">Tình huống: xuất file báo cáo</a><ul>
+                        
+                <li>
+                    <a href="#%c4%91o-th%e1%ba%adt" aria-label="Đo thật">Đo thật</a></li></ul>
+                </li>
+                <li>
+                    <a href="#kh%c3%a1c-bi%e1%bb%87t-g%e1%bb%91c-r%e1%bb%85" aria-label="Khác biệt gốc rễ">Khác biệt gốc rễ</a></li>
+                <li>
+                    <a href="#ng%e1%bb%af-ngh%c4%a9a-fan-out-ph%e1%ba%a7n-hay-b%e1%bb%8b-hi%e1%bb%83u-nh%e1%ba%a7m-nh%e1%ba%a5t" aria-label="Ngữ nghĩa fan-out: phần hay bị hiểu nhầm nhất">Ngữ nghĩa fan-out: phần hay bị hiểu nhầm nhất</a></li>
+                <li>
+                    <a href="#gi%e1%bb%af-%c4%91%c6%b0%e1%bb%a3c-tin-v%e1%ba%abn-ch%c6%b0a-xong" aria-label="&amp;ldquo;Giữ được tin vẫn chưa xong&amp;rdquo;">&ldquo;Giữ được tin vẫn chưa xong&rdquo;</a><ul>
+                        
+                <li>
+                    <a href="#v%e1%ba%a5n-%c4%91%e1%bb%81-1--worker-nh%e1%ba%adn-tin-r%e1%bb%93i-ch%e1%ba%bft-tr%c6%b0%e1%bb%9bc-khi-x%e1%bb%ad-l%c3%bd-xong" aria-label="Vấn đề 1 — Worker nhận tin rồi chết TRƯỚC khi xử lý xong">Vấn đề 1 — Worker nhận tin rồi chết TRƯỚC khi xử lý xong</a></li>
+                <li>
+                    <a href="#v%e1%ba%a5n-%c4%91%e1%bb%81-2--x%e1%bb%ad-l%c3%bd-xong-r%e1%bb%93i-ch%e1%ba%bft-tr%c6%b0%e1%bb%9bc-khi-ack" aria-label="Vấn đề 2 — Xử lý xong rồi chết TRƯỚC khi ACK">Vấn đề 2 — Xử lý xong rồi chết TRƯỚC khi ACK</a></li></ul>
+                </li>
+                <li>
+                    <a href="#streams-kh%c3%b4ng-ph%e1%ba%a3i-kho-l%e1%bb%8bch-s%e1%bb%ad-v%c3%b4-h%e1%ba%a1n" aria-label="Streams không phải kho lịch sử vô hạn">Streams không phải kho lịch sử vô hạn</a></li>
+                <li>
+                    <a href="#c%c3%a1i-gi%c3%a1-throughput" aria-label="Cái giá: throughput">Cái giá: throughput</a></li>
+                <li>
+                    <a href="#ch%e1%bb%8dn-c%c3%a1i-n%c3%a0o" aria-label="Chọn cái nào?">Chọn cái nào?</a></li>
+                <li>
+                    <a href="#c%c3%b2n-kafka-th%c3%ac-sao" aria-label="Còn Kafka thì sao?">Còn Kafka thì sao?</a></li>
+                <li>
+                    <a href="#checklist" aria-label="Checklist">Checklist</a></li>
+                <li>
+                    <a href="#t%c3%b3m-t%e1%ba%aft" aria-label="Tóm tắt">Tóm tắt</a></li>
+                <li>
+                    <a href="#tham-kh%e1%ba%a3o" aria-label="Tham khảo">Tham khảo</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><blockquote>
+<p><em>Bài viết thuộc series <strong>System Design</strong>, nội dung tham khảo từ các bài viết trong group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a>. Phần diễn giải, ví dụ, sơ đồ và <strong>toàn bộ số liệu benchmark</strong> là tôi tự bổ sung, đo thật trên Redis 7.4.2 local.</em></p>
+</blockquote>
+<h1 id="tổng-quan">Tổng quan<a hidden class="anchor" aria-hidden="true" href="#tổng-quan">¶</a></h1>
+<p>Khi đi họp và nghe các bên nói về Event Driven, hầu hết đều nói về <strong>Pub/Sub</strong> và <strong>Queue</strong>. Cứ đụng tải thì lôi Queue ra, đụng fan-out thì lôi Pub/Sub ra.</p>
+<p>Rồi <strong>Streams</strong> đâu? Nếu Pub/Sub đã đủ, vậy Streams sinh ra để làm gì? Đó là còn chưa nói tới <strong>Kafka</strong> — một hệ thống &ldquo;chuyên trị&rdquo; event streaming ở quy mô lớn.</p>
+<p>Bài này làm rõ Pub/Sub và Streams khác nhau ở đâu, qua một tình huống rất nhỏ: <strong>worker ngắt kết nối đúng lúc có sự kiện cần xử lý.</strong></p>
+<hr>
+<h1 id="tình-huống-xuất-file-báo-cáo">Tình huống: xuất file báo cáo<a hidden class="anchor" aria-hidden="true" href="#tình-huống-xuất-file-báo-cáo">¶</a></h1>
+<p>App có tính năng xuất file báo cáo. Service xuất file làm xong sẽ phát một tin <em>&ldquo;file đã sẵn sàng&rdquo;</em>. Worker phụ trách thông báo nhận tin đó rồi tạo thông báo để người dùng vào tải file.</p>
+<p>Cách giao tiếp này thường gọi là <strong>Fire &amp; Forget</strong>: bên phát gửi tin rồi tiếp tục làm việc, <strong>không chờ bên nhận trả kết quả xử lý</strong>. Vì vậy, &ldquo;gửi tin xong&rdquo; chưa có nghĩa là &ldquo;thông báo đã được tạo&rdquo;.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Service xuất file — Pub/Sub
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">ExportService</span><span class="p">)</span> <span class="nf">OnFileReady</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">fileID</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// ... ghi file vào storage ...
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">return</span> <span class="nx">rdb</span><span class="p">.</span><span class="nf">Publish</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;report.ready&#34;</span><span class="p">,</span> <span class="nx">fileID</span><span class="p">).</span><span class="nf">Err</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// PUBLISH trả về SỐ SUBSCRIBER đang nghe.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// Nếu là 0 — tin vừa rồi bốc hơi, và hàm này vẫn trả về nil.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Dòng comment cuối chính là mấu chốt. <code>PUBLISH</code> trả về số subscriber nhận được tin. Nếu không ai đang nghe, nó trả về <code>0</code> — <strong>và đó không phải lỗi</strong>. Code trên coi như đã xong việc.</p>
+<p>Giả sử worker bị crash hoặc shutdown <strong>ngay trước lúc</strong> service xuất file phát tin. Với Pub/Sub, Redis chỉ gửi cho những bên <strong>đang nghe</strong>, không lưu tin để chờ worker chạy lại. Vài giây sau worker lên lại, nó vẫn nhận được các tin mới bình thường — <strong>nhưng tin &ldquo;file đã sẵn sàng&rdquo; vừa rồi không được gửi bù</strong>. File đã làm xong, còn người dùng thì chờ mãi không thấy thông báo.</p>
+<h2 id="đo-thật">Đo thật<a hidden class="anchor" aria-hidden="true" href="#đo-thật">¶</a></h2>
+<p>Kịch bản: phát 300 tin, worker chết ở tin thứ 100 và lên lại ở tin thứ 200. Chạy y hệt nhau trên cả hai cơ chế:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:right">Tin đã phát</th>
+<th style="text-align:right">Worker nhận được</th>
+<th style="text-align:right"><strong>Mất</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Pub/Sub</strong></td>
+<td style="text-align:right">300</td>
+<td style="text-align:right">199</td>
+<td style="text-align:right"><strong>101 tin (34%)</strong></td>
+</tr>
+<tr>
+<td><strong>Streams</strong></td>
+<td style="text-align:right">300</td>
+<td style="text-align:right"><strong>300</strong></td>
+<td style="text-align:right"><strong>0</strong></td>
+</tr>
+</tbody>
+</table>
+<p>101 tin biến mất, không có lỗi nào được ghi lại ở bất kỳ đâu. Publisher báo thành công, Redis khoẻ, worker khoẻ — và 101 người dùng không nhận được thông báo.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="ps-arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<marker id="ps-arrT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="ps-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="520" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Cùng một kịch bản: worker chết 3 giây rồi lên lại</text>
+<rect x="20" y="44" width="860" height="216" rx="14" fill="#FFF7F7" stroke="#FFC9CC" stroke-width="1.5"/>
+<rect x="20" y="276" width="860" height="228" rx="14" fill="#F2FCFB" stroke="#9BE5DC" stroke-width="1.5"/>
+<text x="42" y="68" font-size="14" font-weight="800" fill="#9F1239">❌ PUB/SUB — Redis không giữ gì cả</text>
+<text x="42" y="300" font-size="14" font-weight="800" fill="#134E4A">✅ STREAMS — tin nằm lại trong log</text>
+<rect x="44" y="84" width="120" height="48" rx="9" fill="#FFFFFF" stroke="#FF6B6B" stroke-width="2" filter="url(#ps-sh)"/>
+<text x="104" y="104" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Export Service</text>
+<text x="104" y="121" text-anchor="middle" font-size="10" fill="#BE123C">PUBLISH</text>
+<rect x="340" y="84" width="150" height="48" rx="9" fill="#FFE9EC" stroke="#DC2626" stroke-width="2" filter="url(#ps-sh)"/>
+<text x="415" y="104" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">Redis Pub/Sub</text>
+<text x="415" y="121" text-anchor="middle" font-size="10" fill="#BE123C">chuyển tiếp, KHÔNG lưu</text>
+<rect x="680" y="84" width="150" height="48" rx="9" fill="#F5F5F4" stroke="#A8A29E" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="755" y="104" text-anchor="middle" font-size="11" font-weight="700" fill="#78716C">Notifier Worker</text>
+<text x="755" y="121" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">🔴 ĐANG CHẾT</text>
+<line x1="166" y1="108" x2="336" y2="108" stroke="#DC2626" stroke-width="2" marker-end="url(#ps-arrR)"/>
+<text x="251" y="102" text-anchor="middle" font-size="10" font-weight="700" fill="#9F1239">"report_8842 ready"</text>
+<line x1="492" y1="108" x2="600" y2="108" stroke="#DC2626" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="628" y="113" font-size="18" font-weight="800" fill="#DC2626">✗</text>
+<text x="546" y="102" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">0 subscriber</text>
+<rect x="44" y="150" width="786" height="44" rx="9" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2"/>
+<text x="62" y="170" font-size="11" font-weight="800" fill="#9F1239">PUBLISH trả về 0 — và 0 KHÔNG PHẢI LÀ LỖI.</text>
+<text x="62" y="188" font-size="11" fill="#BE123C">Export service coi như đã xong việc. Không retry, không log, không alert. Tin bốc hơi hoàn toàn.</text>
+<rect x="44" y="206" width="786" height="40" rx="9" fill="#FFD9DE" stroke="#DC2626" stroke-width="2"/>
+<text x="437" y="231" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">Worker lên lại sau 3 giây → nhận tin MỚI bình thường, nhưng tin cũ KHÔNG được gửi bù</text>
+<rect x="44" y="318" width="120" height="48" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="2" filter="url(#ps-sh)"/>
+<text x="104" y="338" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">Export Service</text>
+<text x="104" y="355" text-anchor="middle" font-size="10" fill="#0F766E">XADD</text>
+<rect x="300" y="310" width="230" height="110" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="2.5" filter="url(#ps-sh)"/>
+<rect x="300" y="310" width="230" height="26" rx="9" fill="#0D9488"/>
+<rect x="300" y="326" width="230" height="10" fill="#0D9488"/>
+<text x="415" y="328" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">Redis Stream (log có thứ tự)</text>
+<rect x="314" y="344" width="202" height="18" rx="4" fill="#E6FBF9"/>
+<rect x="314" y="366" width="202" height="18" rx="4" fill="#CCFBF1"/>
+<rect x="314" y="388" width="202" height="18" rx="4" fill="#CCFBF1"/>
+<text x="415" y="357" text-anchor="middle" font-size="9" font-family="monospace" fill="#0F766E">1738…-0  report_8840  ✓ đã ACK</text>
+<text x="415" y="379" text-anchor="middle" font-size="9" font-family="monospace" font-weight="700" fill="#134E4A">1738…-1  report_8841  ⏳ chờ</text>
+<text x="415" y="401" text-anchor="middle" font-size="9" font-family="monospace" font-weight="700" fill="#134E4A">1738…-2  report_8842  ⏳ chờ</text>
+<rect x="680" y="318" width="150" height="48" rx="9" fill="#F5F5F4" stroke="#A8A29E" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="755" y="338" text-anchor="middle" font-size="11" font-weight="700" fill="#78716C">Notifier Worker</text>
+<text x="755" y="355" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">🔴 ĐANG CHẾT</text>
+<line x1="166" y1="342" x2="296" y2="342" stroke="#0D9488" stroke-width="2" marker-end="url(#ps-arrT)"/>
+<text x="231" y="336" text-anchor="middle" font-size="10" font-weight="700" fill="#0F766E">ghi vào log</text>
+<line x1="676" y1="390" x2="534" y2="390" stroke="#0D9488" stroke-width="2.5" marker-end="url(#ps-arrT)"/>
+<text x="605" y="384" text-anchor="middle" font-size="10" font-weight="700" fill="#0F766E">XREADGROUP ">"</text>
+<rect x="596" y="398" width="234" height="22" rx="5" fill="#CCFBF1"/>
+<text x="713" y="414" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">lên lại → đọc tiếp từ chỗ bỏ dở</text>
+<rect x="44" y="436" width="786" height="56" rx="9" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="62" y="458" font-size="12" font-weight="800" fill="#134E4A">Mỗi consumer group giữ một con trỏ riêng: "nhóm này đã đọc tới đâu".</text>
+<text x="62" y="478" font-size="11" fill="#0F766E">Worker nghỉ bao lâu không quan trọng — miễn là tin chưa bị cắt khỏi stream, nó vẫn đọc tiếp được từ đúng vị trí cũ.</text>
+</svg>
+</div>
+<hr>
+<h1 id="khác-biệt-gốc-rễ">Khác biệt gốc rễ<a hidden class="anchor" aria-hidden="true" href="#khác-biệt-gốc-rễ">¶</a></h1>
+<p>Nói ngắn gọn: <strong>Pub/Sub là một đường ống, Streams là một cuốn sổ.</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Pub/Sub</strong></th>
+<th><strong>Streams</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mô hình</td>
+<td>Phát sóng (broadcast)</td>
+<td><strong>Log có thứ tự, ghi thêm</strong></td>
+</tr>
+<tr>
+<td>Lưu trữ</td>
+<td><strong>Không lưu gì cả</strong></td>
+<td>Lưu tới khi bị cắt bớt (trim)</td>
+</tr>
+<tr>
+<td>Bên nhận offline</td>
+<td><strong>Mất tin vĩnh viễn</strong></td>
+<td>Đọc bù khi quay lại</td>
+</tr>
+<tr>
+<td>Theo dõi tiến độ</td>
+<td>Không có</td>
+<td>Consumer group giữ con trỏ riêng</td>
+</tr>
+<tr>
+<td>Xác nhận xử lý (ACK)</td>
+<td>Không có</td>
+<td><code>XACK</code> + danh sách đang chờ (PEL)</td>
+</tr>
+<tr>
+<td>Đọc lại lịch sử</td>
+<td>Không</td>
+<td>Có (trong phạm vi còn giữ)</td>
+</tr>
+<tr>
+<td>Sống sót khi Redis restart</td>
+<td><strong>Không</strong></td>
+<td>Có (qua RDB/AOF)</td>
+</tr>
+<tr>
+<td>Ngữ nghĩa giao hàng</td>
+<td>At-most-once</td>
+<td><strong>At-least-once</strong></td>
+</tr>
+<tr>
+<td>Chi phí bộ nhớ</td>
+<td>~0</td>
+<td>Tỉ lệ với số tin còn giữ</td>
+</tr>
+</tbody>
+</table>
+<p>Hai dòng cuối đáng chú ý nhất:</p>
+<p><strong>At-most-once vs at-least-once.</strong> Pub/Sub giao nhiều nhất một lần — có thể không lần nào. Streams giao ít nhất một lần — nghĩa là <strong>có thể hơn một lần</strong>, và đó là vấn đề ta phải xử lý ở phần sau.</p>
+<p><strong>Sống sót khi Redis restart.</strong> Tin trong Pub/Sub không bao giờ được ghi xuống đĩa. Restart Redis giữa lúc phát tin là mất tin, kể cả khi subscriber đang online.</p>
+<blockquote>
+<p>🔔 <strong>Hệ quả ít ai để ý</strong>: <a href="https://redis.io/docs/latest/develop/pubsub/keyspace-notifications/">Keyspace notifications</a> của Redis (<code>__keyevent@0__:expired</code>, &hellip;) chạy <strong>trên Pub/Sub</strong>. Nghĩa là chúng mang đúng ngữ nghĩa mất-tin ở trên. Nếu bạn đang dựa vào sự kiện key hết hạn để kích hoạt một việc gì đó quan trọng — ví dụ huỷ đơn hàng chưa thanh toán — thì mỗi lần worker restart là một lần có đơn không bao giờ bị huỷ.</p>
+</blockquote>
+<hr>
+<h1 id="ngữ-nghĩa-fan-out-phần-hay-bị-hiểu-nhầm-nhất">Ngữ nghĩa fan-out: phần hay bị hiểu nhầm nhất<a hidden class="anchor" aria-hidden="true" href="#ngữ-nghĩa-fan-out-phần-hay-bị-hiểu-nhầm-nhất">¶</a></h1>
+<p>Nhiều người nghĩ &ldquo;Pub/Sub để fan-out, Streams để làm queue&rdquo;. Thực ra <strong>Streams làm được cả hai</strong>, tuỳ cách bạn tổ chức consumer group. Đo thật với 300 tin và 3 bên nhận:</p>
+<table>
+<thead>
+<tr>
+<th>Cấu hình</th>
+<th>Mỗi bên nhận</th>
+<th>Ngữ nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pub/Sub, 3 subscriber</td>
+<td><code>[300, 300, 300]</code></td>
+<td><strong>Bản sao đầy đủ</strong> cho mỗi bên</td>
+</tr>
+<tr>
+<td>Streams, <strong>1 group</strong> 3 consumer</td>
+<td><code>[95, 105, 100]</code> → tổng 300</td>
+<td><strong>Chia tải</strong> — mỗi tin đúng 1 consumer</td>
+</tr>
+<tr>
+<td>Streams, <strong>3 group riêng</strong></td>
+<td><code>[300, 300, 300]</code></td>
+<td><strong>Fan-out thật</strong> — mỗi group nhận đủ</td>
+</tr>
+</tbody>
+</table>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="fo-a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<marker id="fo-a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker>
+<marker id="fo-a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="fo-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="400" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Ba cách chia tin cho 3 bên nhận — đo thật với 300 tin</text>
+<rect x="24" y="46" width="278" height="334" rx="12" fill="#FFF7F7" stroke="#FF6B6B" stroke-width="2" filter="url(#fo-sh)"/>
+<rect x="311" y="46" width="278" height="334" rx="12" fill="#FFFAF0" stroke="#F5A623" stroke-width="2" filter="url(#fo-sh)"/>
+<rect x="598" y="46" width="278" height="334" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#fo-sh)"/>
+<text x="163" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">Pub/Sub · 3 subscriber</text>
+<text x="450" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">Streams · 1 group, 3 consumer</text>
+<text x="737" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">Streams · 3 group riêng</text>
+<rect x="98" y="84" width="130" height="34" rx="8" fill="#DC2626"/>
+<rect x="385" y="84" width="130" height="34" rx="8" fill="#D97706"/>
+<rect x="672" y="84" width="130" height="34" rx="8" fill="#0D9488"/>
+<text x="163" y="106" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">300 tin</text>
+<text x="450" y="106" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">300 tin</text>
+<text x="737" y="106" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">300 tin</text>
+<rect x="44" y="186" width="80" height="48" rx="8" fill="#FFFFFF" stroke="#FF6B6B" stroke-width="2"/>
+<rect x="124" y="186" width="80" height="48" rx="8" fill="#FFFFFF" stroke="#FF6B6B" stroke-width="2"/>
+<rect x="204" y="186" width="80" height="48" rx="8" fill="#FFFFFF" stroke="#FF6B6B" stroke-width="2"/>
+<rect x="331" y="186" width="80" height="48" rx="8" fill="#FFFFFF" stroke="#F5A623" stroke-width="2"/>
+<rect x="411" y="186" width="80" height="48" rx="8" fill="#FFFFFF" stroke="#F5A623" stroke-width="2"/>
+<rect x="491" y="186" width="80" height="48" rx="8" fill="#FFFFFF" stroke="#F5A623" stroke-width="2"/>
+<rect x="618" y="186" width="80" height="48" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<rect x="698" y="186" width="80" height="48" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<rect x="778" y="186" width="80" height="48" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<line x1="163" y1="120" x2="90" y2="182" stroke="#DC2626" stroke-width="1.8" marker-end="url(#fo-a1)"/>
+<line x1="163" y1="120" x2="163" y2="182" stroke="#DC2626" stroke-width="1.8" marker-end="url(#fo-a1)"/>
+<line x1="163" y1="120" x2="238" y2="182" stroke="#DC2626" stroke-width="1.8" marker-end="url(#fo-a1)"/>
+<line x1="450" y1="120" x2="375" y2="182" stroke="#D97706" stroke-width="1.8" marker-end="url(#fo-a2)"/>
+<line x1="450" y1="120" x2="450" y2="182" stroke="#D97706" stroke-width="1.8" marker-end="url(#fo-a2)"/>
+<line x1="450" y1="120" x2="527" y2="182" stroke="#D97706" stroke-width="1.8" marker-end="url(#fo-a2)"/>
+<line x1="737" y1="120" x2="662" y2="182" stroke="#0D9488" stroke-width="1.8" marker-end="url(#fo-a3)"/>
+<line x1="737" y1="120" x2="737" y2="182" stroke="#0D9488" stroke-width="1.8" marker-end="url(#fo-a3)"/>
+<line x1="737" y1="120" x2="814" y2="182" stroke="#0D9488" stroke-width="1.8" marker-end="url(#fo-a3)"/>
+<text x="163" y="146" text-anchor="middle" font-size="10" font-weight="700" fill="#9F1239">mỗi bên 1 BẢN SAO</text>
+<text x="450" y="146" text-anchor="middle" font-size="10" font-weight="700" fill="#7C4A03">CHIA ĐỀU, không trùng</text>
+<text x="737" y="146" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">mỗi group 1 BẢN SAO</text>
+<text x="84" y="206" text-anchor="middle" font-size="10" fill="#57534E">sub-1</text>
+<text x="164" y="206" text-anchor="middle" font-size="10" fill="#57534E">sub-2</text>
+<text x="244" y="206" text-anchor="middle" font-size="10" fill="#57534E">sub-3</text>
+<text x="371" y="206" text-anchor="middle" font-size="10" fill="#57534E">w-1</text>
+<text x="451" y="206" text-anchor="middle" font-size="10" fill="#57534E">w-2</text>
+<text x="531" y="206" text-anchor="middle" font-size="10" fill="#57534E">w-3</text>
+<text x="658" y="202" text-anchor="middle" font-size="9" fill="#57534E">notify</text>
+<text x="738" y="202" text-anchor="middle" font-size="9" fill="#57534E">analytics</text>
+<text x="818" y="202" text-anchor="middle" font-size="9" fill="#57534E">audit</text>
+<text x="84" y="226" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">300</text>
+<text x="164" y="226" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">300</text>
+<text x="244" y="226" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">300</text>
+<text x="371" y="226" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">95</text>
+<text x="451" y="226" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">105</text>
+<text x="531" y="226" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">100</text>
+<text x="658" y="226" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">300</text>
+<text x="738" y="226" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">300</text>
+<text x="818" y="226" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">300</text>
+<rect x="44" y="252" width="240" height="26" rx="6" fill="#FFE9EC"/>
+<rect x="331" y="252" width="240" height="26" rx="6" fill="#FDE9C8"/>
+<rect x="618" y="252" width="240" height="26" rx="6" fill="#CCFBF1"/>
+<text x="164" y="269" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">tổng xử lý: 900</text>
+<text x="451" y="269" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">tổng xử lý: 300</text>
+<text x="738" y="269" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">tổng xử lý: 900</text>
+<text x="44" y="300" font-size="11" font-weight="800" fill="#374151">Dùng khi</text>
+<text x="331" y="300" font-size="11" font-weight="800" fill="#374151">Dùng khi</text>
+<text x="618" y="300" font-size="11" font-weight="800" fill="#374151">Dùng khi</text>
+<text x="44" y="320" font-size="11" fill="#57534E">Tín hiệu tức thời, mọi</text>
+<text x="44" y="337" font-size="11" fill="#57534E">instance đều cần biết:</text>
+<text x="44" y="354" font-size="11" fill="#57534E">invalidate cache cục bộ,</text>
+<text x="44" y="371" font-size="11" fill="#57534E">"đang gõ", presence.</text>
+<text x="331" y="320" font-size="11" fill="#57534E">Chia việc cho nhiều</text>
+<text x="331" y="337" font-size="11" fill="#57534E">worker giống nhau:</text>
+<text x="331" y="354" font-size="11" fill="#57534E">gửi mail, xử lý ảnh.</text>
+<text x="331" y="371" font-size="11" font-weight="700" fill="#7C4A03">Thêm worker = nhanh hơn.</text>
+<text x="618" y="320" font-size="11" fill="#57534E">Nhiều hệ thống KHÁC</text>
+<text x="618" y="337" font-size="11" fill="#57534E">nhau cùng quan tâm 1</text>
+<text x="618" y="354" font-size="11" fill="#57534E">sự kiện, mỗi bên làm</text>
+<text x="618" y="371" font-size="11" font-weight="700" fill="#134E4A">việc riêng. Và KHÔNG mất tin.</text>
+</svg>
+</div>
+<p>Cột cuối là thứ Pub/Sub không làm được: <strong>fan-out mà vẫn bền</strong>. Mỗi bounded context có consumer group riêng, đọc cùng một stream, không ảnh hưởng nhau, và ai nghỉ thì tự đọc bù khi quay lại.</p>
+<hr>
+<h1 id="giữ-được-tin-vẫn-chưa-xong">&ldquo;Giữ được tin vẫn chưa xong&rdquo;<a hidden class="anchor" aria-hidden="true" href="#giữ-được-tin-vẫn-chưa-xong">¶</a></h1>
+<p>Đây là phần mà bài gốc nói rất đúng và tôi muốn đào sâu: <strong>lưu được tin mới giải quyết một nửa bài toán.</strong></p>
+<h2 id="vấn-đề-1--worker-nhận-tin-rồi-chết-trước-khi-xử-lý-xong">Vấn đề 1 — Worker nhận tin rồi chết TRƯỚC khi xử lý xong<a hidden class="anchor" aria-hidden="true" href="#vấn-đề-1--worker-nhận-tin-rồi-chết-trước-khi-xử-lý-xong">¶</a></h2>
+<p><code>XREADGROUP</code> giao tin cho consumer và đưa tin đó vào <strong>PEL</strong> (Pending Entries List) — danh sách &ldquo;đã giao, chưa xác nhận&rdquo;. Tin chỉ rời PEL khi có <code>XACK</code>. Nếu worker chết giữa chừng, <strong>Redis vẫn giữ tin trong PEL vô thời hạn</strong> — nó không tự giao lại cho ai.</p>
+<p>Đo thật:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">worker-A đọc 10 job, ACK 4 rồi crash
+</span></span><span class="line"><span class="cl">→ XPENDING: 6 message còn treo trong PEL  (Redis VẪN GIỮ, không mất)
+</span></span><span class="line"><span class="cl">→ worker-B dùng XAUTOCLAIM nhận lại 6 message, xử lý xong
+</span></span><span class="line"><span class="cl">→ XPENDING sau khi phục hồi: 0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="pel-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<marker id="pel-g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<marker id="pel-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<filter id="pel-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="440" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Vòng đời một message trong consumer group</text>
+<rect x="30" y="56" width="150" height="62" rx="10" fill="#E6FBF9" stroke="#14B8A6" stroke-width="2" filter="url(#pel-sh)"/>
+<rect x="268" y="56" width="180" height="62" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2.5" filter="url(#pel-sh)"/>
+<rect x="536" y="56" width="150" height="62" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#pel-sh)"/>
+<text x="105" y="80" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">① Trong stream</text>
+<text x="105" y="98" text-anchor="middle" font-size="10" fill="#0F766E">chưa ai đọc</text>
+<text x="105" y="112" text-anchor="middle" font-size="10" font-family="monospace" fill="#0F766E">XADD</text>
+<text x="358" y="78" text-anchor="middle" font-size="12" font-weight="800" fill="#7C4A03">② Trong PEL</text>
+<text x="358" y="94" text-anchor="middle" font-size="10" fill="#92400E">đã giao, CHƯA xác nhận</text>
+<text x="358" y="110" text-anchor="middle" font-size="10" font-family="monospace" fill="#92400E">XREADGROUP ... &gt;</text>
+<text x="611" y="80" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">③ Hoàn tất</text>
+<text x="611" y="98" text-anchor="middle" font-size="10" fill="#0F766E">rời khỏi PEL</text>
+<text x="611" y="112" text-anchor="middle" font-size="10" font-family="monospace" fill="#0F766E">XACK</text>
+<line x1="182" y1="87" x2="264" y2="87" stroke="#57534E" stroke-width="2" marker-end="url(#pel-a)"/>
+<line x1="450" y1="87" x2="532" y2="87" stroke="#0D9488" stroke-width="2.5" marker-end="url(#pel-g)"/>
+<path d="M358,120 L358,150 L240,150 L240,190" stroke="#DC2626" stroke-width="2.5" fill="none" marker-end="url(#pel-r)"/>
+<text x="368" y="140" font-size="11" font-weight="700" fill="#DC2626">worker chết trước khi ACK</text>
+<rect x="100" y="192" width="280" height="86" rx="10" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2.5" filter="url(#pel-sh)"/>
+<text x="240" y="216" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">Kẹt trong PEL — VÔ THỜI HẠN</text>
+<text x="240" y="236" text-anchor="middle" font-size="11" fill="#BE123C">Redis KHÔNG tự giao lại cho ai khác.</text>
+<text x="240" y="254" text-anchor="middle" font-size="11" fill="#BE123C">Tin không mất, nhưng cũng không ai xử lý.</text>
+<text x="240" y="271" text-anchor="middle" font-size="11" font-weight="700" fill="#DC2626">App PHẢI tự đi đòi lại.</text>
+<rect x="470" y="192" width="380" height="86" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#pel-sh)"/>
+<text x="660" y="214" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">Phục hồi: XAUTOCLAIM (Redis 6.2+)</text>
+<text x="490" y="236" font-size="10" font-family="monospace" fill="#0F766E">XAUTOCLAIM key group worker-B 30000 0-0</text>
+<text x="490" y="254" font-size="10" fill="#0F766E">→ chuyển quyền sở hữu mọi tin idle &gt; 30 giây</text>
+<text x="490" y="271" font-size="10" font-weight="700" fill="#134E4A">→ delivery_count tăng lên mỗi lần bị claim lại</text>
+<line x1="384" y1="235" x2="466" y2="235" stroke="#0D9488" stroke-width="2.5" marker-end="url(#pel-g)"/>
+<path d="M660,280 L660,300 L611,300 L611,124" stroke="#0D9488" stroke-width="2" stroke-dasharray="5 4" fill="none" marker-end="url(#pel-g)"/>
+<text x="700" y="296" font-size="10" font-weight="700" fill="#0F766E">xử lý lại → ACK</text>
+<rect x="30" y="320" width="820" height="104" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="50" y="342" font-size="12" font-weight="800" fill="#7C4A03">Ba điều phải tự làm trong app — Redis không làm hộ</text>
+<text x="50" y="364" font-size="11" fill="#92400E">1. <tspan font-weight="700">Chạy XAUTOCLAIM định kỳ</tspan> (ví dụ mỗi 30s) — không có nó, tin treo trong PEL mãi mãi.</text>
+<text x="50" y="384" font-size="11" fill="#92400E">2. <tspan font-weight="700">Đọc lại PEL của chính mình lúc khởi động</tspan>: XREADGROUP với ID "0" thay vì "&gt;" — lấy phần dang dở của lần chạy trước.</text>
+<text x="50" y="404" font-size="11" fill="#92400E">3. <tspan font-weight="700">Dead letter khi delivery_count vượt ngưỡng</tspan> — một message "độc" sẽ bị claim lại vô hạn nếu không có đường thoát.</text>
+</svg>
+</div>
+<p>Code phục hồi, gồm cả ba việc trên:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Lúc KHỞI ĐỘNG: đọc lại phần dang dở của CHÍNH consumer này.
+</span></span></span><span class="line"><span class="cl"><span class="c1">// ID &#34;0&#34; nghĩa là &#34;pending của tôi&#34;, khác hẳn &#34;&gt;&#34; nghĩa là &#34;tin mới chưa ai nhận&#34;.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">w</span> <span class="o">*</span><span class="nx">Worker</span><span class="p">)</span> <span class="nf">recoverOwnPending</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">res</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">XReadGroup</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">redis</span><span class="p">.</span><span class="nx">XReadGroupArgs</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Group</span><span class="p">:</span> <span class="nx">w</span><span class="p">.</span><span class="nx">group</span><span class="p">,</span> <span class="nx">Consumer</span><span class="p">:</span> <span class="nx">w</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Streams</span><span class="p">:</span> <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="nx">w</span><span class="p">.</span><span class="nx">stream</span><span class="p">,</span> <span class="s">&#34;0&#34;</span><span class="p">},</span>   <span class="c1">// &lt;— &#34;0&#34;, KHÔNG phải &#34;&gt;&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">Count</span><span class="p">:</span>   <span class="mi">100</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">s</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">res</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">m</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">s</span><span class="p">.</span><span class="nx">Messages</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">w</span><span class="p">.</span><span class="nf">handle</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">m</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Chạy ĐỊNH KỲ: đòi lại tin của những consumer đã chết hẳn.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">w</span> <span class="o">*</span><span class="nx">Worker</span><span class="p">)</span> <span class="nf">reclaimStale</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">start</span> <span class="o">:=</span> <span class="s">&#34;0-0&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">msgs</span><span class="p">,</span> <span class="nx">next</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">XAutoClaim</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">redis</span><span class="p">.</span><span class="nx">XAutoClaimArgs</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">Stream</span><span class="p">:</span> <span class="nx">w</span><span class="p">.</span><span class="nx">stream</span><span class="p">,</span> <span class="nx">Group</span><span class="p">:</span> <span class="nx">w</span><span class="p">.</span><span class="nx">group</span><span class="p">,</span> <span class="nx">Consumer</span><span class="p">:</span> <span class="nx">w</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">MinIdle</span><span class="p">:</span> <span class="mi">30</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">,</span>   <span class="c1">// phải DÀI HƠN thời gian xử lý bình thường
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="nx">Start</span><span class="p">:</span>   <span class="nx">start</span><span class="p">,</span> <span class="nx">Count</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">m</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">msgs</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">w</span><span class="p">.</span><span class="nf">handle</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">m</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">next</span> <span class="o">==</span> <span class="s">&#34;0-0&#34;</span> <span class="o">||</span> <span class="nb">len</span><span class="p">(</span><span class="nx">msgs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">start</span> <span class="p">=</span> <span class="nx">next</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>⚠️ <strong><code>MinIdle</code> phải dài hơn thời gian xử lý bình thường.</strong> Nếu job mất 60 giây mà <code>MinIdle</code> là 30 giây, worker thứ hai sẽ đòi mất tin của worker thứ nhất <strong>trong khi nó vẫn đang làm</strong> — và bạn có hai worker cùng xử lý một tin. Đây là lỗi hay gặp nhất khi mới dùng <code>XAUTOCLAIM</code>.</p>
+</blockquote>
+<p>Và dead letter, dựa vào <code>delivery_count</code>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">const</span> <span class="nx">maxDeliveries</span> <span class="p">=</span> <span class="mi">5</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">pending</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">rdb</span><span class="p">.</span><span class="nf">XPendingExt</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">redis</span><span class="p">.</span><span class="nx">XPendingExtArgs</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Stream</span><span class="p">:</span> <span class="nx">stream</span><span class="p">,</span> <span class="nx">Group</span><span class="p">:</span> <span class="nx">group</span><span class="p">,</span> <span class="nx">Start</span><span class="p">:</span> <span class="s">&#34;-&#34;</span><span class="p">,</span> <span class="nx">End</span><span class="p">:</span> <span class="s">&#34;+&#34;</span><span class="p">,</span> <span class="nx">Count</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">}).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">p</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">pending</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">p</span><span class="p">.</span><span class="nx">RetryCount</span> <span class="o">&gt;=</span> <span class="nx">maxDeliveries</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Tin này đã thử 5 lần vẫn hỏng → đẩy sang stream riêng để người xem,
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// rồi ACK để nó thôi quay vòng vô hạn.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">rdb</span><span class="p">.</span><span class="nf">XAdd</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">redis</span><span class="p">.</span><span class="nx">XAddArgs</span><span class="p">{</span><span class="nx">Stream</span><span class="p">:</span> <span class="nx">stream</span> <span class="o">+</span> <span class="s">&#34;:dlq&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">Values</span><span class="p">:</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}{</span><span class="s">&#34;orig_id&#34;</span><span class="p">:</span> <span class="nx">p</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span> <span class="s">&#34;retries&#34;</span><span class="p">:</span> <span class="nx">p</span><span class="p">.</span><span class="nx">RetryCount</span><span class="p">}})</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">rdb</span><span class="p">.</span><span class="nf">XAck</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">stream</span><span class="p">,</span> <span class="nx">group</span><span class="p">,</span> <span class="nx">p</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Không có bước này, một message gây panic sẽ bị claim → fail → claim → fail mãi mãi, và nó chặn luôn việc xử lý những tin phía sau nếu worker của bạn xử lý tuần tự.</p>
+<h2 id="vấn-đề-2--xử-lý-xong-rồi-chết-trước-khi-ack">Vấn đề 2 — Xử lý xong rồi chết TRƯỚC khi ACK<a hidden class="anchor" aria-hidden="true" href="#vấn-đề-2--xử-lý-xong-rồi-chết-trước-khi-ack">¶</a></h2>
+<p>Trường hợp ngược lại: worker <strong>đã tạo thông báo</strong>, nhưng chưa kịp <code>XACK</code> thì crash. Khi <code>XAUTOCLAIM</code> giao lại, nó tạo thông báo <strong>lần thứ hai</strong>. Người dùng nhận hai thông báo cho cùng một file.</p>
+<p>Đây là hệ quả tất yếu của <strong>at-least-once</strong>, và không có cách nào tránh được ở tầng message broker — kể cả Kafka. Chỗ duy nhất sửa được là <strong>điểm ghi kết quả</strong>.</p>
+<p>Đo thật, mô phỏng message bị giao lại 3 lần:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:right">Số thông báo được tạo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Không bảo vệ</td>
+<td style="text-align:right"><strong>3</strong> ❌ user nhận 3 lần</td>
+</tr>
+<tr>
+<td>Có khoá idempotency (<code>SET NX</code>)</td>
+<td style="text-align:right"><strong>1</strong> ✅</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">w</span> <span class="o">*</span><span class="nx">Worker</span><span class="p">)</span> <span class="nf">handle</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">m</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">XMessage</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">fileID</span> <span class="o">:=</span> <span class="nx">m</span><span class="p">.</span><span class="nx">Values</span><span class="p">[</span><span class="s">&#34;file_id&#34;</span><span class="p">].(</span><span class="kt">string</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Khoá idempotency: dùng khoá NGHIỆP VỤ, không dùng message ID.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// Vì nếu publisher retry, cùng một sự kiện sẽ có HAI message ID khác nhau.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">key</span> <span class="o">:=</span> <span class="s">&#34;processed:notification:&#34;</span> <span class="o">+</span> <span class="nx">fileID</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ok</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">SetNX</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="s">&#34;1&#34;</span><span class="p">,</span> <span class="mi">24</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Hour</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="c1">// lỗi Redis → KHÔNG ack, để được giao lại
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">XAck</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">w</span><span class="p">.</span><span class="nx">stream</span><span class="p">,</span> <span class="nx">w</span><span class="p">.</span><span class="nx">group</span><span class="p">,</span> <span class="nx">m</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span> <span class="c1">// đã làm rồi → chỉ cần ack
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nf">createNotification</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">fileID</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Del</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span> <span class="c1">// thất bại → nhả khoá để lần sau làm lại được
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">XAck</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">w</span><span class="p">.</span><span class="nx">stream</span><span class="p">,</span> <span class="nx">w</span><span class="p">.</span><span class="nx">group</span><span class="p">,</span> <span class="nx">m</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Hai chi tiết quan trọng trong đoạn này:</p>
+<ul>
+<li><strong>Khoá theo <code>file_id</code>, không theo <code>m.ID</code>.</strong> Nếu publisher retry (bản thân nó cũng có thể crash giữa chừng), cùng một sự kiện nghiệp vụ sẽ được <code>XADD</code> hai lần với hai message ID khác nhau. Khoá theo message ID không chặn được trường hợp đó.</li>
+<li><strong>Nhả khoá khi xử lý thất bại.</strong> Quên bước này thì một lần lỗi tạm thời sẽ khiến file đó <strong>vĩnh viễn</strong> không bao giờ có thông báo — khoá đã chiếm nhưng việc chưa làm.</li>
+</ul>
+<p>Cách bền hơn nữa, nếu bên ghi là database: dùng <strong>unique constraint</strong>.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">notifications</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">id</span><span class="w">      </span><span class="nb">BIGINT</span><span class="w"> </span><span class="n">AUTO_INCREMENT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">user_id</span><span class="w"> </span><span class="nb">BIGINT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">file_id</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">uk_notification_file</span><span class="w"> </span><span class="p">(</span><span class="n">user_id</span><span class="p">,</span><span class="w"> </span><span class="n">file_id</span><span class="p">)</span><span class="w">   </span><span class="c1">-- DB tự từ chối bản trùng
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>Database đảm bảo tính duy nhất bằng chính ràng buộc dữ liệu, không phụ thuộc vào việc Redis có còn khoá hay không. Lỗi duplicate key lúc đó không phải lỗi — nó là tín hiệu &ldquo;đã làm rồi&rdquo;, cứ <code>XACK</code> và đi tiếp.</p>
+<blockquote>
+<p>📌 Dự án <a href="https://github.com/huydq96">Honeydue</a> của mình đặt quy ước này ngay trong <code>CLAUDE.md</code>: <em>&ldquo;Consumers must always be idempotent — reprocessing the same message must never cause a duplicate side effect (upsert / check-before-act, not blind insert).&rdquo;</em> Đây không phải lời khuyên chung chung, nó là hệ quả trực tiếp của ngữ nghĩa at-least-once.</p>
+</blockquote>
+<hr>
+<h1 id="streams-không-phải-kho-lịch-sử-vô-hạn">Streams không phải kho lịch sử vô hạn<a hidden class="anchor" aria-hidden="true" href="#streams-không-phải-kho-lịch-sử-vô-hạn">¶</a></h1>
+<p>Stream nằm trong RAM. Không cắt bớt thì nó lớn mãi tới khi Redis hết bộ nhớ. Đo thật với 50.000 entry:</p>
+<table>
+<thead>
+<tr>
+<th>Cách ghi</th>
+<th style="text-align:right">Số entry còn lại</th>
+<th style="text-align:right">Bộ nhớ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>XADD</code> không giới hạn</td>
+<td style="text-align:right">50.000</td>
+<td style="text-align:right"><strong>2.862.616 bytes (2,7 MB)</strong></td>
+</tr>
+<tr>
+<td><code>XADD MAXLEN ~ 1000</code></td>
+<td style="text-align:right">1.074</td>
+<td style="text-align:right"><strong>66.952 bytes (0,1 MB)</strong></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">rdb</span><span class="p">.</span><span class="nf">XAdd</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">redis</span><span class="p">.</span><span class="nx">XAddArgs</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Stream</span><span class="p">:</span> <span class="s">&#34;report.ready&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">MaxLen</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Approx</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>          <span class="c1">// dấu ~ : cắt GẦN ĐÚNG, nhanh hơn nhiều
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">Values</span><span class="p">:</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kd">interface</span><span class="p">{}{</span><span class="s">&#34;file_id&#34;</span><span class="p">:</span> <span class="nx">fileID</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl"><span class="p">})</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Để ý con số <strong>1.074</strong> chứ không phải đúng 1.000 — đó chính là ý nghĩa của dấu <code>~</code>. Stream lưu các entry theo <strong>macro-node</strong>; cắt gần đúng chỉ xoá nguyên cả node, nên số còn lại luôn <strong>≥</strong> ngưỡng bạn đặt. Đổi lại nó chạy <code>O(1)</code> thay vì <code>O(N)</code>. Trong hot path, luôn dùng <code>~</code>.</p>
+<p>Cắt theo <strong>thời gian</strong> thường hợp lý hơn cắt theo số lượng, vì nó map thẳng sang yêu cầu nghiệp vụ &ldquo;worker được phép nghỉ bao lâu&rdquo;:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Giữ 24 giờ: worker nghỉ dưới 24h vẫn đọc bù được đầy đủ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">cutoff</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Add</span><span class="p">(</span><span class="o">-</span><span class="mi">24</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Hour</span><span class="p">).</span><span class="nf">UnixMilli</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="nx">rdb</span><span class="p">.</span><span class="nf">XTrimMinIDApprox</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;report.ready&#34;</span><span class="p">,</span> <span class="nx">strconv</span><span class="p">.</span><span class="nf">FormatInt</span><span class="p">(</span><span class="nx">cutoff</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Và đây là ràng buộc cần nói rõ: <strong>nếu dọn tin quá sớm, worker nghỉ lâu vẫn mất phần cần xử lý bù.</strong> Chính sách retention không phải quyết định kỹ thuật, nó là câu trả lời cho câu hỏi <em>&ldquo;worker của chúng ta được phép chết bao lâu?&rdquo;</em></p>
+<p><strong>Về độ bền khi Redis sập</strong>: Streams được ghi xuống RDB/AOF, nhưng mức bảo đảm phụ thuộc cấu hình. Với <code>appendfsync everysec</code> (mặc định), bạn có thể mất tới 1 giây dữ liệu cuối. Nếu không chấp nhận được, đó là tín hiệu nên nhìn sang Kafka.</p>
+<hr>
+<h1 id="cái-giá-throughput">Cái giá: throughput<a hidden class="anchor" aria-hidden="true" href="#cái-giá-throughput">¶</a></h1>
+<p>Streams không miễn phí. Đo ghi 20.000 tin:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:right">Thời gian</th>
+<th style="text-align:right">Throughput</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PUBLISH</code> (không lưu gì)</td>
+<td style="text-align:right">20 ms</td>
+<td style="text-align:right"><strong>~1.010.000 ops/s</strong></td>
+</tr>
+<tr>
+<td><code>XADD</code> (có lưu trữ)</td>
+<td style="text-align:right">65 ms</td>
+<td style="text-align:right">~306.000 ops/s</td>
+</tr>
+</tbody>
+</table>
+<p><code>XADD</code> chậm hơn <strong>3,3 lần</strong>. Nhưng hãy đặt con số này đúng bối cảnh: <strong>306.000 sự kiện/giây trên một node</strong> vẫn thừa sức cho gần như mọi ứng dụng. Nếu bạn thật sự cần hơn thế, vấn đề của bạn không còn là chọn giữa Pub/Sub và Streams nữa.</p>
+<hr>
+<h1 id="chọn-cái-nào">Chọn cái nào?<a hidden class="anchor" aria-hidden="true" href="#chọn-cái-nào">¶</a></h1>
+<div class="zoomable-diagram" style="max-width:860px;margin:2rem auto;">
+<svg viewBox="0 0 860 500" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="dp-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="dp-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="860" height="500" fill="#FFFDF7" rx="16"/>
+<text x="430" y="30" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Một câu hỏi quyết định tất cả</text>
+<rect x="190" y="50" width="480" height="56" rx="10" fill="#374151" filter="url(#dp-sh)"/>
+<text x="430" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">Nếu tin này mất, có ai phải đi sửa bằng tay không?</text>
+<text x="430" y="94" text-anchor="middle" font-size="11" fill="#D6D3D1">(hoặc: người dùng có bị thiệt hại gì không?)</text>
+<rect x="30" y="138" width="370" height="104" rx="10" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2.5" filter="url(#dp-sh)"/>
+<text x="215" y="164" text-anchor="middle" font-size="15" font-weight="800" fill="#9F1239">PUB/SUB</text>
+<text x="215" y="186" text-anchor="middle" font-size="11" fill="#BE123C">Tin chỉ có ý nghĩa NGAY LÚC nó xảy ra.</text>
+<text x="215" y="206" text-anchor="middle" font-size="11" fill="#BE123C">Nhận muộn 5 phút thì cũng vô dụng.</text>
+<text x="215" y="228" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Đơn giản nhất, nhanh nhất, ~1M ops/s</text>
+<rect x="460" y="138" width="370" height="104" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#dp-sh)"/>
+<text x="645" y="164" text-anchor="middle" font-size="15" font-weight="800" fill="#134E4A">STREAMS</text>
+<text x="645" y="186" text-anchor="middle" font-size="11" fill="#0F766E">Việc cần làm không nên mất theo</text>
+<text x="645" y="206" text-anchor="middle" font-size="11" fill="#0F766E">khi bên nhận tạm thời không chạy.</text>
+<text x="645" y="228" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">Thêm: PEL, retention, idempotency</text>
+<line x1="330" y1="108" x2="240" y2="134" stroke="#57534E" stroke-width="2" marker-end="url(#dp-arr)"/>
+<line x1="530" y1="108" x2="620" y2="134" stroke="#57534E" stroke-width="2" marker-end="url(#dp-arr)"/>
+<rect x="240" y="104" width="70" height="20" rx="5" fill="#DC2626"/>
+<rect x="550" y="104" width="52" height="20" rx="5" fill="#0D9488"/>
+<text x="275" y="119" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">KHÔNG</text>
+<text x="576" y="119" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">CÓ</text>
+<rect x="30" y="256" width="370" height="130" rx="10" fill="#FFFFFF" stroke="#FF6B6B" stroke-width="1.8"/>
+<text x="50" y="278" font-size="12" font-weight="800" fill="#9F1239">Ví dụ hợp</text>
+<text x="50" y="300" font-size="11" fill="#57534E">• Tín hiệu "đang gõ" trong chat</text>
+<text x="50" y="318" font-size="11" fill="#57534E">• Presence: ai đang online</text>
+<text x="50" y="336" font-size="11" fill="#57534E">• Invalidate cache cục bộ ở mọi instance</text>
+<text x="50" y="354" font-size="11" fill="#57534E">• Giá chứng khoán realtime (có nguồn khác)</text>
+<text x="50" y="375" font-size="11" font-weight="700" fill="#0F766E">Điểm chung: mất tin thì lấy lại trạng thái</text>
+<rect x="460" y="256" width="370" height="130" rx="10" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<text x="480" y="278" font-size="12" font-weight="800" fill="#134E4A">Ví dụ hợp</text>
+<text x="480" y="300" font-size="11" fill="#57534E">• "File báo cáo đã sẵn sàng"</text>
+<text x="480" y="318" font-size="11" fill="#57534E">• "Đơn hàng hoàn tất" → gửi mail/SMS</text>
+<text x="480" y="336" font-size="11" fill="#57534E">• Đồng bộ dữ liệu sang hệ thống khác</text>
+<text x="480" y="354" font-size="11" fill="#57534E">• Các bước tiếp theo của một workflow</text>
+<text x="480" y="375" font-size="11" font-weight="700" fill="#0F766E">Điểm chung: mất tin = mất việc, không lấy lại được</text>
+<rect x="30" y="400" width="800" height="84" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="50" y="424" font-size="12" font-weight="800" fill="#7C4A03">Phép thử nhanh khi phân vân</text>
+<text x="50" y="446" font-size="11" fill="#92400E">Hỏi: <tspan font-weight="700">"Nếu worker này offline 5 phút, khi lên lại nó CẦN biết chuyện gì đã xảy ra không?"</tspan></text>
+<text x="50" y="468" font-size="11" fill="#92400E">Cần → Streams. Không cần, vì nó sẽ tự lấy lại trạng thái hiện tại từ DB → Pub/Sub.</text>
+</svg>
+</div>
+<p>Tách hai nhu cầu cho rõ:</p>
+<ul>
+<li><strong>Pub/Sub</strong>: báo ngay cho các bên đang nghe; tin bị lỡ có thể bỏ qua, hoặc ứng dụng lấy lại trạng thái từ một nguồn khác.</li>
+<li><strong>Streams</strong>: giữ tin để đọc và xử lý tiếp, kể cả khi bên nhận tạm thời không chạy. Chấp nhận thêm phần quản lý lịch sử và tiến độ xử lý.</li>
+</ul>
+<p>Với tín hiệu <strong>&ldquo;đang gõ&rdquo;</strong> trong chat: nếu bạn offline lúc người kia gõ, vài phút sau mới nhận lại tín hiệu đó cũng chẳng để làm gì. Với tin <strong>&ldquo;xuất file xong&rdquo;</strong>: worker phải xử lý được kể cả khi nó vừa nghỉ vài giây.</p>
+<hr>
+<h1 id="còn-kafka-thì-sao">Còn Kafka thì sao?<a hidden class="anchor" aria-hidden="true" href="#còn-kafka-thì-sao">¶</a></h1>
+<p>Câu hỏi tiếp theo rất tự nhiên: nếu cần độ bền thì dùng luôn Kafka cho xong?</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>Redis Pub/Sub</strong></th>
+<th><strong>Redis Streams</strong></th>
+<th><strong>Kafka</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lưu trữ</td>
+<td>Không</td>
+<td>RAM (+ RDB/AOF)</td>
+<td><strong>Đĩa, replicated</strong></td>
+</tr>
+<tr>
+<td>Retention điển hình</td>
+<td>0</td>
+<td>Giờ → ngày (giới hạn bởi RAM)</td>
+<td><strong>Ngày → vĩnh viễn</strong></td>
+</tr>
+<tr>
+<td>Throughput 1 node</td>
+<td>~1.000.000/s</td>
+<td>~300.000/s</td>
+<td>~100.000–1.000.000/s</td>
+</tr>
+<tr>
+<td>Mở rộng ngang</td>
+<td>Không</td>
+<td>Hạn chế (1 stream = 1 node)</td>
+<td><strong>Partition — mở rộng thật</strong></td>
+</tr>
+<tr>
+<td>Consumer group</td>
+<td>Không</td>
+<td>Có</td>
+<td>Có</td>
+</tr>
+<tr>
+<td>Đọc lại từ đầu</td>
+<td>Không</td>
+<td>Có (trong retention)</td>
+<td><strong>Có, kể cả rất xa</strong></td>
+</tr>
+<tr>
+<td>Thứ tự</td>
+<td>Theo channel</td>
+<td>Theo stream</td>
+<td>Theo partition</td>
+</tr>
+<tr>
+<td>Chi phí vận hành</td>
+<td>~0</td>
+<td><strong>~0 nếu đã có Redis</strong></td>
+<td>Cao (broker, KRaft, monitoring)</td>
+</tr>
+<tr>
+<td>Mất dữ liệu khi node chết</td>
+<td>Mất hết</td>
+<td>Tới 1s (<code>appendfsync everysec</code>)</td>
+<td><strong>0 nếu <code>acks=all</code></strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Dùng Redis Streams khi</strong>: bạn <strong>đã có Redis</strong>, lượng sự kiện vừa phải, retention tính bằng giờ hoặc ngày, và không muốn thêm một hệ thống phân tán nữa vào stack. Chi phí thực tế gần bằng không.</p>
+<p><strong>Chuyển sang Kafka khi</strong> có ít nhất một trong các điều sau:</p>
+<ul>
+<li>Cần giữ sự kiện <strong>nhiều ngày trở lên</strong> (event sourcing, replay để dựng lại state, audit)</li>
+<li>Lượng dữ liệu vượt RAM của một node Redis</li>
+<li>Cần mở rộng ngang thật sự bằng partition</li>
+<li>Không chấp nhận mất <strong>bất kỳ</strong> sự kiện nào (<code>acks=all</code> + replication)</li>
+</ul>
+<blockquote>
+<p>Trong Honeydue mình dùng <strong>Kafka</strong> cho các domain event (<code>transaction.created</code>, <code>budget.limit_changed</code>), vì đó là sự kiện nghiệp vụ cần replay và audit. Nhưng vẫn dùng <strong>Redis Pub/Sub</strong> cho fan-out WebSocket giữa các instance (<code>user:{user_id}</code>) — vì nếu một tin đẩy realtime bị lỡ, client <strong>tự lấy lại trạng thái qua REST khi reconnect</strong>. Đúng cái phép thử ở sơ đồ trên: WS không phải nguồn sự thật, nên mất tin không sao.</p>
+</blockquote>
+<p>Hai cơ chế, hai bài toán khác nhau, trong cùng một hệ thống. Đó mới là cách chọn đúng — không phải chọn một cái rồi dùng cho tất cả.</p>
+<hr>
+<h1 id="checklist">Checklist<a hidden class="anchor" aria-hidden="true" href="#checklist">¶</a></h1>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">KHI DÙNG PUB/SUB
+</span></span><span class="line"><span class="cl">□ Tin này mất có sao không? Đã trả lời THẬT chưa, hay chỉ cho rằng không sao?
+</span></span><span class="line"><span class="cl">□ Client có đường lấy lại trạng thái khi reconnect không? (REST, snapshot)
+</span></span><span class="line"><span class="cl">□ Có đang dùng keyspace notification cho việc quan trọng không? → nó là Pub/Sub, sẽ mất tin
+</span></span><span class="line"><span class="cl">□ Subscriber chậm có bị Redis ngắt không? (client-output-buffer-limit pubsub: 32MB cứng / 8MB-60s mềm)
+</span></span><span class="line"><span class="cl">□ Chạy Redis Cluster? → cân nhắc SSUBSCRIBE (sharded pub/sub, Redis 7.0+) để tránh broadcast toàn cluster
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">KHI DÙNG STREAMS
+</span></span><span class="line"><span class="cl">□ Đã đặt MAXLEN hoặc MINID chưa? (không có = stream lớn vô hạn)
+</span></span><span class="line"><span class="cl">□ Dùng dấu ~ (approx) trong hot path chưa?
+</span></span><span class="line"><span class="cl">□ Retention đủ dài cho &#34;worker được phép chết bao lâu&#34; chưa?
+</span></span><span class="line"><span class="cl">□ Có XAUTOCLAIM chạy định kỳ không? (không có = tin kẹt PEL vĩnh viễn)
+</span></span><span class="line"><span class="cl">□ MinIdle có DÀI HƠN thời gian xử lý bình thường không?
+</span></span><span class="line"><span class="cl">□ Lúc khởi động có đọc lại PEL của chính mình (XREADGROUP ID &#34;0&#34;) không?
+</span></span><span class="line"><span class="cl">□ Có dead letter khi delivery_count vượt ngưỡng không?
+</span></span><span class="line"><span class="cl">□ Handler đã idempotent chưa? Khoá theo ID NGHIỆP VỤ hay theo message ID?
+</span></span><span class="line"><span class="cl">□ Khi xử lý thất bại, khoá idempotency có được nhả ra không?
+</span></span><span class="line"><span class="cl">□ Có theo dõi XINFO GROUPS (lag, pending) không?
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Câu hỏi</th>
+<th>Trả lời ngắn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Khác biệt cốt lõi?</td>
+<td>Pub/Sub là <strong>đường ống</strong> (không lưu), Streams là <strong>cuốn sổ</strong> (lưu lại)</td>
+</tr>
+<tr>
+<td>Mất bao nhiêu tin thật sự?</td>
+<td>Đo được: worker offline giữa chừng → Pub/Sub mất <strong>34%</strong>, Streams mất <strong>0</strong></td>
+</tr>
+<tr>
+<td><code>PUBLISH</code> trả về 0 nghĩa là gì?</td>
+<td>&ldquo;Không ai nghe&rdquo; — và <strong>đó không phải lỗi</strong>, code của bạn vẫn chạy tiếp bình thường</td>
+</tr>
+<tr>
+<td>Streams chỉ làm queue thôi à?</td>
+<td>Không. <strong>1 group</strong> = chia tải; <strong>nhiều group</strong> = fan-out bền</td>
+</tr>
+<tr>
+<td>Lưu được tin là xong chưa?</td>
+<td><strong>Chưa.</strong> Còn PEL (nhận rồi chết) và idempotency (làm rồi nhưng chưa ACK)</td>
+</tr>
+<tr>
+<td>Redis có tự giao lại tin treo không?</td>
+<td><strong>Không.</strong> App phải tự chạy <code>XAUTOCLAIM</code> định kỳ</td>
+</tr>
+<tr>
+<td>Chống trùng ở đâu?</td>
+<td>Ở <strong>điểm ghi kết quả</strong> — <code>SET NX</code> theo khoá nghiệp vụ, hoặc unique constraint trong DB</td>
+</tr>
+<tr>
+<td>Streams giữ tin bao lâu?</td>
+<td>Bạn quyết định bằng <code>MAXLEN</code>/<code>MINID</code>. Câu hỏi thật: <em>worker được phép chết bao lâu?</em></td>
+</tr>
+<tr>
+<td>Cái giá của Streams?</td>
+<td><code>XADD</code> chậm hơn <code>PUBLISH</code> <strong>3,3 lần</strong> (306k vs 1M ops/s) — vẫn thừa cho hầu hết hệ thống</td>
+</tr>
+<tr>
+<td>Khi nào cần Kafka?</td>
+<td>Retention nhiều ngày, vượt RAM một node, cần partition, hoặc không được mất tin nào</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="tham-khảo">Tham khảo<a hidden class="anchor" aria-hidden="true" href="#tham-khảo">¶</a></h1>
+<ul>
+<li><a href="https://redis.io/docs/latest/develop/data-types/streams/">Redis — Streams tutorial</a> — đọc kỹ phần consumer group và PEL</li>
+<li><a href="https://redis.io/docs/latest/develop/pubsub/">Redis — Pub/Sub</a> — gồm cả sharded pub/sub cho Cluster</li>
+<li><a href="https://redis.io/docs/latest/commands/xautoclaim/">Redis — <code>XAUTOCLAIM</code></a> · <a href="https://redis.io/docs/latest/commands/xpending/"><code>XPENDING</code></a></li>
+<li><a href="https://redis.io/docs/latest/develop/pubsub/keyspace-notifications/">Redis — Keyspace notifications</a> — lưu ý phần &ldquo;events are not reliable&rdquo;</li>
+<li>Group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a> — nguồn nội dung gốc của series</li>
+<li>Bài trước: <a href="../../posts/system-design-p01-redis/">P01 — Redis Không Chỉ Có GET/SET</a> · <a href="../../posts/system-design-p02-cache-stampede/">P02 — Cache Stampede</a></li>
+<li>Trên blog: <a href="../../posts/apache-kafka-p1/">Apache Kafka P1</a> · <a href="../../posts/apache-kafka-p2/">Apache Kafka P2</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>
