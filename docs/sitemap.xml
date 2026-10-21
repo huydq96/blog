@@ -3,45 +3,54 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://blog.huydang.dev/categories/</loc>
-    <lastmod>2026-10-19T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/event-driven/</loc>
-    <lastmod>2026-10-19T09:00:00+07:00</lastmod>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/golang/</loc>
-    <lastmod>2026-10-19T09:00:00+07:00</lastmod>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/</loc>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/interview/</loc>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/performance/</loc>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/</loc>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/scalability/</loc>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/scalable-p01-ccu-vs-rps/</loc>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/system-design/</loc>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/system-design/</loc>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2026-10-21T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/event-driven/</loc>
     <lastmod>2026-10-19T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/kafka/</loc>
     <lastmod>2026-10-19T09:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/posts/</loc>
-    <lastmod>2026-10-19T09:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/tags/redis/</loc>
     <lastmod>2026-10-19T09:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/system-design/</loc>
-    <lastmod>2026-10-19T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/categories/system-design/</loc>
-    <lastmod>2026-10-19T09:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/posts/system-design-p04-streams-vs-kafka/</loc>
-    <lastmod>2026-10-19T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/</loc>
     <lastmod>2026-10-19T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/system-design-p03-pubsub-vs-streams/</loc>
     <lastmod>2026-10-17T10:30:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/caching/</loc>
-    <lastmod>2026-10-17T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/performance/</loc>
     <lastmod>2026-10-17T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/system-design-p02-cache-stampede/</loc>
@@ -90,9 +99,6 @@
     <lastmod>2026-09-04T10:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/categories/golang/</loc>
-    <lastmod>2026-09-04T10:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/interview/</loc>
     <lastmod>2026-09-04T10:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/backend/</loc>

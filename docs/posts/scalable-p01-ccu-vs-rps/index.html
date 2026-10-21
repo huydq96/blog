@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Scalable System Design P01: 1M CCU Không Phải Một Kiến Trúc | Huy Dang Blog</title>
+<meta name="keywords" content="system-design, scalability, performance, interview, golang">
+<meta name="description" content="CCU không phải RPS. Đo thật: 100.000 connection idle tốn 0% CPU, và một hot row làm throughput sụp 30 lần. Cách chuyển từ con số user sang workload model.">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/scalable-p01-ccu-vs-rps/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/scalable-p01-ccu-vs-rps/">
+
+<meta name="twitter:title" content="Scalable System Design P01: 1M CCU Không Phải Một Kiến Trúc | Huy Dang Blog" />
+<meta name="twitter:description" content="CCU không phải RPS. Đo thật: 100.000 connection idle tốn 0% CPU, và một hot row làm throughput sụp 30 lần. Cách chuyển từ con số user sang workload model." />
+<meta property="og:title" content="Scalable System Design P01: 1M CCU Không Phải Một Kiến Trúc | Huy Dang Blog" />
+<meta property="og:description" content="CCU không phải RPS. Đo thật: 100.000 connection idle tốn 0% CPU, và một hot row làm throughput sụp 30 lần. Cách chuyển từ con số user sang workload model." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/scalable-p01-ccu-vs-rps/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-10-21T09:00:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-10-21T09:00:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Scalable System Design P01: 1M CCU Không Phải Một Kiến Trúc",
+      "item": "https://blog.huydang.dev/posts/scalable-p01-ccu-vs-rps/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Scalable System Design P01: 1M CCU Không Phải Một Kiến Trúc | Huy Dang Blog",
+  "name": "Scalable System Design P01: 1M CCU Không Phải Một Kiến Trúc",
+  "description": "CCU không phải RPS. Đo thật: 100.000 connection idle tốn 0% CPU, và một hot row làm throughput sụp 30 lần. Cách chuyển từ con số user sang workload model.",
+  "keywords": [
+    "system-design", "scalability", "performance", "interview", "golang"
+  ],
+  "wordCount" : "3641",
+  "inLanguage": "en",
+  "datePublished": "2026-10-21T09:00:00+07:00",
+  "dateModified": "2026-10-21T09:00:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/scalable-p01-ccu-vs-rps/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Scalable System Design P01: 1M CCU Không Phải Một Kiến Trúc</h1>
+    <div class="post-description">CCU không phải RPS. Đo thật: 100.000 connection idle tốn 0% CPU, và một hot row làm throughput sụp 30 lần. Cách chuyển từ con số user sang workload model.</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>October 21, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/system-design/">System Design</a><a href="https://blog.huydang.dev/tags/scalability/">Scalability</a><a href="https://blog.huydang.dev/tags/performance/">Performance</a><a href="https://blog.huydang.dev/tags/interview/">Interview</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>18 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#t%e1%bb%95ng-quan" aria-label="Tổng quan">Tổng quan</a></li>
+                <li>
+                    <a href="#ccu-kh%c3%b4ng-ph%e1%ba%a3i-rps" aria-label="CCU không phải RPS">CCU không phải RPS</a></li>
+                <li>
+                    <a href="#ch%e1%bb%a9ng-minh-1m-ccu-c%c3%b3-th%e1%bb%83-b%e1%ba%b1ng-0-rps" aria-label="Chứng minh: 1M CCU có thể bằng 0 RPS">Chứng minh: 1M CCU có thể bằng 0 RPS</a></li>
+                <li>
+                    <a href="#c%c3%b4ng-th%e1%bb%a9c-map-ccu-sang-rps" aria-label="Công thức map CCU sang RPS">Công thức map CCU sang RPS</a></li>
+                <li>
+                    <a href="#c%c3%b9ng-1m-ccu-hai-b%c3%a0i-to%c3%a1n-kh%c3%a1c-nhau-ho%c3%a0n-to%c3%a0n" aria-label="Cùng 1M CCU, hai bài toán khác nhau hoàn toàn">Cùng 1M CCU, hai bài toán khác nhau hoàn toàn</a><ul>
+                        
+                <li>
+                    <a href="#e-commerce--1m-ccu" aria-label="E-commerce — 1M CCU">E-commerce — 1M CCU</a></li>
+                <li>
+                    <a href="#realtime-gaming--1m-ccu" aria-label="Realtime Gaming — 1M CCU">Realtime Gaming — 1M CCU</a></li>
+                <li>
+                    <a href="#so-s%c3%a1nh" aria-label="So sánh">So sánh</a></li></ul>
+                </li>
+                <li>
+                    <a href="#hot-resource-ch%e1%bb%97-ccu-ho%c3%a0n-to%c3%a0n-kh%c3%b4ng-n%c3%b3i-g%c3%ac" aria-label="Hot Resource: chỗ CCU hoàn toàn không nói gì">Hot Resource: chỗ CCU hoàn toàn không nói gì</a></li>
+                <li>
+                    <a href="#v%c3%a0-%c4%91%e1%bb%abng-qu%c3%aan-fr-tr%c6%b0%e1%bb%9bc-nfr" aria-label="Và đừng quên FR trước NFR">Và đừng quên FR trước NFR</a></li>
+                <li>
+                    <a href="#n%c4%83m-c%c3%a2u-h%e1%bb%8fi-n%c3%aan-h%e1%bb%8fi-tr%c6%b0%e1%bb%9bc-khi-v%e1%ba%bd" aria-label="Năm câu hỏi nên hỏi trước khi vẽ">Năm câu hỏi nên hỏi trước khi vẽ</a></li>
+                <li>
+                    <a href="#v%e1%ba%ady-v%c3%ac-sao-ng%c6%b0%e1%bb%9di-ta-v%e1%ba%abn-b%e1%ba%aft-%c4%91%e1%ba%a7u-b%e1%ba%b1ng-ccu" aria-label="Vậy vì sao người ta vẫn bắt đầu bằng CCU?">Vậy vì sao người ta vẫn bắt đầu bằng CCU?</a></li>
+                <li>
+                    <a href="#checklist-chuy%e1%bb%83n-ccu-th%c3%a0nh-workload-model" aria-label="Checklist: chuyển CCU thành workload model">Checklist: chuyển CCU thành workload model</a></li>
+                <li>
+                    <a href="#t%c3%b3m-t%e1%ba%aft" aria-label="Tóm tắt">Tóm tắt</a></li>
+                <li>
+                    <a href="#tham-kh%e1%ba%a3o" aria-label="Tham khảo">Tham khảo</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><blockquote>
+<p><em>Bài viết mở đầu series <strong>Scalable System Design</strong>, nội dung tham khảo từ các bài viết trong group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a>. Phần diễn giải, ví dụ, sơ đồ và <strong>toàn bộ số liệu benchmark</strong> là tôi tự bổ sung, đo thật trên máy local (Go 1.24, MySQL 8.0.40, Redis 7.4.2).</em></p>
+</blockquote>
+<h1 id="tổng-quan">Tổng quan<a hidden class="anchor" aria-hidden="true" href="#tổng-quan">¶</a></h1>
+<p>Có một câu chuyện khá quen trong các buổi phỏng vấn System Design, thường ở level Senior hoặc SA.</p>
+<p>Người phỏng vấn đưa đề bài:</p>
+<blockquote>
+<p><em>&ldquo;Hãy thiết kế một hệ thống chịu được 1M CCU.&rdquo;</em></p>
+</blockquote>
+<p>Ứng viên nghe tới một triệu user thì bắt đầu vẽ Load Balancer, thêm Redis, Kafka, chia Microservice, tính chuyện sharding database, caching&hellip; Người phỏng vấn gật gù hài lòng, lâu lâu hỏi thêm về bottleneck hoặc single point of failure.</p>
+<p>Nếu phỏng vấn kiểu này thì <strong>10M hay 100M CCU cũng được</strong> — vì cơ bản vẫn dùng lại đúng những pattern đó. Chán nhỉ.</p>
+<p>Buổi phỏng vấn trên có vấn đề ở đâu?</p>
+<p>Ở chỗ: hai bên có thể đi hết cả buổi, diagram vẽ kín bảng, nhưng <strong>chưa chắc đã từng thống nhất với nhau &ldquo;1M CCU&rdquo; thật ra nghĩa là gì.</strong></p>
+<p>Điểm thú vị là không chỉ ứng viên — đôi khi chính người phỏng vấn cũng đang dùng CCU như một cách nói khác của RPS. Cứ thấy CCU lớn thì mặc định request cũng lớn tương ứng, rồi áp các pattern tăng tải quen thuộc vào.</p>
+<p><strong>Nhưng CCU không phải RPS.</strong> Bài này chứng minh điều đó bằng số đo thật, rồi đi qua cách chuyển từ con số user sang một workload model dùng được.</p>
+<hr>
+<h1 id="ccu-không-phải-rps">CCU không phải RPS<a hidden class="anchor" aria-hidden="true" href="#ccu-không-phải-rps">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>CCU</strong> — Concurrent Users</th>
+<th><strong>RPS</strong> — Requests Per Second</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Đo cái gì</td>
+<td><strong>Số người</strong> đang ở trong hệ thống</td>
+<td><strong>Tốc độ việc</strong> đi vào hệ thống</td>
+</tr>
+<tr>
+<td>Đơn vị</td>
+<td>người</td>
+<td>request/giây</td>
+</tr>
+<tr>
+<td>Tăng khi nào</td>
+<td>Nhiều người vào hơn</td>
+<td>Mỗi người làm nhiều việc hơn</td>
+</tr>
+<tr>
+<td>Ảnh hưởng chính tới</td>
+<td><strong>Bộ nhớ</strong>, connection, per-user state</td>
+<td><strong>CPU</strong>, I/O, database</td>
+</tr>
+<tr>
+<td>Business dự báo được?</td>
+<td><strong>Có</strong> — dễ hình dung</td>
+<td>Khó — phụ thuộc implementation</td>
+</tr>
+</tbody>
+</table>
+<p>Ẩn dụ dễ hình dung nhất: <strong>CCU cho biết có bao nhiêu người đang ở trong &ldquo;cửa hàng&rdquo;. RPS cho biết mỗi giây những người đó tạo ra bao nhiêu việc cho hệ thống xử lý.</strong></p>
+<p>Một triệu người đứng trong cửa hàng nhưng chỉ nhìn ngó sẽ khác <strong>hoàn toàn</strong> một triệu người cùng lúc bỏ hàng vào giỏ, thanh toán và tranh nhau vài sản phẩm cuối cùng.</p>
+<p>Và còn một lớp mơ hồ nữa: <strong>chỉ riêng chữ &ldquo;CCU&rdquo; đã có ít nhất ba cách hiểu</strong>, mỗi cách tạo ra một workload khác nhau.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="cc-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="cc-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="460" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">"1M CCU" — ba cách hiểu, ba hệ thống khác nhau</text>
+<rect x="24" y="48" width="278" height="196" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#cc-sh)"/>
+<rect x="311" y="48" width="278" height="196" rx="12" fill="#FFFAF0" stroke="#F5A623" stroke-width="2.5" filter="url(#cc-sh)"/>
+<rect x="598" y="48" width="278" height="196" rx="12" fill="#FFF7F7" stroke="#FF6B6B" stroke-width="2.5" filter="url(#cc-sh)"/>
+<rect x="24" y="48" width="278" height="34" rx="12" fill="#0D9488"/>
+<rect x="24" y="68" width="278" height="14" fill="#0D9488"/>
+<rect x="311" y="48" width="278" height="34" rx="12" fill="#D97706"/>
+<rect x="311" y="68" width="278" height="14" fill="#D97706"/>
+<rect x="598" y="48" width="278" height="34" rx="12" fill="#DC2626"/>
+<rect x="598" y="68" width="278" height="14" fill="#DC2626"/>
+<text x="163" y="71" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">① ĐANG ONLINE</text>
+<text x="450" y="71" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">② GIỮ CONNECTION</text>
+<text x="737" y="71" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">③ ĐANG ACTIVE</text>
+<text x="42" y="106" font-size="11" fill="#57534E">Đã đăng nhập, app còn mở,</text>
+<text x="42" y="123" font-size="11" fill="#57534E">nhưng có thể đang để màn</text>
+<text x="42" y="140" font-size="11" fill="#57534E">hình chờ.</text>
+<rect x="42" y="152" width="242" height="34" rx="7" fill="#CCFBF1"/>
+<text x="163" y="166" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">Tải thật: gần 0</text>
+<text x="163" y="181" text-anchor="middle" font-size="10" fill="#0F766E">chỉ tốn session store</text>
+<text x="42" y="206" font-size="11" font-weight="700" fill="#374151">Tốn gì:</text>
+<text x="42" y="224" font-size="11" fill="#0F766E">session entry, presence flag</text>
+<text x="329" y="106" font-size="11" fill="#57534E">1 WebSocket / long-poll /</text>
+<text x="329" y="123" font-size="11" fill="#57534E">gRPC stream đang mở, dù</text>
+<text x="329" y="140" font-size="11" fill="#57534E">không gửi gì.</text>
+<rect x="329" y="152" width="242" height="34" rx="7" fill="#FDE9C8"/>
+<text x="450" y="166" text-anchor="middle" font-size="11" font-weight="800" fill="#7C4A03">Tải thật: RAM, không CPU</text>
+<text x="450" y="181" text-anchor="middle" font-size="10" fill="#92400E">đo được: 3.501 bytes/conn</text>
+<text x="329" y="206" font-size="11" font-weight="700" fill="#374151">Tốn gì:</text>
+<text x="329" y="224" font-size="11" fill="#92400E">fd, buffer, goroutine/thread</text>
+<text x="616" y="106" font-size="11" fill="#57534E">Thật sự đang gửi request</text>
+<text x="616" y="123" font-size="11" fill="#57534E">hoặc message trong khoảng</text>
+<text x="616" y="140" font-size="11" fill="#57534E">thời gian đang xét.</text>
+<rect x="616" y="152" width="242" height="34" rx="7" fill="#FFD9DE"/>
+<text x="737" y="166" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">Tải thật: ĐÂY mới là tải</text>
+<text x="737" y="181" text-anchor="middle" font-size="10" fill="#BE123C">CPU, I/O, DB, bandwidth</text>
+<text x="616" y="206" font-size="11" font-weight="700" fill="#374151">Tốn gì:</text>
+<text x="616" y="224" font-size="11" fill="#BE123C">gần như MỌI tài nguyên</text>
+<rect x="24" y="264" width="852" height="80" rx="12" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="46" y="288" font-size="13" font-weight="800" fill="#374151">Ẩn dụ cửa hàng</text>
+<text x="46" y="312" font-size="12" fill="#57534E"><tspan font-weight="700" fill="#0D9488">CCU</tspan> = bao nhiêu người đang ở TRONG cửa hàng.   <tspan font-weight="700" fill="#DC2626">RPS</tspan> = mỗi giây những người đó tạo ra bao nhiêu VIỆC cho nhân viên.</text>
+<text x="46" y="334" font-size="12" font-weight="700" fill="#7C4A03">1 triệu người đứng nhìn ngó ≠ 1 triệu người cùng thanh toán và tranh nhau vài món hàng cuối.</text>
+<rect x="24" y="362" width="852" height="84" rx="12" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="46" y="386" font-size="13" font-weight="800" fill="#7C4A03">Câu hỏi đầu tiên nên hỏi trong buổi phỏng vấn</text>
+<text x="46" y="410" font-size="12" fill="#92400E">"Anh/chị nói 1M CCU — ý là 1 triệu người <tspan font-weight="700">đang online</tspan>, 1 triệu <tspan font-weight="700">connection đang mở</tspan>,</text>
+<text x="46" y="432" font-size="12" fill="#92400E">hay 1 triệu người <tspan font-weight="700">đang thật sự gửi request</tspan>?" — Ba câu trả lời dẫn tới ba hệ thống hoàn toàn khác nhau.</text>
+</svg>
+</div>
+<hr>
+<h1 id="chứng-minh-1m-ccu-có-thể-bằng-0-rps">Chứng minh: 1M CCU có thể bằng 0 RPS<a hidden class="anchor" aria-hidden="true" href="#chứng-minh-1m-ccu-có-thể-bằng-0-rps">¶</a></h1>
+<p>Bài gốc có một nhận xét rất sắc: <em>&ldquo;Bạn có thể dùng 1 server đủ mạnh, mở một triệu kết nối WebSocket vào và giữ ở đó. OK, bạn đã thành công xây dựng hệ thống chịu tải 1M CCU.&rdquo;</em></p>
+<p>Tôi quyết định <strong>đo thật xem điều đó tốn bao nhiêu</strong>. Một Go server mô hình 1 goroutine/connection, client mở connection rồi giữ nguyên, không gửi gì:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:right">Số connection</th>
+<th style="text-align:right">RSS server</th>
+<th style="text-align:right"><strong>Bytes/connection</strong></th>
+<th style="text-align:right">Goroutine</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">10.000</td>
+<td style="text-align:right">37,7 MB</td>
+<td style="text-align:right">3.403</td>
+<td style="text-align:right">10.002</td>
+</tr>
+<tr>
+<td style="text-align:right">50.000</td>
+<td style="text-align:right">171,8 MB</td>
+<td style="text-align:right">3.427</td>
+<td style="text-align:right">50.002</td>
+</tr>
+<tr>
+<td style="text-align:right"><strong>100.000</strong></td>
+<td style="text-align:right"><strong>346,3 MB</strong></td>
+<td style="text-align:right"><strong>3.501</strong></td>
+<td style="text-align:right">100.002</td>
+</tr>
+</tbody>
+</table>
+<p>Rất ổn định: <strong>~3,5 KB cho mỗi connection đang mở</strong>. Ngoại suy tuyến tính: <strong>1.000.000 connection ≈ 3,4 GB RAM.</strong> Trên một máy 37 GB RAM thì đó là chuyện nhỏ.</p>
+<p>Giờ đến phần quan trọng. Giữ <strong>nguyên 100.000 connection</strong>, chỉ đổi lượng message chạy qua:</p>
+<table>
+<thead>
+<tr>
+<th>Tải</th>
+<th style="text-align:right"><strong>CPU server</strong></th>
+<th style="text-align:right">msg/s xử lý được</th>
+<th style="text-align:right">RSS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>0 msg/s (idle hoàn toàn)</strong></td>
+<td style="text-align:right"><strong>0,0%</strong></td>
+<td style="text-align:right">0</td>
+<td style="text-align:right">328 MB</td>
+</tr>
+<tr>
+<td>10.000 msg/s</td>
+<td style="text-align:right">29,8%</td>
+<td style="text-align:right">10.010</td>
+<td style="text-align:right">378 MB</td>
+</tr>
+<tr>
+<td>100.000 msg/s (yêu cầu)</td>
+<td style="text-align:right"><strong>98,2%</strong> (bão hoà)</td>
+<td style="text-align:right"><strong>54.096</strong></td>
+<td style="text-align:right">407 MB</td>
+</tr>
+</tbody>
+</table>
+<p>Đọc kỹ dòng đầu: <strong>100.000 connection đồng thời, CPU 0,0%.</strong> Server hoàn toàn rảnh rỗi.</p>
+<p>Và dòng cuối: khi yêu cầu 100.000 msg/s, server bão hoà một core và <strong>chỉ xử lý được 54.096 msg/s</strong> — không đạt được mức yêu cầu.</p>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="ax-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="ax-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="440" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">CCU và RPS là hai trục ĐỘC LẬP — đo thật trên 100.000 connection</text>
+<line x1="110" y1="330" x2="470" y2="330" stroke="#57534E" stroke-width="2" marker-end="url(#ax-arr)"/>
+<line x1="110" y1="330" x2="110" y2="70" stroke="#57534E" stroke-width="2" marker-end="url(#ax-arr)"/>
+<text x="300" y="358" text-anchor="middle" font-size="12" font-weight="700" fill="#DC2626">RPS / msg mỗi giây  →  quyết định CPU</text>
+<text x="76" y="200" text-anchor="middle" font-size="12" font-weight="700" fill="#0D9488" transform="rotate(-90 76 200)">CCU / connection → quyết định RAM</text>
+<rect x="128" y="246" width="96" height="76" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<rect x="248" y="246" width="96" height="76" rx="8" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<rect x="368" y="246" width="96" height="76" rx="8" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="176" y="270" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">100k conn</text>
+<text x="176" y="288" text-anchor="middle" font-size="11" fill="#0F766E">0 msg/s</text>
+<rect x="140" y="296" width="72" height="18" rx="4" fill="#0D9488"/>
+<text x="176" y="309" text-anchor="middle" font-size="10" font-weight="800" fill="#FFFFFF">CPU 0,0%</text>
+<text x="296" y="270" text-anchor="middle" font-size="11" font-weight="800" fill="#7C4A03">100k conn</text>
+<text x="296" y="288" text-anchor="middle" font-size="11" fill="#92400E">10k msg/s</text>
+<rect x="260" y="296" width="72" height="18" rx="4" fill="#D97706"/>
+<text x="296" y="309" text-anchor="middle" font-size="10" font-weight="800" fill="#FFFFFF">CPU 29,8%</text>
+<text x="416" y="270" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">100k conn</text>
+<text x="416" y="288" text-anchor="middle" font-size="11" fill="#BE123C">bão hoà</text>
+<rect x="380" y="296" width="72" height="18" rx="4" fill="#DC2626"/>
+<text x="416" y="309" text-anchor="middle" font-size="10" font-weight="800" fill="#FFFFFF">CPU 98,2%</text>
+<rect x="128" y="96" width="336" height="130" rx="10" fill="#FFFFFF" stroke="#0D9488" stroke-width="2" stroke-dasharray="6 4"/>
+<text x="296" y="120" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">RAM gần như KHÔNG đổi theo tải</text>
+<text x="146" y="144" font-size="11" fill="#0F766E">0 msg/s      → RSS 328 MB</text>
+<text x="146" y="164" font-size="11" fill="#0F766E">10k msg/s   → RSS 378 MB</text>
+<text x="146" y="184" font-size="11" fill="#0F766E">bão hoà      → RSS 407 MB</text>
+<text x="146" y="210" font-size="11" font-weight="700" fill="#134E4A">Cùng 100k conn → RAM quyết định bởi CCU</text>
+<rect x="500" y="70" width="356" height="156" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#ax-sh)"/>
+<text x="520" y="96" font-size="13" font-weight="800" fill="#134E4A">Chi phí MỘT connection idle</text>
+<text x="520" y="124" font-size="22" font-weight="800" fill="#0F766E">3.501 bytes</text>
+<text x="520" y="148" font-size="11" fill="#0F766E">Đo tại mốc 100.000 connection,</text>
+<text x="520" y="166" font-size="11" fill="#0F766E">gồm cả goroutine + buffer + fd.</text>
+<text x="520" y="192" font-size="12" font-weight="800" fill="#134E4A">→ 1.000.000 conn ≈ 3,4 GB RAM</text>
+<text x="520" y="214" font-size="11" fill="#0F766E">(ngoại suy tuyến tính từ 3 mốc đo)</text>
+<rect x="500" y="246" width="356" height="76" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5" filter="url(#ax-sh)"/>
+<text x="520" y="270" font-size="13" font-weight="800" fill="#9F1239">Nhưng khi có tải thật</text>
+<text x="520" y="292" font-size="11" fill="#BE123C">Yêu cầu 100k msg/s → chỉ đạt 54.096 msg/s</text>
+<text x="520" y="312" font-size="11" font-weight="700" fill="#DC2626">Nút thắt là CPU, không phải số connection</text>
+<rect x="110" y="376" width="746" height="52" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="483" y="398" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">"Chịu được 1M CCU" mà không nói tải thì có thể chỉ nghĩa là: giữ 1 triệu socket và không làm gì cả.</text>
+<text x="483" y="418" text-anchor="middle" font-size="12" fill="#92400E">Tốn 3,4 GB RAM, 0% CPU. Đúng đề bài, và vô nghĩa.</text>
+</svg>
+</div>
+<p>Kết luận từ hai bảng trên: <strong>số connection quyết định RAM, số message quyết định CPU.</strong> Hai trục độc lập. Một con số CCU không nói gì về trục còn lại.</p>
+<hr>
+<h1 id="công-thức-map-ccu-sang-rps">Công thức map CCU sang RPS<a hidden class="anchor" aria-hidden="true" href="#công-thức-map-ccu-sang-rps">¶</a></h1>
+<p>Muốn chuyển CCU thành RPS thì tối thiểu phải biết ba thừa số:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">RPS ≈ Active Users × (Action mỗi giây) × (Request mỗi Action)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nhưng đó <strong>mới chỉ là traffic ở lớp ngoài</strong>. Một request còn có thể:</p>
+<ul>
+<li><strong>Fan-out</strong> thành nhiều internal request (microservice gọi nhau)</li>
+<li>Sinh nhiều <strong>query database</strong></li>
+<li><strong>Emit event</strong> sang message broker</li>
+<li>Bị <strong>retry</strong> khi lỗi — và retry là thứ nhân tải lên đúng lúc hệ thống đang yếu nhất</li>
+<li><strong>Cache hit hay miss</strong> làm tải xuống database khác nhau hàng chục lần</li>
+</ul>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="am-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="am-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="420" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Chuỗi khuếch đại: từ 1M CCU xuống tới DB QPS</text>
+<text x="450" y="48" text-anchor="middle" font-size="11" fill="#78716C">Ví dụ e-commerce — mọi giả định đều ghi rõ, thay số của bạn vào để tự tính</text>
+<rect x="30" y="68" width="132" height="64" rx="10" fill="#0D9488" filter="url(#am-sh)"/>
+<rect x="194" y="68" width="132" height="64" rx="10" fill="#14B8A6" filter="url(#am-sh)"/>
+<rect x="358" y="68" width="132" height="64" rx="10" fill="#F5A623" filter="url(#am-sh)"/>
+<rect x="522" y="68" width="132" height="64" rx="10" fill="#D97706" filter="url(#am-sh)"/>
+<rect x="686" y="68" width="132" height="64" rx="10" fill="#DC2626" filter="url(#am-sh)"/>
+<text x="96" y="92" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">CCU</text>
+<text x="96" y="114" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">1.000.000</text>
+<text x="260" y="92" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">Action/giây</text>
+<text x="260" y="114" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">50.000</text>
+<text x="424" y="92" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">RPS tại edge</text>
+<text x="424" y="114" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">150.000</text>
+<text x="588" y="92" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">RPS tới origin</text>
+<text x="588" y="114" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">30.000</text>
+<text x="752" y="92" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">DB QPS</text>
+<text x="752" y="114" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">15.000</text>
+<line x1="164" y1="100" x2="190" y2="100" stroke="#57534E" stroke-width="2" marker-end="url(#am-arr)"/>
+<line x1="328" y1="100" x2="354" y2="100" stroke="#57534E" stroke-width="2" marker-end="url(#am-arr)"/>
+<line x1="492" y1="100" x2="518" y2="100" stroke="#57534E" stroke-width="2" marker-end="url(#am-arr)"/>
+<line x1="656" y1="100" x2="682" y2="100" stroke="#57534E" stroke-width="2" marker-end="url(#am-arr)"/>
+<rect x="178" y="148" width="164" height="42" rx="7" fill="#E6FBF9" stroke="#14B8A6" stroke-width="1.6"/>
+<rect x="342" y="148" width="164" height="42" rx="7" fill="#FFF3DB" stroke="#F5A623" stroke-width="1.6"/>
+<rect x="506" y="148" width="164" height="42" rx="7" fill="#FDE9C8" stroke="#D97706" stroke-width="1.6"/>
+<rect x="670" y="148" width="164" height="42" rx="7" fill="#FFE9EC" stroke="#DC2626" stroke-width="1.6"/>
+<text x="260" y="164" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">÷ 20</text>
+<text x="260" y="182" text-anchor="middle" font-size="10" fill="#0F766E">1 action / 20 giây / user</text>
+<text x="424" y="164" text-anchor="middle" font-size="10" font-weight="700" fill="#7C4A03">× 3</text>
+<text x="424" y="182" text-anchor="middle" font-size="10" fill="#92400E">3 API call mỗi action</text>
+<text x="588" y="164" text-anchor="middle" font-size="10" font-weight="700" fill="#7C4A03">× 0,2</text>
+<text x="588" y="182" text-anchor="middle" font-size="10" fill="#92400E">CDN hấp thụ 80%</text>
+<text x="752" y="164" text-anchor="middle" font-size="10" font-weight="700" fill="#9F1239">× 5 rồi × 0,1</text>
+<text x="752" y="182" text-anchor="middle" font-size="10" fill="#BE123C">fan-out 5, cache hit 90%</text>
+<rect x="30" y="212" width="840" height="78" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="50" y="236" font-size="12" font-weight="800" fill="#374151">Mỗi thừa số đổi một chút là kết quả đổi rất nhiều</text>
+<text x="50" y="258" font-size="11" fill="#57534E">• Cache hit tụt từ 90% xuống 70% → DB QPS tăng từ 15.000 lên <tspan font-weight="700" fill="#DC2626">45.000</tspan> (gấp 3) mà CCU không đổi một người nào.</text>
+<text x="50" y="278" font-size="11" fill="#57534E">• Frontend mới gọi 6 API thay vì 3 → RPS <tspan font-weight="700" fill="#DC2626">gấp đôi</tspan>. Vẫn 1M CCU.</text>
+<rect x="30" y="306" width="840" height="100" rx="10" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2"/>
+<text x="50" y="330" font-size="12" font-weight="800" fill="#9F1239">Hai thứ hay bị quên trong phép tính</text>
+<text x="50" y="352" font-size="11" fill="#BE123C"><tspan font-weight="700">1. Burst.</tspan> Traffic đều 30.000 RPS khác hẳn trung bình 30.000 RPS nhưng dồn thành đỉnh 200.000 RPS trong 10 giây.</text>
+<text x="50" y="372" font-size="11" fill="#BE123C"><tspan font-weight="700">2. Retry.</tspan> Khi hệ thống chậm, client retry → tải TĂNG đúng lúc hệ thống yếu nhất. Đây là vòng lặp tự khuếch đại.</text>
+<text x="50" y="394" font-size="11" font-weight="700" fill="#DC2626">→ Luôn hỏi "đều hay burst?" và "retry policy là gì?" trước khi chốt con số RPS.</text>
+</svg>
+</div>
+<blockquote>
+<p>📌 <strong>Chuỗi quan hệ đúng</strong> nên là ba tầng, không phải một con số:</p>
+<p><code>(Business demand) CCU + hành vi user</code> → <code>(Technical workload) RPS, message/s, bandwidth, connection, DB QPS</code> → <code>(Resource demand) CPU, memory, network, storage, connection pool</code></p>
+<p>Bỏ qua tầng giữa là đi thẳng từ &ldquo;một triệu user&rdquo; tới &ldquo;chắc cần Kafka&rdquo;.</p>
+</blockquote>
+<hr>
+<h1 id="cùng-1m-ccu-hai-bài-toán-khác-nhau-hoàn-toàn">Cùng 1M CCU, hai bài toán khác nhau hoàn toàn<a hidden class="anchor" aria-hidden="true" href="#cùng-1m-ccu-hai-bài-toán-khác-nhau-hoàn-toàn">¶</a></h1>
+<p>Thử đặt cùng con số 1M CCU vào hai hệ thống: <strong>E-commerce</strong> và <strong>Realtime Gaming</strong>. Tôi tính cụ thể cả hai với giả định ghi rõ.</p>
+<h2 id="e-commerce--1m-ccu">E-commerce — 1M CCU<a hidden class="anchor" aria-hidden="true" href="#e-commerce--1m-ccu">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th style="text-align:right">Giá trị</th>
+<th>Giả định</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Action/giây</td>
+<td style="text-align:right">50.000</td>
+<td>1 action / 20 giây / user</td>
+</tr>
+<tr>
+<td>RPS tại edge</td>
+<td style="text-align:right">150.000</td>
+<td>3 API call mỗi action</td>
+</tr>
+<tr>
+<td><strong>RPS tới origin</strong></td>
+<td style="text-align:right"><strong>30.000</strong></td>
+<td>CDN hấp thụ 80%</td>
+</tr>
+<tr>
+<td>Internal call/giây</td>
+<td style="text-align:right">150.000</td>
+<td>fan-out × 5 microservice</td>
+</tr>
+<tr>
+<td><strong>DB QPS</strong></td>
+<td style="text-align:right"><strong>15.000</strong></td>
+<td>cache hit 90%</td>
+</tr>
+<tr>
+<td>Bandwidth origin</td>
+<td style="text-align:right">1,2 Gbps</td>
+<td>5 KB mỗi response</td>
+</tr>
+</tbody>
+</table>
+<p>Phần lớn user đang <strong>browse catalog, search, xem hình</strong> — tải <strong>đọc</strong>, đẩy được qua CDN, cache và read replica. Nhưng tới lúc <strong>checkout</strong> thì hệ thống phải quan tâm tới inventory consistency, idempotency của payment, và chuyện <strong>không bán âm số lượng tồn kho</strong>.</p>
+<p>Và trong flash sale: 100.000 user vào checkout trong 60 giây = <strong>1.667 checkout/giây</strong> — tất cả tranh chấp <strong>cùng vài trăm dòng tồn kho</strong>. Con số 1.667/s nghe nhỏ so với 30.000 RPS, nhưng đây mới là phần khó nhất của cả hệ thống.</p>
+<h2 id="realtime-gaming--1m-ccu">Realtime Gaming — 1M CCU<a hidden class="anchor" aria-hidden="true" href="#realtime-gaming--1m-ccu">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th style="text-align:right">Giá trị</th>
+<th>Giả định</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connection giữ liên tục</td>
+<td style="text-align:right">1.000.000</td>
+<td>WebSocket/UDP sống lâu</td>
+</tr>
+<tr>
+<td><strong>Message/giây VÀO</strong></td>
+<td style="text-align:right"><strong>10.000.000</strong></td>
+<td>10 input/giây/player</td>
+</tr>
+<tr>
+<td><strong>Message/giây RA</strong></td>
+<td style="text-align:right"><strong>20.000.000</strong></td>
+<td>tick rate 20/giây</td>
+</tr>
+<tr>
+<td>Bandwidth VÀO</td>
+<td style="text-align:right">16 Gbps</td>
+<td>200 bytes mỗi message</td>
+</tr>
+<tr>
+<td><strong>Bandwidth RA</strong></td>
+<td style="text-align:right"><strong>32 Gbps</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>RAM chỉ cho connection</td>
+<td style="text-align:right">3,4 GB</td>
+<td><strong>3.501 B/conn — đo thật</strong></td>
+</tr>
+<tr>
+<td>DB QPS</td>
+<td style="text-align:right">gần 0</td>
+<td>state nằm trong RAM, persist theo chu kỳ</td>
+</tr>
+</tbody>
+</table>
+<h2 id="so-sánh">So sánh<a hidden class="anchor" aria-hidden="true" href="#so-sánh">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:right">E-commerce</th>
+<th style="text-align:right">Gaming</th>
+<th style="text-align:right">Tỉ lệ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Message/RPS vào hệ thống</td>
+<td style="text-align:right">30.000</td>
+<td style="text-align:right">10.000.000</td>
+<td style="text-align:right"><strong>333×</strong></td>
+</tr>
+<tr>
+<td>Bandwidth ra</td>
+<td style="text-align:right">1,2 Gbps</td>
+<td style="text-align:right">32 Gbps</td>
+<td style="text-align:right"><strong>26×</strong></td>
+</tr>
+<tr>
+<td>DB QPS</td>
+<td style="text-align:right">15.000</td>
+<td style="text-align:right">~0</td>
+<td style="text-align:right">—</td>
+</tr>
+<tr>
+<td>Nút thắt chính</td>
+<td style="text-align:right"><strong>Hot resource lúc checkout</strong></td>
+<td style="text-align:right"><strong>Network + latency</strong></td>
+<td style="text-align:right"></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Cùng một con số 1M CCU, nhưng gaming tạo ra 333 lần lượng việc.</strong> Và nút thắt nằm ở hai chỗ hoàn toàn khác nhau.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="tw-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="480" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Hai hệ thống, cùng "1M CCU" — diagram tổng quát giống nhau, bên dưới khác hoàn toàn</text>
+<rect x="24" y="48" width="420" height="412" rx="12" fill="#FFFAF0" stroke="#F5A623" stroke-width="2.5" filter="url(#tw-sh)"/>
+<rect x="456" y="48" width="420" height="412" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#tw-sh)"/>
+<rect x="24" y="48" width="420" height="34" rx="12" fill="#D97706"/>
+<rect x="24" y="68" width="420" height="14" fill="#D97706"/>
+<rect x="456" y="48" width="420" height="34" rx="12" fill="#0D9488"/>
+<rect x="456" y="68" width="420" height="14" fill="#0D9488"/>
+<text x="234" y="71" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">E-COMMERCE · 1M CCU</text>
+<text x="666" y="71" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">REALTIME GAMING · 1M CCU</text>
+<text x="44" y="106" font-size="11" font-weight="800" fill="#374151">User đang làm gì</text>
+<text x="44" y="126" font-size="11" fill="#92400E">Browse catalog, search, xem ảnh.</text>
+<text x="44" y="144" font-size="11" fill="#92400E">Phần lớn là tải ĐỌC.</text>
+<text x="476" y="106" font-size="11" font-weight="800" fill="#374151">User đang làm gì</text>
+<text x="476" y="126" font-size="11" fill="#0F766E">Giữ connection, liên tục trao đổi</text>
+<text x="476" y="144" font-size="11" fill="#0F766E">state theo tick hoặc event.</text>
+<rect x="44" y="158" width="380" height="96" rx="8" fill="#FFFFFF" stroke="#F5A623" stroke-width="1.6"/>
+<rect x="476" y="158" width="380" height="96" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.6"/>
+<text x="62" y="178" font-size="11" font-weight="800" fill="#7C4A03">Workload tính ra</text>
+<text x="62" y="198" font-size="11" font-family="monospace" fill="#92400E">30.000 RPS tới origin</text>
+<text x="62" y="216" font-size="11" font-family="monospace" fill="#92400E">15.000 DB QPS</text>
+<text x="62" y="234" font-size="11" font-family="monospace" fill="#92400E">1,2 Gbps bandwidth</text>
+<text x="494" y="178" font-size="11" font-weight="800" fill="#134E4A">Workload tính ra</text>
+<text x="494" y="198" font-size="11" font-family="monospace" font-weight="700" fill="#0F766E">10.000.000 msg/s VÀO</text>
+<text x="494" y="216" font-size="11" font-family="monospace" font-weight="700" fill="#0F766E">20.000.000 msg/s RA</text>
+<text x="494" y="234" font-size="11" font-family="monospace" font-weight="700" fill="#0F766E">32 Gbps bandwidth RA</text>
+<text x="44" y="278" font-size="11" font-weight="800" fill="#374151">Hot Path cần bảo vệ</text>
+<rect x="44" y="288" width="380" height="54" rx="8" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="234" y="308" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">CHECKOUT — tồn kho, payment</text>
+<text x="234" y="328" text-anchor="middle" font-size="10" fill="#BE123C">1.667 checkout/s tranh vài trăm dòng tồn kho</text>
+<text x="476" y="278" font-size="11" font-weight="800" fill="#374151">Hot Path cần bảo vệ</text>
+<rect x="476" y="288" width="380" height="54" rx="8" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/>
+<text x="666" y="308" text-anchor="middle" font-size="11" font-weight="800" fill="#3730A3">TICK LOOP — độ trễ từng frame</text>
+<text x="666" y="328" text-anchor="middle" font-size="10" fill="#4338CA">p99 latency, jitter, regional placement</text>
+<text x="44" y="366" font-size="11" font-weight="800" fill="#374151">Cách partition dữ liệu</text>
+<text x="44" y="386" font-size="11" fill="#92400E">Theo user_id / product_id / shard DB.</text>
+<text x="44" y="404" font-size="11" fill="#92400E">Dữ liệu phân tán khá đều.</text>
+<text x="476" y="366" font-size="11" font-weight="800" fill="#374151">Cách partition dữ liệu</text>
+<text x="476" y="386" font-size="11" fill="#0F766E">Theo room / match / vùng game.</text>
+<text x="476" y="404" font-size="11" fill="#0F766E">Player cùng room PHẢI cùng node.</text>
+<rect x="44" y="416" width="380" height="32" rx="7" fill="#FDE9C8"/>
+<rect x="476" y="416" width="380" height="32" rx="7" fill="#CCFBF1"/>
+<text x="234" y="436" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">Failure mode tệ nhất: bán âm tồn kho</text>
+<text x="666" y="436" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">Failure mode tệ nhất: lag / mất đồng bộ state</text>
+</svg>
+</div>
+<p>Cả hai hệ thống <strong>vẫn có</strong> Load Balancer, Cache, Queue và database. Nhìn ở mức diagram tổng quát chúng thậm chí khá giống nhau. Nhưng <strong>trách nhiệm của từng component, Hot Path cần bảo vệ, cách partition dữ liệu và failure mode quan trọng lại khác hoàn toàn.</strong></p>
+<p>Không thể lấy thiết kế E-commerce, đổi chữ &ldquo;product&rdquo; thành &ldquo;player&rdquo; rồi gọi đó là hệ thống Gaming 1M CCU được. 😄</p>
+<hr>
+<h1 id="hot-resource-chỗ-ccu-hoàn-toàn-không-nói-gì">Hot Resource: chỗ CCU hoàn toàn không nói gì<a hidden class="anchor" aria-hidden="true" href="#hot-resource-chỗ-ccu-hoàn-toàn-không-nói-gì">¶</a></h1>
+<p>Đây là phần tôi muốn đào sâu, vì nó là ví dụ rõ nhất cho việc <strong>cùng một con số CCU có thể cho ra hai khả năng chịu tải chênh nhau hàng chục lần</strong>.</p>
+<p>Bài toán: giảm tồn kho. 120 &ldquo;user&rdquo; đồng thời, 20.000 lượt mua. Chỉ đổi <strong>một</strong> thứ — tải dồn vào một dòng, hay rải ra 200 dòng.</p>
+<table>
+<thead>
+<tr>
+<th>Kịch bản</th>
+<th style="text-align:right">Thời gian</th>
+<th style="text-align:right"><strong>Throughput</strong></th>
+<th style="text-align:right">p50</th>
+<th style="text-align:right">p99</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>MySQL — 1 hot row</strong> (tất cả tranh <code>id=1</code>)</td>
+<td style="text-align:right">51,70 s</td>
+<td style="text-align:right"><strong>387 ops/s</strong></td>
+<td style="text-align:right"><strong>309,9 ms</strong></td>
+<td style="text-align:right">345,2 ms</td>
+</tr>
+<tr>
+<td>MySQL — 200 row rải đều</td>
+<td style="text-align:right">1,68 s</td>
+<td style="text-align:right"><strong>11.940 ops/s</strong></td>
+<td style="text-align:right">9,4 ms</td>
+<td style="text-align:right">22,5 ms</td>
+</tr>
+<tr>
+<td>Redis — 1 hot key (<code>DECR stock:1</code>)</td>
+<td style="text-align:right">233 ms</td>
+<td style="text-align:right">85.949 ops/s</td>
+<td style="text-align:right">1,19 ms</td>
+<td style="text-align:right">2,9 ms</td>
+</tr>
+<tr>
+<td>Redis — 200 key rải đều</td>
+<td style="text-align:right">212 ms</td>
+<td style="text-align:right">94.175 ops/s</td>
+<td style="text-align:right">1,15 ms</td>
+<td style="text-align:right">2,8 ms</td>
+</tr>
+</tbody>
+</table>
+<p>Hai điều rút ra:</p>
+<p><strong>1. Trên MySQL, một hot row làm throughput sụp 30,8 lần</strong> (387 vs 11.940) và p50 latency tăng <strong>33 lần</strong> (310ms vs 9,4ms). Nguyên nhân: row lock của InnoDB <strong>tuần tự hoá</strong> mọi transaction đụng vào dòng đó. Thêm CPU, thêm replica, thêm connection — không cái nào giúp được, vì nút thắt là <strong>thứ tự</strong>, không phải năng lực.</p>
+<p><strong>2. Trên Redis, hot key gần như không ảnh hưởng</strong> (85.949 vs 94.175, chỉ 1,1×). Vì <code>DECR</code> là một lệnh atomic đơn trên một server single-thread — mọi thứ <strong>vốn đã tuần tự</strong>, nên tập trung vào một key không thêm chi phí tuần tự hoá nào nữa.</p>
+<p>Đây chính là lý do kỹ thuật đằng sau việc mọi thiết kế flash sale đều <strong>đưa bộ đếm tồn kho ra khỏi RDBMS</strong>: không phải vì Redis &ldquo;nhanh hơn&rdquo;, mà vì <strong>mô hình đồng thời của nó không bị sụp khi có hot key</strong>.</p>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="hr-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="420" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Cùng 120 user đồng thời — chỉ đổi chỗ tải rơi vào</text>
+<text x="440" y="48" text-anchor="middle" font-size="11" fill="#78716C">20.000 lượt giảm tồn kho · MySQL 8.0.40 · đo thật</text>
+<line x1="100" y1="300" x2="800" y2="300" stroke="#57534E" stroke-width="2"/>
+<line x1="100" y1="300" x2="100" y2="76" stroke="#57534E" stroke-width="2"/>
+<rect x="160" y="293" width="100" height="7" rx="2" fill="#DC2626"/>
+<rect x="320" y="90" width="100" height="210" rx="2" fill="#F5A623"/>
+<rect x="480" y="92" width="100" height="208" rx="2" fill="#14B8A6"/>
+<rect x="640" y="86" width="100" height="214" rx="2" fill="#0D9488"/>
+<text x="210" y="283" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">387</text>
+<text x="370" y="82" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">11.940</text>
+<text x="530" y="84" text-anchor="middle" font-size="13" font-weight="800" fill="#0F766E">85.949</text>
+<text x="690" y="78" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">94.175</text>
+<text x="210" y="322" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">MySQL</text>
+<text x="210" y="338" text-anchor="middle" font-size="11" font-weight="800" fill="#DC2626">1 HOT ROW</text>
+<text x="370" y="322" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">MySQL</text>
+<text x="370" y="338" text-anchor="middle" font-size="11" fill="#7C4A03">200 row rải đều</text>
+<text x="530" y="322" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">Redis</text>
+<text x="530" y="338" text-anchor="middle" font-size="11" fill="#0F766E">1 hot key</text>
+<text x="690" y="322" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">Redis</text>
+<text x="690" y="338" text-anchor="middle" font-size="11" fill="#134E4A">200 key rải đều</text>
+<text x="66" y="190" text-anchor="middle" font-size="11" font-weight="700" fill="#57534E" transform="rotate(-90 66 190)">ops/giây</text>
+<rect x="150" y="100" width="150" height="76" rx="9" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5" filter="url(#hr-sh)"/>
+<text x="225" y="124" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">sụp 30,8×</text>
+<text x="225" y="144" text-anchor="middle" font-size="11" fill="#BE123C">p50: 9,4ms → 310ms</text>
+<text x="225" y="163" text-anchor="middle" font-size="11" font-weight="700" fill="#DC2626">chậm hơn 33 lần</text>
+<rect x="100" y="350" width="700" height="66" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="118" y="371" font-size="12" font-weight="800" fill="#7C4A03">Vì sao thêm tài nguyên không cứu được?</text>
+<text x="118" y="391" font-size="11" fill="#92400E">Row lock của InnoDB TUẦN TỰ HOÁ mọi transaction đụng cùng một dòng.</text>
+<text x="118" y="409" font-size="11" fill="#92400E">Nút thắt là THỨ TỰ, không phải năng lực — thêm CPU, replica hay connection đều vô ích.</text>
+</svg>
+</div>
+<p>Và đây là điểm then chốt cho chủ đề của bài: <strong>&ldquo;1M CCU&rdquo; không hề nói cho bạn biết tải sẽ rơi vào đâu.</strong> Một triệu user browse 200.000 sản phẩm là tải rải đều, dễ shard. Một triệu user tranh 100 suất flash sale là tải tập trung tuyệt đối — và hai thứ đó cách nhau 30 lần năng lực, trên cùng một database.</p>
+<hr>
+<h1 id="và-đừng-quên-fr-trước-nfr">Và đừng quên FR trước NFR<a hidden class="anchor" aria-hidden="true" href="#và-đừng-quên-fr-trước-nfr">¶</a></h1>
+<p>Bài toán chịu tải ở đây chủ yếu đang nói về <strong>NFR</strong> (Non-Functional Requirement): throughput, latency, availability, durability.</p>
+<p>Nhưng nếu thiếu <strong>FR</strong> (Functional Requirement) — hệ thống <em>làm gì</em>, luồng nào quan trọng, cái gì bắt buộc phải đúng — thì giải pháp dù đẹp cũng vô nghĩa. Bạn không thể biết cần bảo vệ Hot Path nào nếu chưa biết Hot Path đó là gì.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>FR</strong></th>
+<th><strong>NFR</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Trả lời câu hỏi</td>
+<td>Hệ thống <strong>làm gì</strong>?</td>
+<td>Làm <strong>tốt tới mức nào</strong>?</td>
+</tr>
+<tr>
+<td>Ví dụ</td>
+<td>&ldquo;User đặt hàng, trừ tồn kho, gửi email&rdquo;</td>
+<td>&ldquo;p99 &lt; 200ms, 99,95% uptime&rdquo;</td>
+</tr>
+<tr>
+<td>Thiếu nó thì sao</td>
+<td><strong>Không biết đang scale cái gì</strong></td>
+<td>Không biết bao nhiêu là đủ</td>
+</tr>
+<tr>
+<td>Trong đề bài 1M CCU</td>
+<td><strong>Thường bị bỏ trống</strong></td>
+<td>Chỉ có một con số duy nhất</td>
+</tr>
+</tbody>
+</table>
+<p>Vấn đề không phải đề bài mở. Nếu người phỏng vấn <strong>cố tình</strong> để đề mở nhằm xem ứng viên có biết khai thác requirement, xây workload model và đặt assumption hay không, thì đây lại là một câu hỏi <strong>khá hay</strong>.</p>
+<p>Vấn đề là khi <strong>cả hai bên cùng bỏ qua bước đó</strong>: ứng viên vội vàng scale một hệ thống chưa được định nghĩa, còn người phỏng vấn giữ sẵn trong đầu một diagram &ldquo;đúng&rdquo; rồi chấm xem ứng viên có đoán trúng Kafka, Redis hay Sharding giống đáp án của mình hay không.</p>
+<hr>
+<h1 id="năm-câu-hỏi-nên-hỏi-trước-khi-vẽ">Năm câu hỏi nên hỏi trước khi vẽ<a hidden class="anchor" aria-hidden="true" href="#năm-câu-hỏi-nên-hỏi-trước-khi-vẽ">¶</a></h1>
+<p>Ứng viên tốt <strong>chưa cần vẽ ngay</strong>. Trước hết nên làm rõ:</p>
+<div class="zoomable-diagram" style="max-width:860px;margin:2rem auto;">
+<svg viewBox="0 0 860 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="q5-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="q5-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="860" height="480" fill="#FFFDF7" rx="16"/>
+<text x="430" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Năm câu hỏi — rồi mới tới cái bút vẽ</text>
+<rect x="30" y="48" width="800" height="46" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<rect x="30" y="102" width="800" height="46" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<rect x="30" y="156" width="800" height="46" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<rect x="30" y="210" width="800" height="46" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<rect x="30" y="264" width="800" height="46" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="2"/>
+<rect x="30" y="48" width="38" height="46" rx="9" fill="#0D9488"/>
+<rect x="30" y="102" width="38" height="46" rx="9" fill="#0D9488"/>
+<rect x="30" y="156" width="38" height="46" rx="9" fill="#0D9488"/>
+<rect x="30" y="210" width="38" height="46" rx="9" fill="#0D9488"/>
+<rect x="30" y="264" width="38" height="46" rx="9" fill="#0D9488"/>
+<text x="49" y="77" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">1</text>
+<text x="49" y="131" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">2</text>
+<text x="49" y="185" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">3</text>
+<text x="49" y="239" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">4</text>
+<text x="49" y="293" text-anchor="middle" font-size="15" font-weight="800" fill="#FFFFFF">5</text>
+<text x="84" y="70" font-size="12" font-weight="800" fill="#374151">User đang làm gì, và đâu là các flow quan trọng nhất?</text>
+<text x="84" y="87" font-size="11" fill="#57534E">→ Xác định FR. Không có bước này thì không biết đang scale cái gì.</text>
+<text x="84" y="124" font-size="12" font-weight="800" fill="#374151">CCU nghĩa là online, active, hay giữ connection?</text>
+<text x="84" y="141" font-size="11" fill="#57534E">→ Ba câu trả lời khác nhau. Đo được: connection idle tốn 3,5 KB và 0% CPU.</text>
+<text x="84" y="178" font-size="12" font-weight="800" fill="#374151">Mỗi user tạo bao nhiêu action / request / message? Đều hay burst?</text>
+<text x="84" y="195" font-size="11" fill="#57534E">→ Đây là chỗ CCU biến thành RPS. Và burst mới là thứ làm sập hệ thống.</text>
+<text x="84" y="232" font-size="12" font-weight="800" fill="#374151">Dữ liệu phân tán, hay nhiều user cùng tranh một Hot Resource?</text>
+<text x="84" y="249" font-size="11" fill="#57534E">→ Đo được: hot row làm throughput sụp 30,8× trên cùng một MySQL.</text>
+<text x="84" y="286" font-size="12" font-weight="800" fill="#374151">Điều gì BẮT BUỘC phải đúng? Mục tiêu latency / availability / durability?</text>
+<text x="84" y="303" font-size="11" fill="#57534E">→ NFR. Và "bắt buộc phải đúng" quyết định chỗ nào được phép eventual consistency.</text>
+<rect x="30" y="330" width="800" height="50" rx="9" fill="#374151"/>
+<text x="430" y="352" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">Rồi MỚI map hành vi user → workload → xác định Hot Path → chọn component và pattern</text>
+<text x="430" y="371" text-anchor="middle" font-size="11" fill="#D6D3D1">Load Balancer, Cache, Queue, Sharding mới chỉ là VOCABULARY của System Design</text>
+<rect x="30" y="392" width="800" height="76" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="430" y="418" text-anchor="middle" font-size="14" font-weight="800" fill="#7C4A03">Thay vì hỏi "Hệ thống 1M CCU nên thiết kế thế nào?"</text>
+<text x="430" y="444" text-anchor="middle" font-size="14" font-weight="800" fill="#9F1239">hãy hỏi: "Một triệu user đó đang làm gì, với ai,</text>
+<text x="430" y="462" text-anchor="middle" font-size="14" font-weight="800" fill="#9F1239">và điều gì tuyệt đối không được phép sai?"</text>
+</svg>
+</div>
+<hr>
+<h1 id="vậy-vì-sao-người-ta-vẫn-bắt-đầu-bằng-ccu">Vậy vì sao người ta vẫn bắt đầu bằng CCU?<a hidden class="anchor" aria-hidden="true" href="#vậy-vì-sao-người-ta-vẫn-bắt-đầu-bằng-ccu">¶</a></h1>
+<p>Tôi không phản đối các bài toán 1M CCU. Con số đó <strong>vẫn hữu ích</strong> để đặt ra một <em>scale envelope</em> ban đầu. Và có lý do rất chính đáng để business dùng nó:</p>
+<table>
+<thead>
+<tr>
+<th>Lý do</th>
+<th>Giải thích</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Business hiểu user, không hiểu request</strong></td>
+<td>Số người online, người chơi trong game, người xem livestream, người tham gia flash sale — đây là thứ PM và sales dự báo được</td>
+</tr>
+<tr>
+<td><strong>CCU ít phụ thuộc implementation hơn</strong></td>
+<td>Cùng lượng user, nhưng batching, caching, polling, retry hay frontend mới có thể làm <strong>RPS thay đổi mạnh</strong></td>
+</tr>
+<tr>
+<td><strong>Với realtime, CCU là đại lượng vật lý thật</strong></td>
+<td>Game, chat, WebSocket, livestream: số user đồng thời <strong>trực tiếp</strong> quyết định connection, per-user state, presence và fan-out</td>
+</tr>
+<tr>
+<td><strong>Trong phỏng vấn, nó là bài test</strong></td>
+<td>CCU thường là đầu vào để xem ứng viên có biết chuyển từ product demand sang workload model hay không</td>
+</tr>
+</tbody>
+</table>
+<p>Nhưng <strong>1M CCU không phải là một kiến trúc.</strong> Load Balancer, Cache, Queue và Sharding cũng mới chỉ là <em>vocabulary</em> của System Design — biết từ vựng không có nghĩa là viết được câu.</p>
+<p>Và điều này không chỉ đúng trong phỏng vấn. Các pattern đó <strong>không sai</strong> — phần lớn hệ thống lớn đều dùng một vài trong số đó. Nhưng <strong>đúng pattern chưa có nghĩa là đúng design.</strong></p>
+<hr>
+<h1 id="checklist-chuyển-ccu-thành-workload-model">Checklist: chuyển CCU thành workload model<a hidden class="anchor" aria-hidden="true" href="#checklist-chuyển-ccu-thành-workload-model">¶</a></h1>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">BƯỚC <span class="m">1</span> — LÀM RÕ ĐỀ BÀI <span class="o">(</span>chưa vẽ gì<span class="o">)</span>
+</span></span><span class="line"><span class="cl">□ CCU nghĩa là online / giữ connection / đang active?
+</span></span><span class="line"><span class="cl">□ FR là gì — hệ thống làm gì, luồng nào quan trọng nhất?
+</span></span><span class="line"><span class="cl">□ Điều gì bắt buộc phải đúng <span class="o">(</span>không được eventual consistency<span class="o">)</span>?
+</span></span><span class="line"><span class="cl">□ Mục tiêu p50/p99 latency, availability, durability?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">BƯỚC <span class="m">2</span> — TÍNH WORKLOAD <span class="o">(</span>vẫn chưa vẽ<span class="o">)</span>
+</span></span><span class="line"><span class="cl">□ Active users × action/giây × request/action <span class="o">=</span> RPS lớp ngoài
+</span></span><span class="line"><span class="cl">□ Fan-out: <span class="m">1</span> request thành bao nhiêu internal call?
+</span></span><span class="line"><span class="cl">□ Cache hit rate bao nhiêu → DB QPS còn lại bao nhiêu?
+</span></span><span class="line"><span class="cl">□ Retry policy là gì? <span class="o">(</span>retry nhân tải đúng lúc hệ thống yếu nhất<span class="o">)</span>
+</span></span><span class="line"><span class="cl">□ Traffic ĐỀU hay BURST? Tỉ lệ đỉnh/trung bình bao nhiêu?
+</span></span><span class="line"><span class="cl">□ Kích thước payload → bandwidth bao nhiêu Gbps?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">BƯỚC <span class="m">3</span> — TÌM HOT PATH
+</span></span><span class="line"><span class="cl">□ Tải rải đều hay tập trung vào Hot Resource?
+</span></span><span class="line"><span class="cl">□ Nếu có hot row/hot key: đã biết nó sụp 30× chưa? Kế hoạch là gì?
+</span></span><span class="line"><span class="cl">□ Dữ liệu partition theo chiều nào? Có skew không?
+</span></span><span class="line"><span class="cl">□ Failure mode tệ nhất là gì — và nó xảy ra ở đâu?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">BƯỚC <span class="m">4</span> — GIỜ MỚI CHỌN COMPONENT
+</span></span><span class="line"><span class="cl">□ Mỗi component giải quyết CHÍNH XÁC bottleneck nào trong bảng trên?
+</span></span><span class="line"><span class="cl">□ Có component nào thêm vào chỉ vì <span class="s2">&#34;hệ thống lớn thì phải có&#34;</span>?
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Câu hỏi</th>
+<th>Trả lời ngắn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CCU và RPS khác nhau thế nào?</td>
+<td>CCU = <strong>bao nhiêu người trong cửa hàng</strong>. RPS = <strong>mỗi giây họ tạo bao nhiêu việc</strong></td>
+</tr>
+<tr>
+<td>1M CCU có thể bằng 0 RPS không?</td>
+<td><strong>Có.</strong> Đo thật: 100.000 connection idle = <strong>0,0% CPU</strong>, 328 MB RAM</td>
+</tr>
+<tr>
+<td>Một connection idle tốn bao nhiêu?</td>
+<td><strong>3.501 bytes</strong> (đo tại mốc 100k) → 1M conn ≈ <strong>3,4 GB RAM</strong></td>
+</tr>
+<tr>
+<td>CCU quyết định tài nguyên nào?</td>
+<td><strong>RAM</strong> và connection. <strong>RPS</strong> mới quyết định CPU, I/O, DB</td>
+</tr>
+<tr>
+<td>Công thức map CCU → RPS?</td>
+<td><code>Active users × action/giây × request/action</code>, rồi × fan-out, × (1 − cache hit)</td>
+</tr>
+<tr>
+<td>Cùng 1M CCU thì workload giống nhau?</td>
+<td><strong>Không.</strong> Gaming tạo <strong>333×</strong> lượng message so với origin RPS của e-commerce</td>
+</tr>
+<tr>
+<td>Hot Resource ảnh hưởng bao nhiêu?</td>
+<td>Đo thật: MySQL 1 hot row <strong>sụp 30,8×</strong> throughput, p50 chậm <strong>33×</strong></td>
+</tr>
+<tr>
+<td>Vì sao Redis không bị vậy?</td>
+<td><code>DECR</code> atomic đơn lệnh trên server single-thread — <strong>vốn đã tuần tự</strong></td>
+</tr>
+<tr>
+<td>Vậy nên hỏi gì trước khi vẽ?</td>
+<td><em>&ldquo;Một triệu user đó đang làm gì, với ai, và điều gì tuyệt đối không được phép sai?&rdquo;</em></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="tham-khảo">Tham khảo<a hidden class="anchor" aria-hidden="true" href="#tham-khảo">¶</a></h1>
+<ul>
+<li><a href="https://sre.google/sre-book/addressing-cascading-failures/">Google SRE Book — Addressing Cascading Failures</a> — vì sao retry khuếch đại tải đúng lúc tệ nhất</li>
+<li><a href="https://www.brendangregg.com/usemethod.html">Brendan Gregg — The USE Method</a> — khung tính tài nguyên từ workload</li>
+<li><a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html">MySQL — InnoDB Locking</a> — cơ chế row lock đằng sau hot row</li>
+<li><a href="http://www.kegel.com/c10k.html">The C10K / C10M problem</a> — bài kinh điển về chi phí connection</li>
+<li>Group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a> — nguồn nội dung gốc của series</li>
+<li>Series System Design trên blog: <a href="../../posts/system-design-p01-redis/">P01 — Redis không chỉ có GET/SET</a> · <a href="../../posts/system-design-p02-cache-stampede/">P02 — Cache Stampede</a> · <a href="../../posts/system-design-p03-pubsub-vs-streams/">P03 — Pub/Sub vs Streams</a> · <a href="../../posts/system-design-p04-streams-vs-kafka/">P04 — Streams vs Kafka</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>
