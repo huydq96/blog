@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Scalable System Design P01.4: Thiết Kế Hệ Thống 1M CCU - Chat/Notification | Huy Dang Blog</title>
+<meta name="keywords" content="system-design, scalability, websocket, golang, chat">
+<meta name="description" content="Cùng 1M CCU nhưng chat khác gaming ở bốn chỗ cốt lõi. Đo thật: push vs pull fan-out, chi phí ghi bền trong hot path, và serialize-per-recipient đắt 5.217 lần.">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/scalable-p01-4-chat-deep-dive/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/scalable-p01-4-chat-deep-dive/">
+
+<meta name="twitter:title" content="Scalable System Design P01.4: Thiết Kế Hệ Thống 1M CCU - Chat/Notification | Huy Dang Blog" />
+<meta name="twitter:description" content="Cùng 1M CCU nhưng chat khác gaming ở bốn chỗ cốt lõi. Đo thật: push vs pull fan-out, chi phí ghi bền trong hot path, và serialize-per-recipient đắt 5.217 lần." />
+<meta property="og:title" content="Scalable System Design P01.4: Thiết Kế Hệ Thống 1M CCU - Chat/Notification | Huy Dang Blog" />
+<meta property="og:description" content="Cùng 1M CCU nhưng chat khác gaming ở bốn chỗ cốt lõi. Đo thật: push vs pull fan-out, chi phí ghi bền trong hot path, và serialize-per-recipient đắt 5.217 lần." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/scalable-p01-4-chat-deep-dive/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-10-22T02:00:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-10-22T02:00:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Scalable System Design P01.4: Thiết Kế Hệ Thống 1M CCU - Chat/Notification",
+      "item": "https://blog.huydang.dev/posts/scalable-p01-4-chat-deep-dive/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Scalable System Design P01.4: Thiết Kế Hệ Thống 1M CCU - Chat/Notification | Huy Dang Blog",
+  "name": "Scalable System Design P01.4: Thiết Kế Hệ Thống 1M CCU - Chat\/Notification",
+  "description": "Cùng 1M CCU nhưng chat khác gaming ở bốn chỗ cốt lõi. Đo thật: push vs pull fan-out, chi phí ghi bền trong hot path, và serialize-per-recipient đắt 5.217 lần.",
+  "keywords": [
+    "system-design", "scalability", "websocket", "golang", "chat"
+  ],
+  "wordCount" : "4324",
+  "inLanguage": "en",
+  "datePublished": "2026-10-22T02:00:00+07:00",
+  "dateModified": "2026-10-22T02:00:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/scalable-p01-4-chat-deep-dive/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Scalable System Design P01.4: Thiết Kế Hệ Thống 1M CCU - Chat/Notification</h1>
+    <div class="post-description">Cùng 1M CCU nhưng chat khác gaming ở bốn chỗ cốt lõi. Đo thật: push vs pull fan-out, chi phí ghi bền trong hot path, và serialize-per-recipient đắt 5.217 lần.</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>October 22, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/system-design/">System Design</a><a href="https://blog.huydang.dev/tags/scalability/">Scalability</a><a href="https://blog.huydang.dev/tags/websocket/">Websocket</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/chat/">Chat</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>21 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#m%e1%bb%9f-%c4%91%e1%ba%a7u" aria-label="Mở đầu">Mở đầu</a><ul>
+                        
+                <li>
+                    <a href="#workload-model" aria-label="Workload model">Workload model</a></li></ul>
+                </li>
+                <li>
+                    <a href="#kh%c3%a1c-bi%e1%bb%87t-ki%e1%ba%bfn-tr%c3%bac-1-partition-hai-chi%e1%bb%81u" aria-label="Khác biệt kiến trúc #1: partition hai chiều">Khác biệt kiến trúc #1: partition hai chiều</a></li>
+                <li>
+                    <a href="#hot-path-1--push-hay-pull-quy%e1%ba%bft-%c4%91%e1%bb%8bnh-%c4%91%e1%ba%aft-nh%e1%ba%a5t" aria-label="Hot path #1 — Push hay Pull: quyết định đắt nhất">Hot path #1 — Push hay Pull: quyết định đắt nhất</a><ul>
+                        
+                <li>
+                    <a href="#%c4%91i%e1%bb%83m-ho%c3%a0-v%e1%bb%91n" aria-label="Điểm hoà vốn">Điểm hoà vốn</a></li>
+                <li>
+                    <a href="#code-tier-ho%c3%a1-theo-k%c3%adch-th%c6%b0%e1%bb%9bc-channel" aria-label="Code: tier hoá theo kích thước channel">Code: tier hoá theo kích thước channel</a></li></ul>
+                </li>
+                <li>
+                    <a href="#hot-path-2--ghi-b%e1%bb%81n-trong-hot-path" aria-label="Hot path #2 — Ghi bền trong hot path">Hot path #2 — Ghi bền trong hot path</a><ul>
+                        
+                <li>
+                    <a href="#code-write-ahead-log-r%e1%bb%93i-async" aria-label="Code: write-ahead log rồi async">Code: write-ahead log rồi async</a></li></ul>
+                </li>
+                <li>
+                    <a href="#hot-path-3--khi-payload-kh%c3%a1c-nhau-theo-t%e1%bb%abng-ng%c6%b0%e1%bb%9di-nh%e1%ba%adn" aria-label="Hot path #3 — Khi payload khác nhau theo từng người nhận">Hot path #3 — Khi payload khác nhau theo từng người nhận</a><ul>
+                        
+                <li>
+                    <a href="#c%c3%a1ch-s%e1%bb%ada-serialize-theo-nh%c3%b3m-quy%e1%bb%81n-kh%c3%b4ng-theo-t%e1%bb%abng-ng%c6%b0%e1%bb%9di" aria-label="Cách sửa: serialize theo NHÓM QUYỀN, không theo từng người">Cách sửa: serialize theo NHÓM QUYỀN, không theo từng người</a></li></ul>
+                </li>
+                <li>
+                    <a href="#th%e1%bb%a9-chat-c%c3%b3-m%c3%a0-gaming-kh%c3%b4ng-offline-queue-v%c3%a0-multi-device" aria-label="Thứ chat có mà gaming không: offline queue và multi-device">Thứ chat có mà gaming không: offline queue và multi-device</a><ul>
+                        
+                <li>
+                    <a href="#offline-queue" aria-label="Offline queue">Offline queue</a></li>
+                <li>
+                    <a href="#multi-device" aria-label="Multi-device">Multi-device</a></li></ul>
+                </li>
+                <li>
+                    <a href="#failure-mode-t%e1%bb%87-nh%e1%ba%a5t" aria-label="Failure mode tệ nhất">Failure mode tệ nhất</a></li>
+                <li>
+                    <a href="#stress-test-v%c3%a0-monitoring" aria-label="Stress test và monitoring">Stress test và monitoring</a><ul>
+                        
+                <li>
+                    <a href="#c%c3%a1ch-test" aria-label="Cách test">Cách test</a></li>
+                <li>
+                    <a href="#metric-b%e1%ba%aft-bu%e1%bb%99c" aria-label="Metric bắt buộc">Metric bắt buộc</a></li>
+                <li>
+                    <a href="#checklist" aria-label="Checklist">Checklist</a></li></ul>
+                </li>
+                <li>
+                    <a href="#t%c3%b3m-t%e1%ba%aft" aria-label="Tóm tắt">Tóm tắt</a></li>
+                <li>
+                    <a href="#tham-kh%e1%ba%a3o" aria-label="Tham khảo">Tham khảo</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><blockquote>
+<p><em>Bài viết thuộc series <strong>Scalable System Design</strong>, nội dung tham khảo từ các bài viết trong group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a>. Phần diễn giải, kiến trúc, code và <strong>toàn bộ số liệu benchmark</strong> là tôi tự bổ sung, đo thật trên máy local (Go 1.24, MySQL 8.0.40, Redis 7.4.2).</em></p>
+</blockquote>
+<h1 id="mở-đầu">Mở đầu<a hidden class="anchor" aria-hidden="true" href="#mở-đầu">¶</a></h1>
+<p><a href="../../posts/scalable-p01-2-ccu-deep-dive/">P01.2</a> đã đào sâu 1M CCU cho <strong>gaming</strong>. Bài này cùng con số 1M CCU, nhưng cho <strong>chat/notification</strong> — và nó là một hệ thống khác hẳn.</p>
+<p>Nếu bạn nghĩ &ldquo;cũng là 1M WebSocket, chắc giống nhau&rdquo;, bốn dòng dưới đây là lý do không phải:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Gaming (P01.2)</th>
+<th><strong>Chat/Notification (bài này)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nguồn sinh tải</td>
+<td><strong>Đồng hồ</strong> (tick 20 Hz)</td>
+<td><strong>Hành vi + hình dạng xã hội</strong></td>
+</tr>
+<tr>
+<td>msg/s ra</td>
+<td>20.000.000 — <strong>cố định</strong></td>
+<td>8.333 → 10.000.000 — <strong>dao động 1.200×</strong></td>
+</tr>
+<tr>
+<td>Fan-out</td>
+<td><strong>Chặn trên</strong> ở 50 (room)</td>
+<td><strong>Không chặn trên</strong> (channel 1M member)</td>
+</tr>
+<tr>
+<td>Mất tin</td>
+<td><strong>Được phép</strong> — tick sau sửa</td>
+<td><strong>Không được phép</strong> — phải lưu và giao bù</td>
+</tr>
+<tr>
+<td>Partition</td>
+<td>1 chiều (theo room)</td>
+<td><strong>2 chiều</strong> (connection theo user, routing theo channel)</td>
+</tr>
+<tr>
+<td>Ngân sách p99</td>
+<td>&lt; 50 ms</td>
+<td>&lt; 500 ms (rộng gấp <strong>10×</strong>)</td>
+</tr>
+<tr>
+<td>Hot path</td>
+<td>Chỉ RAM</td>
+<td><strong>Bắt buộc có ghi bền</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Dòng thứ hai là điều đáng chú ý nhất: <strong>&ldquo;1M CCU chat&rdquo; chưa nói gì cả</strong> cho đến khi biết phân bố kích thước hội thoại.</p>
+<h2 id="workload-model">Workload model<a hidden class="anchor" aria-hidden="true" href="#workload-model">¶</a></h2>
+<p>Giả định: 10% user active, mỗi người gửi 1 tin/phút, trung bình 2,5 thiết bị/user.</p>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th style="text-align:right">Giá trị</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connection</td>
+<td style="text-align:right">1.000.000</td>
+</tr>
+<tr>
+<td><strong>msg/s VÀO</strong></td>
+<td style="text-align:right"><strong>1.667</strong></td>
+</tr>
+<tr>
+<td>RAM cho connection</td>
+<td style="text-align:right">3,4 GB (3.501 B/conn — đo ở <a href="../../posts/scalable-p01-ccu-vs-rps/">P01</a>)</td>
+</tr>
+</tbody>
+</table>
+<p>Chiều vào <strong>thấp hơn gaming 6.000 lần</strong> (1.667 vs 10.000.000). Nhưng chiều ra thì tuỳ hình dạng hội thoại:</p>
+<table>
+<thead>
+<tr>
+<th>Hội thoại</th>
+<th style="text-align:right">fan-out</th>
+<th style="text-align:right">msg/s RA</th>
+<th style="text-align:right">Bandwidth</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1:1 DM</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right">8.333</td>
+<td style="text-align:right">0,01 Gbps</td>
+</tr>
+<tr>
+<td>Nhóm 50 người</td>
+<td style="text-align:right">50</td>
+<td style="text-align:right">208.333</td>
+<td style="text-align:right">0,3 Gbps</td>
+</tr>
+<tr>
+<td>Nhóm 1.000 người</td>
+<td style="text-align:right">1.000</td>
+<td style="text-align:right">4.166.667</td>
+<td style="text-align:right">6,7 Gbps</td>
+</tr>
+<tr>
+<td><strong>1 channel livestream 1M viewer</strong></td>
+<td style="text-align:right"><strong>1.000.000</strong></td>
+<td style="text-align:right"><strong>10.000.000</strong></td>
+<td style="text-align:right"><strong>16 Gbps</strong></td>
+</tr>
+</tbody>
+</table>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="ch-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="400" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Cùng "1M CCU chat" — tải chênh nhau 1.200 lần</text>
+<text x="440" y="48" text-anchor="middle" font-size="11" fill="#78716C">Chiều VÀO cố định ở 1.667 msg/s · chiều RA phụ thuộc HÌNH DẠNG hội thoại</text>
+<line x1="150" y1="300" x2="790" y2="300" stroke="#57534E" stroke-width="2"/>
+<line x1="150" y1="300" x2="150" y2="76" stroke="#57534E" stroke-width="2"/>
+<rect x="186" y="298" width="76" height="2" rx="1" fill="#0D9488"/>
+<rect x="306" y="294" width="76" height="6" rx="2" fill="#14B8A6"/>
+<rect x="426" y="206" width="76" height="94" rx="3" fill="#F5A623"/>
+<rect x="546" y="86" width="76" height="214" rx="3" fill="#DC2626"/>
+<rect x="666" y="80" width="76" height="220" rx="3" fill="#57534E"/>
+<text x="224" y="290" text-anchor="middle" font-size="11" font-weight="800" fill="#0F766E">8.333</text>
+<text x="344" y="286" text-anchor="middle" font-size="11" font-weight="800" fill="#0F766E">208.333</text>
+<text x="464" y="198" text-anchor="middle" font-size="11" font-weight="800" fill="#7C4A03">4,17M</text>
+<text x="584" y="78" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">10M</text>
+<text x="704" y="72" text-anchor="middle" font-size="11" font-weight="800" fill="#374151">20M</text>
+<text x="224" y="322" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">1:1 DM</text>
+<text x="224" y="337" text-anchor="middle" font-size="9" fill="#78716C">fan-out 2</text>
+<text x="344" y="322" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">Nhóm 50</text>
+<text x="344" y="337" text-anchor="middle" font-size="9" fill="#78716C">fan-out 50</text>
+<text x="464" y="322" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">Nhóm 1.000</text>
+<text x="464" y="337" text-anchor="middle" font-size="9" fill="#78716C">fan-out 1.000</text>
+<text x="584" y="322" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">Livestream 1M</text>
+<text x="584" y="337" text-anchor="middle" font-size="9" fill="#78716C">fan-out 1M</text>
+<text x="704" y="322" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">GAMING</text>
+<text x="704" y="337" text-anchor="middle" font-size="9" font-weight="700" fill="#57534E">tham chiếu</text>
+<text x="116" y="190" text-anchor="middle" font-size="11" font-weight="700" fill="#57534E" transform="rotate(-90 116 190)">msg/s RA</text>
+<rect x="150" y="358" width="640" height="34" rx="8" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="470" y="380" text-anchor="middle" font-size="12" font-weight="800" fill="#7C4A03">Livestream chat gần gaming hơn là gần DM — dù cả hai đều được gọi là "chat"</text>
+</svg>
+</div>
+<p>👉 <strong>Hệ quả thiết kế</strong>: không thể có một kiến trúc chat duy nhất cho mọi kích thước hội thoại. Phải <strong>tier hoá theo fan-out</strong> — và đó là nội dung chính của bài này.</p>
+<hr>
+<h1 id="khác-biệt-kiến-trúc-1-partition-hai-chiều">Khác biệt kiến trúc #1: partition hai chiều<a hidden class="anchor" aria-hidden="true" href="#khác-biệt-kiến-trúc-1-partition-hai-chiều">¶</a></h1>
+<p>Đây là khác biệt cấu trúc sâu nhất so với gaming, và nó quyết định mọi thứ phía sau.</p>
+<p><strong>Gamer thuộc đúng MỘT room.</strong> Nên pin connection vào node giữ room đó là xong — mọi thứ cục bộ, không cần tra cứu.</p>
+<p><strong>User chat thuộc HÀNG TRĂM conversation cùng lúc.</strong> Không thể partition theo conversation, vì user nằm trong nhiều conversation. Bạn buộc phải tách hai chiều:</p>
+<ul>
+<li><strong>Connection</strong> partition theo <code>user_id</code> (user ở node nào)</li>
+<li><strong>Message routing</strong> partition theo <code>conversation_id</code> (tin của hội thoại nào đi đâu)</li>
+</ul>
+<p>Rồi phải <strong>join hai chiều đó lúc giao tin</strong>. Đó là lý do chat cần một tầng <strong>fan-out router</strong> mà gaming không cần.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="c2-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<marker id="c2-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="c2-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="560" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Chat cần tầng router mà gaming không cần</text>
+<rect x="24" y="42" width="420" height="188" rx="12" fill="#FFFAF0" stroke="#F5A623" stroke-width="2.5" filter="url(#c2-sh)"/>
+<text x="234" y="66" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">GAMING — 1 chiều, cục bộ</text>
+<rect x="48" y="80" width="110" height="40" rx="7" fill="#FFFFFF" stroke="#F5A623" stroke-width="1.8"/>
+<rect x="186" y="80" width="110" height="40" rx="7" fill="#FFFFFF" stroke="#F5A623" stroke-width="1.8"/>
+<rect x="324" y="80" width="96" height="40" rx="7" fill="#FFF3DB" stroke="#D97706" stroke-width="2"/>
+<text x="103" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">Player</text>
+<text x="241" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">Gateway</text>
+<text x="372" y="98" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">Room</text>
+<text x="372" y="113" text-anchor="middle" font-size="10" fill="#92400E">(chỉ 1)</text>
+<line x1="160" y1="100" x2="182" y2="100" stroke="#D97706" stroke-width="2" marker-end="url(#c2-a)"/>
+<line x1="298" y1="100" x2="320" y2="100" stroke="#D97706" stroke-width="2" marker-end="url(#c2-a)"/>
+<rect x="48" y="138" width="372" height="76" rx="9" fill="#FFF3DB" stroke="#F5A623" stroke-width="1.8"/>
+<text x="66" y="160" font-size="11" font-weight="800" fill="#7C4A03">Vì sao đơn giản</text>
+<text x="66" y="180" font-size="11" fill="#92400E">Player ↔ Room là quan hệ 1:1 tại một thời điểm.</text>
+<text x="66" y="198" font-size="11" fill="#92400E">Pin connection vào node giữ room → mọi thứ CỤC BỘ.</text>
+<rect x="456" y="42" width="420" height="188" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#c2-sh)"/>
+<text x="666" y="66" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">CHAT — 2 chiều, phải join</text>
+<rect x="476" y="80" width="92" height="40" rx="7" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<rect x="590" y="80" width="92" height="40" rx="7" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<rect x="704" y="80" width="156" height="40" rx="7" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<text x="522" y="105" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">User</text>
+<text x="636" y="98" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">Gateway</text>
+<text x="636" y="113" text-anchor="middle" font-size="9" fill="#0F766E">theo user_id</text>
+<text x="782" y="98" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">FAN-OUT ROUTER</text>
+<text x="782" y="113" text-anchor="middle" font-size="9" fill="#0F766E">theo conversation_id</text>
+<line x1="570" y1="100" x2="586" y2="100" stroke="#0D9488" stroke-width="2" marker-end="url(#c2-t)"/>
+<line x1="684" y1="100" x2="700" y2="100" stroke="#0D9488" stroke-width="2" marker-end="url(#c2-t)"/>
+<rect x="476" y="138" width="384" height="76" rx="9" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.8"/>
+<text x="494" y="160" font-size="11" font-weight="800" fill="#134E4A">Vì sao phức tạp</text>
+<text x="494" y="180" font-size="11" fill="#0F766E">1 user thuộc HÀNG TRĂM conversation cùng lúc.</text>
+<text x="494" y="198" font-size="11" font-weight="700" fill="#134E4A">Connection theo user ≠ routing theo conversation → PHẢI join.</text>
+<text x="450" y="262" text-anchor="middle" font-size="14" font-weight="800" fill="#374151">Luồng một tin nhắn đi qua hệ thống chat</text>
+<rect x="30" y="278" width="128" height="58" rx="9" fill="#0D9488" filter="url(#c2-sh)"/>
+<rect x="182" y="278" width="128" height="58" rx="9" fill="#14B8A6" filter="url(#c2-sh)"/>
+<rect x="334" y="278" width="150" height="58" rx="9" fill="#DC2626" filter="url(#c2-sh)"/>
+<rect x="508" y="278" width="150" height="58" rx="9" fill="#F5A623" filter="url(#c2-sh)"/>
+<rect x="682" y="278" width="188" height="58" rx="9" fill="#6366F1" filter="url(#c2-sh)"/>
+<text x="94" y="302" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">① Gateway</text>
+<text x="94" y="320" text-anchor="middle" font-size="10" fill="#CCFBF1">nhận tin</text>
+<text x="246" y="302" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">② Cấp seq</text>
+<text x="246" y="320" text-anchor="middle" font-size="10" fill="#CCFBF1">thứ tự/hội thoại</text>
+<text x="409" y="296" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">③ GHI BỀN</text>
+<text x="409" y="312" text-anchor="middle" font-size="10" fill="#FFD9DE">Redis WAL</text>
+<text x="409" y="328" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">mới được ACK</text>
+<text x="583" y="296" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">④ Router</text>
+<text x="583" y="312" text-anchor="middle" font-size="10" fill="#FFF3DB">tra member list</text>
+<text x="583" y="328" text-anchor="middle" font-size="10" fill="#FFF3DB">→ user ở node nào</text>
+<text x="776" y="296" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">⑤ Giao</text>
+<text x="776" y="312" text-anchor="middle" font-size="10" fill="#E0E7FF">online → push ngay</text>
+<text x="776" y="328" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">offline → vào inbox</text>
+<line x1="160" y1="307" x2="178" y2="307" stroke="#57534E" stroke-width="2" marker-end="url(#c2-a)"/>
+<line x1="312" y1="307" x2="330" y2="307" stroke="#57534E" stroke-width="2" marker-end="url(#c2-a)"/>
+<line x1="486" y1="307" x2="504" y2="307" stroke="#57534E" stroke-width="2" marker-end="url(#c2-a)"/>
+<line x1="660" y1="307" x2="678" y2="307" stroke="#57534E" stroke-width="2" marker-end="url(#c2-a)"/>
+<rect x="30" y="352" width="840" height="96" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5"/>
+<text x="50" y="376" font-size="13" font-weight="800" fill="#9F1239">Bước ③ là điểm chat khác gaming nhiều nhất</text>
+<text x="50" y="400" font-size="11" fill="#BE123C">Gaming: hot path chỉ RAM, miss tick thì tick sau sửa. Chat: <tspan font-weight="700">không được mất tin nào</tspan>, nên PHẢI ghi bền</text>
+<text x="50" y="418" font-size="11" fill="#BE123C">TRƯỚC khi ACK cho người gửi. Nếu ACK rồi mới ghi, crash giữa hai bước = tin biến mất nhưng người gửi thấy dấu ✓.</text>
+<text x="50" y="440" font-size="11" font-weight="800" fill="#DC2626">Đo ở phần sau: đặt MySQL vào đây làm throughput tụt 11 lần so với ghi Redis WAL rồi async.</text>
+<rect x="30" y="464" width="840" height="80" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="50" y="488" font-size="12" font-weight="800" fill="#374151">Bước ④ là nơi sinh ra bài toán hot channel</text>
+<text x="50" y="510" font-size="11" fill="#57534E">Router phải biết "conversation này có ai, ai đang online, ở node nào". Với nhóm 50 thì rẻ.</text>
+<text x="50" y="530" font-size="11" font-weight="700" fill="#9F1239">Với channel 1M member thì một tin nhắn thành 1 triệu lần tra cứu + giao — xem phần "push vs pull".</text>
+</svg>
+</div>
+<hr>
+<h1 id="hot-path-1--push-hay-pull-quyết-định-đắt-nhất">Hot path #1 — Push hay Pull: quyết định đắt nhất<a hidden class="anchor" aria-hidden="true" href="#hot-path-1--push-hay-pull-quyết-định-đắt-nhất">¶</a></h1>
+<p>Với mỗi tin nhắn mới, có hai cách căn bản:</p>
+<ul>
+<li><strong>PUSH (fan-out on write)</strong>: ghi tin vào <strong>inbox của từng thành viên</strong> ngay lúc gửi. Đọc rẻ, ghi đắt.</li>
+<li><strong>PULL (fan-out on read)</strong>: ghi <strong>một lần</strong> vào log của channel, người đọc tự lấy. Ghi rẻ, đọc đắt.</li>
+</ul>
+<p>Tôi đo cả hai trên Redis:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:right">Thành viên channel</th>
+<th style="text-align:right"><strong>PUSH: ghi 1 tin</strong></th>
+<th style="text-align:right"><strong>PULL: 1 người đọc</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">50</td>
+<td style="text-align:right">~0 ms</td>
+<td style="text-align:right">97 µs</td>
+</tr>
+<tr>
+<td style="text-align:right">1.000</td>
+<td style="text-align:right">2 ms</td>
+<td style="text-align:right">82 µs</td>
+</tr>
+<tr>
+<td style="text-align:right">10.000</td>
+<td style="text-align:right">17 ms</td>
+<td style="text-align:right">131 µs</td>
+</tr>
+<tr>
+<td style="text-align:right"><strong>100.000</strong></td>
+<td style="text-align:right"><strong>179 ms</strong></td>
+<td style="text-align:right"><strong>110 µs</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Hai đường cong hoàn toàn khác bản chất:</p>
+<ul>
+<li><strong>PUSH là <code>O(N)</code> theo số thành viên.</strong> 179 ms để ghi <strong>một</strong> tin vào channel 100.000 người — và đó là đã dùng pipeline.</li>
+<li><strong>PULL là <code>O(1)</code>.</strong> ~110 µs bất kể channel có 50 hay 100.000 người.</li>
+</ul>
+<h2 id="điểm-hoà-vốn">Điểm hoà vốn<a hidden class="anchor" aria-hidden="true" href="#điểm-hoà-vốn">¶</a></h2>
+<p>Push trả giá <strong>một lần</strong> (179 ms); pull trả giá <strong>mỗi người đọc</strong> (110 µs). Vậy:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">179 ms ÷ 110 µs ≈ 1.627 người đọc
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Nếu dưới ~1.627 trong 100.000 thành viên thật sự đọc tin đó, PULL rẻ hơn.</strong> Trên ngưỡng đó, PUSH rẻ hơn.</p>
+<p>Và đây là chỗ số liệu gặp thực tế: trong một channel 100.000 người, <strong>tỉ lệ đọc một tin cụ thể thường dưới 2%</strong> — tức khoảng 2.000 người, sát ngưỡng hoà vốn. Với channel 1M member thì tỉ lệ đọc còn thấp hơn nữa, và pull thắng rõ ràng.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="pp-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="440" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">PUSH là O(N), PULL là O(1) — và điểm hoà vốn ở 1.627 người đọc</text>
+<line x1="110" y1="290" x2="520" y2="290" stroke="#57534E" stroke-width="2"/>
+<line x1="110" y1="290" x2="110" y2="70" stroke="#57534E" stroke-width="2"/>
+<polyline points="150,288 240,286 330,272 460,80" fill="none" stroke="#DC2626" stroke-width="3"/>
+<circle cx="150" cy="288" r="4" fill="#DC2626"/>
+<circle cx="240" cy="286" r="4" fill="#DC2626"/>
+<circle cx="330" cy="272" r="4" fill="#DC2626"/>
+<circle cx="460" cy="80" r="5" fill="#DC2626"/>
+<polyline points="150,284 240,285 330,283 460,284" fill="none" stroke="#0D9488" stroke-width="3"/>
+<circle cx="150" cy="284" r="4" fill="#0D9488"/>
+<circle cx="240" cy="285" r="4" fill="#0D9488"/>
+<circle cx="330" cy="283" r="4" fill="#0D9488"/>
+<circle cx="460" cy="284" r="4" fill="#0D9488"/>
+<text x="470" y="74" font-size="12" font-weight="800" fill="#9F1239">179 ms</text>
+<text x="472" y="288" font-size="12" font-weight="800" fill="#0F766E">110 µs</text>
+<text x="150" y="312" text-anchor="middle" font-size="10" fill="#374151">50</text>
+<text x="240" y="312" text-anchor="middle" font-size="10" fill="#374151">1.000</text>
+<text x="330" y="312" text-anchor="middle" font-size="10" fill="#374151">10.000</text>
+<text x="460" y="312" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">100.000</text>
+<text x="315" y="336" text-anchor="middle" font-size="11" font-weight="700" fill="#57534E">số thành viên channel</text>
+<text x="76" y="180" text-anchor="middle" font-size="11" font-weight="700" fill="#57534E" transform="rotate(-90 76 180)">chi phí</text>
+<rect x="130" y="86" width="14" height="12" rx="3" fill="#DC2626"/>
+<rect x="130" y="106" width="14" height="12" rx="3" fill="#0D9488"/>
+<text x="152" y="96" font-size="11" font-weight="700" fill="#9F1239">PUSH — ghi 1 tin</text>
+<text x="152" y="116" font-size="11" font-weight="700" fill="#0F766E">PULL — 1 người đọc</text>
+<rect x="556" y="66" width="320" height="120" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2" filter="url(#pp-sh)"/>
+<text x="576" y="90" font-size="12" font-weight="800" fill="#374151">Điểm hoà vốn</text>
+<text x="576" y="114" font-size="11" font-family="monospace" fill="#57534E">179 ms ÷ 110 µs ≈ 1.627</text>
+<text x="576" y="138" font-size="11" fill="#0F766E">&lt; 1.627 người đọc → <tspan font-weight="800">PULL rẻ hơn</tspan></text>
+<text x="576" y="158" font-size="11" fill="#9F1239">&gt; 1.627 người đọc → <tspan font-weight="800">PUSH rẻ hơn</tspan></text>
+<text x="576" y="178" font-size="10" fill="#78716C">(trên channel 100.000 thành viên)</text>
+<rect x="556" y="198" width="320" height="92" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="576" y="222" font-size="12" font-weight="800" fill="#134E4A">Thực tế thiên về PULL cho channel lớn</text>
+<text x="576" y="244" font-size="11" fill="#0F766E">Channel 100.000 người: thường &lt; 2% đọc</text>
+<text x="576" y="262" font-size="11" fill="#0F766E">một tin cụ thể ≈ 2.000 người — sát ngưỡng.</text>
+<text x="576" y="282" font-size="11" font-weight="700" fill="#134E4A">Channel 1M: tỉ lệ đọc còn thấp hơn → PULL thắng rõ.</text>
+<rect x="24" y="356" width="852" height="74" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="44" y="380" font-size="13" font-weight="800" fill="#7C4A03">Lời giải thực tế: KHÔNG chọn một, mà TIER HOÁ theo kích thước</text>
+<text x="44" y="402" font-size="11" fill="#92400E">Nhóm nhỏ (&lt; 1.000) → <tspan font-weight="700">PUSH</tspan>: đọc tức thì, unread counter chính xác, ghi vẫn rẻ.</text>
+<text x="44" y="422" font-size="11" fill="#92400E">Channel lớn (&gt; 10.000) → <tspan font-weight="700">PULL</tspan>: ghi O(1), người đọc tự lấy. Đổi lại unread counter chỉ gần đúng.</text>
+</svg>
+</div>
+<h2 id="code-tier-hoá-theo-kích-thước-channel">Code: tier hoá theo kích thước channel<a hidden class="anchor" aria-hidden="true" href="#code-tier-hoá-theo-kích-thước-channel">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/application/chat/fanout.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="kd">const</span> <span class="nx">pushThreshold</span> <span class="p">=</span> <span class="mi">1000</span>  <span class="c1">// dưới ngưỡng → push; trên → pull
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">FanoutService</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">rdb</span>    <span class="o">*</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Client</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">router</span> <span class="nx">Router</span>          <span class="c1">// biết user nào đang ở gateway nào
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">logger</span> <span class="o">*</span><span class="nx">zap</span><span class="p">.</span><span class="nx">Logger</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">FanoutService</span><span class="p">)</span> <span class="nf">Deliver</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">msg</span> <span class="nx">Message</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">n</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">SCard</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;conv:members:&#34;</span><span class="o">+</span><span class="nx">msg</span><span class="p">.</span><span class="nx">ConvID</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">n</span> <span class="o">&lt;=</span> <span class="nx">pushThreshold</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">s</span><span class="p">.</span><span class="nf">fanoutOnWrite</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">msg</span><span class="p">)</span>   <span class="c1">// PUSH
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">s</span><span class="p">.</span><span class="nf">fanoutOnRead</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">msg</span><span class="p">)</span>        <span class="c1">// PULL
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// PUSH — ghi vào inbox từng người. O(N) nhưng N nhỏ.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">FanoutService</span><span class="p">)</span> <span class="nf">fanoutOnWrite</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">msg</span> <span class="nx">Message</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">members</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">SMembers</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;conv:members:&#34;</span><span class="o">+</span><span class="nx">msg</span><span class="p">.</span><span class="nx">ConvID</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Pipeline là bắt buộc: 1.000 lệnh tuần tự = 1.000 round-trip.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">pipe</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Pipeline</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">uid</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">members</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">uid</span> <span class="o">==</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">SenderID</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">pipe</span><span class="p">.</span><span class="nf">LPush</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;inbox:&#34;</span><span class="o">+</span><span class="nx">uid</span><span class="p">,</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">pipe</span><span class="p">.</span><span class="nf">LTrim</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;inbox:&#34;</span><span class="o">+</span><span class="nx">uid</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">499</span><span class="p">)</span>   <span class="c1">// giới hạn inbox, tránh phình vô hạn
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">pipe</span><span class="p">.</span><span class="nf">Incr</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;unread:&#34;</span><span class="o">+</span><span class="nx">uid</span><span class="o">+</span><span class="s">&#34;:&#34;</span><span class="o">+</span><span class="nx">msg</span><span class="p">.</span><span class="nx">ConvID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">pipe</span><span class="p">.</span><span class="nf">Exec</span><span class="p">(</span><span class="nx">ctx</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Chỉ push realtime cho người ĐANG online
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">return</span> <span class="nx">s</span><span class="p">.</span><span class="nx">router</span><span class="p">.</span><span class="nf">PushToOnline</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">members</span><span class="p">,</span> <span class="nx">msg</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// PULL — ghi 1 lần vào log channel. O(1) bất kể N.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">FanoutService</span><span class="p">)</span> <span class="nf">fanoutOnRead</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">msg</span> <span class="nx">Message</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">XAdd</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">redis</span><span class="p">.</span><span class="nx">XAddArgs</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Stream</span><span class="p">:</span> <span class="s">&#34;conv:log:&#34;</span> <span class="o">+</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">ConvID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">MaxLen</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span> <span class="nx">Approx</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>          <span class="c1">// dấu ~ : cắt O(1), xem P01 series
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">Values</span><span class="p">:</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">any</span><span class="p">{</span><span class="s">&#34;id&#34;</span><span class="p">:</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span> <span class="s">&#34;sender&#34;</span><span class="p">:</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">SenderID</span><span class="p">,</span> <span class="s">&#34;body&#34;</span><span class="p">:</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">Body</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}).</span><span class="nf">Err</span><span class="p">();</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Chỉ push cho người đang MỞ channel này — không phải mọi member
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">return</span> <span class="nx">s</span><span class="p">.</span><span class="nx">router</span><span class="p">.</span><span class="nf">PushToActiveViewers</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">ConvID</span><span class="p">,</span> <span class="nx">msg</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Chi tiết dễ sai nhất ở nhánh PULL: <strong><code>PushToActiveViewers</code>, không phải <code>PushToOnline</code>.</strong> Trong channel 1M member có thể có 200.000 người online, nhưng chỉ 5.000 người <strong>đang mở</strong> channel đó. Push cho 200.000 người là làm lại đúng bài toán <code>O(N)</code> mà pull vừa tránh được.</p>
+<hr>
+<h1 id="hot-path-2--ghi-bền-trong-hot-path">Hot path #2 — Ghi bền trong hot path<a hidden class="anchor" aria-hidden="true" href="#hot-path-2--ghi-bền-trong-hot-path">¶</a></h1>
+<p>Chat <strong>không được mất tin</strong>. Nhưng ghi bền ở đâu và lúc nào thì quyết định throughput. Tôi đo 4 chiến lược, 3.000 tin, 60 worker:</p>
+<table>
+<thead>
+<tr>
+<th>Chiến lược</th>
+<th style="text-align:right"><strong>msg/s</strong></th>
+<th style="text-align:right">p50</th>
+<th style="text-align:right">p95</th>
+<th style="text-align:right">p99</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① Push luôn, không lưu (gaming-style)</td>
+<td style="text-align:right">2.912.621</td>
+<td style="text-align:right">~0</td>
+<td style="text-align:right">~0</td>
+<td style="text-align:right">~0</td>
+</tr>
+<tr>
+<td>② <strong>MySQL <code>INSERT</code> rồi mới push</strong></td>
+<td style="text-align:right"><strong>6.946</strong></td>
+<td style="text-align:right">8,22 ms</td>
+<td style="text-align:right">13,09 ms</td>
+<td style="text-align:right"><strong>15,29 ms</strong></td>
+</tr>
+<tr>
+<td>③ Redis Stream <code>XADD</code> rồi push</td>
+<td style="text-align:right">68.950</td>
+<td style="text-align:right">653 µs</td>
+<td style="text-align:right">1,24 ms</td>
+<td style="text-align:right">8,84 ms</td>
+</tr>
+<tr>
+<td>④ <strong>Redis <code>XADD</code> + MySQL async</strong></td>
+<td style="text-align:right"><strong>78.216</strong></td>
+<td style="text-align:right">725 µs</td>
+<td style="text-align:right">1,17 ms</td>
+<td style="text-align:right"><strong>1,42 ms</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Hai kết luận:</p>
+<p><strong>1. Đặt MySQL vào hot path làm throughput tụt 11 lần</strong> (6.946 vs 78.216) và p99 xấu đi <strong>10,8 lần</strong> (15,29 ms vs 1,42 ms).</p>
+<p><strong>2. Ghi Redis WAL rồi đẩy MySQL sang async cho throughput gần bằng không-ghi-gì</strong> — mà vẫn không mất tin.</p>
+<blockquote>
+<p>📌 Hai cách ③ và ④ cho throughput khá gần nhau (68.950 vs 78.216, chênh 13%). Tôi không kết luận ④ nhanh hơn ③ một cách chắc chắn — khác biệt chính trong test của tôi là ③ ghi vào 100 stream khác nhau còn ④ ghi vào 1 stream, nên con số có thể bị ảnh hưởng bởi chi phí trim <code>MAXLEN</code> trên nhiều key. Điều chắc chắn là <strong>cả hai đều nhanh hơn MySQL-trong-hot-path khoảng 10 lần</strong>.</p>
+</blockquote>
+<h2 id="code-write-ahead-log-rồi-async">Code: write-ahead log rồi async<a hidden class="anchor" aria-hidden="true" href="#code-write-ahead-log-rồi-async">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/application/chat/send.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">Service</span><span class="p">)</span> <span class="nf">Send</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">cmd</span> <span class="nx">SendCommand</span><span class="p">)</span> <span class="p">(</span><span class="nx">Result</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// ① Cấp sequence number cho hội thoại — đảm bảo THỨ TỰ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">seq</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Incr</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;conv:seq:&#34;</span><span class="o">+</span><span class="nx">cmd</span><span class="p">.</span><span class="nx">ConvID</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">Result</span><span class="p">{},</span> <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeUnavailable</span><span class="p">,</span> <span class="s">&#34;không cấp được seq&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">msg</span> <span class="o">:=</span> <span class="nx">Message</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">ID</span><span class="p">:</span> <span class="nx">ulid</span><span class="p">.</span><span class="nf">Make</span><span class="p">().</span><span class="nf">String</span><span class="p">(),</span> <span class="nx">ConvID</span><span class="p">:</span> <span class="nx">cmd</span><span class="p">.</span><span class="nx">ConvID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">SenderID</span><span class="p">:</span> <span class="nx">cmd</span><span class="p">.</span><span class="nx">SenderID</span><span class="p">,</span> <span class="nx">Seq</span><span class="p">:</span> <span class="nx">seq</span><span class="p">,</span> <span class="nx">Body</span><span class="p">:</span> <span class="nx">cmd</span><span class="p">.</span><span class="nx">Body</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">SentAt</span><span class="p">:</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">(),</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// ② GHI BỀN trước khi ACK. Đây là write-ahead log.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">//    Redis Stream có AOF nên tin sống sót qua restart.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">XAdd</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">redis</span><span class="p">.</span><span class="nx">XAddArgs</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Stream</span><span class="p">:</span> <span class="s">&#34;wal:messages&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">MaxLen</span><span class="p">:</span> <span class="mi">1_000_000</span><span class="p">,</span> <span class="nx">Approx</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Values</span><span class="p">:</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">any</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="s">&#34;id&#34;</span><span class="p">:</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span> <span class="s">&#34;conv&#34;</span><span class="p">:</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">ConvID</span><span class="p">,</span> <span class="s">&#34;sender&#34;</span><span class="p">:</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">SenderID</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="s">&#34;seq&#34;</span><span class="p">:</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">Seq</span><span class="p">,</span> <span class="s">&#34;body&#34;</span><span class="p">:</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">Body</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}).</span><span class="nf">Err</span><span class="p">();</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// KHÔNG ack cho người gửi. Thà báo lỗi còn hơn hiện dấu ✓ rồi mất tin.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span> <span class="nx">Result</span><span class="p">{},</span> <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeUnavailable</span><span class="p">,</span> <span class="s">&#34;gửi thất bại, thử lại&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// ③ Giờ mới ACK — người gửi thấy dấu ✓ và tin đã BỀN
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// ④ Fan-out và ghi MySQL diễn ra ở worker riêng, tiêu thụ wal:messages
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">return</span> <span class="nx">Result</span><span class="p">{</span><span class="nx">MessageID</span><span class="p">:</span> <span class="nx">msg</span><span class="p">.</span><span class="nx">ID</span><span class="p">,</span> <span class="nx">Seq</span><span class="p">:</span> <span class="nx">seq</span><span class="p">},</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Thứ tự ②→③ là thứ dễ làm sai nhất. Nếu ACK trước rồi mới ghi, một lần crash giữa hai bước nghĩa là <strong>người gửi thấy dấu ✓ nhưng tin không tồn tại</strong> — lỗi mà người dùng sẽ không bao giờ tha thứ, và bạn cũng không có cách nào phát hiện sau đó.</p>
+<p>Worker tiêu thụ WAL phải <strong>idempotent</strong> — xem lại <a href="../../posts/system-design-p03-pubsub-vs-streams/#v%E1%BA%A5n-%C4%91%E1%BB%81-2--x%E1%BB%AD-l%C3%BD-xong-r%E1%BB%93i-ch%E1%BA%BFt-tr%C6%B0%E1%BB%9Bc-khi-ack">P03</a>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">w</span> <span class="o">*</span><span class="nx">PersistWorker</span><span class="p">)</span> <span class="nf">handle</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">m</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">XMessage</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">msgID</span> <span class="o">:=</span> <span class="nx">m</span><span class="p">.</span><span class="nx">Values</span><span class="p">[</span><span class="s">&#34;id&#34;</span><span class="p">].(</span><span class="kt">string</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Unique constraint trên message_id làm lớp bảo đảm cuối
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nx">db</span><span class="p">.</span><span class="nf">ExecContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s">`INSERT INTO messages (message_id, conv_id, sender_id, seq, body)
+</span></span></span><span class="line"><span class="cl"><span class="s">         VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE message_id = message_id`</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">msgID</span><span class="p">,</span> <span class="nx">m</span><span class="p">.</span><span class="nx">Values</span><span class="p">[</span><span class="s">&#34;conv&#34;</span><span class="p">],</span> <span class="nx">m</span><span class="p">.</span><span class="nx">Values</span><span class="p">[</span><span class="s">&#34;sender&#34;</span><span class="p">],</span> <span class="nx">m</span><span class="p">.</span><span class="nx">Values</span><span class="p">[</span><span class="s">&#34;seq&#34;</span><span class="p">],</span> <span class="nx">m</span><span class="p">.</span><span class="nx">Values</span><span class="p">[</span><span class="s">&#34;body&#34;</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">err</span>   <span class="c1">// KHÔNG ack → sẽ được giao lại
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">XAck</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;wal:messages&#34;</span><span class="p">,</span> <span class="nx">w</span><span class="p">.</span><span class="nx">group</span><span class="p">,</span> <span class="nx">m</span><span class="p">.</span><span class="nx">ID</span><span class="p">).</span><span class="nf">Err</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="hot-path-3--khi-payload-khác-nhau-theo-từng-người-nhận">Hot path #3 — Khi payload khác nhau theo từng người nhận<a hidden class="anchor" aria-hidden="true" href="#hot-path-3--khi-payload-khác-nhau-theo-từng-người-nhận">¶</a></h1>
+<p>Ở <a href="../../posts/scalable-p01-2-ccu-deep-dive/#hot-path-1--fan-out-1n">P01.2</a> tôi viết rằng tối ưu fan-out lớn nhất là <strong>&ldquo;serialize một lần, gửi N lần&rdquo;</strong> — cùng một <code>[]byte</code> cho cả 50 player.</p>
+<p>Nhưng chat/notification thường <strong>không</strong> được phép làm thế. Lý do: <strong>privacy filtering</strong>. Người nhận A được thấy nội dung, người nhận B chỉ được thấy số tiền, người nhận C không được thấy gì cả.</p>
+<p>Đây đúng là mô hình của <a href="https://github.com/huydq96">Honeydue</a>: <code>hidden</code> không push cho partner, <code>balance_only</code> chỉ push <code>{amount, category, transaction_id}</code> và không bao giờ push description.</p>
+<p>Tôi đo chi phí thật của hai cách, payload 239 bytes:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:right">fan-out N</th>
+<th style="text-align:right"><strong>serialize 1 lần</strong></th>
+<th style="text-align:right"><strong>serialize N lần</strong></th>
+<th style="text-align:right">Chênh</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">2</td>
+<td style="text-align:right">843 ns</td>
+<td style="text-align:right">3 µs</td>
+<td style="text-align:right"><strong>3,4×</strong></td>
+</tr>
+<tr>
+<td style="text-align:right">50</td>
+<td style="text-align:right">856 ns</td>
+<td style="text-align:right">52 µs</td>
+<td style="text-align:right"><strong>61×</strong></td>
+</tr>
+<tr>
+<td style="text-align:right">1.000</td>
+<td style="text-align:right">585 ns</td>
+<td style="text-align:right">904 µs</td>
+<td style="text-align:right"><strong>1.545×</strong></td>
+</tr>
+<tr>
+<td style="text-align:right"><strong>10.000</strong></td>
+<td style="text-align:right"><strong>1,52 µs</strong></td>
+<td style="text-align:right"><strong>7,92 ms</strong></td>
+<td style="text-align:right"><strong>5.217×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Để ý cột giữa: <strong>serialize-once gần như không đổi theo N</strong> (~1 µs) — vì nó là <code>O(1)</code>. Cột phải là <code>O(N)</code>.</p>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="sz-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="sz-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="420" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Privacy filtering phá vỡ tối ưu fan-out lớn nhất</text>
+<rect x="24" y="46" width="408" height="162" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#sz-sh)"/>
+<text x="228" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">GAMING — payload CHUNG</text>
+<rect x="44" y="82" width="86" height="40" rx="7" fill="#0D9488"/>
+<text x="87" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">state</text>
+<text x="87" y="114" text-anchor="middle" font-size="9" fill="#CCFBF1">marshal 1×</text>
+<rect x="176" y="70" width="60" height="22" rx="5" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.4"/>
+<rect x="176" y="98" width="60" height="22" rx="5" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.4"/>
+<rect x="176" y="126" width="60" height="22" rx="5" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.4"/>
+<text x="206" y="85" text-anchor="middle" font-size="9" fill="#0F766E">player 1</text>
+<text x="206" y="113" text-anchor="middle" font-size="9" fill="#0F766E">player 2</text>
+<text x="206" y="141" text-anchor="middle" font-size="9" fill="#0F766E">player 50</text>
+<line x1="132" y1="102" x2="172" y2="82" stroke="#0D9488" stroke-width="1.6" marker-end="url(#sz-a)"/>
+<line x1="132" y1="102" x2="172" y2="108" stroke="#0D9488" stroke-width="1.6" marker-end="url(#sz-a)"/>
+<line x1="132" y1="102" x2="172" y2="134" stroke="#0D9488" stroke-width="1.6" marker-end="url(#sz-a)"/>
+<rect x="256" y="82" width="158" height="112" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.8"/>
+<text x="335" y="104" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">Cùng MỘT []byte</text>
+<text x="335" y="128" text-anchor="middle" font-size="18" font-weight="800" fill="#0F766E">O(1)</text>
+<text x="335" y="150" text-anchor="middle" font-size="11" fill="#0F766E">~1 µs bất kể N</text>
+<text x="335" y="176" text-anchor="middle" font-size="10" fill="#0F766E">N=50 → 856 ns</text>
+<rect x="448" y="46" width="408" height="162" rx="12" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#sz-sh)"/>
+<text x="652" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">CHAT có privacy — payload RIÊNG</text>
+<rect x="468" y="82" width="86" height="40" rx="7" fill="#DC2626"/>
+<text x="511" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">txn</text>
+<text x="511" y="114" text-anchor="middle" font-size="9" fill="#FFD9DE">marshal N×</text>
+<rect x="600" y="70" width="88" height="22" rx="5" fill="#FFE9EC" stroke="#DC2626" stroke-width="1.4"/>
+<rect x="600" y="98" width="88" height="22" rx="5" fill="#FFF3DB" stroke="#F5A623" stroke-width="1.4"/>
+<rect x="600" y="126" width="88" height="22" rx="5" fill="#F5F5F4" stroke="#A8A29E" stroke-width="1.4"/>
+<text x="644" y="85" text-anchor="middle" font-size="9" fill="#9F1239">chủ: FULL</text>
+<text x="644" y="113" text-anchor="middle" font-size="9" fill="#7C4A03">partner: balance</text>
+<text x="644" y="141" text-anchor="middle" font-size="9" fill="#78716C">khác: hidden → ✗</text>
+<line x1="556" y1="102" x2="596" y2="82" stroke="#DC2626" stroke-width="1.6" marker-end="url(#sz-a)"/>
+<line x1="556" y1="102" x2="596" y2="108" stroke="#DC2626" stroke-width="1.6" marker-end="url(#sz-a)"/>
+<line x1="556" y1="102" x2="596" y2="134" stroke="#DC2626" stroke-width="1.6" marker-end="url(#sz-a)"/>
+<rect x="702" y="82" width="140" height="112" rx="8" fill="#FFE9EC" stroke="#DC2626" stroke-width="1.8"/>
+<text x="772" y="104" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">N []byte khác nhau</text>
+<text x="772" y="128" text-anchor="middle" font-size="18" font-weight="800" fill="#DC2626">O(N)</text>
+<text x="772" y="150" text-anchor="middle" font-size="11" fill="#BE123C">tăng tuyến tính</text>
+<text x="772" y="176" text-anchor="middle" font-size="10" fill="#BE123C">N=50 → 52 µs</text>
+<text x="440" y="240" text-anchor="middle" font-size="14" font-weight="800" fill="#374151">Chênh lệch theo fan-out — đo thật</text>
+<rect x="60" y="256" width="180" height="48" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<rect x="256" y="256" width="180" height="48" rx="8" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<rect x="452" y="256" width="180" height="48" rx="8" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="2"/>
+<rect x="648" y="256" width="180" height="48" rx="8" fill="#FFD9DE" stroke="#DC2626" stroke-width="2.5"/>
+<text x="150" y="276" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">N = 2 (couple)</text>
+<text x="150" y="295" text-anchor="middle" font-size="13" font-weight="800" fill="#0F766E">3,4× — không sao</text>
+<text x="346" y="276" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">N = 50 (nhóm nhỏ)</text>
+<text x="346" y="295" text-anchor="middle" font-size="13" font-weight="800" fill="#92400E">61×</text>
+<text x="542" y="276" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">N = 1.000</text>
+<text x="542" y="295" text-anchor="middle" font-size="13" font-weight="800" fill="#BE123C">1.545×</text>
+<text x="738" y="276" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">N = 10.000</text>
+<text x="738" y="295" text-anchor="middle" font-size="13" font-weight="800" fill="#DC2626">5.217×</text>
+<rect x="24" y="322" width="832" height="86" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="44" y="346" font-size="13" font-weight="800" fill="#7C4A03">Cách giảm: nhóm người nhận theo QUYỀN XEM, không theo từng người</text>
+<text x="44" y="368" font-size="11" fill="#92400E">Privacy chỉ có 3 mức (hidden / balance_only / full) → chỉ cần <tspan font-weight="700">3 bản serialize</tspan>, không phải N bản.</text>
+<text x="44" y="388" font-size="11" fill="#92400E">N = 10.000 người nhưng chỉ 3 biến thể payload → từ <tspan font-weight="700">7,92 ms xuống ~2,6 µs</tspan>.</text>
+<text x="44" y="404" font-size="11" font-weight="800" fill="#DC2626">Chi phí quay về O(số biến thể), không còn là O(số người nhận).</text>
+</svg>
+</div>
+<h2 id="cách-sửa-serialize-theo-nhóm-quyền-không-theo-từng-người">Cách sửa: serialize theo NHÓM QUYỀN, không theo từng người<a hidden class="anchor" aria-hidden="true" href="#cách-sửa-serialize-theo-nhóm-quyền-không-theo-từng-người">¶</a></h2>
+<p>Mấu chốt: số <strong>biến thể payload</strong> thường rất nhỏ (bằng số mức privacy), còn số <strong>người nhận</strong> thì lớn. Nhóm người nhận theo biến thể rồi serialize một lần cho mỗi nhóm:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/domain/transaction/visibility.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// VisibilityClass là &#34;nhóm quyền xem&#34; — số lượng nhóm là HẰNG SỐ,
+</span></span></span><span class="line"><span class="cl"><span class="c1">// không phụ thuộc số người nhận.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">VisibilityClass</span> <span class="kt">uint8</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">const</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">VisHidden</span> <span class="nx">VisibilityClass</span> <span class="p">=</span> <span class="kc">iota</span>  <span class="c1">// không push gì
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">VisBalanceOnly</span>                    <span class="c1">// chỉ amount + category + id
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">VisFull</span>                           <span class="c1">// toàn bộ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// classify do DOMAIN quyết định — privacy enforcement ở domain layer,
+</span></span></span><span class="line"><span class="cl"><span class="c1">// không phải ở presentation. Xem CLAUDE.md của Honeydue.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">PrivacyService</span><span class="p">)</span> <span class="nf">Classify</span><span class="p">(</span><span class="nx">viewerID</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">txn</span> <span class="o">*</span><span class="nx">Transaction</span><span class="p">)</span> <span class="nx">VisibilityClass</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">txn</span><span class="p">.</span><span class="nf">OwnerID</span><span class="p">()</span> <span class="o">==</span> <span class="nx">viewerID</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">VisFull</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">switch</span> <span class="nx">txn</span><span class="p">.</span><span class="nf">PrivacyLevel</span><span class="p">().</span><span class="nf">Value</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">case</span> <span class="nx">PrivacyHidden</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">VisHidden</span>
+</span></span><span class="line"><span class="cl">    <span class="k">case</span> <span class="nx">PrivacyBalanceOnly</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">VisBalanceOnly</span>
+</span></span><span class="line"><span class="cl">    <span class="k">default</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">VisFull</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/application/notification/fanout.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">FanoutService</span><span class="p">)</span> <span class="nf">PushTransaction</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">txn</span> <span class="o">*</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">Transaction</span><span class="p">,</span> <span class="nx">recipients</span> <span class="p">[]</span><span class="kt">string</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// ① Nhóm người nhận theo quyền xem — O(N) nhưng chỉ là so sánh, không serialize
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">groups</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">VisibilityClass</span><span class="p">][]</span><span class="kt">string</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">uid</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">recipients</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">cls</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">privacy</span><span class="p">.</span><span class="nf">Classify</span><span class="p">(</span><span class="nx">uid</span><span class="p">,</span> <span class="nx">txn</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">cls</span> <span class="o">==</span> <span class="nx">transaction</span><span class="p">.</span><span class="nx">VisHidden</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>   <span class="c1">// không push, và cũng không serialize
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">groups</span><span class="p">[</span><span class="nx">cls</span><span class="p">]</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">groups</span><span class="p">[</span><span class="nx">cls</span><span class="p">],</span> <span class="nx">uid</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// ② Serialize MỘT LẦN cho mỗi nhóm — tối đa 2 lần, không phải N lần
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">for</span> <span class="nx">cls</span><span class="p">,</span> <span class="nx">uids</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">groups</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">payload</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">encode</span><span class="p">(</span><span class="nx">txn</span><span class="p">,</span> <span class="nx">cls</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// ③ Cùng một []byte cho cả nhóm — read-only nên an toàn chia sẻ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">router</span><span class="p">.</span><span class="nf">PushMany</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">uids</span><span class="p">,</span> <span class="nx">payload</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">s</span><span class="p">.</span><span class="nx">logger</span><span class="p">.</span><span class="nf">Warn</span><span class="p">(</span><span class="s">&#34;push thất bại cho một nhóm&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="nx">zap</span><span class="p">.</span><span class="nf">Int</span><span class="p">(</span><span class="s">&#34;group_size&#34;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">uids</span><span class="p">)),</span> <span class="nx">zap</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Chi phí quay về <code>O(số biến thể)</code> thay vì <code>O(số người nhận)</code></strong> — với 10.000 người nhận và 3 mức privacy, đó là từ 7,92 ms xuống khoảng 2,6 µs.</p>
+<blockquote>
+<p>📌 <strong>Với Honeydue hiện tại thì chưa cần tối ưu này.</strong> Couple account có fan-out = 2, chênh lệch chỉ 3,4× của một con số 843 ns — hoàn toàn không đáng kể. Nhưng nếu sau này có family account hoặc shared budget nhiều người, đây là chỗ chi phí sẽ nhân lên theo số người nhận, và <strong>nó sẽ không lộ ra ở tải thấp</strong> — giống hệt lỗi slow consumer ở <a href="../../posts/scalable-p01-2-ccu-deep-dive/#hot-path-2--slow-consumer-l%E1%BB%97i-%C3%A2m-th%E1%BA%A7m-nguy-hi%E1%BB%83m-nh%E1%BA%A5t">P01.2</a> chỉ nổ sau 2,9 MB.</p>
+</blockquote>
+<hr>
+<h1 id="thứ-chat-có-mà-gaming-không-offline-queue-và-multi-device">Thứ chat có mà gaming không: offline queue và multi-device<a hidden class="anchor" aria-hidden="true" href="#thứ-chat-có-mà-gaming-không-offline-queue-và-multi-device">¶</a></h1>
+<h2 id="offline-queue">Offline queue<a hidden class="anchor" aria-hidden="true" href="#offline-queue">¶</a></h2>
+<p>Gaming: player offline thì game cứ chạy, không cần giữ gì cho họ. Chat: <strong>phải giữ mọi tin cho người offline</strong> và giao khi họ quay lại.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Khi user reconnect — nạp phần bỏ lỡ theo SEQUENCE, không theo thời gian
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">Service</span><span class="p">)</span> <span class="nf">Catchup</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">userID</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">convID</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">lastSeenSeq</span> <span class="kt">int64</span><span class="p">)</span> <span class="p">([]</span><span class="nx">Message</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Dùng seq thay vì timestamp: đồng hồ client không đáng tin,
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// và seq cho phép phát hiện LỖ HỔNG trong dãy tin.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">curSeq</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;conv:seq:&#34;</span><span class="o">+</span><span class="nx">convID</span><span class="p">).</span><span class="nf">Int64</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">gap</span> <span class="o">:=</span> <span class="nx">curSeq</span> <span class="o">-</span> <span class="nx">lastSeenSeq</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">gap</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Nếu bỏ lỡ quá nhiều, KHÔNG gửi hết — bảo client tải lại từ REST.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// Đây là van an toàn chống việc 1 reconnect kéo 10.000 tin qua WebSocket.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="nx">gap</span> <span class="p">&gt;</span> <span class="mi">500</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">ErrTooFarBehind</span>   <span class="c1">// client sẽ gọi GET /conversations/{id}/messages
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">s</span><span class="p">.</span><span class="nx">repo</span><span class="p">.</span><span class="nf">GetBySeqRange</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">convID</span><span class="p">,</span> <span class="nx">lastSeenSeq</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nx">curSeq</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Van <code>gap &gt; 500</code> là chi tiết quan trọng. Không có nó, một user offline 3 ngày reconnect sẽ kéo hàng nghìn tin qua WebSocket — và nếu 10.000 user làm thế cùng lúc sau sự cố mạng, bạn có một <strong>reconnect storm có payload</strong>, tệ hơn nhiều reconnect storm thường ở <a href="../../posts/scalable-p01-2-ccu-deep-dive/#hot-path-3--reconnect-storm-thundering-herd">P01.2</a>.</p>
+<h2 id="multi-device">Multi-device<a hidden class="anchor" aria-hidden="true" href="#multi-device">¶</a></h2>
+<p>Một user = nhiều connection. Mô hình đúng là <code>presence:{user_id}</code> → SET của <code>connection_id</code>, đúng như Honeydue đang làm:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Push cho MỌI thiết bị của user, trừ thiết bị vừa gửi
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">Router</span><span class="p">)</span> <span class="nf">PushToUser</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">userID</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">payload</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">,</span> <span class="nx">exceptConnID</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">conns</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">SMembers</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;presence:&#34;</span><span class="o">+</span><span class="nx">userID</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">cid</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">conns</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">cid</span> <span class="o">==</span> <span class="nx">exceptConnID</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>   <span class="c1">// không echo lại cho thiết bị vừa gửi
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">node</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;conn:node:&#34;</span><span class="o">+</span><span class="nx">cid</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// Connection đã chết nhưng presence chưa dọn → dọn luôn
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">SRem</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;presence:&#34;</span><span class="o">+</span><span class="nx">userID</span><span class="p">,</span> <span class="nx">cid</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">r</span><span class="p">.</span><span class="nf">sendToNode</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">node</span><span class="p">,</span> <span class="nx">cid</span><span class="p">,</span> <span class="nx">payload</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Chi tiết dễ bỏ sót: <strong>dọn presence rác</strong>. Khi gateway chết đột ngột, <code>presence:{user_id}</code> vẫn còn <code>connection_id</code> của những connection đã mất. Nếu không dọn, số liệu presence phình dần và bạn push vào hư không. Cần cả hai: dọn khi phát hiện (như trên) <strong>và</strong> một job định kỳ đối chiếu với danh sách connection thật.</p>
+<hr>
+<h1 id="failure-mode-tệ-nhất">Failure mode tệ nhất<a hidden class="anchor" aria-hidden="true" href="#failure-mode-tệ-nhất">¶</a></h1>
+<p>Chat có hai failure mode mà gaming không có:</p>
+<p><strong>1. Hot channel.</strong> Một tin vào channel 1M member. Với PUSH đó là 1 triệu lần ghi — đo được 179 ms cho 100.000 member, tức khoảng <strong>1,8 giây</strong> cho 1M. Trong 1,8 giây đó Redis bị chiếm, mọi hội thoại khác cũng chậm theo. Đây là bài toán hot resource ở <a href="../../posts/scalable-p01-ccu-vs-rps/#hot-resource-ch%E1%BB%97-ccu-ho%C3%A0n-to%C3%A0n-kh%C3%B4ng-n%C3%B3i-g%C3%AC">P01</a>, đặt ở tầng fan-out.</p>
+<p><strong>2. Reconnect storm có payload.</strong> Sự cố mạng → 100.000 user reconnect <strong>và mỗi người kéo tin bỏ lỡ</strong>. Reconnect storm thường chỉ tốn handshake; cái này tốn handshake <strong>cộng</strong> truy vấn lịch sử. Van <code>gap &gt; 500</code> ở trên là lớp phòng vệ chính.</p>
+<table>
+<thead>
+<tr>
+<th>Failure mode</th>
+<th>Dấu hiệu</th>
+<th>Phòng vệ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hot channel</td>
+<td><code>fanout_duration</code> p99 tăng vọt ở vài <code>conv_id</code></td>
+<td>Tier hoá push/pull · tách channel lớn sang node riêng</td>
+</tr>
+<tr>
+<td>Reconnect storm có payload</td>
+<td><code>catchup_messages</code> tổng tăng vọt cùng <code>conn_opened/s</code></td>
+<td>Van <code>gap</code>, đẩy sang REST · backoff + jitter</td>
+</tr>
+<tr>
+<td>WAL đầy</td>
+<td>Redis memory tăng, consumer lag tăng</td>
+<td><code>MAXLEN</code> trên WAL · alert theo lag</td>
+</tr>
+<tr>
+<td>Presence rác</td>
+<td><code>presence_size</code> &gt; số connection thật</td>
+<td>Dọn khi phát hiện + job đối chiếu</td>
+</tr>
+<tr>
+<td>Mất thứ tự</td>
+<td>Client báo tin hiện sai thứ tự</td>
+<td>Sequence number per conversation, không dùng timestamp</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="stress-test-và-monitoring">Stress test và monitoring<a hidden class="anchor" aria-hidden="true" href="#stress-test-và-monitoring">¶</a></h1>
+<h2 id="cách-test">Cách test<a hidden class="anchor" aria-hidden="true" href="#cách-test">¶</a></h2>
+<p>Khác với gaming, chat cần test cả <strong>hình dạng hội thoại</strong>, không chỉ số connection:</p>
+<ol>
+<li><strong>Test theo phân bố fan-out thật.</strong> Đừng test với toàn nhóm 50 người. Lấy phân bố thật từ production (hoặc dự đoán): ví dụ 80% DM, 19% nhóm &lt; 100, 1% channel &gt; 10.000. Chính 1% đó quyết định capacity.</li>
+<li><strong>Test hot channel riêng.</strong> Một channel lớn nhất, bắn tin liên tục, đo ảnh hưởng tới <strong>các hội thoại khác</strong>. Nếu p99 của DM tăng khi channel lớn hoạt động, bạn chưa có isolation.</li>
+<li><strong>Test mất tin.</strong> Kill gateway/worker giữa lúc tải, rồi <strong>đếm</strong>: số tin gửi thành công (có ACK) phải bằng số tin lưu được. Khác nhau = đang mất tin.</li>
+<li><strong>Test catchup.</strong> Cho 10.000 client offline 10 phút rồi reconnect cùng lúc. Đo tổng số tin kéo về và thời gian hồi phục.</li>
+<li><strong>Test thứ tự.</strong> Gửi 1.000 tin liên tiếp vào một hội thoại từ nhiều client, kiểm tra <code>seq</code> ở phía nhận liên tục không lỗ hổng.</li>
+</ol>
+<h2 id="metric-bắt-buộc">Metric bắt buộc<a hidden class="anchor" aria-hidden="true" href="#metric-bắt-buộc">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Nhóm</th>
+<th>Metric</th>
+<th>Vì sao</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fan-out</strong></td>
+<td><code>fanout_duration</code> p99 <strong>theo bucket kích thước channel</strong></td>
+<td>Trung bình vô nghĩa khi fan-out dao động 1.200×</td>
+</tr>
+<tr>
+<td></td>
+<td><code>fanout_mode</code> (push/pull) counter</td>
+<td>Xác nhận tier hoá đang chạy đúng</td>
+</tr>
+<tr>
+<td></td>
+<td><code>push_recipients</code> histogram</td>
+<td>Phát hiện channel đang phình</td>
+</tr>
+<tr>
+<td><strong>Độ bền</strong></td>
+<td><code>wal_write_duration</code> p99</td>
+<td>Nằm trong hot path nên phải sát</td>
+</tr>
+<tr>
+<td></td>
+<td><strong><code>messages_acked</code> − <code>messages_persisted</code></strong></td>
+<td><strong>Phải bằng 0.</strong> Dương = đang mất tin</td>
+</tr>
+<tr>
+<td></td>
+<td>WAL consumer lag</td>
+<td>Async có theo kịp không</td>
+</tr>
+<tr>
+<td><strong>Catchup</strong></td>
+<td><code>catchup_gap</code> histogram</td>
+<td>Phân bố độ trễ của client</td>
+</tr>
+<tr>
+<td></td>
+<td><code>catchup_too_far</code> counter</td>
+<td>Bao nhiêu client phải fallback REST</td>
+</tr>
+<tr>
+<td><strong>Presence</strong></td>
+<td><code>presence_size</code> vs <code>conn_active</code></td>
+<td>Lệch = presence rác</td>
+</tr>
+<tr>
+<td><strong>Thứ tự</strong></td>
+<td><code>seq_gap_detected</code></td>
+<td>Phải bằng 0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Metric quan trọng nhất: <code>messages_acked − messages_persisted</code>.</strong> Nó không phải metric hiệu năng mà là <strong>metric đúng đắn</strong> — giống <code>oversell_count</code> ở <a href="../../posts/scalable-p01-3-rps-deep-dive/">P01.3</a>. Nếu dương, bạn đã hiện dấu ✓ cho tin không tồn tại.</p>
+<h2 id="checklist">Checklist<a hidden class="anchor" aria-hidden="true" href="#checklist">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-gdscript3" data-lang="gdscript3"><span class="line"><span class="cl"><span class="err">ĐÚ</span><span class="n">NG</span> <span class="err">ĐẮ</span><span class="n">N</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Ghi</span> <span class="n">bền</span> <span class="n">TRƯỚC</span> <span class="n">khi</span> <span class="n">ACK</span> <span class="n">cho</span> <span class="n">người</span> <span class="n">gửi</span><span class="err">?</span> <span class="p">(</span><span class="n">không</span> <span class="n">phải</span> <span class="n">ngược</span> <span class="n">lại</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Có</span> <span class="n">sequence</span> <span class="n">number</span> <span class="n">per</span> <span class="n">conversation</span> <span class="n">chưa</span><span class="err">?</span> <span class="p">(</span><span class="n">không</span> <span class="n">dùng</span> <span class="n">timestamp</span> <span class="n">client</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Worker</span> <span class="n">persist</span> <span class="n">có</span> <span class="n">idempotent</span> <span class="o">+</span> <span class="n">unique</span> <span class="n">constraint</span> <span class="n">chưa</span><span class="err">?</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Có</span> <span class="err">đố</span><span class="n">i</span> <span class="n">chiếu</span> <span class="n">messages_acked</span> <span class="n">vs</span> <span class="n">messages_persisted</span> <span class="n">không</span><span class="err">?</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Có</span> <span class="n">van</span> <span class="n">giới</span> <span class="n">hạn</span> <span class="n">catchup</span> <span class="p">(</span><span class="n">gap</span> <span class="o">&gt;</span> <span class="n">N</span> <span class="err">→</span> <span class="n">fallback</span> <span class="n">REST</span><span class="p">)</span> <span class="n">chưa</span><span class="err">?</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">FAN</span><span class="o">-</span><span class="n">OUT</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="err">Đã</span> <span class="n">tier</span> <span class="n">hoá</span> <span class="n">push</span><span class="o">/</span><span class="n">pull</span> <span class="n">theo</span> <span class="n">kích</span> <span class="n">thước</span> <span class="n">channel</span> <span class="n">chưa</span><span class="err">?</span> <span class="n">Ngưỡng</span> <span class="n">dựa</span> <span class="n">trên</span> <span class="err">Đ</span><span class="n">O</span> <span class="n">hay</span> <span class="err">đ</span><span class="n">oán</span><span class="err">?</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Nhánh</span> <span class="n">pull</span> <span class="n">có</span> <span class="n">push</span> <span class="n">cho</span> <span class="n">ACTIVE</span> <span class="n">VIEWER</span> <span class="n">hay</span> <span class="n">cho</span> <span class="n">mọi</span> <span class="n">người</span> <span class="n">online</span><span class="err">?</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Payload</span> <span class="n">khác</span> <span class="n">nhau</span> <span class="n">theo</span> <span class="n">người</span> <span class="n">nhận</span><span class="err">?</span> <span class="err">→</span> <span class="n">nhóm</span> <span class="n">theo</span> <span class="n">QUYỀN</span> <span class="n">XEM</span><span class="p">,</span> <span class="n">không</span> <span class="n">serialize</span> <span class="n">N</span> <span class="n">lần</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Inbox</span> <span class="n">có</span> <span class="n">LTRIM</span> <span class="n">giới</span> <span class="n">hạn</span> <span class="n">không</span><span class="err">?</span> <span class="p">(</span><span class="n">tránh</span> <span class="n">phình</span> <span class="n">vô</span> <span class="n">hạn</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Fan</span><span class="o">-</span><span class="n">out</span> <span class="n">có</span> <span class="n">dùng</span> <span class="n">pipeline</span> <span class="n">không</span><span class="err">?</span> <span class="p">(</span><span class="mf">1.000</span> <span class="n">lệnh</span> <span class="n">tuần</span> <span class="n">tự</span> <span class="o">=</span> <span class="mf">1.000</span> <span class="nb">round</span><span class="o">-</span><span class="n">trip</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">VẬN</span> <span class="n">HÀNH</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Presence</span> <span class="n">có</span> <span class="n">cơ</span> <span class="n">chế</span> <span class="n">dọn</span> <span class="n">rác</span> <span class="p">(</span><span class="n">khi</span> <span class="n">phát</span> <span class="n">hiện</span> <span class="o">+</span> <span class="n">job</span> <span class="err">đị</span><span class="n">nh</span> <span class="n">kỳ</span><span class="p">)</span> <span class="n">chưa</span><span class="err">?</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">WAL</span> <span class="n">có</span> <span class="n">MAXLEN</span> <span class="n">chưa</span><span class="err">?</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="err">Đã</span> <span class="n">test</span> <span class="n">với</span> <span class="n">PHÂN</span> <span class="n">BỐ</span> <span class="n">fan</span><span class="o">-</span><span class="n">out</span> <span class="n">thật</span><span class="p">,</span> <span class="n">không</span> <span class="n">phải</span> <span class="n">một</span> <span class="n">kích</span> <span class="n">thước</span> <span class="n">duy</span> <span class="n">nhất</span><span class="err">?</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="err">Đã</span> <span class="n">test</span> <span class="n">hot</span> <span class="n">channel</span> <span class="err">ả</span><span class="n">nh</span> <span class="n">hưởng</span> <span class="n">tới</span> <span class="n">hội</span> <span class="n">thoại</span> <span class="n">khác</span> <span class="n">chưa</span><span class="err">?</span>
+</span></span><span class="line"><span class="cl"><span class="err">□</span> <span class="n">Metric</span> <span class="n">fanout_duration</span> <span class="n">có</span> <span class="n">chia</span> <span class="n">bucket</span> <span class="n">theo</span> <span class="n">kích</span> <span class="n">thước</span> <span class="n">channel</span> <span class="n">chưa</span><span class="err">?</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Câu hỏi</th>
+<th>Trả lời</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1M CCU chat có giống 1M CCU gaming?</td>
+<td><strong>Không.</strong> Chiều vào thấp hơn <strong>6.000×</strong>, chiều ra dao động <strong>1.200×</strong> tuỳ hình dạng hội thoại</td>
+</tr>
+<tr>
+<td>Khác biệt cấu trúc sâu nhất?</td>
+<td><strong>Partition hai chiều</strong> — connection theo user, routing theo channel. Gaming chỉ cần 1 chiều</td>
+</tr>
+<tr>
+<td>Push hay pull?</td>
+<td>Đo thật: push <code>O(N)</code> (<strong>179 ms</strong> cho 100k member), pull <code>O(1)</code> (<strong>110 µs</strong>). Hoà vốn ở <strong>~1.627 người đọc</strong></td>
+</tr>
+<tr>
+<td>Lời giải thực tế?</td>
+<td><strong>Tier hoá</strong>: nhóm &lt; 1.000 → push, channel &gt; 10.000 → pull</td>
+</tr>
+<tr>
+<td>Đặt MySQL vào hot path?</td>
+<td>Throughput tụt <strong>11×</strong> (6.946 vs 78.216 msg/s), p99 xấu <strong>10,8×</strong></td>
+</tr>
+<tr>
+<td>Cách đúng?</td>
+<td>Ghi <strong>Redis WAL rồi ACK</strong>, MySQL do worker async — và ACK <strong>sau</strong> khi ghi bền</td>
+</tr>
+<tr>
+<td>Privacy filtering tốn gì?</td>
+<td>Serialize per-recipient đắt <strong>5.217×</strong> ở N=10.000 (7,92 ms vs 1,52 µs)</td>
+</tr>
+<tr>
+<td>Cách giảm?</td>
+<td>Nhóm người nhận theo <strong>quyền xem</strong> → <code>O(số biến thể)</code>, không phải <code>O(số người nhận)</code></td>
+</tr>
+<tr>
+<td>Failure mode riêng của chat?</td>
+<td><strong>Hot channel</strong> và <strong>reconnect storm có payload</strong></td>
+</tr>
+<tr>
+<td>Metric phải bằng 0?</td>
+<td><strong><code>messages_acked − messages_persisted</code></strong></td>
+</tr>
+</tbody>
+</table>
+<p>Bài tiếp: <a href="../../posts/scalable-p01-5-api-deep-dive/"><strong>P01.5 — Public API triệu RPS</strong></a>, với multi-tenant quota và lý do không thể gọi Redis mỗi request.</p>
+<hr>
+<h1 id="tham-khảo">Tham khảo<a hidden class="anchor" aria-hidden="true" href="#tham-khảo">¶</a></h1>
+<ul>
+<li><a href="https://research.google/pubs/pub48190/">Zanzibar / OpenFGA</a> — mô hình quan hệ cho quyền xem ở quy mô lớn</li>
+<li><a href="https://discord.com/blog/how-discord-stores-trillions-of-messages">Discord — How Discord Stores Trillions of Messages</a> — push vs pull ở quy mô thật</li>
+<li><a href="https://www.infoq.com/presentations/Twitter-Timeline-Scalability/">Twitter timeline fan-out</a> — nguồn gốc của bài toán push/pull</li>
+<li>Group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a> — nguồn nội dung gốc</li>
+<li>Series: <a href="../../posts/scalable-p01-ccu-vs-rps/">P01 — CCU không phải RPS</a> · <a href="../../posts/scalable-p01-2-ccu-deep-dive/">P01.2 — 1M CCU gaming</a> · <a href="../../posts/scalable-p01-3-rps-deep-dive/">P01.3 — Triệu RPS flash sale</a> · <a href="../../posts/system-design-p03-pubsub-vs-streams/">P03 — Pub/Sub vs Streams</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>

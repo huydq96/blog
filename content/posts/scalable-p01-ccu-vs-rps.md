@@ -512,7 +512,7 @@ Và điều này không chỉ đúng trong phỏng vấn. Các pattern đó **kh
 
 # Checklist: chuyển CCU thành workload model
 
-```bash
+```txt
 BƯỚC 1 — LÀM RÕ ĐỀ BÀI (chưa vẽ gì)
 □ CCU nghĩa là online / giữ connection / đang active?
 □ FR là gì — hệ thống làm gì, luồng nào quan trọng nhất?
@@ -553,6 +553,19 @@ BƯỚC 4 — GIỜ MỚI CHỌN COMPONENT
 | Hot Resource ảnh hưởng bao nhiêu? | Đo thật: MySQL 1 hot row **sụp 30,8×** throughput, p50 chậm **33×** |
 | Vì sao Redis không bị vậy? | `DECR` atomic đơn lệnh trên server single-thread — **vốn đã tuần tự** |
 | Vậy nên hỏi gì trước khi vẽ? | *"Một triệu user đó đang làm gì, với ai, và điều gì tuyệt đối không được phép sai?"* |
+
+---
+
+# Đào sâu hơn
+
+Bài này mới dừng ở mức *workload model*. Bốn bài tiếp theo đi vào chi tiết từng tầng component, tradeoff của mỗi lựa chọn, hot path kèm code Go, và failure mode tệ nhất của từng loại hệ thống:
+
+- [**P01.2 — Gaming 1M CCU**](/posts/scalable-p01-2-ccu-deep-dive/): kiến trúc gaming, 3 hot path đo thật (fan-out, slow consumer, reconnect storm)
+- [**P01.3 — Flash sale 1M RPS**](/posts/scalable-p01-3-rps-deep-dive/): flash sale burst 50×, 6 cách giữ tồn kho (có cách oversell 6%), rate limit đúng/sai
+- [**P01.4 — Chat/Notification 1M CCU**](/posts/scalable-p01-4-chat-deep-dive/): cùng 1M CCU nhưng khác gaming 4 chỗ cốt lõi — push vs pull fan-out, ghi bền trong hot path
+- [**P01.5 — Public API 1M RPS**](/posts/scalable-p01-5-api-deep-dive/): multi-tenant, two-tier limiter nhanh hơn 57×, noisy neighbor
+
+Bốn bài trên chia theo hai trục: **CCU-heavy** (P01.2 gaming, P01.4 chat) và **RPS-heavy** (P01.3 flash sale, P01.5 public API).
 
 ---
 

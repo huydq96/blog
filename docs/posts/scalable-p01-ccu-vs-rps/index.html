@@ -56,7 +56,7 @@
   "keywords": [
     "system-design", "scalability", "performance", "interview", "golang"
   ],
-  "wordCount" : "3641",
+  "wordCount" : "3782",
   "inLanguage": "en",
   "datePublished": "2026-10-21T09:00:00+07:00",
   "dateModified": "2026-10-21T09:00:00+07:00",
@@ -259,6 +259,8 @@ function toggleThemeListener() {
                     <a href="#checklist-chuy%e1%bb%83n-ccu-th%c3%a0nh-workload-model" aria-label="Checklist: chuyển CCU thành workload model">Checklist: chuyển CCU thành workload model</a></li>
                 <li>
                     <a href="#t%c3%b3m-t%e1%ba%aft" aria-label="Tóm tắt">Tóm tắt</a></li>
+                <li>
+                    <a href="#%c4%91%c3%a0o-s%c3%a2u-h%c6%a1n" aria-label="Đào sâu hơn">Đào sâu hơn</a></li>
                 <li>
                     <a href="#tham-kh%e1%ba%a3o" aria-label="Tham khảo">Tham khảo</a>
                 </li>
@@ -984,29 +986,29 @@ function toggleThemeListener() {
 </span><span class="lnt">23
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">BƯỚC <span class="m">1</span> — LÀM RÕ ĐỀ BÀI <span class="o">(</span>chưa vẽ gì<span class="o">)</span>
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">BƯỚC 1 — LÀM RÕ ĐỀ BÀI (chưa vẽ gì)
 </span></span><span class="line"><span class="cl">□ CCU nghĩa là online / giữ connection / đang active?
 </span></span><span class="line"><span class="cl">□ FR là gì — hệ thống làm gì, luồng nào quan trọng nhất?
-</span></span><span class="line"><span class="cl">□ Điều gì bắt buộc phải đúng <span class="o">(</span>không được eventual consistency<span class="o">)</span>?
+</span></span><span class="line"><span class="cl">□ Điều gì bắt buộc phải đúng (không được eventual consistency)?
 </span></span><span class="line"><span class="cl">□ Mục tiêu p50/p99 latency, availability, durability?
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">BƯỚC <span class="m">2</span> — TÍNH WORKLOAD <span class="o">(</span>vẫn chưa vẽ<span class="o">)</span>
-</span></span><span class="line"><span class="cl">□ Active users × action/giây × request/action <span class="o">=</span> RPS lớp ngoài
-</span></span><span class="line"><span class="cl">□ Fan-out: <span class="m">1</span> request thành bao nhiêu internal call?
+</span></span><span class="line"><span class="cl">BƯỚC 2 — TÍNH WORKLOAD (vẫn chưa vẽ)
+</span></span><span class="line"><span class="cl">□ Active users × action/giây × request/action = RPS lớp ngoài
+</span></span><span class="line"><span class="cl">□ Fan-out: 1 request thành bao nhiêu internal call?
 </span></span><span class="line"><span class="cl">□ Cache hit rate bao nhiêu → DB QPS còn lại bao nhiêu?
-</span></span><span class="line"><span class="cl">□ Retry policy là gì? <span class="o">(</span>retry nhân tải đúng lúc hệ thống yếu nhất<span class="o">)</span>
+</span></span><span class="line"><span class="cl">□ Retry policy là gì? (retry nhân tải đúng lúc hệ thống yếu nhất)
 </span></span><span class="line"><span class="cl">□ Traffic ĐỀU hay BURST? Tỉ lệ đỉnh/trung bình bao nhiêu?
 </span></span><span class="line"><span class="cl">□ Kích thước payload → bandwidth bao nhiêu Gbps?
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">BƯỚC <span class="m">3</span> — TÌM HOT PATH
+</span></span><span class="line"><span class="cl">BƯỚC 3 — TÌM HOT PATH
 </span></span><span class="line"><span class="cl">□ Tải rải đều hay tập trung vào Hot Resource?
 </span></span><span class="line"><span class="cl">□ Nếu có hot row/hot key: đã biết nó sụp 30× chưa? Kế hoạch là gì?
 </span></span><span class="line"><span class="cl">□ Dữ liệu partition theo chiều nào? Có skew không?
 </span></span><span class="line"><span class="cl">□ Failure mode tệ nhất là gì — và nó xảy ra ở đâu?
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">BƯỚC <span class="m">4</span> — GIỜ MỚI CHỌN COMPONENT
+</span></span><span class="line"><span class="cl">BƯỚC 4 — GIỜ MỚI CHỌN COMPONENT
 </span></span><span class="line"><span class="cl">□ Mỗi component giải quyết CHÍNH XÁC bottleneck nào trong bảng trên?
-</span></span><span class="line"><span class="cl">□ Có component nào thêm vào chỉ vì <span class="s2">&#34;hệ thống lớn thì phải có&#34;</span>?
+</span></span><span class="line"><span class="cl">□ Có component nào thêm vào chỉ vì &#34;hệ thống lớn thì phải có&#34;?
 </span></span></code></pre></td></tr></table>
 </div>
 </div><hr>
@@ -1057,6 +1059,16 @@ function toggleThemeListener() {
 </tr>
 </tbody>
 </table>
+<hr>
+<h1 id="đào-sâu-hơn">Đào sâu hơn<a hidden class="anchor" aria-hidden="true" href="#đào-sâu-hơn">¶</a></h1>
+<p>Bài này mới dừng ở mức <em>workload model</em>. Bốn bài tiếp theo đi vào chi tiết từng tầng component, tradeoff của mỗi lựa chọn, hot path kèm code Go, và failure mode tệ nhất của từng loại hệ thống:</p>
+<ul>
+<li><a href="../../posts/scalable-p01-2-ccu-deep-dive/"><strong>P01.2 — Gaming 1M CCU</strong></a>: kiến trúc gaming, 3 hot path đo thật (fan-out, slow consumer, reconnect storm)</li>
+<li><a href="../../posts/scalable-p01-3-rps-deep-dive/"><strong>P01.3 — Flash sale 1M RPS</strong></a>: flash sale burst 50×, 6 cách giữ tồn kho (có cách oversell 6%), rate limit đúng/sai</li>
+<li><a href="../../posts/scalable-p01-4-chat-deep-dive/"><strong>P01.4 — Chat/Notification 1M CCU</strong></a>: cùng 1M CCU nhưng khác gaming 4 chỗ cốt lõi — push vs pull fan-out, ghi bền trong hot path</li>
+<li><a href="../../posts/scalable-p01-5-api-deep-dive/"><strong>P01.5 — Public API 1M RPS</strong></a>: multi-tenant, two-tier limiter nhanh hơn 57×, noisy neighbor</li>
+</ul>
+<p>Bốn bài trên chia theo hai trục: <strong>CCU-heavy</strong> (P01.2 gaming, P01.4 chat) và <strong>RPS-heavy</strong> (P01.3 flash sale, P01.5 public API).</p>
 <hr>
 <h1 id="tham-khảo">Tham khảo<a hidden class="anchor" aria-hidden="true" href="#tham-khảo">¶</a></h1>
 <ul>

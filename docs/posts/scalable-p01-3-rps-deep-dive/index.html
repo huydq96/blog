@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Scalable System Design P01.3: Thiết Kế Hệ Thống 1M RPS — Flash Sale | Huy Dang Blog</title>
+<meta name="keywords" content="system-design, scalability, performance, golang, redis">
+<meta name="description" content="Flash sale burst 50×: từng tầng component và tradeoff, 6 cách giữ tồn kho đo thật (có cách oversell 60 suất), rate limit đúng/sai, và retry storm.">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/scalable-p01-3-rps-deep-dive/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/scalable-p01-3-rps-deep-dive/">
+
+<meta name="twitter:title" content="Scalable System Design P01.3: Thiết Kế Hệ Thống 1M RPS — Flash Sale | Huy Dang Blog" />
+<meta name="twitter:description" content="Flash sale burst 50×: từng tầng component và tradeoff, 6 cách giữ tồn kho đo thật (có cách oversell 60 suất), rate limit đúng/sai, và retry storm." />
+<meta property="og:title" content="Scalable System Design P01.3: Thiết Kế Hệ Thống 1M RPS — Flash Sale | Huy Dang Blog" />
+<meta property="og:description" content="Flash sale burst 50×: từng tầng component và tradeoff, 6 cách giữ tồn kho đo thật (có cách oversell 60 suất), rate limit đúng/sai, và retry storm." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/scalable-p01-3-rps-deep-dive/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-10-22T01:30:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-10-22T01:30:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Scalable System Design P01.3: Thiết Kế Hệ Thống 1M RPS — Flash Sale",
+      "item": "https://blog.huydang.dev/posts/scalable-p01-3-rps-deep-dive/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Scalable System Design P01.3: Thiết Kế Hệ Thống 1M RPS — Flash Sale | Huy Dang Blog",
+  "name": "Scalable System Design P01.3: Thiết Kế Hệ Thống 1M RPS — Flash Sale",
+  "description": "Flash sale burst 50×: từng tầng component và tradeoff, 6 cách giữ tồn kho đo thật (có cách oversell 60 suất), rate limit đúng/sai, và retry storm.",
+  "keywords": [
+    "system-design", "scalability", "performance", "golang", "redis"
+  ],
+  "wordCount" : "4805",
+  "inLanguage": "en",
+  "datePublished": "2026-10-22T01:30:00+07:00",
+  "dateModified": "2026-10-22T01:30:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/scalable-p01-3-rps-deep-dive/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Scalable System Design P01.3: Thiết Kế Hệ Thống 1M RPS — Flash Sale</h1>
+    <div class="post-description">Flash sale burst 50×: từng tầng component và tradeoff, 6 cách giữ tồn kho đo thật (có cách oversell 60 suất), rate limit đúng/sai, và retry storm.</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>October 22, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/system-design/">System Design</a><a href="https://blog.huydang.dev/tags/scalability/">Scalability</a><a href="https://blog.huydang.dev/tags/performance/">Performance</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/redis/">Redis</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>23 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#m%e1%bb%9f-%c4%91%e1%ba%a7u" aria-label="Mở đầu">Mở đầu</a><ul>
+                        
+                <li>
+                    <a href="#workload-model" aria-label="Workload model">Workload model</a></li></ul>
+                </li>
+                <li>
+                    <a href="#ki%e1%ba%bfn-tr%c3%bac-t%e1%bb%95ng-th%e1%bb%83" aria-label="Kiến trúc tổng thể">Kiến trúc tổng thể</a></li>
+                <li>
+                    <a href="#l%e1%bb%b1a-ch%e1%bb%8dn-component-v%c3%a0-tradeoff" aria-label="Lựa chọn component và tradeoff">Lựa chọn component và tradeoff</a><ul>
+                        
+                <li>
+                    <a href="#t%e1%ba%a7ng-2--waiting-room" aria-label="Tầng 2 — Waiting room">Tầng 2 — Waiting room</a></li>
+                <li>
+                    <a href="#t%e1%ba%a7ng-4--gi%e1%bb%af-t%e1%bb%93n-kho-6-c%c3%a1ch-v%c3%a0-ch%e1%bb%89-5-c%c3%a1ch-%c4%91%c3%bang" aria-label="Tầng 4 — Giữ tồn kho: 6 cách, và chỉ 5 cách đúng">Tầng 4 — Giữ tồn kho: 6 cách, và chỉ 5 cách đúng</a><ul>
+                        
+                <li>
+                    <a href="#v%c3%ac-sao--oversell--v%c3%a0-v%c3%ac-sao-n%c3%b3-r%e1%ba%a5t-kh%c3%b3-ph%c3%a1t-hi%e1%bb%87n" aria-label="Vì sao ② oversell — và vì sao nó rất khó phát hiện">Vì sao ② oversell — và vì sao nó rất khó phát hiện</a></li>
+                <li>
+                    <a href="#c%c3%a1ch-%c4%91%c3%bang-m%e1%bb%99t-l%e1%bb%87nh-lua-atomic" aria-label="Cách đúng: một lệnh Lua atomic">Cách đúng: một lệnh Lua atomic</a></li>
+                <li>
+                    <a href="#c%c3%a1ch-nhanh-nh%e1%ba%a5t-t%c3%bai-token-%c4%91%c3%bac-s%e1%ba%b5n" aria-label="Cách nhanh nhất: túi token đúc sẵn">Cách nhanh nhất: túi token đúc sẵn</a></li>
+                <li>
+                    <a href="#v%c3%ac-sao--sharding-l%e1%ba%a1i-ch%e1%ba%adm--b%c3%a0i-h%e1%bb%8dc-ph%e1%ba%a3n-tr%e1%bb%b1c-gi%c3%a1c" aria-label="Vì sao ⑤ sharding lại CHẬM — bài học phản trực giác">Vì sao ⑤ sharding lại CHẬM — bài học phản trực giác</a></li>
+                <li>
+                    <a href="#v%c3%a0-v%c3%ac-sao--mysql-kh%c3%b4ng-t%e1%bb%87-nh%c6%b0-t%c6%b0%e1%bb%9fng" aria-label="Và vì sao ① MySQL không tệ như tưởng">Và vì sao ① MySQL không tệ như tưởng</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#hot-path-2--rate-limit-%c4%91%c3%bang-quan-tr%e1%bb%8dng-h%c6%a1n-nhanh" aria-label="Hot path #2 — Rate limit: đúng quan trọng hơn nhanh">Hot path #2 — Rate limit: đúng quan trọng hơn nhanh</a><ul>
+                        
+                <li>
+                    <a href="#l%e1%bb%97i-1-d%c3%b9ng-th%e1%bb%9di-gian-c%e1%bb%a7a-client" aria-label="Lỗi #1: dùng thời gian của client">Lỗi #1: dùng thời gian của client</a></li>
+                <li>
+                    <a href="#l%e1%bb%97i-2-fixed-window-v%c3%a0-l%e1%bb%97-h%e1%bb%95ng-ranh-gi%e1%bb%9bi" aria-label="Lỗi #2: fixed window và lỗ hổng ranh giới">Lỗi #2: fixed window và lỗ hổng ranh giới</a></li></ul>
+                </li>
+                <li>
+                    <a href="#hot-path-3--idempotency" aria-label="Hot path #3 — Idempotency">Hot path #3 — Idempotency</a></li>
+                <li>
+                    <a href="#failure-mode-t%e1%bb%87-nh%e1%ba%a5t-retry-storm" aria-label="Failure mode tệ nhất: retry storm">Failure mode tệ nhất: retry storm</a><ul>
+                        
+                <li>
+                    <a href="#load-shedding-ch%e1%bb%a7-%c4%91%e1%bb%99ng-t%e1%bb%ab-ch%e1%bb%91i-%c4%91%e1%bb%83-s%e1%bb%91ng-s%c3%b3t" aria-label="Load shedding: chủ động từ chối để sống sót">Load shedding: chủ động từ chối để sống sót</a></li>
+                <li>
+                    <a href="#retry-budget--th%e1%bb%a9-hay-b%e1%bb%8b-thi%e1%ba%bfu-nh%e1%ba%a5t" aria-label="Retry budget — thứ hay bị thiếu nhất">Retry budget — thứ hay bị thiếu nhất</a></li></ul>
+                </li>
+                <li>
+                    <a href="#stress-test-v%c3%a0-monitoring" aria-label="Stress test và monitoring">Stress test và monitoring</a><ul>
+                        
+                <li>
+                    <a href="#c%c3%a1ch-t%c3%acm-breaking-point" aria-label="Cách tìm breaking point">Cách tìm breaking point</a></li>
+                <li>
+                    <a href="#metric-b%e1%ba%aft-bu%e1%bb%99c" aria-label="Metric bắt buộc">Metric bắt buộc</a></li>
+                <li>
+                    <a href="#checklist" aria-label="Checklist">Checklist</a></li></ul>
+                </li>
+                <li>
+                    <a href="#t%c3%b3m-t%e1%ba%aft" aria-label="Tóm tắt">Tóm tắt</a></li>
+                <li>
+                    <a href="#tham-kh%e1%ba%a3o" aria-label="Tham khảo">Tham khảo</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><blockquote>
+<p><em>Bài viết thuộc series <strong>Scalable System Design</strong>, nội dung tham khảo từ các bài viết trong group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a>. Phần diễn giải, kiến trúc, code và <strong>toàn bộ số liệu benchmark</strong> là tôi tự bổ sung, đo thật trên máy local (Go 1.24, MySQL 8.0.40, Redis 7.4.2).</em></p>
+</blockquote>
+<h1 id="mở-đầu">Mở đầu<a hidden class="anchor" aria-hidden="true" href="#mở-đầu">¶</a></h1>
+<p><a href="../../posts/scalable-p01-2-ccu-deep-dive/">P01.2</a> đào sâu hệ thống <strong>CCU-heavy</strong> (1M connection gaming), nơi ràng buộc là bandwidth và latency. Bài này làm điều tương tự cho đầu còn lại: hệ thống <strong>RPS-heavy</strong> với tải <strong>dồn thành burst</strong> — flash sale.</p>
+<p>Khác biệt cốt lõi giữa hai bài toán:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>CCU-heavy (P01.2)</th>
+<th><strong>RPS-heavy (bài này)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tải đến</td>
+<td>Đều, dự báo được</td>
+<td><strong>Burst 50× trong 10 giây</strong></td>
+</tr>
+<tr>
+<td>Ràng buộc</td>
+<td>Bandwidth, latency p99</td>
+<td><strong>Hot resource, tính đúng đắn</strong></td>
+</tr>
+<tr>
+<td>Lỗi tệ nhất</td>
+<td>Reconnect storm</td>
+<td><strong>Oversell + retry storm</strong></td>
+</tr>
+<tr>
+<td>Hot path</td>
+<td>Fan-out trong RAM</td>
+<td><strong>Giữ suất tồn kho</strong></td>
+</tr>
+<tr>
+<td>Thứ phải bảo toàn</td>
+<td>State đồng bộ</td>
+<td><strong>Không bán âm tồn kho</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Ở hệ thống CCU, sai là <em>lag</em>. Ở đây, sai là <strong>mất tiền thật</strong> — và đó là lý do bài này nói về tính đúng đắn nhiều hơn về throughput.</p>
+<h2 id="workload-model">Workload model<a hidden class="anchor" aria-hidden="true" href="#workload-model">¶</a></h2>
+<p>Shop có <strong>1.000 suất iPhone giảm 50%</strong>, mở bán lúc 12:00:00. Dự kiến <strong>500.000 người</strong> chờ sẵn.</p>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th style="text-align:right">Giá trị</th>
+<th>Ghi chú</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Người chờ</td>
+<td style="text-align:right">500.000</td>
+<td>biết trước (đăng ký nhắc hẹn)</td>
+</tr>
+<tr>
+<td>Suất bán</td>
+<td style="text-align:right"><strong>1.000</strong></td>
+<td>tỉ lệ 1/500</td>
+</tr>
+<tr>
+<td>RPS nền (bình thường)</td>
+<td style="text-align:right">10.000</td>
+<td></td>
+</tr>
+<tr>
+<td><strong>RPS đỉnh (giây đầu)</strong></td>
+<td style="text-align:right"><strong>500.000</strong></td>
+<td><strong>burst 50×</strong></td>
+</tr>
+<tr>
+<td>Thời gian burst</td>
+<td style="text-align:right">~10 giây</td>
+<td></td>
+</tr>
+<tr>
+<td>Người chắc chắn thất bại</td>
+<td style="text-align:right"><strong>499.000 (99,8%)</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Dòng cuối là góc nhìn quyết định toàn bộ kiến trúc: <strong>99,8% request sẽ thất bại dù hệ thống hoàn hảo.</strong> Vậy thì việc đầu tiên không phải &ldquo;làm sao xử lý 500.000 RPS&rdquo;, mà là <strong>&ldquo;làm sao từ chối 499.000 người càng rẻ càng tốt&rdquo;</strong>.</p>
+<hr>
+<h1 id="kiến-trúc-tổng-thể">Kiến trúc tổng thể<a hidden class="anchor" aria-hidden="true" href="#kiến-trúc-tổng-thể">¶</a></h1>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 640" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="fs-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<marker id="fs-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<filter id="fs-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="640" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Phễu lọc: mỗi tầng phải rẻ hơn tầng sau nó hàng chục lần</text>
+<rect x="60" y="42" width="780" height="60" rx="10" fill="#EEF2FF" stroke="#6366F1" stroke-width="2.5" filter="url(#fs-sh)"/>
+<text x="80" y="64" font-size="12" font-weight="800" fill="#3730A3">① CDN / EDGE — chặn ngay tại biên, không chạm origin</text>
+<text x="80" y="84" font-size="11" fill="#4338CA">Trang landing, ảnh, JS, countdown: 100% cache. Chặn bot. Giữ ~70% traffic không bao giờ vào.</text>
+<rect x="700" y="52" width="128" height="40" rx="7" fill="#6366F1"/>
+<text x="764" y="68" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">500.000 RPS</text>
+<text x="764" y="84" text-anchor="middle" font-size="10" fill="#E0E7FF">→ còn ~150.000</text>
+<rect x="110" y="118" width="680" height="60" rx="10" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#fs-sh)"/>
+<text x="130" y="140" font-size="12" font-weight="800" fill="#134E4A">② WAITING ROOM — phát vé xếp hàng, KHÔNG xử lý nghiệp vụ</text>
+<text x="130" y="160" font-size="11" fill="#0F766E">Cấp token có thứ tự. Client poll nhẹ. Chỉ nhả vào trong theo nhịp hệ thống chịu được.</text>
+<rect x="650" y="128" width="128" height="40" rx="7" fill="#0D9488"/>
+<text x="714" y="144" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">150.000 RPS</text>
+<text x="714" y="160" text-anchor="middle" font-size="10" fill="#CCFBF1">→ nhả 20.000/s</text>
+<rect x="160" y="194" width="580" height="60" rx="10" fill="#FFFAF0" stroke="#F5A623" stroke-width="2.5" filter="url(#fs-sh)"/>
+<text x="180" y="216" font-size="12" font-weight="800" fill="#7C4A03">③ RATE LIMIT + ADMISSION — bảo vệ tầng sau khỏi quá tải</text>
+<text x="180" y="236" font-size="11" fill="#92400E">Token bucket phân tán (server time!). Load shedding khi p99 vỡ ngưỡng.</text>
+<rect x="600" y="204" width="128" height="40" rx="7" fill="#D97706"/>
+<text x="664" y="220" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">20.000 RPS</text>
+<text x="664" y="236" text-anchor="middle" font-size="10" fill="#FFF3DB">→ còn 20.000</text>
+<rect x="210" y="270" width="480" height="60" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="3" filter="url(#fs-sh)"/>
+<text x="230" y="292" font-size="12" font-weight="800" fill="#9F1239">④ RESERVE — giữ suất tồn kho ⚠️ HOT RESOURCE</text>
+<text x="230" y="312" font-size="11" font-weight="700" fill="#BE123C">1 lệnh Redis Lua atomic. Đây là điểm tuần tự hoá DUY NHẤT của cả hệ thống.</text>
+<rect x="646" y="280" width="118" height="40" rx="7" fill="#DC2626"/>
+<text x="695" y="296" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">chỉ 1.000</text>
+<text x="695" y="312" text-anchor="middle" font-size="10" fill="#FFD9DE">được qua</text>
+<rect x="260" y="346" width="380" height="60" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#fs-sh)"/>
+<text x="280" y="368" font-size="12" font-weight="800" fill="#134E4A">⑤ CHECKOUT ASYNC — qua queue, không đồng bộ</text>
+<text x="280" y="388" font-size="11" fill="#0F766E">Đẩy vào Kafka. Worker xử lý payment + tạo đơn với idempotency key.</text>
+<rect x="24" y="424" width="852" height="96" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="44" y="446" font-size="12" font-weight="800" fill="#374151">Chi phí xử lý MỘT request ở mỗi tầng — đây là lý do thứ tự các tầng quan trọng</text>
+<rect x="44" y="456" width="194" height="52" rx="7" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="250" y="456" width="194" height="52" rx="7" fill="#F2FCFB" stroke="#0D9488" stroke-width="1.6"/>
+<rect x="456" y="456" width="194" height="52" rx="7" fill="#FFFAF0" stroke="#F5A623" stroke-width="1.6"/>
+<rect x="662" y="456" width="194" height="52" rx="7" fill="#FFE9EC" stroke="#DC2626" stroke-width="1.6"/>
+<text x="141" y="476" text-anchor="middle" font-size="11" font-weight="700" fill="#3730A3">CDN</text>
+<text x="141" y="496" text-anchor="middle" font-size="11" font-weight="800" fill="#4338CA">~0 (không tới app)</text>
+<text x="347" y="476" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">Waiting room</text>
+<text x="347" y="496" text-anchor="middle" font-size="11" font-weight="800" fill="#0F766E">1 Redis op</text>
+<text x="553" y="476" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">Rate limit</text>
+<text x="553" y="496" text-anchor="middle" font-size="11" font-weight="800" fill="#92400E">1 Lua call</text>
+<text x="759" y="476" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Reserve + checkout</text>
+<text x="759" y="496" text-anchor="middle" font-size="11" font-weight="800" fill="#BE123C">Lua + Kafka + DB</text>
+<line x1="450" y1="104" x2="450" y2="114" stroke="#57534E" stroke-width="2" marker-end="url(#fs-a)"/>
+<line x1="450" y1="180" x2="450" y2="190" stroke="#57534E" stroke-width="2" marker-end="url(#fs-a)"/>
+<line x1="450" y1="256" x2="450" y2="266" stroke="#57534E" stroke-width="2" marker-end="url(#fs-a)"/>
+<line x1="450" y1="332" x2="450" y2="342" stroke="#57534E" stroke-width="2" marker-end="url(#fs-a)"/>
+<rect x="24" y="536" width="852" height="94" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="44" y="560" font-size="13" font-weight="800" fill="#7C4A03">Nguyên tắc thiết kế chi phối tất cả: TỪ CHỐI SỚM VÀ RẺ</text>
+<text x="44" y="584" font-size="11" fill="#92400E">99,8% request chắc chắn thất bại. Để chúng đi tới tầng ④ rồi mới từ chối là tự hại mình —</text>
+<text x="44" y="602" font-size="11" fill="#92400E">mỗi request đi sâu một tầng là một lần tốn tài nguyên mà <tspan font-weight="700">kết quả vẫn là "hết hàng"</tspan>.</text>
+<text x="44" y="622" font-size="11" font-weight="800" fill="#DC2626">Thiết kế sai phổ biến nhất: cho cả 500.000 request vào tới database rồi mới kiểm tra tồn kho.</text>
+</svg>
+</div>
+<hr>
+<h1 id="lựa-chọn-component-và-tradeoff">Lựa chọn component và tradeoff<a hidden class="anchor" aria-hidden="true" href="#lựa-chọn-component-và-tradeoff">¶</a></h1>
+<h2 id="tầng-2--waiting-room">Tầng 2 — Waiting room<a hidden class="anchor" aria-hidden="true" href="#tầng-2--waiting-room">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Cách</th>
+<th>Ưu</th>
+<th>Nhược</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Không có</strong> (ai nhanh người đó được)</td>
+<td>Đơn giản nhất</td>
+<td>500.000 RPS đập thẳng vào app; trải nghiệm tệ (bấm mãi không biết sao)</td>
+</tr>
+<tr>
+<td><strong>Token thứ tự + client poll</strong></td>
+<td>Công bằng theo thứ tự đến, client biết vị trí, nhả tải theo nhịp chịu được</td>
+<td>Cần Redis ZSET/Stream; client phải poll</td>
+</tr>
+<tr>
+<td><strong>Virtual queue qua CDN</strong> (Cloudflare Waiting Room, Fastly)</td>
+<td>Chặn <strong>ngay tại biên</strong>, app không thấy gì</td>
+<td>Phụ thuộc vendor, tốn phí, khó tuỳ biến</td>
+</tr>
+<tr>
+<td><strong>Pre-token</strong> (phát vé TRƯỚC giờ mở bán)</td>
+<td><strong>Đỉnh biến mất hoàn toàn</strong> — không còn burst</td>
+<td>Chỉ áp dụng được khi biết trước thời điểm</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>Khuyến nghị</strong>: nếu biết trước giờ mở bán — <strong>phát vé trước</strong>. Đây là kỹ thuật mạnh nhất và rẻ nhất, vì nó <strong>xoá bỏ burst</strong> thay vì chịu đựng burst. Mở đăng ký 24 giờ trước, phát cho mỗi người một <code>slot_time</code> ngẫu nhiên trong cửa sổ 60 giây. 500.000 người rải trên 60 giây = <strong>8.333 RPS</strong> thay vì 500.000.</p>
+<p>Đây đúng là ý tưởng <strong>jitter</strong> ở <a href="../../posts/scalable-p01-2-ccu-deep-dive/#hot-path-3--reconnect-storm-thundering-herd">P01.2</a>, áp vào phía nghiệp vụ: đo được ở đó là giảm đỉnh <strong>65 lần</strong>.</p>
+</blockquote>
+<h2 id="tầng-4--giữ-tồn-kho-6-cách-và-chỉ-5-cách-đúng">Tầng 4 — Giữ tồn kho: 6 cách, và chỉ 5 cách đúng<a hidden class="anchor" aria-hidden="true" href="#tầng-4--giữ-tồn-kho-6-cách-và-chỉ-5-cách-đúng">¶</a></h2>
+<p>Đây là hot path thật. Tôi đo cả <strong>throughput</strong> lẫn <strong>tính đúng đắn</strong>: 20.000 người bấm mua, <strong>đúng 1.000 suất</strong>, 120 worker đồng thời. Bất kỳ kết quả &gt; 1.000 là <strong>oversell</strong> — tức bán hàng không có.</p>
+<table>
+<thead>
+<tr>
+<th>Cách</th>
+<th style="text-align:right">Throughput</th>
+<th style="text-align:right">Cấp ra</th>
+<th>Kết luận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① MySQL <code>UPDATE ... WHERE qty &gt; 0</code></td>
+<td style="text-align:right">6.026 ops/s</td>
+<td style="text-align:right">1.000</td>
+<td>✅ đúng, nhưng p99 <strong>308 ms</strong></td>
+</tr>
+<tr>
+<td>② Redis <code>GET</code> rồi <code>DECR</code> (2 lệnh)</td>
+<td style="text-align:right"><strong>83.852 ops/s</strong></td>
+<td style="text-align:right"><strong>1.060</strong></td>
+<td>❌ <strong>OVERSELL 60 suất</strong></td>
+</tr>
+<tr>
+<td>③ Redis <code>DECR</code> rồi kiểm tra, âm thì <code>INCR</code> bù</td>
+<td style="text-align:right">49.116 ops/s</td>
+<td style="text-align:right">1.000</td>
+<td>✅ đúng, nhưng 2 round-trip</td>
+</tr>
+<tr>
+<td>④ <strong>Redis Lua atomic check+DECR</strong></td>
+<td style="text-align:right"><strong>83.313 ops/s</strong></td>
+<td style="text-align:right">1.000</td>
+<td>✅ <strong>nhanh như ② và ĐÚNG</strong></td>
+</tr>
+<tr>
+<td>⑤ Redis 16 shard + Lua</td>
+<td style="text-align:right">5.452 ops/s</td>
+<td style="text-align:right">1.000</td>
+<td>✅ đúng nhưng <strong>chậm bất ngờ</strong></td>
+</tr>
+<tr>
+<td>⑥ <strong>Redis <code>LPOP</code> từ túi token đúc sẵn</strong></td>
+<td style="text-align:right"><strong>95.863 ops/s</strong></td>
+<td style="text-align:right">1.000</td>
+<td>✅ <strong>nhanh nhất</strong></td>
+</tr>
+</tbody>
+</table>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="iv-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="440" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">6 cách giữ 1.000 suất — throughput KHÔNG phải tiêu chí duy nhất</text>
+<text x="450" y="48" text-anchor="middle" font-size="11" fill="#78716C">20.000 người bấm mua · 120 worker đồng thời · đo thật</text>
+<line x1="150" y1="300" x2="810" y2="300" stroke="#57534E" stroke-width="2"/>
+<line x1="150" y1="300" x2="150" y2="70" stroke="#57534E" stroke-width="2"/>
+<rect x="172" y="286" width="72" height="14" rx="3" fill="#F5A623"/>
+<rect x="276" y="98" width="72" height="202" rx="3" fill="#DC2626"/>
+<rect x="380" y="182" width="72" height="118" rx="3" fill="#14B8A6"/>
+<rect x="484" y="99" width="72" height="201" rx="3" fill="#0D9488"/>
+<rect x="588" y="287" width="72" height="13" rx="3" fill="#F5A623"/>
+<rect x="692" y="69" width="72" height="231" rx="3" fill="#0D9488"/>
+<text x="208" y="278" text-anchor="middle" font-size="11" font-weight="800" fill="#7C4A03">6.026</text>
+<text x="312" y="90" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">83.852</text>
+<text x="416" y="174" text-anchor="middle" font-size="11" font-weight="800" fill="#0F766E">49.116</text>
+<text x="520" y="91" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">83.313</text>
+<text x="624" y="279" text-anchor="middle" font-size="11" font-weight="800" fill="#7C4A03">5.452</text>
+<text x="728" y="61" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">95.863</text>
+<text x="208" y="320" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">① MySQL</text>
+<text x="208" y="334" text-anchor="middle" font-size="9" fill="#7C4A03">✅ p99 308ms</text>
+<text x="312" y="320" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">② GET+DECR</text>
+<text x="312" y="334" text-anchor="middle" font-size="9" font-weight="800" fill="#DC2626">❌ OVERSELL</text>
+<text x="416" y="320" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">③ DECR+bù</text>
+<text x="416" y="334" text-anchor="middle" font-size="9" fill="#0F766E">✅ 2 RTT</text>
+<text x="520" y="320" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">④ Lua atomic</text>
+<text x="520" y="334" text-anchor="middle" font-size="9" font-weight="800" fill="#0F766E">✅ TỐT NHẤT</text>
+<text x="624" y="320" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">⑤ 16 shard</text>
+<text x="624" y="334" text-anchor="middle" font-size="9" fill="#7C4A03">✅ nhưng chậm</text>
+<text x="728" y="320" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">⑥ LPOP token</text>
+<text x="728" y="334" text-anchor="middle" font-size="9" font-weight="800" fill="#0F766E">✅ nhanh nhất</text>
+<text x="116" y="185" text-anchor="middle" font-size="11" font-weight="700" fill="#57534E" transform="rotate(-90 116 185)">ops/giây</text>
+<rect x="258" y="356" width="108" height="26" rx="6" fill="#DC2626"/>
+<text x="312" y="374" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">bán 1.060/1.000</text>
+<rect x="24" y="394" width="852" height="38" rx="9" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="450" y="418" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">Cách ② nhanh nhất nhóm Redis cơ bản — và bán 60 suất không tồn tại. Tốc độ mua bằng tính đúng đắn là không mua gì cả.</text>
+<rect x="150" y="70" width="660" height="2" fill="#D6D3D1"/>
+</svg>
+</div>
+<h3 id="vì-sao--oversell--và-vì-sao-nó-rất-khó-phát-hiện">Vì sao ② oversell — và vì sao nó rất khó phát hiện<a hidden class="anchor" aria-hidden="true" href="#vì-sao--oversell--và-vì-sao-nó-rất-khó-phát-hiện">¶</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ❌ SAI — race window giữa GET và DECR
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">cur</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">rdb</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;flash:stock&#34;</span><span class="p">).</span><span class="nf">Int64</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nx">cur</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">errSoldOut</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">rdb</span><span class="p">.</span><span class="nf">Decr</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;flash:stock&#34;</span><span class="p">)</span>   <span class="c1">// ← giữa 2 lệnh này có 120 goroutine khác chen vào
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">return</span> <span class="kc">nil</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Hai lệnh, mỗi lệnh atomic, nhưng <strong>cặp lệnh thì không</strong>. Khi <code>qty = 1</code>, có thể 61 goroutine cùng đọc được <code>1</code>, cả 61 đều thấy <code>&gt; 0</code>, và cả 61 đều <code>DECR</code>. Kết quả đo: <strong>bán 1.060 suất khi chỉ có 1.000</strong>.</p>
+<p>Điểm đáng sợ: <strong>test với 1 user hay 10 user sẽ luôn PASS.</strong> Lỗi chỉ xuất hiện ở mức đồng thời cao — tức là đúng lúc flash sale đang chạy.</p>
+<h3 id="cách-đúng-một-lệnh-lua-atomic">Cách đúng: một lệnh Lua atomic<a hidden class="anchor" aria-hidden="true" href="#cách-đúng-một-lệnh-lua-atomic">¶</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Lua chạy như MỘT lệnh đơn trên Redis — không ai chen vào được.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">reserveScript</span> <span class="p">=</span> <span class="nx">redis</span><span class="p">.</span><span class="nf">NewScript</span><span class="p">(</span><span class="s">`
+</span></span></span><span class="line"><span class="cl"><span class="s">  local cur = tonumber(redis.call(&#39;GET&#39;, KEYS[1]) or &#39;0&#39;)
+</span></span></span><span class="line"><span class="cl"><span class="s">  if cur &lt;= 0 then
+</span></span></span><span class="line"><span class="cl"><span class="s">    return 0
+</span></span></span><span class="line"><span class="cl"><span class="s">  end
+</span></span></span><span class="line"><span class="cl"><span class="s">  redis.call(&#39;DECR&#39;, KEYS[1])
+</span></span></span><span class="line"><span class="cl"><span class="s">  return 1
+</span></span></span><span class="line"><span class="cl"><span class="s">`</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">FlashSaleService</span><span class="p">)</span> <span class="nf">Reserve</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">userID</span><span class="p">,</span> <span class="nx">saleID</span> <span class="kt">string</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ok</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">reserveScript</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;flash:stock:&#34;</span> <span class="o">+</span> <span class="nx">saleID</span><span class="p">}).</span><span class="nf">Int64</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Redis lỗi → TỪ CHỐI. Không bao giờ &#34;cho qua cho chắc&#34;.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span> <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeUnavailable</span><span class="p">,</span> <span class="s">&#34;hệ thống đang quá tải&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">ok</span> <span class="o">!=</span> <span class="mi">1</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeSoldOut</span><span class="p">,</span> <span class="s">&#34;đã hết suất&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Đo thật: ④ đạt 83.313 ops/s, gần y hệt ② (83.852 ops/s) — tính đúng đắn ở đây gần như MIỄN PHÍ.</strong> Không có lý do nào để chọn ② nữa.</p>
+<h3 id="cách-nhanh-nhất-túi-token-đúc-sẵn">Cách nhanh nhất: túi token đúc sẵn<a hidden class="anchor" aria-hidden="true" href="#cách-nhanh-nhất-túi-token-đúc-sẵn">¶</a></h3>
+<p>Thay vì một bộ đếm, đúc sẵn <strong>đúng 1.000 token</strong> vào một list, rồi <code>LPOP</code>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Lúc CHUẨN BỊ sale (trước giờ mở bán) — đúc đúng số suất
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">FlashSaleService</span><span class="p">)</span> <span class="nf">MintTokens</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">saleID</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">qty</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">key</span> <span class="o">:=</span> <span class="s">&#34;flash:tokens:&#34;</span> <span class="o">+</span> <span class="nx">saleID</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Del</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">toks</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kd">interface</span><span class="p">{},</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">qty</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">qty</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">toks</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">toks</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;%s-%d-%s&#34;</span><span class="p">,</span> <span class="nx">saleID</span><span class="p">,</span> <span class="nx">i</span><span class="p">,</span> <span class="nx">uuid</span><span class="p">.</span><span class="nf">NewString</span><span class="p">()))</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">RPush</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">toks</span><span class="o">...</span><span class="p">).</span><span class="nf">Err</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Lúc BÁN — 1 lệnh, atomic sẵn, và trả về MỘT TOKEN DUY NHẤT
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">FlashSaleService</span><span class="p">)</span> <span class="nf">Reserve</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">saleID</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">tok</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">LPop</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;flash:tokens:&#34;</span><span class="o">+</span><span class="nx">saleID</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">Nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="s">&#34;&#34;</span><span class="p">,</span> <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeSoldOut</span><span class="p">,</span> <span class="s">&#34;đã hết suất&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="s">&#34;&#34;</span><span class="p">,</span> <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeUnavailable</span><span class="p">,</span> <span class="s">&#34;hệ thống đang quá tải&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">tok</span><span class="p">,</span> <span class="kc">nil</span>   <span class="c1">// ← token này chính là idempotency key cho bước checkout
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Ba lợi ích ngoài tốc độ (95.863 ops/s, nhanh nhất trong 6 cách):</p>
+<ol>
+<li><strong><code>LPOP</code> atomic sẵn</strong> — không cần Lua, không thể viết sai.</li>
+<li><strong>Token là bằng chứng giữ suất.</strong> Nó đi cùng request xuống bước checkout và <strong>chính là idempotency key</strong> — giải quyết luôn bài toán ở phần sau.</li>
+<li><strong><code>LLEN</code> cho biết còn bao nhiêu suất</strong> mà không cần đếm gì.</li>
+</ol>
+<p>Đánh đổi: không co giãn được số lượng sau khi đúc (muốn thêm suất phải <code>RPUSH</code> thêm), và tốn RAM theo số suất — với 1.000 suất thì không đáng kể.</p>
+<h3 id="vì-sao--sharding-lại-chậm--bài-học-phản-trực-giác">Vì sao ⑤ sharding lại CHẬM — bài học phản trực giác<a hidden class="anchor" aria-hidden="true" href="#vì-sao--sharding-lại-chậm--bài-học-phản-trực-giác">¶</a></h3>
+<p>Sharding bộ đếm là lời khuyên kinh điển cho hot key. Nhưng đo thật nó <strong>chậm nhất nhóm Redis: 5.452 ops/s</strong>, chậm hơn Lua đơn 15 lần. Lý do:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Khi shard của mình hết, phải thăm dò các shard khác
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">for</span> <span class="nx">k</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">k</span> <span class="p">&lt;</span> <span class="nx">nShards</span><span class="p">;</span> <span class="nx">k</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">sh</span> <span class="o">:=</span> <span class="p">(</span><span class="nx">i</span> <span class="o">+</span> <span class="nx">k</span><span class="p">)</span> <span class="o">%</span> <span class="nx">nShards</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nf">tryShard</span><span class="p">(</span><span class="nx">sh</span><span class="p">);</span> <span class="nx">ok</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="k">return</span> <span class="kc">false</span>   <span class="c1">// ← 19.000/20.000 người đi hết 16 shard rồi mới biết hết hàng
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>19.000 trong 20.000 người đến khi mọi shard đã rỗng</strong> — mỗi người phải trả <strong>16 round-trip</strong> để biết điều đó. Chi phí thăm dò lấn hết lợi ích giảm contention.</p>
+<p>👉 <strong>Bài học</strong>: sharding bộ đếm chỉ đáng khi <strong>bộ đếm thật sự là bottleneck và nó không cạn</strong> (ví dụ đếm view, đếm like — tăng mãi không hết). Với tồn kho — thứ <strong>cạn rất nhanh và phần lớn request đến khi đã cạn</strong> — sharding làm hại nhiều hơn làm lợi.</p>
+<h3 id="và-vì-sao--mysql-không-tệ-như-tưởng">Và vì sao ① MySQL không tệ như tưởng<a hidden class="anchor" aria-hidden="true" href="#và-vì-sao--mysql-không-tệ-như-tưởng">¶</a></h3>
+<p>6.026 ops/s, cao hơn nhiều so với <strong>387 ops/s</strong> tôi đo ở <a href="../../posts/scalable-p01-ccu-vs-rps/#hot-resource-ch%E1%BB%97-ccu-ho%C3%A0n-to%C3%A0n-kh%C3%B4ng-n%C3%B3i-g%C3%AC">P01</a>. Khác biệt: ở P01 tồn kho là 10 triệu nên <strong>mọi</strong> request đều lấy write lock; ở đây tồn kho chỉ 1.000 nên 19.000 request có <code>qty &gt; 0</code> sai và <strong>không lấy lock nào</strong>.</p>
+<p>Nghĩa là: <strong>contention trên hot row chỉ tồn tại trong lúc còn hàng.</strong> Với flash sale 1.000 suất, cửa sổ đau đớn chỉ là ~1.000 request đầu. Nhưng p99 <strong>308 ms</strong> vẫn quá cao cho burst 500.000 RPS — và đó là lý do vẫn cần Redis ở phía trước.</p>
+<hr>
+<h1 id="hot-path-2--rate-limit-đúng-quan-trọng-hơn-nhanh">Hot path #2 — Rate limit: đúng quan trọng hơn nhanh<a hidden class="anchor" aria-hidden="true" href="#hot-path-2--rate-limit-đúng-quan-trọng-hơn-nhanh">¶</a></h1>
+<p>Rate limit là tầng bảo vệ, nên <strong>nó sai thì mọi tầng sau đều vô nghĩa</strong>. Tôi đo 5 implementation với giới hạn 5.000 req/s:</p>
+<table>
+<thead>
+<tr>
+<th>Implementation</th>
+<th style="text-align:right">Throughput</th>
+<th style="text-align:right">Cho qua</th>
+<th style="text-align:right">Kỳ vọng</th>
+<th>Kết luận</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed window (<code>INCR</code> + <code>EXPIRE</code>)</td>
+<td style="text-align:right"><strong>88.477/s</strong></td>
+<td style="text-align:right">5.000</td>
+<td style="text-align:right">~6.130</td>
+<td>✅ đúng trong cửa sổ</td>
+</tr>
+<tr>
+<td>Sliding window — pipeline</td>
+<td style="text-align:right">71.911/s</td>
+<td style="text-align:right">5.000</td>
+<td style="text-align:right">~6.391</td>
+<td>✅ trong test này</td>
+</tr>
+<tr>
+<td>Sliding window — Lua atomic</td>
+<td style="text-align:right">63.237/s</td>
+<td style="text-align:right">5.000</td>
+<td style="text-align:right">~6.581</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><strong>Token bucket — CLIENT time</strong></td>
+<td style="text-align:right">63.112/s</td>
+<td style="text-align:right"><strong>9.187</strong></td>
+<td style="text-align:right">~6.584</td>
+<td>❌ <strong>vượt +40%</strong></td>
+</tr>
+<tr>
+<td><strong>Token bucket — SERVER time</strong></td>
+<td style="text-align:right">58.579/s</td>
+<td style="text-align:right"><strong>6.700</strong></td>
+<td style="text-align:right">~6.707</td>
+<td>✅ <strong>khớp gần tuyệt đối</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="lỗi-1-dùng-thời-gian-của-client">Lỗi #1: dùng thời gian của client<a hidden class="anchor" aria-hidden="true" href="#lỗi-1-dùng-thời-gian-của-client">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="c1">-- ❌ SAI: nowMs do CLIENT truyền vào</span>
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">nowMs</span> <span class="o">=</span> <span class="n">tonumber</span><span class="p">(</span><span class="n">ARGV</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl"><span class="n">tokens</span> <span class="o">=</span> <span class="n">math.min</span><span class="p">(</span><span class="n">burst</span><span class="p">,</span> <span class="n">tokens</span> <span class="o">+</span> <span class="p">(</span><span class="n">nowMs</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span><span class="o">/</span><span class="mf">1000.0</span> <span class="o">*</span> <span class="n">rate</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Với 120 client gọi đồng thời, timestamp chúng truyền vào <strong>không đơn điệu</strong> — request đến sau có thể mang timestamp cũ hơn. Mỗi lần như vậy bucket được bù thêm token không đáng có. Đo thật: <strong>cho qua 9.187 thay vì ~6.584, vượt 40%</strong>.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-lua" data-lang="lua"><span class="line"><span class="cl"><span class="c1">-- ✅ ĐÚNG: lấy thời gian từ CHÍNH Redis</span>
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">t</span> <span class="o">=</span> <span class="n">redis.call</span><span class="p">(</span><span class="s1">&#39;TIME&#39;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="kd">local</span> <span class="n">nowMs</span> <span class="o">=</span> <span class="n">tonumber</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">*</span><span class="mi">1000</span> <span class="o">+</span> <span class="n">math.floor</span><span class="p">(</span><span class="n">tonumber</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">/</span><span class="mi">1000</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Kết quả sau khi sửa: <strong>6.700 vs kỳ vọng 6.707</strong> — lệch 0,1%.</p>
+<blockquote>
+<p>⚠️ <strong><code>redis.call('TIME')</code> khiến script thành non-deterministic.</strong> Với Redis &lt; 5 dùng replication kiểu command-propagation, điều này gây lệch giữa master và replica. Từ Redis 5 trở lên script được replicate theo <strong>effect</strong> nên an toàn. Nếu đang chạy Redis cũ, dùng <code>redis.replicate_commands()</code> ở đầu script.</p>
+</blockquote>
+<h2 id="lỗi-2-fixed-window-và-lỗ-hổng-ranh-giới">Lỗi #2: fixed window và lỗ hổng ranh giới<a hidden class="anchor" aria-hidden="true" href="#lỗi-2-fixed-window-và-lỗ-hổng-ranh-giới">¶</a></h2>
+<p>Fixed window nhanh nhất (88.477/s) nhưng có lỗi kinh điển. Tôi đo trực tiếp: gửi 1.000 request ở <strong>cuối</strong> giây N, rồi 1.000 request ở <strong>đầu</strong> giây N+1, hai burst cách nhau ~220 ms.</p>
+<table>
+<thead>
+<tr>
+<th>Thuật toán</th>
+<th style="text-align:right">Burst 1</th>
+<th style="text-align:right">Burst 2</th>
+<th style="text-align:right"><strong>Tổng trong ~0,4 giây</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fixed window</strong></td>
+<td style="text-align:right">1.000</td>
+<td style="text-align:right">1.000</td>
+<td style="text-align:right"><strong>2.000 — vượt 100% giới hạn</strong> ❌</td>
+</tr>
+<tr>
+<td>Sliding window log</td>
+<td style="text-align:right">1.000</td>
+<td style="text-align:right"><strong>0</strong></td>
+<td style="text-align:right"><strong>1.000 — đúng</strong> ✅</td>
+</tr>
+</tbody>
+</table>
+<p>Fixed window cho qua <strong>đúng gấp đôi</strong> giới hạn trong một cửa sổ 1 giây, vì bộ đếm reset theo giây tròn. Kẻ tấn công biết điều này sẽ canh đúng ranh giới.</p>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="rw-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="400" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Lỗ hổng ranh giới cửa sổ — đo thật, giới hạn 1.000 req/s</text>
+<rect x="24" y="46" width="832" height="150" rx="12" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#rw-sh)"/>
+<text x="44" y="70" font-size="13" font-weight="800" fill="#9F1239">❌ FIXED WINDOW — bộ đếm reset theo giây tròn</text>
+<line x1="120" y1="150" x2="790" y2="150" stroke="#57534E" stroke-width="2"/>
+<line x1="400" y1="96" x2="400" y2="170" stroke="#DC2626" stroke-width="3"/>
+<text x="400" y="88" text-anchor="middle" font-size="11" font-weight="800" fill="#DC2626">ranh giới giây</text>
+<rect x="300" y="110" width="96" height="36" rx="5" fill="#DC2626"/>
+<rect x="404" y="110" width="96" height="36" rx="5" fill="#DC2626"/>
+<text x="348" y="133" text-anchor="middle" font-size="12" font-weight="800" fill="#FFFFFF">1.000</text>
+<text x="452" y="133" text-anchor="middle" font-size="12" font-weight="800" fill="#FFFFFF">1.000</text>
+<text x="348" y="166" text-anchor="middle" font-size="10" fill="#BE123C">cuối giây N</text>
+<text x="452" y="166" text-anchor="middle" font-size="10" fill="#BE123C">đầu giây N+1</text>
+<rect x="296" y="178" width="208" height="4" rx="2" fill="#DC2626"/>
+<text x="400" y="192" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">~0,4 giây</text>
+<rect x="540" y="104" width="296" height="80" rx="9" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="688" y="128" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">TỔNG 2.000 req</text>
+<text x="688" y="150" text-anchor="middle" font-size="11" fill="#BE123C">trong 1 cửa sổ 1 giây bất kỳ</text>
+<text x="688" y="172" text-anchor="middle" font-size="12" font-weight="800" fill="#DC2626">= VƯỢT 100% giới hạn</text>
+<rect x="24" y="208" width="832" height="140" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#rw-sh)"/>
+<text x="44" y="232" font-size="13" font-weight="800" fill="#134E4A">✅ SLIDING WINDOW LOG — cửa sổ trượt theo từng request</text>
+<line x1="120" y1="306" x2="790" y2="306" stroke="#57534E" stroke-width="2"/>
+<rect x="300" y="268" width="96" height="34" rx="5" fill="#0D9488"/>
+<rect x="404" y="296" width="96" height="6" rx="3" fill="#A8A29E"/>
+<text x="348" y="290" text-anchor="middle" font-size="12" font-weight="800" fill="#FFFFFF">1.000</text>
+<text x="452" y="288" text-anchor="middle" font-size="12" font-weight="800" fill="#78716C">0</text>
+<text x="348" y="322" text-anchor="middle" font-size="10" fill="#0F766E">cuối giây N</text>
+<text x="452" y="322" text-anchor="middle" font-size="10" fill="#78716C">đầu giây N+1 — CHẶN HẾT</text>
+<rect x="540" y="248" width="296" height="80" rx="9" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="688" y="272" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">TỔNG 1.000 req</text>
+<text x="688" y="294" text-anchor="middle" font-size="11" fill="#0F766E">Không có ranh giới để lợi dụng</text>
+<text x="688" y="316" text-anchor="middle" font-size="12" font-weight="800" fill="#0F766E">= ĐÚNG giới hạn</text>
+<text x="440" y="376" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">Đánh đổi: fixed window nhanh hơn 40% (88.477 vs 63.237 check/s) nhưng cho qua gấp đôi ở ranh giới.</text>
+</svg>
+</div>
+<p><strong>Chọn thuật toán nào?</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Fixed window</th>
+<th>Sliding window log</th>
+<th><strong>Token bucket</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Throughput đo được</td>
+<td>88.477/s</td>
+<td>63.237/s</td>
+<td>58.579/s</td>
+</tr>
+<tr>
+<td>Bộ nhớ</td>
+<td>1 counter</td>
+<td><strong>N entry/window</strong> 💥</td>
+<td>2 field</td>
+</tr>
+<tr>
+<td>Chính xác ở ranh giới</td>
+<td>❌ vượt 2×</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Cho phép burst có kiểm soát</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅ (tham số <code>burst</code>)</td>
+</tr>
+<tr>
+<td>Phù hợp</td>
+<td>Chặn thô, chi phí thấp</td>
+<td>Cần chính xác tuyệt đối</td>
+<td><strong>Mặc định nên dùng</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>Khuyến nghị: token bucket với server time.</strong> Nó chậm hơn fixed window 34% nhưng chính xác, cho phép burst có kiểm soát (quan trọng với traffic thật — người dùng không đến đều), và bộ nhớ cố định. Sliding window log tốn bộ nhớ tỉ lệ với số request trong cửa sổ — ở 500.000 RPS thì đó là 500.000 entry ZSET mỗi giây.</p>
+</blockquote>
+<hr>
+<h1 id="hot-path-3--idempotency">Hot path #3 — Idempotency<a hidden class="anchor" aria-hidden="true" href="#hot-path-3--idempotency">¶</a></h1>
+<p>Request đã giữ được suất nhưng checkout có thể thất bại giữa đường: client timeout rồi retry, worker crash trước khi ACK, payment gateway trả về chậm. Nếu không chống trùng, <strong>một suất biến thành hai đơn hàng</strong>.</p>
+<p>Đo thật: 20.000 request trong đó mỗi order được gọi ~3 lần:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Throughput</td>
+<td><strong>91.241 ops/s</strong></td>
+</tr>
+<tr>
+<td>p50 / p99</td>
+<td>1,24 ms / 2,59 ms</td>
+</tr>
+<tr>
+<td>Số lần trùng bị chặn</td>
+<td><strong>13.334</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Chi phí thực tế: thêm <strong>~1,2 ms</strong> cho mỗi request. Với ngân sách burst, đó là cái giá rất rẻ cho việc không bán trùng.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/application/flashsale/service.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">Service</span><span class="p">)</span> <span class="nf">Checkout</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">cmd</span> <span class="nx">CheckoutCommand</span><span class="p">)</span> <span class="p">(</span><span class="nx">Result</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// cmd.ReserveToken chính là token LPOP được ở bước Reserve —
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// nó đã đảm bảo duy nhất ở mức Redis, nên dùng luôn làm idempotency key.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">key</span> <span class="o">:=</span> <span class="s">&#34;idem:checkout:&#34;</span> <span class="o">+</span> <span class="nx">cmd</span><span class="p">.</span><span class="nx">ReserveToken</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">ok</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">SetNX</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="s">&#34;processing&#34;</span><span class="p">,</span> <span class="mi">24</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Hour</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">Result</span><span class="p">{},</span> <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeUnavailable</span><span class="p">,</span> <span class="s">&#34;hệ thống quá tải&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Đã có người xử lý token này. Trả về kết quả CŨ, không tạo đơn mới.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="nx">prev</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="o">+</span><span class="s">&#34;:result&#34;</span><span class="p">).</span><span class="nf">Result</span><span class="p">();</span> <span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="o">&amp;&amp;</span> <span class="nx">prev</span> <span class="o">!=</span> <span class="s">&#34;&#34;</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nf">decodeResult</span><span class="p">(</span><span class="nx">prev</span><span class="p">),</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Đang xử lý dở — bảo client chờ, KHÔNG tạo đơn thứ hai.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span> <span class="nx">Result</span><span class="p">{},</span> <span class="nx">shared</span><span class="p">.</span><span class="nf">NewDomainError</span><span class="p">(</span><span class="nx">shared</span><span class="p">.</span><span class="nx">ErrCodeInProgress</span><span class="p">,</span> <span class="s">&#34;đơn đang được xử lý&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">res</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nf">createOrderAndCharge</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">cmd</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Thất bại → NHẢ khoá để lần sau làm lại được.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// Quên bước này = token đó vĩnh viễn không bao giờ thành đơn.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Del</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">Result</span><span class="p">{},</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="o">+</span><span class="s">&#34;:result&#34;</span><span class="p">,</span> <span class="nf">encodeResult</span><span class="p">(</span><span class="nx">res</span><span class="p">),</span> <span class="mi">24</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Hour</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">s</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Set</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="s">&#34;done&#34;</span><span class="p">,</span> <span class="mi">24</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Hour</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">res</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nhưng Redis chỉ là lớp nhanh. <strong>Lớp bảo đảm cuối cùng phải ở database:</strong></p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">orders</span><span class="w"> </span><span class="p">(</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">id</span><span class="w">             </span><span class="nb">BIGINT</span><span class="w"> </span><span class="n">AUTO_INCREMENT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">user_id</span><span class="w">        </span><span class="nb">BIGINT</span><span class="w">       </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">sale_id</span><span class="w">        </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span><span class="w">  </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">reserve_token</span><span class="w">  </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">128</span><span class="p">)</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="n">amount</span><span class="w">         </span><span class="nb">BIGINT</span><span class="w">       </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">          </span><span class="c1">-- minor units, không dùng float
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="w">  </span><span class="n">created_at</span><span class="w">     </span><span class="n">DATETIME</span><span class="w">     </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">CURRENT_TIMESTAMP</span><span class="p">,</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="k">UNIQUE</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">uk_orders_reserve_token</span><span class="w"> </span><span class="p">(</span><span class="n">reserve_token</span><span class="p">)</span><span class="w">   </span><span class="c1">-- ← lớp bảo đảm CUỐI
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">)</span><span class="w"> </span><span class="n">ENGINE</span><span class="o">=</span><span class="n">InnoDB</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Lỗi duplicate key KHÔNG phải lỗi — nó là tín hiệu &#34;đã làm rồi&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">tx</span><span class="p">.</span><span class="nf">ExecContext</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s">`INSERT INTO orders (user_id, sale_id, reserve_token, amount) VALUES (?,?,?,?)`</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">cmd</span><span class="p">.</span><span class="nx">UserID</span><span class="p">,</span> <span class="nx">cmd</span><span class="p">.</span><span class="nx">SaleID</span><span class="p">,</span> <span class="nx">cmd</span><span class="p">.</span><span class="nx">ReserveToken</span><span class="p">,</span> <span class="nx">cmd</span><span class="p">.</span><span class="nx">Amount</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">var</span> <span class="nx">me</span> <span class="o">*</span><span class="nx">mysql</span><span class="p">.</span><span class="nx">MySQLError</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">As</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">me</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">me</span><span class="p">.</span><span class="nx">Number</span> <span class="o">==</span> <span class="mi">1062</span> <span class="p">{</span> <span class="c1">// ER_DUP_ENTRY
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">existing</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">repo</span><span class="p">.</span><span class="nf">GetByReserveToken</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">cmd</span><span class="p">.</span><span class="nx">ReserveToken</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nx">Result</span><span class="p">{},</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nf">toResult</span><span class="p">(</span><span class="nx">existing</span><span class="p">),</span> <span class="kc">nil</span>   <span class="c1">// trả đơn đã có, không tạo đơn mới
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">Result</span><span class="p">{},</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Vì sao cần <strong>cả hai lớp</strong>: Redis có thể mất khoá (restart, eviction, TTL hết); unique constraint trong DB thì không bao giờ. Redis cho tốc độ, DB cho bảo đảm.</p>
+<hr>
+<h1 id="failure-mode-tệ-nhất-retry-storm">Failure mode tệ nhất: retry storm<a hidden class="anchor" aria-hidden="true" href="#failure-mode-tệ-nhất-retry-storm">¶</a></h1>
+<p>Burst 500.000 RPS không phải thứ giết hệ thống. Thứ giết hệ thống là <strong>vòng lặp phản hồi dương</strong> giữa độ chậm và retry.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="rt-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<marker id="rt-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="rt-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="480" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Retry storm — vòng lặp tự khuếch đại</text>
+<circle cx="450" cy="170" r="104" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="8 6"/>
+<rect x="356" y="52" width="188" height="52" rx="9" fill="#FFE9EC" stroke="#DC2626" stroke-width="2" filter="url(#rt-sh)"/>
+<rect x="596" y="144" width="188" height="52" rx="9" fill="#FFE9EC" stroke="#DC2626" stroke-width="2" filter="url(#rt-sh)"/>
+<rect x="356" y="236" width="188" height="52" rx="9" fill="#FFD9DE" stroke="#DC2626" stroke-width="2" filter="url(#rt-sh)"/>
+<rect x="116" y="144" width="188" height="52" rx="9" fill="#FFE9EC" stroke="#DC2626" stroke-width="2" filter="url(#rt-sh)"/>
+<text x="450" y="74" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">① Burst 500.000 RPS</text>
+<text x="450" y="92" text-anchor="middle" font-size="10" fill="#BE123C">latency bắt đầu tăng</text>
+<text x="690" y="166" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">② Client timeout</text>
+<text x="690" y="184" text-anchor="middle" font-size="10" fill="#BE123C">p99 vượt timeout 2s</text>
+<text x="450" y="258" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">③ Client RETRY</text>
+<text x="450" y="276" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">tải tăng 2×, 3×...</text>
+<text x="210" y="166" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">④ Càng chậm hơn</text>
+<text x="210" y="184" text-anchor="middle" font-size="10" fill="#BE123C">pool cạn, queue dài</text>
+<path d="M548,82 C600,96 648,118 676,140" stroke="#DC2626" stroke-width="2.2" fill="none" marker-end="url(#rt-a)"/>
+<path d="M676,200 C650,224 600,244 548,258" stroke="#DC2626" stroke-width="2.2" fill="none" marker-end="url(#rt-a)"/>
+<path d="M352,258 C300,244 250,224 224,200" stroke="#DC2626" stroke-width="2.2" fill="none" marker-end="url(#rt-a)"/>
+<path d="M224,140 C250,118 300,96 352,82" stroke="#DC2626" stroke-width="2.2" fill="none" marker-end="url(#rt-a)"/>
+<text x="450" y="166" text-anchor="middle" font-size="13" font-weight="800" fill="#DC2626">TẢI THẬT</text>
+<text x="450" y="186" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">&gt; tải người dùng tạo ra</text>
+<rect x="24" y="302" width="420" height="166" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="44" y="326" font-size="12" font-weight="800" fill="#9F1239">Vì sao retry làm mọi thứ tệ hơn</text>
+<text x="44" y="350" font-size="11" fill="#BE123C">• Request bị timeout vẫn ĐANG chạy ở server —</text>
+<text x="44" y="368" font-size="11" fill="#BE123C">  client bỏ đi nhưng tài nguyên vẫn bị chiếm</text>
+<text x="44" y="390" font-size="11" fill="#BE123C">• Retry đến khi server ĐANG yếu nhất</text>
+<text x="44" y="412" font-size="11" fill="#BE123C">• 3 lần retry = tải ×4, không phải ×1</text>
+<text x="44" y="436" font-size="11" font-weight="800" fill="#DC2626">• Hệ thống không tự hồi phục được —</text>
+<text x="44" y="454" font-size="11" font-weight="800" fill="#DC2626">  phải NGẮT từ bên ngoài mới dừng vòng lặp</text>
+<rect x="458" y="302" width="418" height="166" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<text x="478" y="326" font-size="12" font-weight="800" fill="#134E4A">Bốn cách phá vòng lặp</text>
+<text x="478" y="350" font-size="11" fill="#0F766E"><tspan font-weight="700">1. Retry budget</tspan> — chỉ cho retry tối đa 10% tổng</text>
+<text x="478" y="368" font-size="11" fill="#0F766E">   request, hết budget thì fail thẳng</text>
+<text x="478" y="390" font-size="11" fill="#0F766E"><tspan font-weight="700">2. Circuit breaker</tspan> — mở mạch là DỪNG retry,</text>
+<text x="478" y="408" font-size="11" fill="#0F766E">   không phải retry nhanh hơn</text>
+<text x="478" y="430" font-size="11" fill="#0F766E"><tspan font-weight="700">3. Load shedding</tspan> — chủ động trả 503 khi p99 vỡ</text>
+<text x="478" y="452" font-size="11" fill="#0F766E"><tspan font-weight="700">4. Retry-After có jitter</tspan> do SERVER chỉ định</text>
+</svg>
+</div>
+<h2 id="load-shedding-chủ-động-từ-chối-để-sống-sót">Load shedding: chủ động từ chối để sống sót<a hidden class="anchor" aria-hidden="true" href="#load-shedding-chủ-động-từ-chối-để-sống-sót">¶</a></h2>
+<p>Nghịch lý: <strong>cách duy nhất để phục vụ được nhiều người nhất là chủ động từ chối một số người.</strong> Hệ thống nhận 100% rồi chết phục vụ được 0 người; hệ thống nhận 20% và sống phục vụ được 20%.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/presentation/middleware/shed.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// Shedder theo dõi p99 thật và từ chối khi vượt ngưỡng.
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Khác rate limit: rate limit dựa trên SỐ LƯỢNG, shedder dựa trên SỨC KHOẺ.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Shedder</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">p99</span>       <span class="o">*</span><span class="nx">atomic</span><span class="p">.</span><span class="nx">Int64</span>       <span class="c1">// nanosecond, cập nhật bởi goroutine lấy mẫu
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">threshold</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">inflight</span>  <span class="nx">atomic</span><span class="p">.</span><span class="nx">Int64</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">maxInflight</span> <span class="kt">int64</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">logger</span>    <span class="o">*</span><span class="nx">zap</span><span class="p">.</span><span class="nx">Logger</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">Shedder</span><span class="p">)</span> <span class="nf">Middleware</span><span class="p">()</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">HandlerFunc</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Lớp 1: giới hạn số request đang xử lý (Little&#39;s Law:
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// inflight = throughput × latency, nên chặn inflight là chặn cả hai)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">cur</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">inflight</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">defer</span> <span class="nx">s</span><span class="p">.</span><span class="nx">inflight</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">cur</span> <span class="p">&gt;</span> <span class="nx">s</span><span class="p">.</span><span class="nx">maxInflight</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">s</span><span class="p">.</span><span class="nf">reject</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="s">&#34;max_inflight&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// Lớp 2: nếu p99 đã vỡ ngưỡng, từ chối một phần theo xác suất.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// Từ chối NGẪU NHIÊN quan trọng: từ chối theo thứ tự sẽ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// luôn loại cùng một nhóm người dùng.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="nx">p99</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Duration</span><span class="p">(</span><span class="nx">s</span><span class="p">.</span><span class="nx">p99</span><span class="p">.</span><span class="nf">Load</span><span class="p">());</span> <span class="nx">p99</span> <span class="p">&gt;</span> <span class="nx">s</span><span class="p">.</span><span class="nx">threshold</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">over</span> <span class="o">:=</span> <span class="nb">float64</span><span class="p">(</span><span class="nx">p99</span><span class="o">-</span><span class="nx">s</span><span class="p">.</span><span class="nx">threshold</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float64</span><span class="p">(</span><span class="nx">s</span><span class="p">.</span><span class="nx">threshold</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">dropRate</span> <span class="o">:=</span> <span class="nx">math</span><span class="p">.</span><span class="nf">Min</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="nx">over</span><span class="p">)</span>   <span class="c1">// tối đa shed 90%, luôn giữ 10% để đo
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="k">if</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">Float64</span><span class="p">()</span> <span class="p">&lt;</span> <span class="nx">dropRate</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="nx">s</span><span class="p">.</span><span class="nf">reject</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="s">&#34;p99_breach&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nf">Next</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">Shedder</span><span class="p">)</span> <span class="nf">reject</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">reason</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">metrics</span><span class="p">.</span><span class="nx">Shed</span><span class="p">.</span><span class="nf">WithLabelValues</span><span class="p">(</span><span class="nx">reason</span><span class="p">).</span><span class="nf">Inc</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Retry-After có JITTER do server sinh — không để client tự quyết.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">c</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="s">&#34;Retry-After&#34;</span><span class="p">,</span> <span class="s">&#34;2&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nf">AbortWithStatusJSON</span><span class="p">(</span><span class="mi">503</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;success&#34;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;error&#34;</span><span class="p">:</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="s">&#34;code&#34;</span><span class="p">:</span>    <span class="s">&#34;SERVICE_OVERLOADED&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="s">&#34;message&#34;</span><span class="p">:</span> <span class="s">&#34;hệ thống đang quá tải, vui lòng thử lại&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;meta&#34;</span><span class="p">:</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span><span class="s">&#34;retry_after_ms&#34;</span><span class="p">:</span> <span class="mi">1000</span> <span class="o">+</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">4000</span><span class="p">)},</span>
+</span></span><span class="line"><span class="cl">    <span class="p">})</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Ba điểm thiết kế:</p>
+<ol>
+<li><strong>Giới hạn <code>inflight</code> là lớp bảo vệ mạnh nhất và đơn giản nhất.</strong> Theo định luật Little (<code>inflight = throughput × latency</code>), chặn inflight tự động chặn cả throughput lẫn latency — không cần đo gì.</li>
+<li><strong>Shed theo xác suất, không theo thứ tự.</strong> Shed tuần tự sẽ luôn loại đúng những client kết nối chậm nhất — tức là phân biệt đối xử theo chất lượng mạng.</li>
+<li><strong>Luôn giữ lại ≥10%.</strong> Nếu shed 100%, bạn mất luôn tín hiệu để biết hệ thống đã hồi phục chưa.</li>
+</ol>
+<h2 id="retry-budget--thứ-hay-bị-thiếu-nhất">Retry budget — thứ hay bị thiếu nhất<a hidden class="anchor" aria-hidden="true" href="#retry-budget--thứ-hay-bị-thiếu-nhất">¶</a></h2>
+<p>Circuit breaker bảo vệ <em>một</em> dependency. Retry budget bảo vệ <strong>toàn hệ thống</strong> khỏi chính các retry của nó:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Retry budget: tổng số retry không được vượt X% tổng số request.
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Google SRE gọi đây là &#34;retry amplification guard&#34;.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">RetryBudget</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">mu</span>       <span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">requests</span> <span class="kt">int64</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">retries</span>  <span class="kt">int64</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ratio</span>    <span class="kt">float64</span>       <span class="c1">// 0.1 = retry tối đa 10% tổng request
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">window</span>   <span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">lastReset</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Time</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">b</span> <span class="o">*</span><span class="nx">RetryBudget</span><span class="p">)</span> <span class="nf">AllowRetry</span><span class="p">()</span> <span class="kt">bool</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Since</span><span class="p">(</span><span class="nx">b</span><span class="p">.</span><span class="nx">lastReset</span><span class="p">)</span> <span class="p">&gt;</span> <span class="nx">b</span><span class="p">.</span><span class="nx">window</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">b</span><span class="p">.</span><span class="nx">requests</span><span class="p">,</span> <span class="nx">b</span><span class="p">.</span><span class="nx">retries</span><span class="p">,</span> <span class="nx">b</span><span class="p">.</span><span class="nx">lastReset</span> <span class="p">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nb">float64</span><span class="p">(</span><span class="nx">b</span><span class="p">.</span><span class="nx">retries</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nb">float64</span><span class="p">(</span><span class="nx">b</span><span class="p">.</span><span class="nx">requests</span><span class="p">)</span><span class="o">*</span><span class="nx">b</span><span class="p">.</span><span class="nx">ratio</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">false</span>   <span class="c1">// hết budget → FAIL NGAY, không retry
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span><span class="p">.</span><span class="nx">retries</span><span class="o">++</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Không có retry budget, một sự cố nhỏ ở dependency sẽ khiến <strong>mọi</strong> request retry 3 lần, biến tải 1× thành 4× — đúng lúc dependency đang yếu nhất.</p>
+<hr>
+<h1 id="stress-test-và-monitoring">Stress test và monitoring<a hidden class="anchor" aria-hidden="true" href="#stress-test-và-monitoring">¶</a></h1>
+<h2 id="cách-tìm-breaking-point">Cách tìm breaking point<a hidden class="anchor" aria-hidden="true" href="#cách-tìm-breaking-point">¶</a></h2>
+<p>Load test cho hệ thống burst <strong>khác</strong> load test tải đều. Trình tự:</p>
+<ol>
+<li><strong>Tìm công suất bền (sustained capacity) trước.</strong> Tăng RPS từng bậc, mỗi bậc giữ 5 phút, tới khi p99 vỡ ngưỡng. Đây là baseline — con số bạn sẽ dùng để cấu hình rate limit.</li>
+<li><strong>Rồi mới test burst.</strong> Từ tải nền, nhảy thẳng lên 50× trong 10 giây. Đo: p99 trong burst, tỉ lệ lỗi, <strong>thời gian hồi phục sau burst</strong>. Thời gian hồi phục quan trọng hơn p99 trong burst — nó cho biết hệ thống có tự hồi phục được hay không.</li>
+<li><strong>Test oversell.</strong> Đây là bước <strong>không thể thiếu</strong> với flash sale, và là bước hay bị bỏ qua nhất. Đặt tồn kho = 100, bắn 10.000 request đồng thời, rồi <strong>đếm số đơn tạo ra</strong>. Khác 100 là có bug. Như số đo trên, cách viết &ldquo;nhanh&rdquo; oversell 6%.</li>
+<li><strong>Test retry storm.</strong> Cấu hình client retry 3 lần, rồi làm chậm dependency một cách nhân tạo. Nếu không có retry budget, bạn sẽ thấy tải tăng 4×.</li>
+<li><strong>Test idempotency.</strong> Gửi cùng một <code>reserve_token</code> 10 lần song song. Phải ra <strong>đúng một</strong> đơn.</li>
+</ol>
+<blockquote>
+<p>⚠️ <strong>Lưu ý về công cụ</strong>: khi tạo tải từ một máy, bạn sẽ chạm trần <strong>ephemeral port (~28.000 connection mỗi source IP)</strong> và <strong><code>max_connections</code> của MySQL</strong> trước khi chạm trần ứng dụng. Tôi gặp đúng lỗi thứ hai: pool 200 connection vượt <code>max_connections=151</code> mặc định, và benchmark báo &ldquo;thành công 344/20000&rdquo; trong khi thực tế là lỗi <code>too many connections</code> — không phải lỗi contention. <strong>Luôn phân loại lỗi trong load test</strong>, đừng chỉ đếm thành công/thất bại.</p>
+</blockquote>
+<h2 id="metric-bắt-buộc">Metric bắt buộc<a hidden class="anchor" aria-hidden="true" href="#metric-bắt-buộc">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Nhóm</th>
+<th>Metric</th>
+<th>Vì sao</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Phễu lọc</strong></td>
+<td>Số request <strong>còn lại sau từng tầng</strong></td>
+<td>Thấy ngay tầng nào không chặn được</td>
+</tr>
+<tr>
+<td></td>
+<td><code>shed_total</code> theo <code>reason</code></td>
+<td>Load shedding có đang hoạt động không</td>
+</tr>
+<tr>
+<td><strong>Hot path</strong></td>
+<td><code>reserve_duration</code> p99</td>
+<td>Điểm tuần tự hoá duy nhất — phải theo dõi sát</td>
+</tr>
+<tr>
+<td></td>
+<td><strong><code>oversell_count</code></strong></td>
+<td><strong>Phải luôn bằng 0.</strong> Alert ngay nếu &gt; 0</td>
+</tr>
+<tr>
+<td></td>
+<td><code>reserve_rejected</code> vs <code>reserve_granted</code></td>
+<td>Tỉ lệ đúng với tồn kho còn lại không</td>
+</tr>
+<tr>
+<td><strong>Retry</strong></td>
+<td><code>retry_ratio</code> = retries / requests</td>
+<td><strong>&gt; 10% = đang có retry storm</strong></td>
+</tr>
+<tr>
+<td></td>
+<td><code>retry_budget_exhausted</code></td>
+<td>Budget đã kịch chưa</td>
+</tr>
+<tr>
+<td><strong>Saturation</strong></td>
+<td><code>inflight_requests</code></td>
+<td>Tín hiệu quá tải sớm nhất</td>
+</tr>
+<tr>
+<td></td>
+<td><code>db_pool_wait_duration</code></td>
+<td>Pool cạn trước khi DB chậm</td>
+</tr>
+<tr>
+<td></td>
+<td>Kafka consumer lag</td>
+<td>Checkout async có theo kịp không</td>
+</tr>
+<tr>
+<td><strong>Nghiệp vụ</strong></td>
+<td><code>orders_created</code> vs <code>tokens_minted</code></td>
+<td>Phải khớp. Lệch = mất đơn hoặc trùng đơn</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Metric quan trọng nhất: <code>oversell_count</code>.</strong> Nó không phải metric hiệu năng mà là <strong>metric đúng đắn</strong> — và nó phải luôn bằng 0. Cách tính đơn giản: <code>COUNT(orders) - tokens_minted</code>, chạy mỗi phút. Nếu dương, bạn đang bán hàng không có.</p>
+<p>Metric cảnh báo sớm nhất: <strong><code>inflight_requests</code></strong>. Nó tăng trước cả latency, vì latency chỉ tăng <em>sau khi</em> queue đã dài.</p>
+<h2 id="checklist">Checklist<a hidden class="anchor" aria-hidden="true" href="#checklist">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">TÍNH ĐÚNG ĐẮN (quan trọng hơn hiệu năng)
+</span></span><span class="line"><span class="cl">□ Reserve có atomic trong MỘT lệnh không? (Lua hoặc LPOP, KHÔNG phải GET rồi DECR)
+</span></span><span class="line"><span class="cl">□ Đã test oversell với 10.000 request đồng thời chưa? Kết quả có khớp tồn kho?
+</span></span><span class="line"><span class="cl">□ Idempotency key dùng token nghiệp vụ hay message ID? (phải là nghiệp vụ)
+</span></span><span class="line"><span class="cl">□ Có unique constraint trong DB làm lớp bảo đảm cuối chưa?
+</span></span><span class="line"><span class="cl">□ Khi checkout thất bại, khoá idempotency có được NHẢ ra không?
+</span></span><span class="line"><span class="cl">□ Rate limiter dùng server time hay client time? (client time = vượt 40%)
+</span></span><span class="line"><span class="cl">□ Dùng fixed window? Đã biết nó cho qua 2× ở ranh giới chưa?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">CHỐNG QUÁ TẢI
+</span></span><span class="line"><span class="cl">□ Có giới hạn inflight request không? (lớp bảo vệ mạnh nhất)
+</span></span><span class="line"><span class="cl">□ Load shedding theo p99 có chưa? Shed NGẪU NHIÊN không?
+</span></span><span class="line"><span class="cl">□ Có giữ lại ≥10% để đo sức khoẻ không?
+</span></span><span class="line"><span class="cl">□ Có retry budget không? (không có = tải ×4 khi sự cố)
+</span></span><span class="line"><span class="cl">□ Retry-After do SERVER sinh và có jitter chưa?
+</span></span><span class="line"><span class="cl">□ Mọi lỗi tra Redis/DB đều FAIL CLOSED chưa?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">GIẢM BURST TỪ GỐC
+</span></span><span class="line"><span class="cl">□ Biết trước giờ mở bán? → phát vé TRƯỚC, rải trên cửa sổ 60s
+</span></span><span class="line"><span class="cl">□ CDN đã chặn được bao nhiêu % traffic? Đã đo chưa?
+</span></span><span class="line"><span class="cl">□ Trang landing + countdown có 100% cache được không?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">LOAD TEST
+</span></span><span class="line"><span class="cl">□ Đã tìm sustained capacity trước khi test burst chưa?
+</span></span><span class="line"><span class="cl">□ Đã đo THỜI GIAN HỒI PHỤC sau burst chưa?
+</span></span><span class="line"><span class="cl">□ Load test có PHÂN LOẠI lỗi không? (too many connections ≠ contention)
+</span></span><span class="line"><span class="cl">□ Đã test retry storm với dependency chậm giả tạo chưa?
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Câu hỏi</th>
+<th>Trả lời</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nguyên tắc kiến trúc số 1?</td>
+<td><strong>Từ chối sớm và rẻ.</strong> 99,8% request chắc chắn thất bại — đừng để chúng đi sâu</td>
+</tr>
+<tr>
+<td>Cách giảm burst tốt nhất?</td>
+<td><strong>Phát vé trước giờ mở bán.</strong> Xoá bỏ burst thay vì chịu đựng nó</td>
+</tr>
+<tr>
+<td>Cách giữ tồn kho nào sai?</td>
+<td><code>GET</code> rồi <code>DECR</code> — đo thật: <strong>oversell 60/1.000 suất (6%)</strong></td>
+</tr>
+<tr>
+<td>Cách nào tốt nhất?</td>
+<td><strong><code>LPOP</code> từ túi token đúc sẵn</strong> (95.863 ops/s) hoặc <strong>Lua atomic</strong> (83.313 ops/s)</td>
+</tr>
+<tr>
+<td>Tính đúng đắn có đắt không?</td>
+<td><strong>Gần như miễn phí</strong>: Lua atomic 83.313 vs cách sai 83.852 ops/s</td>
+</tr>
+<tr>
+<td>Sharding bộ đếm có giúp?</td>
+<td><strong>Không, với tồn kho.</strong> Đo thật chậm nhất (5.452 ops/s) vì 19.000 người thăm dò 16 shard rồi mới biết hết hàng</td>
+</tr>
+<tr>
+<td>Lỗi rate limit hay gặp nhất?</td>
+<td>Dùng <strong>client time</strong> → cho qua <strong>vượt 40%</strong>. Phải dùng <code>redis.call('TIME')</code></td>
+</tr>
+<tr>
+<td>Fixed window có an toàn?</td>
+<td><strong>Không.</strong> Đo thật: cho qua <strong>2.000/1.000 ở ranh giới cửa sổ</strong></td>
+</tr>
+<tr>
+<td>Failure mode tệ nhất?</td>
+<td><strong>Retry storm</strong> — vòng lặp tự khuếch đại, hệ thống không tự hồi phục được</td>
+</tr>
+<tr>
+<td>Lớp bảo vệ mạnh nhất?</td>
+<td><strong>Giới hạn inflight request</strong> (định luật Little)</td>
+</tr>
+<tr>
+<td>Metric phải luôn bằng 0?</td>
+<td><strong><code>oversell_count</code></strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="tham-khảo">Tham khảo<a hidden class="anchor" aria-hidden="true" href="#tham-khảo">¶</a></h1>
+<ul>
+<li><a href="https://sre.google/sre-book/handling-overload/">Google SRE — Handling Overload</a> · <a href="https://sre.google/sre-book/addressing-cascading-failures/">Addressing Cascading Failures</a> — nguồn của retry budget và load shedding</li>
+<li><a href="https://redis.io/docs/latest/develop/programmability/eval-intro/">Redis — Scripting with Lua</a> · <a href="https://redis.io/docs/latest/commands/time/"><code>TIME</code></a></li>
+<li><a href="https://stripe.com/blog/rate-limiters">Stripe — Scaling your API with rate limiters</a> — 4 loại limiter trong production thật</li>
+<li><a href="https://brooker.co.za/blog/2021/04/19/latency.html">Marc Brooker — Little&rsquo;s Law and capacity</a></li>
+<li>Group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a> — nguồn nội dung gốc</li>
+<li>Series: <a href="../../posts/scalable-p01-ccu-vs-rps/">P01 — CCU không phải RPS</a> · <a href="../../posts/scalable-p01-2-ccu-deep-dive/">P01.2 — 1M CCU gaming</a> · <a href="../../posts/scalable-p01-4-chat-deep-dive/">P01.4 — Chat 1M CCU</a> · <a href="../../posts/scalable-p01-5-api-deep-dive/">P01.5 — Public API triệu RPS</a> · <a href="../../posts/system-design-p02-cache-stampede/">P02 — Cache Stampede</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>

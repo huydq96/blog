@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Scalable System Design P01.2: Thiết Kế Hệ Thống 1M CCU — Gaming | Huy Dang Blog</title>
+<meta name="keywords" content="system-design, scalability, websocket, golang, gaming">
+<meta name="description" content="Chi tiết từng tầng component cho 1M connection, tradeoff của mỗi lựa chọn, 3 hot path đo thật (fan-out, slow consumer, reconnect storm) kèm code Go, và failure mode tệ nhất.">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/scalable-p01-2-ccu-deep-dive/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/scalable-p01-2-ccu-deep-dive/">
+
+<meta name="twitter:title" content="Scalable System Design P01.2: Thiết Kế Hệ Thống 1M CCU — Gaming | Huy Dang Blog" />
+<meta name="twitter:description" content="Chi tiết từng tầng component cho 1M connection, tradeoff của mỗi lựa chọn, 3 hot path đo thật (fan-out, slow consumer, reconnect storm) kèm code Go, và failure mode tệ nhất." />
+<meta property="og:title" content="Scalable System Design P01.2: Thiết Kế Hệ Thống 1M CCU — Gaming | Huy Dang Blog" />
+<meta property="og:description" content="Chi tiết từng tầng component cho 1M connection, tradeoff của mỗi lựa chọn, 3 hot path đo thật (fan-out, slow consumer, reconnect storm) kèm code Go, và failure mode tệ nhất." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/scalable-p01-2-ccu-deep-dive/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-10-22T01:00:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-10-22T01:00:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Scalable System Design P01.2: Thiết Kế Hệ Thống 1M CCU — Gaming",
+      "item": "https://blog.huydang.dev/posts/scalable-p01-2-ccu-deep-dive/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Scalable System Design P01.2: Thiết Kế Hệ Thống 1M CCU — Gaming | Huy Dang Blog",
+  "name": "Scalable System Design P01.2: Thiết Kế Hệ Thống 1M CCU — Gaming",
+  "description": "Chi tiết từng tầng component cho 1M connection, tradeoff của mỗi lựa chọn, 3 hot path đo thật (fan-out, slow consumer, reconnect storm) kèm code Go, và failure mode tệ nhất.",
+  "keywords": [
+    "system-design", "scalability", "websocket", "golang", "gaming"
+  ],
+  "wordCount" : "5202",
+  "inLanguage": "en",
+  "datePublished": "2026-10-22T01:00:00+07:00",
+  "dateModified": "2026-10-22T01:00:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/scalable-p01-2-ccu-deep-dive/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Scalable System Design P01.2: Thiết Kế Hệ Thống 1M CCU — Gaming</h1>
+    <div class="post-description">Chi tiết từng tầng component cho 1M connection, tradeoff của mỗi lựa chọn, 3 hot path đo thật (fan-out, slow consumer, reconnect storm) kèm code Go, và failure mode tệ nhất.</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>October 22, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/system-design/">System Design</a><a href="https://blog.huydang.dev/tags/scalability/">Scalability</a><a href="https://blog.huydang.dev/tags/websocket/">Websocket</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/gaming/">Gaming</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>25 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#m%e1%bb%9f-%c4%91%e1%ba%a7u" aria-label="Mở đầu">Mở đầu</a><ul>
+                        
+                <li>
+                    <a href="#workload-model-ch%e1%bb%91t-t%e1%bb%ab-p01" aria-label="Workload model (chốt từ P01)">Workload model (chốt từ P01)</a></li></ul>
+                </li>
+                <li>
+                    <a href="#ki%e1%ba%bfn-tr%c3%bac-t%e1%bb%95ng-th%e1%bb%83" aria-label="Kiến trúc tổng thể">Kiến trúc tổng thể</a></li>
+                <li>
+                    <a href="#l%e1%bb%b1a-ch%e1%bb%8dn-component-v%c3%a0-tradeoff" aria-label="Lựa chọn component và tradeoff">Lựa chọn component và tradeoff</a><ul>
+                        
+                <li>
+                    <a href="#t%e1%ba%a7ng-1--edge-%c4%91%e1%bb%8bnh-tuy%e1%ba%bfn-connection" aria-label="Tầng 1 — Edge: định tuyến connection">Tầng 1 — Edge: định tuyến connection</a></li>
+                <li>
+                    <a href="#t%e1%ba%a7ng-1b--protocol" aria-label="Tầng 1b — Protocol">Tầng 1b — Protocol</a></li>
+                <li>
+                    <a href="#t%e1%ba%a7ng-2--g%c3%a1n-player-v%c3%a0o-room" aria-label="Tầng 2 — Gán player vào Room">Tầng 2 — Gán player vào Room</a></li>
+                <li>
+                    <a href="#t%e1%ba%a7ng-4--fan-out-gi%e1%bb%afa-c%c3%a1c-gateway-node" aria-label="Tầng 4 — Fan-out giữa các Gateway node">Tầng 4 — Fan-out giữa các Gateway node</a></li></ul>
+                </li>
+                <li>
+                    <a href="#hot-path-1--fan-out-1n" aria-label="Hot path #1 — Fan-out 1→N">Hot path #1 — Fan-out 1→N</a><ul>
+                        
+                <li>
+                    <a href="#gi%e1%ba%a3m-chi-ph%c3%ad-fan-out" aria-label="Giảm chi phí fan-out">Giảm chi phí fan-out</a></li></ul>
+                </li>
+                <li>
+                    <a href="#hot-path-2--slow-consumer-l%e1%bb%97i-%c3%a2m-th%e1%ba%a7m-nguy-hi%e1%bb%83m-nh%e1%ba%a5t" aria-label="Hot path #2 — Slow consumer: lỗi âm thầm nguy hiểm nhất">Hot path #2 — Slow consumer: lỗi âm thầm nguy hiểm nhất</a></li>
+                <li>
+                    <a href="#hot-path-3--reconnect-storm-thundering-herd" aria-label="Hot path #3 — Reconnect storm (thundering herd)">Hot path #3 — Reconnect storm (thundering herd)</a><ul>
+                        
+                <li>
+                    <a href="#code-backoff--full-jitter-%e1%bb%9f-client" aria-label="Code: backoff &#43; full jitter ở client">Code: backoff + full jitter ở client</a></li>
+                <li>
+                    <a href="#code-admission-control-%e1%bb%9f-server" aria-label="Code: admission control ở server">Code: admission control ở server</a></li></ul>
+                </li>
+                <li>
+                    <a href="#k%e1%ba%bf-ho%e1%ba%a1ch-dung-l%c6%b0%e1%bb%a3ng" aria-label="Kế hoạch dung lượng">Kế hoạch dung lượng</a></li>
+                <li>
+                    <a href="#stress-test-v%c3%a0-monitoring" aria-label="Stress test và monitoring">Stress test và monitoring</a><ul>
+                        
+                <li>
+                    <a href="#c%c3%a1ch-t%c3%acm-breaking-point" aria-label="Cách tìm breaking point">Cách tìm breaking point</a></li>
+                <li>
+                    <a href="#metric-b%e1%ba%aft-bu%e1%bb%99c-ph%e1%ba%a3i-c%c3%b3" aria-label="Metric bắt buộc phải có">Metric bắt buộc phải có</a></li>
+                <li>
+                    <a href="#checklist-v%e1%ba%adn-h%c3%a0nh" aria-label="Checklist vận hành">Checklist vận hành</a></li></ul>
+                </li>
+                <li>
+                    <a href="#t%c3%b3m-t%e1%ba%aft" aria-label="Tóm tắt">Tóm tắt</a></li>
+                <li>
+                    <a href="#tham-kh%e1%ba%a3o" aria-label="Tham khảo">Tham khảo</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><blockquote>
+<p><em>Bài viết thuộc series <strong>Scalable System Design</strong>, nội dung tham khảo từ các bài viết trong group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a>. Phần diễn giải, kiến trúc, code và <strong>toàn bộ số liệu benchmark</strong> là tôi tự bổ sung, đo thật trên máy local (Go 1.24, Redis 7.4.2).</em></p>
+</blockquote>
+<h1 id="mở-đầu">Mở đầu<a hidden class="anchor" aria-hidden="true" href="#mở-đầu">¶</a></h1>
+<p><a href="../../posts/scalable-p01-ccu-vs-rps/">Bài P01</a> dừng ở chỗ: <em>&ldquo;1M CCU không phải một kiến trúc&rdquo;</em>, và đưa ra các bước để xây workload model. Bài này đi tiếp — <strong>chi tiết từng tầng component, tradeoff của mỗi lựa chọn, và ba hot path khó nhất</strong> của một hệ thống CCU-heavy.</p>
+<p>Bài tiếp theo — <a href="../../posts/scalable-p01-3-rps-deep-dive/">P01.3</a> — làm điều tương tự cho hệ thống RPS-heavy (flash sale).</p>
+<h2 id="workload-model-chốt-từ-p01">Workload model (chốt từ P01)<a hidden class="anchor" aria-hidden="true" href="#workload-model-chốt-từ-p01">¶</a></h2>
+<p>Hệ thống: <strong>realtime gaming, 1M CCU</strong>. Mọi thiết kế bên dưới phục vụ đúng bộ số này:</p>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th style="text-align:right">Giá trị</th>
+<th>Nguồn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connection giữ liên tục</td>
+<td style="text-align:right">1.000.000</td>
+<td>giả định</td>
+</tr>
+<tr>
+<td>Message/giây VÀO</td>
+<td style="text-align:right">10.000.000</td>
+<td>10 input/giây/player</td>
+</tr>
+<tr>
+<td>Message/giây RA</td>
+<td style="text-align:right">20.000.000</td>
+<td>tick rate 20/giây</td>
+</tr>
+<tr>
+<td>Bandwidth RA</td>
+<td style="text-align:right">32 Gbps</td>
+<td>200 bytes/message</td>
+</tr>
+<tr>
+<td>RAM chỉ cho connection</td>
+<td style="text-align:right"><strong>3,4 GB</strong></td>
+<td><strong>3.501 B/conn — đo thật ở P01</strong></td>
+</tr>
+<tr>
+<td>Player mỗi room</td>
+<td style="text-align:right">50</td>
+<td>giả định (battle royale: 100)</td>
+</tr>
+<tr>
+<td>Số room đồng thời</td>
+<td style="text-align:right">20.000</td>
+<td>1M ÷ 50</td>
+</tr>
+<tr>
+<td>Mục tiêu p99 latency</td>
+<td style="text-align:right"><strong>&lt; 50 ms</strong></td>
+<td>yêu cầu nghiệp vụ</td>
+</tr>
+</tbody>
+</table>
+<p>Hai con số quyết định toàn bộ kiến trúc:</p>
+<ul>
+<li><strong>p99 &lt; 50 ms</strong> — loại bỏ mọi thiết kế phải đi qua database trong hot path.</li>
+<li><strong>32 Gbps ra</strong> — một NIC 25 Gbps không đủ; bắt buộc nhiều node, và <strong>bandwidth là tài nguyên khan nhất</strong>, không phải CPU.</li>
+</ul>
+<hr>
+<h1 id="kiến-trúc-tổng-thể">Kiến trúc tổng thể<a hidden class="anchor" aria-hidden="true" href="#kiến-trúc-tổng-thể">¶</a></h1>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 620" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<marker id="ar-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<marker id="ar-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<filter id="ar-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="620" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">1M CCU gaming — các tầng và trách nhiệm</text>
+<rect x="24" y="42" width="852" height="74" rx="10" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/>
+<text x="44" y="64" font-size="12" font-weight="800" fill="#3730A3">① EDGE — Anycast DNS + L4 load balancer</text>
+<rect x="44" y="72" width="190" height="34" rx="7" fill="#FFFFFF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="246" y="72" width="190" height="34" rx="7" fill="#FFFFFF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="448" y="72" width="190" height="34" rx="7" fill="#FFFFFF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="650" y="72" width="206" height="34" rx="7" fill="#E0E7FF" stroke="#6366F1" stroke-width="1.6"/>
+<text x="139" y="93" text-anchor="middle" font-size="11" fill="#4338CA">region ap-southeast</text>
+<text x="341" y="93" text-anchor="middle" font-size="11" fill="#4338CA">region us-west</text>
+<text x="543" y="93" text-anchor="middle" font-size="11" fill="#4338CA">region eu-central</text>
+<text x="753" y="87" text-anchor="middle" font-size="11" font-weight="700" fill="#3730A3">Định tuyến theo RTT</text>
+<text x="753" y="101" text-anchor="middle" font-size="10" fill="#4338CA">latency là NFR số 1</text>
+<rect x="24" y="128" width="852" height="96" rx="10" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5"/>
+<text x="44" y="150" font-size="12" font-weight="800" fill="#134E4A">② GATEWAY — giữ connection, KHÔNG giữ game state (stateless về nghiệp vụ)</text>
+<rect x="44" y="158" width="152" height="54" rx="7" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<rect x="208" y="158" width="152" height="54" rx="7" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<rect x="372" y="158" width="152" height="54" rx="7" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<rect x="536" y="158" width="100" height="54" rx="7" fill="#F5F5F4" stroke="#D6D3D1" stroke-width="1.5" stroke-dasharray="4 3"/>
+<rect x="648" y="158" width="208" height="54" rx="7" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.8"/>
+<text x="120" y="178" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">GW-1</text>
+<text x="120" y="196" text-anchor="middle" font-size="10" fill="#0F766E">100k conn · 350 MB</text>
+<text x="284" y="178" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">GW-2</text>
+<text x="284" y="196" text-anchor="middle" font-size="10" fill="#0F766E">100k conn · 350 MB</text>
+<text x="448" y="178" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">GW-3</text>
+<text x="448" y="196" text-anchor="middle" font-size="10" fill="#0F766E">100k conn · 350 MB</text>
+<text x="586" y="183" text-anchor="middle" font-size="11" fill="#78716C">... GW-10</text>
+<text x="586" y="199" text-anchor="middle" font-size="10" fill="#A8A29E">tổng 1M</text>
+<text x="752" y="178" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">10 node × 3,2 Gbps</text>
+<text x="752" y="196" text-anchor="middle" font-size="10" fill="#0F766E">= 32 Gbps — vừa đủ NIC 25G</text>
+<rect x="24" y="236" width="852" height="100" rx="10" fill="#FFFAF0" stroke="#F5A623" stroke-width="2.5"/>
+<text x="44" y="258" font-size="12" font-weight="800" fill="#7C4A03">③ ROOM SERVER — authoritative game state, TOÀN BỘ trong RAM</text>
+<rect x="44" y="266" width="186" height="60" rx="7" fill="#FFFFFF" stroke="#F5A623" stroke-width="1.8"/>
+<rect x="242" y="266" width="186" height="60" rx="7" fill="#FFFFFF" stroke="#F5A623" stroke-width="1.8"/>
+<rect x="440" y="266" width="186" height="60" rx="7" fill="#FFFFFF" stroke="#F5A623" stroke-width="1.8"/>
+<rect x="638" y="266" width="218" height="60" rx="7" fill="#FFF3DB" stroke="#D97706" stroke-width="1.8"/>
+<text x="137" y="286" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">Room 1..2000</text>
+<text x="137" y="304" text-anchor="middle" font-size="10" fill="#92400E">tick loop 20 Hz</text>
+<text x="137" y="319" text-anchor="middle" font-size="10" fill="#92400E">state in-memory</text>
+<text x="335" y="286" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">Room 2001..4000</text>
+<text x="335" y="304" text-anchor="middle" font-size="10" fill="#92400E">tick loop 20 Hz</text>
+<text x="533" y="286" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">Room 4001..6000</text>
+<text x="533" y="304" text-anchor="middle" font-size="10" fill="#92400E">tick loop 20 Hz</text>
+<text x="747" y="284" text-anchor="middle" font-size="11" font-weight="800" fill="#7C4A03">1 room = 1 goroutine</text>
+<text x="747" y="300" text-anchor="middle" font-size="10" fill="#92400E">= 1 đơn vị nhất quán</text>
+<text x="747" y="316" text-anchor="middle" font-size="10" font-weight="700" fill="#D97706">KHÔNG lock giữa room</text>
+<rect x="24" y="348" width="852" height="86" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="44" y="370" font-size="12" font-weight="800" fill="#374151">④ HẠ TẦNG CHIA SẺ — chỉ phục vụ việc KHÔNG nằm trong hot path</text>
+<rect x="44" y="378" width="194" height="46" rx="7" fill="#FFE9EC" stroke="#FF6B6B" stroke-width="1.6"/>
+<rect x="250" y="378" width="194" height="46" rx="7" fill="#E6FBF9" stroke="#14B8A6" stroke-width="1.6"/>
+<rect x="456" y="378" width="194" height="46" rx="7" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="662" y="378" width="194" height="46" rx="7" fill="#FFF3DB" stroke="#F5A623" stroke-width="1.6"/>
+<text x="141" y="396" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Matchmaking</text>
+<text x="141" y="413" text-anchor="middle" font-size="10" fill="#BE123C">xếp player vào room</text>
+<text x="347" y="396" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">Redis — presence</text>
+<text x="347" y="413" text-anchor="middle" font-size="10" fill="#0F766E">presence:{uid} → SET</text>
+<text x="553" y="396" text-anchor="middle" font-size="11" font-weight="700" fill="#3730A3">Redis Pub/Sub</text>
+<text x="553" y="413" text-anchor="middle" font-size="10" fill="#4338CA">fan-out giữa GW node</text>
+<text x="759" y="396" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">Snapshot store</text>
+<text x="759" y="413" text-anchor="middle" font-size="10" fill="#92400E">ghi định kỳ, KHÔNG đồng bộ</text>
+<line x1="450" y1="118" x2="450" y2="126" stroke="#57534E" stroke-width="2" marker-end="url(#ar-a)"/>
+<line x1="450" y1="226" x2="450" y2="234" stroke="#0D9488" stroke-width="2" marker-end="url(#ar-t)"/>
+<line x1="450" y1="338" x2="450" y2="346" stroke="#D97706" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ar-a)"/>
+<rect x="24" y="446" width="418" height="162" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#ar-sh)"/>
+<rect x="458" y="446" width="418" height="162" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5" filter="url(#ar-sh)"/>
+<text x="44" y="470" font-size="13" font-weight="800" fill="#134E4A">✅ HOT PATH (phải &lt; 50 ms)</text>
+<text x="44" y="494" font-size="11" fill="#0F766E">client → GW → room server → tick → GW → client</text>
+<text x="44" y="516" font-size="11" font-weight="700" fill="#134E4A">Toàn bộ nằm trong RAM. KHÔNG có:</text>
+<text x="44" y="536" font-size="11" fill="#0F766E">✗ database query    ✗ HTTP call ra ngoài</text>
+<text x="44" y="556" font-size="11" fill="#0F766E">✗ Redis round-trip  ✗ cross-region hop</text>
+<text x="44" y="582" font-size="11" font-weight="700" fill="#0F766E">Mỗi thứ thêm vào đây đều ăn vào ngân sách 50ms</text>
+<text x="44" y="600" font-size="11" fill="#0F766E">— và p99 thì luôn tệ hơn p50 nhiều lần.</text>
+<text x="478" y="470" font-size="13" font-weight="800" fill="#9F1239">❌ KHÔNG được nằm trong hot path</text>
+<text x="478" y="494" font-size="11" fill="#BE123C">• Ghi snapshot state xuống DB → async, theo chu kỳ</text>
+<text x="478" y="514" font-size="11" fill="#BE123C">• Cập nhật leaderboard → qua queue</text>
+<text x="478" y="534" font-size="11" fill="#BE123C">• Ghi analytics / telemetry → fire-and-forget</text>
+<text x="478" y="554" font-size="11" fill="#BE123C">• Anti-cheat phân tích sâu → ngoài luồng</text>
+<text x="478" y="582" font-size="11" font-weight="700" fill="#DC2626">Quy tắc: hot path chỉ đọc/ghi RAM cục bộ.</text>
+<text x="478" y="600" font-size="11" fill="#BE123C">Mọi I/O khác đẩy sang đường async.</text>
+</svg>
+</div>
+<p>Điểm thiết kế quan trọng nhất ở sơ đồ trên: <strong>tách Gateway (giữ connection) khỏi Room Server (giữ state)</strong>. Lý do:</p>
+<ul>
+<li>Hai tầng <strong>scale theo hai chiều khác nhau</strong>: Gateway scale theo <em>số connection</em> và <em>bandwidth</em>; Room Server scale theo <em>số room</em> và <em>CPU của tick loop</em>.</li>
+<li>Gateway có thể deploy/restart mà <strong>không làm mất game state</strong>.</li>
+<li>Khi một Gateway chết, client reconnect sang Gateway khác và <strong>room vẫn đang chạy</strong> — đây là thứ cứu bạn khỏi failure mode tệ nhất (xem phần cuối).</li>
+</ul>
+<hr>
+<h1 id="lựa-chọn-component-và-tradeoff">Lựa chọn component và tradeoff<a hidden class="anchor" aria-hidden="true" href="#lựa-chọn-component-và-tradeoff">¶</a></h1>
+<h2 id="tầng-1--edge-định-tuyến-connection">Tầng 1 — Edge: định tuyến connection<a hidden class="anchor" aria-hidden="true" href="#tầng-1--edge-định-tuyến-connection">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Lựa chọn</th>
+<th>Ưu</th>
+<th>Nhược</th>
+<th>Dùng khi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L4 LB</strong> (NLB, HAProxy TCP)</td>
+<td>Thông lượng cao, latency thấp, giữ TCP xuyên suốt</td>
+<td>Không hiểu protocol, không route theo nội dung</td>
+<td><strong>Mặc định cho WebSocket/TCP</strong></td>
+</tr>
+<tr>
+<td><strong>L7 LB</strong> (ALB, Envoy, nginx)</td>
+<td>Route theo path/header, TLS termination, observability tốt</td>
+<td>Thêm 1 hop, tốn CPU, giới hạn connection thường thấp hơn</td>
+<td>Cần route theo nội dung</td>
+</tr>
+<tr>
+<td><strong>DNS/Anycast trực tiếp</strong></td>
+<td>Không có LB nào ở giữa → latency thấp nhất</td>
+<td>Client phải tự xử lý failover, khó drain node</td>
+<td>Gaming có client tự viết</td>
+</tr>
+<tr>
+<td><strong>Client nhận danh sách node</strong></td>
+<td>Client tự chọn, tự retry, tự đo RTT</td>
+<td>Logic phức tạp ở client, cần API discovery</td>
+<td><strong>Tốt nhất cho gaming</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>Khuyến nghị cho gaming</strong>: pattern <strong>&ldquo;discovery API + client-side connect&rdquo;</strong>. Client gọi một HTTP API nhẹ (<code>GET /gateway/assign</code>) để nhận <code>{gateway_host, token, ttl}</code>, rồi kết nối trực tiếp. Lợi ích: discovery API là nơi lý tưởng để làm <strong>admission control</strong> và <strong>rải đều reconnect</strong> (xem hot path #3), điều mà L4 LB không làm được.</p>
+</blockquote>
+<h2 id="tầng-1b--protocol">Tầng 1b — Protocol<a hidden class="anchor" aria-hidden="true" href="#tầng-1b--protocol">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Protocol</th>
+<th>Latency</th>
+<th>Qua được firewall/proxy</th>
+<th>Phù hợp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>WebSocket over TLS</strong></td>
+<td>Tốt</td>
+<td>✅ Gần như mọi nơi (port 443)</td>
+<td><strong>Mặc định an toàn</strong></td>
+</tr>
+<tr>
+<td><strong>Raw TCP</strong></td>
+<td>Tốt hơn chút (ít overhead frame)</td>
+<td>❌ Hay bị chặn</td>
+<td>Client desktop/mobile tự viết</td>
+</tr>
+<tr>
+<td><strong>QUIC / WebTransport</strong></td>
+<td><strong>Tốt nhất</strong> — không head-of-line blocking ở tầng transport, 0-RTT reconnect</td>
+<td>Hỗ trợ còn lẻ, cần UDP mở</td>
+<td>Khi latency là tối thượng</td>
+</tr>
+<tr>
+<td><strong>UDP tự định nghĩa</strong></td>
+<td>Thấp nhất</td>
+<td>❌ Phải tự làm reliability, NAT traversal</td>
+<td>FPS, fighting game</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tradeoff cốt lõi</strong>: TCP đảm bảo thứ tự nhưng <strong>một packet mất làm nghẽn cả stream</strong> (head-of-line blocking). Với game state, bạn thường <strong>không cần</strong> state cũ — nhận được state mới nhất là đủ. Đó là lý do game action-heavy dùng UDP và tự làm reliability <em>chỉ cho những message cần thiết</em>.</p>
+<h2 id="tầng-2--gán-player-vào-room">Tầng 2 — Gán player vào Room<a hidden class="anchor" aria-hidden="true" href="#tầng-2--gán-player-vào-room">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Cách</th>
+<th>Ưu</th>
+<th>Nhược</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Consistent hashing</strong> <code>hash(room_id) % ring</code></td>
+<td>Không cần service tra cứu, O(1), client tự tính được</td>
+<td>Rebalance khi thêm/bớt node làm <strong>di chuyển room đang chạy</strong></td>
+</tr>
+<tr>
+<td><strong>Directory service</strong> (Redis: <code>room:{id} → node</code>)</td>
+<td>Linh hoạt tuyệt đối, đặt room ở đâu cũng được, dễ drain node</td>
+<td>Thêm 1 lần tra cứu, và directory thành single point</td>
+</tr>
+<tr>
+<td><strong>Static assignment</strong> (room range cố định)</td>
+<td>Đơn giản nhất, dễ debug</td>
+<td>Không tự cân bằng, node nóng node nguội</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>Khuyến nghị</strong>: <strong>Directory service</strong>, nhưng chỉ tra <strong>một lần lúc join room</strong>, rồi cache ở Gateway suốt vòng đời connection. Như vậy directory <strong>không nằm trong hot path</strong> — nó chỉ bị gọi 20.000 lần (số room) chứ không phải 10 triệu lần/giây.</p>
+<p>Consistent hashing nghe hấp dẫn nhưng với room <strong>có state đang sống</strong>, việc rebalance là một migration thật — khác hẳn rebalance cache (chỉ việc mất cache). Đừng chọn nó chỉ vì &ldquo;nghe đúng kiểu phân tán&rdquo;.</p>
+</blockquote>
+<h2 id="tầng-4--fan-out-giữa-các-gateway-node">Tầng 4 — Fan-out giữa các Gateway node<a hidden class="anchor" aria-hidden="true" href="#tầng-4--fan-out-giữa-các-gateway-node">¶</a></h2>
+<p>Vấn đề: player A ở Gateway-1, player B cùng room ở Gateway-7. Room server phải đẩy state tới cả hai.</p>
+<table>
+<thead>
+<tr>
+<th>Cách</th>
+<th>Latency</th>
+<th>Độ bền</th>
+<th>Nhược</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis Pub/Sub</strong></td>
+<td>~0,2–1 ms</td>
+<td><strong>Mất tin nếu GW offline</strong></td>
+<td>Mất tin — nhưng <a href="../../posts/system-design-p03-pubsub-vs-streams/">với WS thì OK</a>: client tự lấy lại state khi reconnect</td>
+</tr>
+<tr>
+<td><strong>NATS</strong></td>
+<td>~0,1–0,5 ms</td>
+<td>Mất tin (core NATS)</td>
+<td>Thêm 1 hệ thống phải vận hành</td>
+</tr>
+<tr>
+<td><strong>Direct gRPC mesh</strong> (GW ↔ Room)</td>
+<td><strong>Thấp nhất</strong></td>
+<td>Không có broker</td>
+<td>N×M connection, tự làm discovery</td>
+</tr>
+<tr>
+<td><strong>Kafka</strong></td>
+<td>~5–20 ms</td>
+<td>Bền</td>
+<td><strong>Quá chậm cho hot path 50ms</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>Khuyến nghị</strong>: <strong>Direct gRPC stream từ Room Server tới Gateway</strong>. Room server biết chính xác player nào ở Gateway nào (từ lúc join), nên nó gửi thẳng — không cần broker. Redis Pub/Sub dùng cho <strong>presence và sự kiện ngoài hot path</strong> (friend online, chat toàn server).</p>
+<p><strong>Tuyệt đối không dùng Kafka trong hot path</strong> của hệ thống 50ms. Kafka sinh ra cho độ bền, không cho latency — xem <a href="../../posts/system-design-p04-streams-vs-kafka/">P04</a>.</p>
+</blockquote>
+<hr>
+<h1 id="hot-path-1--fan-out-1n">Hot path #1 — Fan-out 1→N<a hidden class="anchor" aria-hidden="true" href="#hot-path-1--fan-out-1n">¶</a></h1>
+<p>Đây là chỗ tải thật nằm. Mỗi tick, room server phải đẩy state cho <strong>mọi</strong> player trong room. Tôi đo chi phí fan-out thật trên một Go server:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:right">N subscriber</th>
+<th style="text-align:right">Thời gian <strong>enqueue</strong></th>
+<th style="text-align:right">Thời gian <strong>giao xong</strong></th>
+<th style="text-align:right">Nhận được</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">1.000</td>
+<td style="text-align:right">1,48 ms</td>
+<td style="text-align:right">6 ms</td>
+<td style="text-align:right">1.000/1.000</td>
+</tr>
+<tr>
+<td style="text-align:right">10.000</td>
+<td style="text-align:right">13,7 ms</td>
+<td style="text-align:right">23 ms</td>
+<td style="text-align:right">10.000/10.000</td>
+</tr>
+<tr>
+<td style="text-align:right">50.000</td>
+<td style="text-align:right"><strong>79,0 ms</strong></td>
+<td style="text-align:right"><strong>107 ms</strong></td>
+<td style="text-align:right">50.000/50.000</td>
+</tr>
+</tbody>
+</table>
+<p>Đọc bảng này cùng với ngân sách <strong>p99 &lt; 50 ms</strong>:</p>
+<ul>
+<li>Fan-out tới <strong>1.000 subscriber mất 6 ms</strong> — chiếm 12% ngân sách. Chấp nhận được.</li>
+<li>Fan-out tới <strong>50.000 subscriber mất 107 ms</strong> — <strong>đã vượt gấp đôi ngân sách</strong> trước khi làm bất cứ việc gì khác.</li>
+</ul>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="fb-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="400" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Chi phí fan-out so với ngân sách latency 50 ms</text>
+<text x="440" y="48" text-anchor="middle" font-size="11" fill="#78716C">Đo thật: thời gian giao 1 message cho N subscriber trên một Go server</text>
+<line x1="110" y1="310" x2="560" y2="310" stroke="#57534E" stroke-width="2"/>
+<line x1="110" y1="310" x2="110" y2="76" stroke="#57534E" stroke-width="2"/>
+<line x1="110" y1="194" x2="560" y2="194" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="7 5"/>
+<rect x="564" y="182" width="130" height="24" rx="6" fill="#DC2626"/>
+<text x="629" y="199" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">ngân sách 50 ms</text>
+<rect x="160" y="296" width="80" height="14" rx="3" fill="#0D9488"/>
+<rect x="290" y="256" width="80" height="54" rx="3" fill="#14B8A6"/>
+<rect x="420" y="60" width="80" height="250" rx="3" fill="#DC2626"/>
+<text x="200" y="288" text-anchor="middle" font-size="12" font-weight="800" fill="#0F766E">6 ms</text>
+<text x="330" y="248" text-anchor="middle" font-size="12" font-weight="800" fill="#0F766E">23 ms</text>
+<text x="460" y="52" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">107 ms</text>
+<text x="200" y="330" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">N = 1.000</text>
+<text x="200" y="346" text-anchor="middle" font-size="10" fill="#0F766E">12% ngân sách</text>
+<text x="330" y="330" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">N = 10.000</text>
+<text x="330" y="346" text-anchor="middle" font-size="10" fill="#0F766E">46% ngân sách</text>
+<text x="460" y="330" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">N = 50.000</text>
+<text x="460" y="346" text-anchor="middle" font-size="10" font-weight="800" fill="#DC2626">214% — VỠ</text>
+<text x="76" y="190" text-anchor="middle" font-size="11" font-weight="700" fill="#57534E" transform="rotate(-90 76 190)">thời gian giao xong</text>
+<rect x="580" y="230" width="276" height="100" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2" filter="url(#fb-sh)"/>
+<text x="600" y="254" font-size="12" font-weight="800" fill="#134E4A">Hệ quả thiết kế</text>
+<text x="600" y="276" font-size="11" fill="#0F766E">Giới hạn room 50 player KHÔNG</text>
+<text x="600" y="294" font-size="11" fill="#0F766E">phải lựa chọn tối ưu hoá —</text>
+<text x="600" y="312" font-size="11" font-weight="700" fill="#134E4A">nó là ràng buộc toán học từ</text>
+<text x="600" y="326" font-size="11" font-weight="700" fill="#134E4A">ngân sách latency.</text>
+<rect x="580" y="76" width="276" height="92" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.8"/>
+<text x="600" y="98" font-size="12" font-weight="800" fill="#374151">Số đo chi tiết</text>
+<text x="600" y="120" font-size="10" font-family="monospace" fill="#57534E">N=1.000  enqueue 1,48ms</text>
+<text x="600" y="138" font-size="10" font-family="monospace" fill="#57534E">N=10.000 enqueue 13,7ms</text>
+<text x="600" y="156" font-size="10" font-family="monospace" font-weight="700" fill="#9F1239">N=50.000 enqueue 79,0ms</text>
+<text x="440" y="378" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">Chi phí tăng gần như tuyến tính theo N — nên N là biến bạn PHẢI kiểm soát, không phải để nó tự lớn.</text>
+</svg>
+</div>
+<p>👉 <strong>Đây chính là lý do kiến trúc phải partition theo room 50 player, không phải broadcast toàn server.</strong> Giới hạn fan-out không phải lựa chọn tối ưu hoá — nó là ràng buộc toán học từ ngân sách latency.</p>
+<p>Code của tầng broadcast:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/gateway/hub.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Conn</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">id</span>   <span class="kt">int64</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ws</span>   <span class="o">*</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">Conn</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">out</span>  <span class="kd">chan</span> <span class="p">[]</span><span class="kt">byte</span>   <span class="c1">// buffer riêng cho mỗi connection — KHÔNG dùng chung
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Room</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">mu</span>      <span class="nx">sync</span><span class="p">.</span><span class="nx">RWMutex</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">members</span> <span class="kd">map</span><span class="p">[</span><span class="kt">int64</span><span class="p">]</span><span class="o">*</span><span class="nx">Conn</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Broadcast chạy trong tick loop — PHẢI không bao giờ block.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">Room</span><span class="p">)</span> <span class="nf">Broadcast</span><span class="p">(</span><span class="nx">payload</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">(</span><span class="nx">sent</span><span class="p">,</span> <span class="nx">dropped</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">r</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">RLock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nx">r</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">RUnlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">c</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">r</span><span class="p">.</span><span class="nx">members</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">select</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">case</span> <span class="nx">c</span><span class="p">.</span><span class="nx">out</span> <span class="o">&lt;-</span> <span class="nx">payload</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">sent</span><span class="o">++</span>
+</span></span><span class="line"><span class="cl">        <span class="k">default</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// Buffer đầy = client này không theo kịp.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="c1">// DROP message của NÓ, không làm chậm 49 player còn lại.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="nx">dropped</span><span class="o">++</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">c</span><span class="p">.</span><span class="nf">markSlow</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Mỗi connection có đúng MỘT goroutine ghi. Không goroutine nào khác
+</span></span></span><span class="line"><span class="cl"><span class="c1">// được gọi ws.Write — nếu không sẽ data race trên WebSocket frame.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Conn</span><span class="p">)</span> <span class="nf">writeLoop</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nx">c</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">payload</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">c</span><span class="p">.</span><span class="nx">out</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nf">SetWriteDeadline</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Add</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nf">WriteMessage</span><span class="p">(</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">BinaryMessage</span><span class="p">,</span> <span class="nx">payload</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Ba chi tiết quan trọng:</p>
+<ol>
+<li><strong><code>c.out</code> là buffered channel riêng cho mỗi connection.</strong> Dùng chung một channel cho cả room sẽ biến fan-out thành tuần tự.</li>
+<li><strong><code>select</code> + <code>default</code></strong> biến broadcast thành non-blocking. Vì sao bắt buộc — xem hot path #2.</li>
+<li><strong>Đúng một goroutine ghi mỗi connection.</strong> <code>gorilla/websocket</code> không an toàn khi ghi đồng thời; hai goroutine cùng <code>WriteMessage</code> sẽ làm <strong>frame lẫn vào nhau</strong> và client disconnect với lỗi protocol khó debug.</li>
+</ol>
+<h2 id="giảm-chi-phí-fan-out">Giảm chi phí fan-out<a hidden class="anchor" aria-hidden="true" href="#giảm-chi-phí-fan-out">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Kỹ thuật</th>
+<th>Hiệu quả</th>
+<th>Đánh đổi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Delta encoding</strong> — chỉ gửi phần đổi</td>
+<td>Giảm 60–90% bandwidth</td>
+<td>Cần giữ last-sent state mỗi player</td>
+</tr>
+<tr>
+<td><strong>Area of Interest</strong> — chỉ gửi entity trong tầm nhìn</td>
+<td>Giảm mạnh ở map lớn</td>
+<td>Cần spatial index, tốn CPU</td>
+</tr>
+<tr>
+<td><strong>Tick rate thích ứng</strong> — xa thì 5 Hz, gần thì 20 Hz</td>
+<td>Giảm 50–70% message</td>
+<td>Logic phức tạp hơn</td>
+</tr>
+<tr>
+<td><strong>Serialize MỘT LẦN, gửi N lần</strong></td>
+<td>Giảm CPU rất nhiều</td>
+<td>Chỉ được khi payload giống nhau cho mọi player</td>
+</tr>
+<tr>
+<td><strong>Batch nhiều tick vào 1 frame</strong></td>
+<td>Ít syscall hơn</td>
+<td>Thêm latency bằng kích thước batch</td>
+</tr>
+</tbody>
+</table>
+<p>Kỹ thuật thứ tư rẻ nhất và hay bị bỏ qua:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ❌ SAI: serialize lại cho từng player — 50× công việc
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">c</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">r</span><span class="p">.</span><span class="nx">members</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">proto</span><span class="p">.</span><span class="nf">Marshal</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>      <span class="c1">// 50 lần marshal CÙNG một state
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">c</span><span class="p">.</span><span class="nx">out</span> <span class="o">&lt;-</span> <span class="nx">b</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ✅ ĐÚNG: marshal một lần, chia sẻ []byte (read-only nên an toàn)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">b</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">proto</span><span class="p">.</span><span class="nf">Marshal</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span> <span class="k">return</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">c</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">r</span><span class="p">.</span><span class="nx">members</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">select</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">case</span> <span class="nx">c</span><span class="p">.</span><span class="nx">out</span> <span class="o">&lt;-</span> <span class="nx">b</span><span class="p">:</span>                  <span class="c1">// cùng một slice, không copy
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">default</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="hot-path-2--slow-consumer-lỗi-âm-thầm-nguy-hiểm-nhất">Hot path #2 — Slow consumer: lỗi âm thầm nguy hiểm nhất<a hidden class="anchor" aria-hidden="true" href="#hot-path-2--slow-consumer-lỗi-âm-thầm-nguy-hiểm-nhất">¶</a></h1>
+<p>Đây là failure mode tôi thấy ít được nói tới nhất, nhưng gây sự cố production nhiều nhất trong hệ thống WebSocket.</p>
+<p><strong>Tình huống</strong>: một client mất mạng kiểu &ldquo;nửa sống nửa chết&rdquo; (mobile đi vào hầm) — TCP chưa đóng, nhưng client không đọc dữ liệu. Buffer gửi của server đầy dần. Nếu broadcast của bạn <strong>chặn</strong> ở connection đó, nó chặn luôn mọi player còn lại.</p>
+<p>Tôi đo thật: 5.000 client, <strong>1 client không bao giờ đọc</strong>, payload 4 KB.</p>
+<table>
+<thead>
+<tr>
+<th>Cách viết broadcast</th>
+<th>Kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Chặn</strong> — <code>c.out &lt;- msg</code></td>
+<td>⚠️ <strong>BỊ TREO ở vòng 737</strong> (sau ~2,9 MB) — 1 client chặn broadcast tới 4.999 client còn lại</td>
+</tr>
+<tr>
+<td><strong>Drop</strong> — <code>select</code> + <code>default</code></td>
+<td>✅ Xong <strong>2.000 vòng</strong>, chậm nhất 92,9 ms, chỉ <strong>drop 1.273 msg của đúng client chậm đó</strong>. 4.999 client khoẻ nhận <strong>6.729.358 msg — không bị ảnh hưởng</strong></td>
+</tr>
+</tbody>
+</table>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="sc-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<marker id="sc-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="sc-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="400" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">1 client không đọc — hai cách viết broadcast, hai kết cục</text>
+<rect x="24" y="46" width="420" height="330" rx="12" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#sc-sh)"/>
+<rect x="456" y="46" width="420" height="330" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#sc-sh)"/>
+<text x="234" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">❌ CHẶN — c.out &lt;- msg</text>
+<text x="666" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">✅ DROP — select + default</text>
+<rect x="44" y="84" width="120" height="44" rx="8" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.8"/>
+<rect x="476" y="84" width="120" height="44" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<text x="104" y="102" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Broadcaster</text>
+<text x="104" y="119" text-anchor="middle" font-size="10" fill="#BE123C">tick loop</text>
+<text x="536" y="102" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">Broadcaster</text>
+<text x="536" y="119" text-anchor="middle" font-size="10" fill="#0F766E">tick loop</text>
+<rect x="200" y="84" width="104" height="44" rx="8" fill="#FFD9DE" stroke="#DC2626" stroke-width="2.5"/>
+<rect x="632" y="84" width="104" height="44" rx="8" fill="#FFD9DE" stroke="#DC2626" stroke-width="2.5"/>
+<text x="252" y="102" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">client #0</text>
+<text x="252" y="119" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">KHÔNG đọc</text>
+<text x="684" y="102" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">client #0</text>
+<text x="684" y="119" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">KHÔNG đọc</text>
+<rect x="336" y="84" width="88" height="44" rx="8" fill="#F5F5F4" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="4 3"/>
+<rect x="768" y="84" width="88" height="44" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.8"/>
+<text x="380" y="102" text-anchor="middle" font-size="11" fill="#78716C">4.999</text>
+<text x="380" y="119" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">BỊ CHẶN</text>
+<text x="812" y="102" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">4.999</text>
+<text x="812" y="119" text-anchor="middle" font-size="10" font-weight="700" fill="#0F766E">vẫn chạy</text>
+<line x1="166" y1="106" x2="196" y2="106" stroke="#DC2626" stroke-width="2" marker-end="url(#sc-a)"/>
+<line x1="598" y1="106" x2="628" y2="106" stroke="#0D9488" stroke-width="2" marker-end="url(#sc-t)"/>
+<line x1="306" y1="106" x2="332" y2="106" stroke="#DC2626" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="319" y="146" text-anchor="middle" font-size="16" font-weight="800" fill="#DC2626">✗</text>
+<line x1="738" y1="106" x2="764" y2="106" stroke="#0D9488" stroke-width="2" marker-end="url(#sc-t)"/>
+<rect x="44" y="156" width="380" height="80" rx="9" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="234" y="180" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">BỊ TREO ở vòng 737 / 2.000</text>
+<text x="234" y="202" text-anchor="middle" font-size="11" fill="#BE123C">Channel buffer (64) + socket buffer kernel (~2,5 MB)</text>
+<text x="234" y="220" text-anchor="middle" font-size="11" fill="#BE123C">hấp thụ ~2,9 MB đầu rồi mới treo.</text>
+<rect x="476" y="156" width="380" height="80" rx="9" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="666" y="180" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">XONG đủ 2.000 vòng</text>
+<text x="666" y="202" text-anchor="middle" font-size="11" fill="#0F766E">Drop 1.273 msg — của ĐÚNG client chậm đó.</text>
+<text x="666" y="220" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">4.999 client khoẻ nhận 6.729.358 msg.</text>
+<rect x="44" y="252" width="380" height="110" rx="9" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.8"/>
+<text x="62" y="274" font-size="12" font-weight="800" fill="#9F1239">Vì sao test tải thấp KHÔNG bắt được</text>
+<text x="62" y="296" font-size="11" fill="#BE123C">2,9 MB nghe nhiều, nhưng ở 20 tick/s với</text>
+<text x="62" y="314" font-size="11" fill="#BE123C">payload 4 KB thì chỉ là ~37 giây.</text>
+<text x="62" y="336" font-size="11" font-weight="700" fill="#DC2626">Smoke test 10 giây → PASS.</text>
+<text x="62" y="354" font-size="11" font-weight="700" fill="#DC2626">Production 1 phút → TREO.</text>
+<rect x="476" y="252" width="380" height="110" rx="9" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<text x="494" y="274" font-size="12" font-weight="800" fill="#134E4A">Vì sao DROP là đúng, không phải thô bạo</text>
+<text x="494" y="296" font-size="11" fill="#0F766E">Client không theo kịp 20 tick/s sẽ KHÔNG</text>
+<text x="494" y="314" font-size="11" fill="#0F766E">BAO GIỜ theo kịp — giữ lại chỉ tích buffer.</text>
+<text x="494" y="336" font-size="11" fill="#0F766E">Reconnect nạp lại state ĐẦY ĐỦ nên</text>
+<text x="494" y="354" font-size="11" font-weight="700" fill="#134E4A">không mất tính đúng đắn.</text>
+</svg>
+</div>
+<p>Con số <strong>737 vòng</strong> đáng chú ý: nó không treo ngay lập tức. Channel buffer (64 slot) cộng socket send buffer của kernel (~2,5 MB mặc định) hấp thụ được gần 3 MB đầu. Nghĩa là trên môi trường test tải thấp, <strong>bug này không bao giờ xuất hiện</strong> — nó chỉ nổ ra ở production khi payload lớn hơn hoặc client chậm lâu hơn.</p>
+<p>Code xử lý đầy đủ, gồm cả phần dọn client chậm:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">const</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">outBufSize</span>      <span class="p">=</span> <span class="mi">64</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">slowTolerance</span>   <span class="p">=</span> <span class="mi">3</span>   <span class="c1">// drop quá 3 lần liên tiếp → coi là chết
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">writeTimeout</span>    <span class="p">=</span> <span class="mi">5</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Conn</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">id</span>         <span class="kt">int64</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">ws</span>         <span class="o">*</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">Conn</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">out</span>        <span class="kd">chan</span> <span class="p">[]</span><span class="kt">byte</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">slowStrike</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">Int32</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">closeOnce</span>  <span class="nx">sync</span><span class="p">.</span><span class="nx">Once</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">done</span>       <span class="kd">chan</span> <span class="kd">struct</span><span class="p">{}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Conn</span><span class="p">)</span> <span class="nf">trySend</span><span class="p">(</span><span class="nx">payload</span> <span class="p">[]</span><span class="kt">byte</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">select</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">case</span> <span class="nx">c</span><span class="p">.</span><span class="nx">out</span> <span class="o">&lt;-</span> <span class="nx">payload</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nx">slowStrike</span><span class="p">.</span><span class="nf">Store</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>        <span class="c1">// gửi được → reset
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl">    <span class="k">default</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Buffer đầy. Đây KHÔNG phải lỗi tạm thời cần retry —
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// nó nghĩa là client không theo kịp nhịp của server.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nx">slowStrike</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="nx">slowTolerance</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">c</span><span class="p">.</span><span class="nf">kick</span><span class="p">(</span><span class="s">&#34;slow consumer&#34;</span><span class="p">)</span>   <span class="c1">// ngắt chủ động, giải phóng tài nguyên
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">false</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Conn</span><span class="p">)</span> <span class="nf">kick</span><span class="p">(</span><span class="nx">reason</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nx">closeOnce</span><span class="p">.</span><span class="nf">Do</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Đóng connection làm writeLoop thoát và client buộc phải reconnect.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// Reconnect sẽ nạp lại state đầy đủ — KHÔNG mất tính đúng đắn.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">c</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nf">SetWriteDeadline</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Add</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nf">WriteControl</span><span class="p">(</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">CloseMessage</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">websocket</span><span class="p">.</span><span class="nf">FormatCloseMessage</span><span class="p">(</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">CloseTryAgainLater</span><span class="p">,</span> <span class="nx">reason</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Add</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nx">ws</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="nb">close</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">done</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">metrics</span><span class="p">.</span><span class="nx">ConnKicked</span><span class="p">.</span><span class="nf">WithLabelValues</span><span class="p">(</span><span class="nx">reason</span><span class="p">).</span><span class="nf">Inc</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">})</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Vì sao ngắt client chậm là ĐÚNG, không phải thô bạo:</strong></p>
+<p>Một client không theo kịp 20 tick/giây sẽ <strong>không bao giờ</strong> theo kịp — giữ nó lại chỉ tích tụ thêm buffer. Ngắt nó ra buộc client reconnect, và reconnect <strong>nạp lại state đầy đủ</strong> nên không mất tính đúng đắn. Với game, nhận state mới nhất quan trọng hơn nhận đủ mọi state cũ.</p>
+<blockquote>
+<p>⚠️ Nhưng việc ngắt hàng loạt lại dẫn thẳng tới hot path #3. Nếu mạng của cả một ISP bị chập, bạn có thể ngắt 50.000 client <strong>cùng lúc</strong> — và tất cả sẽ reconnect cùng lúc.</p>
+</blockquote>
+<hr>
+<h1 id="hot-path-3--reconnect-storm-thundering-herd">Hot path #3 — Reconnect storm (thundering herd)<a hidden class="anchor" aria-hidden="true" href="#hot-path-3--reconnect-storm-thundering-herd">¶</a></h1>
+<p>Đây là <strong>failure mode tệ nhất</strong> của hệ thống CCU-heavy, và là chỗ một sự cố nhỏ biến thành sự cố toàn hệ thống.</p>
+<p><strong>Kịch bản</strong>: một Gateway node giữ 100.000 connection bị chết (hoặc deploy, hoặc OOM). 100.000 client mất kết nối <strong>cùng một thời điểm</strong> và tất cả reconnect ngay lập tức. Mỗi reconnect cần: TLS handshake + verify token + nạp player state.</p>
+<p>Tôi đo với 20.000 client (chia tỉ lệ xuống cho vừa máy local):</p>
+<table>
+<thead>
+<tr>
+<th>Chiến lược client</th>
+<th style="text-align:right"><strong>ĐỈNH conn/s</strong></th>
+<th style="text-align:right">Rải trong</th>
+<th style="text-align:right">dial p99</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Không backoff — tất cả thử lại ngay</strong></td>
+<td style="text-align:right"><strong>57.570</strong></td>
+<td style="text-align:right">1,23 s</td>
+<td style="text-align:right"><strong>1,01 s</strong></td>
+</tr>
+<tr>
+<td>Jitter 5 giây</td>
+<td style="text-align:right">4.610</td>
+<td style="text-align:right">5,04 s</td>
+<td style="text-align:right">~0</td>
+</tr>
+<tr>
+<td>Jitter 30 giây</td>
+<td style="text-align:right"><strong>880</strong></td>
+<td style="text-align:right">30,01 s</td>
+<td style="text-align:right">~0</td>
+</tr>
+<tr>
+<td>Jitter 60 giây</td>
+<td style="text-align:right">520</td>
+<td style="text-align:right">60,01 s</td>
+<td style="text-align:right">~0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Jitter 30 giây giảm đỉnh 65 lần</strong> (57.570 → 880). Và <code>dial p99</code> từ 1,01 giây về gần 0 — nghĩa là không chỉ server dễ thở hơn, mà <strong>chính client cũng kết nối nhanh hơn</strong>.</p>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="jt-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="400" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Full jitter giảm đỉnh reconnect 65 lần</text>
+<text x="440" y="48" text-anchor="middle" font-size="11" fill="#78716C">Đo thật: 20.000 client cùng reconnect · trục dọc = ĐỈNH connection/giây</text>
+<line x1="120" y1="306" x2="540" y2="306" stroke="#57534E" stroke-width="2"/>
+<line x1="120" y1="306" x2="120" y2="72" stroke="#57534E" stroke-width="2"/>
+<rect x="150" y="76" width="66" height="230" rx="3" fill="#DC2626"/>
+<rect x="246" y="288" width="66" height="18" rx="3" fill="#F5A623"/>
+<rect x="342" y="302" width="66" height="4" rx="2" fill="#14B8A6"/>
+<rect x="438" y="304" width="66" height="2" rx="1" fill="#0D9488"/>
+<text x="183" y="66" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">57.570</text>
+<text x="279" y="280" text-anchor="middle" font-size="12" font-weight="800" fill="#7C4A03">4.610</text>
+<text x="375" y="294" text-anchor="middle" font-size="12" font-weight="800" fill="#0F766E">880</text>
+<text x="471" y="296" text-anchor="middle" font-size="12" font-weight="800" fill="#0F766E">520</text>
+<text x="183" y="326" text-anchor="middle" font-size="11" font-weight="700" fill="#DC2626">không backoff</text>
+<text x="183" y="342" text-anchor="middle" font-size="10" fill="#BE123C">dial p99 = 1,01s</text>
+<text x="279" y="326" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">jitter 5s</text>
+<text x="279" y="342" text-anchor="middle" font-size="10" fill="#0F766E">↓ 12,5×</text>
+<text x="375" y="326" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">jitter 30s</text>
+<text x="375" y="342" text-anchor="middle" font-size="10" font-weight="800" fill="#0F766E">↓ 65×</text>
+<text x="471" y="326" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">jitter 60s</text>
+<text x="471" y="342" text-anchor="middle" font-size="10" fill="#0F766E">↓ 111×</text>
+<text x="86" y="190" text-anchor="middle" font-size="11" font-weight="700" fill="#57534E" transform="rotate(-90 86 190)">đỉnh conn/giây</text>
+<rect x="564" y="72" width="292" height="104" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2" filter="url(#jt-sh)"/>
+<text x="584" y="96" font-size="12" font-weight="800" fill="#9F1239">Backoff THUẦN không đủ</text>
+<text x="584" y="118" font-size="11" fill="#BE123C">1s, 2s, 4s... chỉ DỊCH cả đám sang</text>
+<text x="584" y="136" font-size="11" fill="#BE123C">sau — vẫn cùng lúc, chỉ muộn hơn.</text>
+<text x="584" y="160" font-size="11" font-weight="800" fill="#DC2626">Bắt buộc có rand() để RẢI ĐỀU.</text>
+<rect x="564" y="190" width="292" height="116" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2" filter="url(#jt-sh)"/>
+<text x="584" y="214" font-size="12" font-weight="800" fill="#134E4A">Điều phản trực giác</text>
+<text x="584" y="236" font-size="11" fill="#0F766E">Jitter không chỉ cứu server —</text>
+<text x="584" y="254" font-size="11" fill="#0F766E">nó làm CLIENT kết nối NHANH hơn.</text>
+<text x="584" y="278" font-size="11" font-weight="700" fill="#134E4A">dial p99: 1,01s → gần 0</text>
+<text x="584" y="296" font-size="10" fill="#0F766E">Vì không còn phải xếp hàng sau 20.000 người.</text>
+<text x="440" y="376" text-anchor="middle" font-size="12" font-weight="700" fill="#7C4A03">Phải jitter NGAY TỪ LẦN THỬ ĐẦU — chính lần đầu của 100.000 client mới là cái đỉnh giết server.</text>
+</svg>
+</div>
+<p>Quy đổi lên quy mô thật: 100.000 client không backoff sẽ tạo đỉnh khoảng <strong>288.000 conn/s</strong> đổ vào các node còn sống. Nếu mỗi reconnect cần 2 round-trip Redis, đó là <strong>576.000 Redis op/s</strong> chỉ cho việc reconnect — đủ để làm Redis thành bottleneck và khiến các node còn lại cũng chậm, rồi chết theo.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="st-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<filter id="st-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="460" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Cascading failure: 1 node chết → cả cụm chết theo</text>
+<rect x="30" y="52" width="152" height="76" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5" filter="url(#st-sh)"/>
+<rect x="214" y="52" width="152" height="76" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2" filter="url(#st-sh)"/>
+<rect x="398" y="52" width="152" height="76" rx="10" fill="#FFD9DE" stroke="#DC2626" stroke-width="2" filter="url(#st-sh)"/>
+<rect x="582" y="52" width="152" height="76" rx="10" fill="#FFD9DE" stroke="#DC2626" stroke-width="2" filter="url(#st-sh)"/>
+<rect x="766" y="52" width="104" height="76" rx="10" fill="#DC2626" filter="url(#st-sh)"/>
+<text x="106" y="76" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">① GW-3 chết</text>
+<text x="106" y="96" text-anchor="middle" font-size="10" fill="#BE123C">100k connection</text>
+<text x="106" y="112" text-anchor="middle" font-size="10" fill="#BE123C">mất cùng lúc</text>
+<text x="290" y="76" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">② Reconnect ngay</text>
+<text x="290" y="96" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">đỉnh ~288.000 conn/s</text>
+<text x="290" y="112" text-anchor="middle" font-size="10" fill="#BE123C">(quy đổi từ số đo)</text>
+<text x="474" y="76" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">③ Redis quá tải</text>
+<text x="474" y="96" text-anchor="middle" font-size="10" fill="#BE123C">576.000 op/s cho auth</text>
+<text x="474" y="112" text-anchor="middle" font-size="10" fill="#BE123C">+ nạp state</text>
+<text x="658" y="76" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">④ GW còn lại chậm</text>
+<text x="658" y="96" text-anchor="middle" font-size="10" fill="#BE123C">handshake p99 &gt; 1s</text>
+<text x="658" y="112" text-anchor="middle" font-size="10" fill="#BE123C">→ health check fail</text>
+<text x="818" y="80" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">⑤ SẬP</text>
+<text x="818" y="100" text-anchor="middle" font-size="10" fill="#FFD9DE">toàn bộ</text>
+<text x="818" y="114" text-anchor="middle" font-size="10" fill="#FFD9DE">1M CCU</text>
+<line x1="184" y1="90" x2="210" y2="90" stroke="#DC2626" stroke-width="2" marker-end="url(#st-arr)"/>
+<line x1="368" y1="90" x2="394" y2="90" stroke="#DC2626" stroke-width="2" marker-end="url(#st-arr)"/>
+<line x1="552" y1="90" x2="578" y2="90" stroke="#DC2626" stroke-width="2" marker-end="url(#st-arr)"/>
+<line x1="736" y1="90" x2="762" y2="90" stroke="#DC2626" stroke-width="2" marker-end="url(#st-arr)"/>
+<path d="M658,132 C600,160 380,160 290,134" stroke="#DC2626" stroke-width="2" stroke-dasharray="5 4" fill="none" marker-end="url(#st-arr)"/>
+<text x="474" y="158" text-anchor="middle" font-size="11" font-weight="800" fill="#DC2626">node chết thêm → càng nhiều client reconnect → vòng lặp tự khuếch đại</text>
+<text x="450" y="194" text-anchor="middle" font-size="14" font-weight="800" fill="#134E4A">Bốn lớp phòng vệ — phải có ĐỦ CẢ BỐN</text>
+<rect x="30" y="208" width="204" height="112" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2" filter="url(#st-sh)"/>
+<rect x="246" y="208" width="204" height="112" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2" filter="url(#st-sh)"/>
+<rect x="462" y="208" width="204" height="112" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2" filter="url(#st-sh)"/>
+<rect x="678" y="208" width="192" height="112" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2" filter="url(#st-sh)"/>
+<text x="132" y="230" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">① CLIENT</text>
+<text x="46" y="252" font-size="11" fill="#0F766E">Backoff + full jitter</text>
+<text x="46" y="270" font-size="11" fill="#0F766E">Đo được: đỉnh giảm</text>
+<text x="46" y="288" font-size="11" font-weight="800" fill="#134E4A">65× với jitter 30s</text>
+<text x="46" y="310" font-size="10" fill="#0F766E">Rẻ nhất, hiệu quả nhất</text>
+<text x="348" y="230" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">② ADMISSION</text>
+<text x="262" y="252" font-size="11" fill="#0F766E">Discovery API cấp</text>
+<text x="262" y="270" font-size="11" fill="#0F766E">token có TTL + queue</text>
+<text x="262" y="288" font-size="11" fill="#0F766E">Server quyết định</text>
+<text x="262" y="306" font-size="11" fill="#0F766E">AI được vào, KHI NÀO</text>
+<text x="564" y="230" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">③ CACHE</text>
+<text x="478" y="252" font-size="11" fill="#0F766E">Cache token verify</text>
+<text x="478" y="270" font-size="11" fill="#0F766E">trong RAM gateway</text>
+<text x="478" y="288" font-size="11" fill="#0F766E">+ singleflight khi</text>
+<text x="478" y="306" font-size="11" fill="#0F766E">nạp state (xem P02)</text>
+<text x="774" y="230" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">④ CAPACITY</text>
+<text x="694" y="252" font-size="11" fill="#0F766E">N+2 node, mỗi node</text>
+<text x="694" y="270" font-size="11" fill="#0F766E">chỉ dùng &lt; 60% tải</text>
+<text x="694" y="288" font-size="11" fill="#0F766E">1 node chết = 1/10</text>
+<text x="694" y="306" font-size="11" fill="#0F766E">connection, không 1/2</text>
+<rect x="30" y="334" width="840" height="112" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="50" y="358" font-size="13" font-weight="800" fill="#7C4A03">Hai sai lầm phổ biến khi chống reconnect storm</text>
+<text x="50" y="382" font-size="11" fill="#92400E"><tspan font-weight="700">1. Chỉ có backoff, không có jitter.</tspan> Backoff thuần (1s, 2s, 4s...) chỉ DỊCH cả đám sang sau — vẫn cùng lúc,</text>
+<text x="50" y="400" font-size="11" fill="#92400E">chỉ là muộn hơn. Phải có <tspan font-family="monospace" font-weight="700">rand()</tspan> để RẢI ĐỀU. Đây là lỗi tôi gặp nhiều nhất trong code thật.</text>
+<text x="50" y="424" font-size="11" fill="#92400E"><tspan font-weight="700">2. Chỉ dựa vào client.</tspan> Client cũ không update được, client bị hack, hoặc đơn giản là có bug —</text>
+<text x="50" y="440" font-size="11" fill="#92400E">bạn <tspan font-weight="700">không kiểm soát được client</tspan>. Server BẮT BUỘC phải có admission control của riêng nó.</text>
+</svg>
+</div>
+<h2 id="code-backoff--full-jitter-ở-client">Code: backoff + full jitter ở client<a hidden class="anchor" aria-hidden="true" href="#code-backoff--full-jitter-ở-client">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Full jitter — thuật toán AWS khuyến nghị. KHÔNG phải backoff thuần.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">reconnectWithJitter</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">dial</span> <span class="kd">func</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">Conn</span><span class="p">,</span> <span class="kt">error</span><span class="p">))</span> <span class="p">(</span><span class="o">*</span><span class="nx">websocket</span><span class="p">.</span><span class="nx">Conn</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="kd">const</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">base</span>    <span class="p">=</span> <span class="mi">500</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Millisecond</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">maxWait</span> <span class="p">=</span> <span class="mi">60</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">attempt</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="p">;</span> <span class="nx">attempt</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Lần đầu tiên cũng phải chờ — vì sự cố là ĐỒNG LOẠT,
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// mọi client đều ở attempt 0 cùng một thời điểm.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">window</span> <span class="o">:=</span> <span class="nx">base</span> <span class="o">&lt;&lt;</span> <span class="nb">min</span><span class="p">(</span><span class="nx">attempt</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>       <span class="c1">// 0.5s → 64s
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">if</span> <span class="nx">window</span> <span class="p">&gt;</span> <span class="nx">maxWait</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">window</span> <span class="p">=</span> <span class="nx">maxWait</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// FULL JITTER: ngủ ngẫu nhiên trong [0, window), không phải đúng window.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// Đây là điểm khác biệt giữa &#34;đỉnh 57.570/s&#34; và &#34;đỉnh 880/s&#34;.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">wait</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Duration</span><span class="p">(</span><span class="nx">rand</span><span class="p">.</span><span class="nf">Int63n</span><span class="p">(</span><span class="nb">int64</span><span class="p">(</span><span class="nx">window</span><span class="p">)))</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">select</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">case</span> <span class="o">&lt;-</span><span class="nx">ctx</span><span class="p">.</span><span class="nf">Done</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">ctx</span><span class="p">.</span><span class="nf">Err</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">case</span> <span class="o">&lt;-</span><span class="nx">time</span><span class="p">.</span><span class="nf">After</span><span class="p">(</span><span class="nx">wait</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nx">conn</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">dial</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nx">conn</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">attempt</span> <span class="o">&gt;=</span> <span class="mi">12</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Errorf</span><span class="p">(</span><span class="s">&#34;hết lượt thử: %w&#34;</span><span class="p">,</span> <span class="nx">err</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>⚠️ <strong>Chi tiết dễ sai nhất</strong>: phải jitter <strong>ngay từ lần thử đầu tiên</strong>. Rất nhiều implementation viết &ldquo;thử ngay, thất bại thì mới backoff&rdquo; — nhưng trong reconnect storm, <strong>chính lần thử đầu tiên của 100.000 client mới là cái đỉnh giết server</strong>. Lần thử đầu cũng phải được rải.</p>
+</blockquote>
+<h2 id="code-admission-control-ở-server">Code: admission control ở server<a hidden class="anchor" aria-hidden="true" href="#code-admission-control-ở-server">¶</a></h2>
+<p>Client không đáng tin — phải có cửa chặn phía server:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/presentation/gateway/admission.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// Token bucket toàn cục cho việc NHẬN connection mới.
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Tách riêng khỏi rate limit của request thường.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Admission</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">rdb</span>      <span class="o">*</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Client</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">perSec</span>   <span class="kt">int</span>                  <span class="c1">// số connection mới cho phép mỗi giây
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">logger</span>   <span class="o">*</span><span class="nx">zap</span><span class="p">.</span><span class="nx">Logger</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">var</span> <span class="nx">admitScript</span> <span class="p">=</span> <span class="nx">redis</span><span class="p">.</span><span class="nf">NewScript</span><span class="p">(</span><span class="s">`
+</span></span></span><span class="line"><span class="cl"><span class="s">  local t = redis.call(&#39;TIME&#39;)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local nowMs = tonumber(t[1])*1000 + math.floor(tonumber(t[2])/1000)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local d = redis.call(&#39;HMGET&#39;, KEYS[1], &#39;tokens&#39;,&#39;ts&#39;)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local tokens, ts = tonumber(d[1]), tonumber(d[2])
+</span></span></span><span class="line"><span class="cl"><span class="s">  local rate, burst = tonumber(ARGV[1]), tonumber(ARGV[2])
+</span></span></span><span class="line"><span class="cl"><span class="s">  if tokens == nil then tokens = burst; ts = nowMs end
+</span></span></span><span class="line"><span class="cl"><span class="s">  tokens = math.min(burst, tokens + math.max(0, nowMs-ts)/1000.0*rate)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local ok = 0
+</span></span></span><span class="line"><span class="cl"><span class="s">  if tokens &gt;= 1 then tokens = tokens - 1; ok = 1 end
+</span></span></span><span class="line"><span class="cl"><span class="s">  redis.call(&#39;HSET&#39;, KEYS[1], &#39;tokens&#39;, tokens, &#39;ts&#39;, nowMs)
+</span></span></span><span class="line"><span class="cl"><span class="s">  redis.call(&#39;PEXPIRE&#39;, KEYS[1], 60000)
+</span></span></span><span class="line"><span class="cl"><span class="s">  return ok
+</span></span></span><span class="line"><span class="cl"><span class="s">`</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Assign là HTTP endpoint client gọi TRƯỚC khi mở WebSocket.
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Nó là nơi duy nhất quyết định &#34;được vào hay phải chờ&#34;.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">a</span> <span class="o">*</span><span class="nx">Admission</span><span class="p">)</span> <span class="nf">Assign</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">userID</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetString</span><span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">ContextUserID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">ok</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">admitScript</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="nx">c</span><span class="p">,</span> <span class="nx">a</span><span class="p">.</span><span class="nx">rdb</span><span class="p">,</span> <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;gw:admit&#34;</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">a</span><span class="p">.</span><span class="nx">perSec</span><span class="p">,</span> <span class="nx">a</span><span class="p">.</span><span class="nx">perSec</span><span class="o">*</span><span class="mi">2</span><span class="p">).</span><span class="nf">Int64</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Redis chết → KHÔNG cho vào ồ ạt. Fail closed.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">503</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span><span class="s">&#34;retry_after_ms&#34;</span><span class="p">:</span> <span class="mi">2000</span> <span class="o">+</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">3000</span><span class="p">)})</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">ok</span> <span class="o">!=</span> <span class="mi">1</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Hết token: trả 503 + retry_after CÓ JITTER.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// Server tự rải client thay vì tin client sẽ tự rải.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">c</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="s">&#34;Retry-After&#34;</span><span class="p">,</span> <span class="s">&#34;1&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">503</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="s">&#34;reason&#34;</span><span class="p">:</span>         <span class="s">&#34;gateway_saturated&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="s">&#34;retry_after_ms&#34;</span><span class="p">:</span> <span class="mi">1000</span> <span class="o">+</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">5000</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">        <span class="p">})</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">gw</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">a</span><span class="p">.</span><span class="nf">pickLeastLoadedGateway</span><span class="p">(</span><span class="nx">c</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">503</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span><span class="s">&#34;retry_after_ms&#34;</span><span class="p">:</span> <span class="mi">2000</span> <span class="o">+</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">3000</span><span class="p">)})</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nf">JSON</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;gateway&#34;</span><span class="p">:</span> <span class="nx">gw</span><span class="p">.</span><span class="nx">Host</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;token&#34;</span><span class="p">:</span>   <span class="nx">a</span><span class="p">.</span><span class="nf">mintShortLivedToken</span><span class="p">(</span><span class="nx">userID</span><span class="p">,</span> <span class="nx">gw</span><span class="p">.</span><span class="nx">ID</span><span class="p">),</span>  <span class="c1">// TTL 30s
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="s">&#34;ttl_ms&#34;</span><span class="p">:</span>  <span class="mi">30000</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">})</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Ba điều đáng nói trong đoạn này:</p>
+<ol>
+<li><strong><code>retry_after_ms</code> có jitter do SERVER sinh ra.</strong> Không tin client tự rải — server chỉ định luôn thời điểm quay lại, và mỗi client nhận một số khác nhau.</li>
+<li><strong>Token bucket dùng <code>redis.call('TIME')</code>, không dùng thời gian của client.</strong> Tôi đo thật ở <a href="../../posts/scalable-p01-3-rps-deep-dive/">P01.3</a>: dùng client time làm rate limiter <strong>cho qua vượt 40%</strong> so với giới hạn.</li>
+<li><strong>Fail closed khi Redis lỗi.</strong> Admission control mà &ldquo;lỗi thì cho qua&rdquo; là không có admission control — đúng lúc cần nhất thì nó mở cửa.</li>
+</ol>
+<hr>
+<h1 id="kế-hoạch-dung-lượng">Kế hoạch dung lượng<a hidden class="anchor" aria-hidden="true" href="#kế-hoạch-dung-lượng">¶</a></h1>
+<p>Từ workload model và số đo, tính ra cấu hình:</p>
+<table>
+<thead>
+<tr>
+<th>Tài nguyên</th>
+<th>Phép tính</th>
+<th style="text-align:right">Kết quả</th>
+<th>Ràng buộc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RAM cho connection</td>
+<td>1M × 3.501 B</td>
+<td style="text-align:right"><strong>3,4 GB</strong></td>
+<td>Không phải vấn đề</td>
+</tr>
+<tr>
+<td>Bandwidth ra</td>
+<td>20M msg/s × 200 B</td>
+<td style="text-align:right"><strong>32 Gbps</strong></td>
+<td><strong>Ràng buộc chính</strong></td>
+</tr>
+<tr>
+<td>Số Gateway node</td>
+<td>32 Gbps ÷ 3,2 Gbps/node</td>
+<td style="text-align:right"><strong>10 node</strong></td>
+<td>NIC 25G dùng ~60%</td>
+</tr>
+<tr>
+<td>Connection mỗi GW</td>
+<td>1M ÷ 10</td>
+<td style="text-align:right">100.000</td>
+<td>Đã đo: khả thi</td>
+</tr>
+<tr>
+<td>CPU cho fan-out</td>
+<td>20M msg/s, ~54k msg/s/core (đo ở P01)</td>
+<td style="text-align:right">~370 core</td>
+<td><strong>Phải tối ưu payload</strong></td>
+</tr>
+<tr>
+<td>Room server</td>
+<td>20.000 room × 20 Hz</td>
+<td style="text-align:right">400k tick/s</td>
+<td>1 goroutine/room</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>📌 <strong>Con số 370 core khiến thiết kế phải đổi.</strong> Nó đến từ phép đo ở P01: một core xử lý ~54.000 msg/s. Với 20M msg/s thì cần ~370 core — tức khoảng 30 máy 12-core, chỉ để <strong>ghi message ra socket</strong>.</p>
+<p>Đây là lý do delta encoding và adaptive tick rate không phải &ldquo;tối ưu hoá sau&rdquo; mà là <strong>yêu cầu thiết kế</strong>: giảm 70% message là giảm từ 370 core xuống ~110 core, tức tiết kiệm ~20 máy.</p>
+</blockquote>
+<p><strong>Vì sao mỗi node chỉ dùng 60% năng lực</strong>: nếu 10 node đều chạy 100% và một node chết, 9 node còn lại phải gánh 111% — chúng sẽ chết tiếp. Ở mức 60%, một node chết đẩy phần còn lại lên 67% — vẫn sống. Đây là <strong>N+2 capacity planning</strong>, và nó là lớp phòng vệ thứ tư ở sơ đồ trên.</p>
+<hr>
+<h1 id="stress-test-và-monitoring">Stress test và monitoring<a hidden class="anchor" aria-hidden="true" href="#stress-test-và-monitoring">¶</a></h1>
+<h2 id="cách-tìm-breaking-point">Cách tìm breaking point<a hidden class="anchor" aria-hidden="true" href="#cách-tìm-breaking-point">¶</a></h2>
+<p>Load test cho hệ thống CCU <strong>khác hẳn</strong> hệ thống RPS: bạn cần giữ connection, không chỉ bắn request. Trình tự nên làm:</p>
+<ol>
+<li><strong>Đo chi phí một connection trước.</strong> Mở 10k/50k/100k connection <strong>idle</strong>, ghi RSS và CPU. Đây là baseline — và như số đo cho thấy, CPU phải <strong>gần 0</strong>. Nếu idle đã tốn CPU thì có bug (thường là timer hoặc poll loop sai).</li>
+<li><strong>Thêm tải dần ở connection count cố định.</strong> Giữ 100k connection, tăng msg/s từng bậc tới khi p99 vỡ ngưỡng. Đây là con số capacity thật của một node.</li>
+<li><strong>Test reconnect storm riêng.</strong> Đây là bước hay bị bỏ qua nhất. Kill một node khi đang ở tải đỉnh và đo: đỉnh conn/s, thời gian hồi phục, có cascading không.</li>
+<li><strong>Test slow consumer.</strong> Mở một connection rồi cố tình không đọc. Nếu broadcast của bạn chặn, bạn sẽ thấy ngay — như số đo trên, nó treo sau ~2,9 MB.</li>
+<li><strong>Soak test 24 giờ.</strong> Rò rỉ goroutine và rò rỉ connection chỉ hiện ra sau nhiều giờ. Theo dõi <code>go_goroutines</code> và RSS: <strong>tăng đều không giảm = rò rỉ</strong>.</li>
+</ol>
+<blockquote>
+<p>⚠️ Lưu ý về công cụ: khi test từ <strong>một máy</strong> bạn sẽ chạm trần <strong>ephemeral port (~28.000 connection cho mỗi source IP)</strong> trước khi chạm trần server. Tôi gặp đúng lỗi này — phải bind nhiều địa chỉ loopback (<code>127.0.0.2</code>–<code>127.0.0.9</code>) mới lên được 100k. Trên môi trường thật, dùng nhiều máy tạo tải.</p>
+</blockquote>
+<h2 id="metric-bắt-buộc-phải-có">Metric bắt buộc phải có<a hidden class="anchor" aria-hidden="true" href="#metric-bắt-buộc-phải-có">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Nhóm</th>
+<th>Metric</th>
+<th>Vì sao quan trọng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Connection</strong></td>
+<td><code>conn_active</code> theo node</td>
+<td>Lệch giữa các node = LB không cân</td>
+</tr>
+<tr>
+<td></td>
+<td><code>conn_opened/s</code>, <code>conn_closed/s</code></td>
+<td>Đỉnh = reconnect storm đang diễn ra</td>
+</tr>
+<tr>
+<td></td>
+<td><code>handshake_duration</code> p50/p99</td>
+<td>p99 tăng = Redis/auth đang là bottleneck</td>
+</tr>
+<tr>
+<td><strong>Fan-out</strong></td>
+<td><code>broadcast_duration</code> p99 theo room size</td>
+<td>So trực tiếp với ngân sách 50 ms</td>
+</tr>
+<tr>
+<td></td>
+<td><strong><code>out_queue_depth</code></strong> p99 theo conn</td>
+<td><strong>Tín hiệu sớm nhất</strong> của slow consumer</td>
+</tr>
+<tr>
+<td></td>
+<td><code>msg_dropped/s</code>, <code>conn_kicked/s</code></td>
+<td>Tăng vọt = mạng người dùng có vấn đề</td>
+</tr>
+<tr>
+<td><strong>Saturation</strong></td>
+<td><code>nic_tx_bytes/s</code> so với năng lực NIC</td>
+<td>Bandwidth là ràng buộc chính, không phải CPU</td>
+</tr>
+<tr>
+<td></td>
+<td><code>go_goroutines</code></td>
+<td>Rò rỉ goroutine</td>
+</tr>
+<tr>
+<td></td>
+<td>GC pause, <code>heap_inuse</code></td>
+<td>Xem <a href="../../posts/go-interview-p2/">Go Interview P2</a></td>
+</tr>
+<tr>
+<td><strong>Hot path</strong></td>
+<td><code>tick_duration</code> p99 theo room</td>
+<td>Tick vượt 50 ms = game bị lag</td>
+</tr>
+<tr>
+<td></td>
+<td><code>tick_skipped/s</code></td>
+<td>Room server không theo kịp nhịp</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Metric quan trọng nhất và hay bị thiếu nhất: <code>out_queue_depth</code>.</strong> Nó là độ sâu buffer gửi của mỗi connection. Khi nó tăng, bạn còn <strong>vài giây</strong> trước khi bắt đầu drop. Nó cảnh báo sớm hơn mọi metric khác — sớm hơn cả latency, vì latency chỉ tăng <em>sau khi</em> buffer đã đầy.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Export histogram cho queue depth — lấy mẫu định kỳ, không phải mỗi lần gửi
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">h</span> <span class="o">*</span><span class="nx">Hub</span><span class="p">)</span> <span class="nf">sampleQueueDepth</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">t</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">NewTicker</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nx">t</span><span class="p">.</span><span class="nf">Stop</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="k">range</span> <span class="nx">t</span><span class="p">.</span><span class="nx">C</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">h</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">RLock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">c</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">h</span><span class="p">.</span><span class="nx">conns</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">metrics</span><span class="p">.</span><span class="nx">OutQueueDepth</span><span class="p">.</span><span class="nf">Observe</span><span class="p">(</span><span class="nb">float64</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">out</span><span class="p">)))</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">h</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">RUnlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="checklist-vận-hành">Checklist vận hành<a hidden class="anchor" aria-hidden="true" href="#checklist-vận-hành">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">TRƯỚC KHI LÊN PRODUCTION
+</span></span><span class="line"><span class="cl">□ Đã đo chi phí RAM/CPU của connection idle chưa? (phải gần 0% CPU)
+</span></span><span class="line"><span class="cl">□ Broadcast có dùng select+default (non-blocking) không?
+</span></span><span class="line"><span class="cl">□ Mỗi connection có ĐÚNG 1 goroutine ghi không?
+</span></span><span class="line"><span class="cl">□ Có cơ chế kick slow consumer sau N lần drop không?
+</span></span><span class="line"><span class="cl">□ Client có backoff + FULL JITTER ngay từ lần thử ĐẦU TIÊN không?
+</span></span><span class="line"><span class="cl">□ Server có admission control độc lập với client không? Fail closed chưa?
+</span></span><span class="line"><span class="cl">□ retry_after do SERVER sinh và có jitter chưa?
+</span></span><span class="line"><span class="cl">□ Capacity N+2 chưa? Mỗi node dùng dưới 60%?
+</span></span><span class="line"><span class="cl">□ Đã test kill 1 node ở tải đỉnh chưa? Có cascading không?
+</span></span><span class="line"><span class="cl">□ Hot path có còn DB/Redis call nào không? (phải không có)
+</span></span><span class="line"><span class="cl">□ Snapshot state là async hay đang nằm trong tick loop?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">MONITORING
+</span></span><span class="line"><span class="cl">□ out_queue_depth p99 (tín hiệu sớm nhất)
+</span></span><span class="line"><span class="cl">□ conn_opened/s (phát hiện reconnect storm)
+</span></span><span class="line"><span class="cl">□ broadcast_duration p99 so với ngân sách latency
+</span></span><span class="line"><span class="cl">□ nic_tx_bytes/s so với năng lực NIC
+</span></span><span class="line"><span class="cl">□ go_goroutines (rò rỉ)
+</span></span><span class="line"><span class="cl">□ Alert khi conn_active lệch &gt; 20% giữa các node
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Câu hỏi</th>
+<th>Trả lời</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kiến trúc cốt lõi?</td>
+<td><strong>Tách Gateway (connection) khỏi Room Server (state)</strong> — hai chiều scale khác nhau</td>
+</tr>
+<tr>
+<td>Hot path gồm gì?</td>
+<td>Chỉ RAM cục bộ. <strong>Không DB, không Redis, không cross-region</strong></td>
+</tr>
+<tr>
+<td>Ràng buộc thật là gì?</td>
+<td><strong>Bandwidth 32 Gbps</strong>, không phải CPU hay RAM (RAM chỉ 3,4 GB)</td>
+</tr>
+<tr>
+<td>Vì sao room chỉ 50 player?</td>
+<td>Đo thật: fan-out 50k subscriber mất <strong>107 ms</strong> — vượt gấp đôi ngân sách 50 ms</td>
+</tr>
+<tr>
+<td>Lỗi broadcast nguy hiểm nhất?</td>
+<td><strong>Blocking send.</strong> Đo thật: 1 client không đọc <strong>treo broadcast tới 4.999 client</strong> sau 2,9 MB</td>
+</tr>
+<tr>
+<td>Cách sửa?</td>
+<td><code>select</code> + <code>default</code> → drop của riêng client đó, rồi kick sau N lần</td>
+</tr>
+<tr>
+<td>Failure mode tệ nhất?</td>
+<td><strong>Reconnect storm.</strong> 100k client reconnect = đỉnh ~288.000 conn/s → cascading</td>
+</tr>
+<tr>
+<td>Backoff thuần đủ chưa?</td>
+<td><strong>Không.</strong> Phải có <strong>full jitter</strong>. Đo thật: jitter 30s giảm đỉnh <strong>65×</strong></td>
+</tr>
+<tr>
+<td>Chỉ dựa vào client được không?</td>
+<td><strong>Không.</strong> Client không update được, có bug, bị hack — server phải có admission control riêng</td>
+</tr>
+<tr>
+<td>Metric cảnh báo sớm nhất?</td>
+<td><strong><code>out_queue_depth</code></strong> — tăng trước cả latency</td>
+</tr>
+</tbody>
+</table>
+<p>Bài tiếp theo: <a href="../../posts/scalable-p01-3-rps-deep-dive/"><strong>P01.3 — Thiết kế hệ thống 1M RPS</strong></a>, với flash sale và burst 50× trong 10 giây.</p>
+<p>Và nếu bạn muốn so sánh <strong>cùng 1M CCU nhưng cho chat thay vì gaming</strong> — nơi fan-out không chặn trên và hot path bắt buộc có ghi bền: <a href="../../posts/scalable-p01-4-chat-deep-dive/"><strong>P01.4 — Chat/Notification 1M CCU</strong></a>.</p>
+<hr>
+<h1 id="tham-khảo">Tham khảo<a hidden class="anchor" aria-hidden="true" href="#tham-khảo">¶</a></h1>
+<ul>
+<li><a href="https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/">AWS — Exponential Backoff and Jitter</a> — nguồn của thuật toán full jitter</li>
+<li><a href="https://sre.google/sre-book/addressing-cascading-failures/">Google SRE — Addressing Cascading Failures</a> · <a href="https://sre.google/sre-book/handling-overload/">Handling Overload</a></li>
+<li><a href="https://pkg.go.dev/github.com/gorilla/websocket#hdr-Concurrency">gorilla/websocket — Concurrency</a> — quy tắc 1 goroutine ghi</li>
+<li><a href="https://gafferongames.com/categories/game-networking/">Gaffer On Games — Networking for Game Programmers</a> — vì sao game action dùng UDP</li>
+<li>Group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a> — nguồn nội dung gốc</li>
+<li>Series: <a href="../../posts/scalable-p01-ccu-vs-rps/">P01 — CCU không phải RPS</a> · <a href="../../posts/system-design-p02-cache-stampede/">P02 — Cache Stampede</a> · <a href="../../posts/system-design-p03-pubsub-vs-streams/">P03 — Pub/Sub vs Streams</a> · <a href="../../posts/system-design-p04-streams-vs-kafka/">P04 — Streams vs Kafka</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>

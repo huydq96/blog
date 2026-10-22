@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Scalable System Design P01.5: Thiết Kế Hệ Thống 1M RPS - Public API | Huy Dang Blog</title>
+<meta name="keywords" content="system-design, scalability, api, golang, redis">
+<meta name="description" content="Ở 1M RPS, gọi Redis mỗi request là bất khả thi — cần 19,8 instance chỉ cho rate limit. Đo thật two-tier limiter nhanh hơn 57×, noisy neighbor, và chi phí auth.">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/scalable-p01-5-api-deep-dive/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/scalable-p01-5-api-deep-dive/">
+
+<meta name="twitter:title" content="Scalable System Design P01.5: Thiết Kế Hệ Thống 1M RPS - Public API | Huy Dang Blog" />
+<meta name="twitter:description" content="Ở 1M RPS, gọi Redis mỗi request là bất khả thi — cần 19,8 instance chỉ cho rate limit. Đo thật two-tier limiter nhanh hơn 57×, noisy neighbor, và chi phí auth." />
+<meta property="og:title" content="Scalable System Design P01.5: Thiết Kế Hệ Thống 1M RPS - Public API | Huy Dang Blog" />
+<meta property="og:description" content="Ở 1M RPS, gọi Redis mỗi request là bất khả thi — cần 19,8 instance chỉ cho rate limit. Đo thật two-tier limiter nhanh hơn 57×, noisy neighbor, và chi phí auth." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/scalable-p01-5-api-deep-dive/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-10-22T02:30:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-10-22T02:30:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Scalable System Design P01.5: Thiết Kế Hệ Thống 1M RPS - Public API",
+      "item": "https://blog.huydang.dev/posts/scalable-p01-5-api-deep-dive/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Scalable System Design P01.5: Thiết Kế Hệ Thống 1M RPS - Public API | Huy Dang Blog",
+  "name": "Scalable System Design P01.5: Thiết Kế Hệ Thống 1M RPS - Public API",
+  "description": "Ở 1M RPS, gọi Redis mỗi request là bất khả thi — cần 19,8 instance chỉ cho rate limit. Đo thật two-tier limiter nhanh hơn 57×, noisy neighbor, và chi phí auth.",
+  "keywords": [
+    "system-design", "scalability", "api", "golang", "redis"
+  ],
+  "wordCount" : "4902",
+  "inLanguage": "en",
+  "datePublished": "2026-10-22T02:30:00+07:00",
+  "dateModified": "2026-10-22T02:30:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/scalable-p01-5-api-deep-dive/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">Scalable System Design P01.5: Thiết Kế Hệ Thống 1M RPS - Public API</h1>
+    <div class="post-description">Ở 1M RPS, gọi Redis mỗi request là bất khả thi — cần 19,8 instance chỉ cho rate limit. Đo thật two-tier limiter nhanh hơn 57×, noisy neighbor, và chi phí auth.</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>October 22, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/system-design/">System Design</a><a href="https://blog.huydang.dev/tags/scalability/">Scalability</a><a href="https://blog.huydang.dev/tags/api/">Api</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/redis/">Redis</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>24 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#m%e1%bb%9f-%c4%91%e1%ba%a7u" aria-label="Mở đầu">Mở đầu</a><ul>
+                        
+                <li>
+                    <a href="#workload-model" aria-label="Workload model">Workload model</a></li></ul>
+                </li>
+                <li>
+                    <a href="#b%e1%bb%a9c-t%c6%b0%e1%bb%9dng-redis" aria-label="Bức tường Redis">Bức tường Redis</a><ul>
+                        
+                <li>
+                    <a href="#l%e1%bb%9di-gi%e1%ba%a3i-two-tier-limiter" aria-label="Lời giải: two-tier limiter">Lời giải: two-tier limiter</a></li>
+                <li>
+                    <a href="#c%c3%a1i-b%e1%ba%aby-c%e1%bb%a7a-two-tier-deny-oan" aria-label="Cái bẫy của two-tier: deny oan">Cái bẫy của two-tier: deny oan</a><ul>
+                        
+                <li>
+                    <a href="#%c4%91%c3%a1nh-%c4%91%e1%bb%95i-ph%e1%ba%a3i-ch%e1%ba%a5p-nh%e1%ba%adn" aria-label="Đánh đổi phải chấp nhận">Đánh đổi phải chấp nhận</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#hot-path-2--noisy-neighbor" aria-label="Hot path #2 — Noisy neighbor">Hot path #2 — Noisy neighbor</a><ul>
+                        
+                <li>
+                    <a href="#code-inflight-cap-theo-tenant" aria-label="Code: inflight cap theo tenant">Code: inflight cap theo tenant</a></li>
+                <li>
+                    <a href="#cost-based-limiting" aria-label="Cost-based limiting">Cost-based limiting</a></li></ul>
+                </li>
+                <li>
+                    <a href="#hot-path-3--chi-ph%c3%ad-x%c3%a1c-th%e1%bb%b1c" aria-label="Hot path #3 — Chi phí xác thực">Hot path #3 — Chi phí xác thực</a><ul>
+                        
+                <li>
+                    <a href="#thi%e1%ba%bft-k%e1%ba%bf-auth-%c4%91%c3%bang-cho-1m-rps" aria-label="Thiết kế auth đúng cho 1M RPS">Thiết kế auth đúng cho 1M RPS</a><ul>
+                        
+                <li>
+                    <a href="#c%c3%a1i-gi%c3%a1-c%e1%bb%a7a-cache-c%e1%bb%a5c-b%e1%bb%99-%c4%91%e1%bb%99-tr%e1%bb%85-thu-h%e1%bb%93i" aria-label="Cái giá của cache cục bộ: độ trễ thu hồi">Cái giá của cache cục bộ: độ trễ thu hồi</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#ki%e1%ba%bfn-tr%c3%bac-t%e1%bb%95ng-th%e1%bb%83" aria-label="Kiến trúc tổng thể">Kiến trúc tổng thể</a><ul>
+                        
+                <li>
+                    <a href="#usage-accounting-%c4%91%e1%ba%bfm-%c4%91%e1%bb%83-t%c3%adnh-ti%e1%bb%81n" aria-label="Usage accounting: đếm để tính tiền">Usage accounting: đếm để tính tiền</a></li></ul>
+                </li>
+                <li>
+                    <a href="#failure-mode-t%e1%bb%87-nh%e1%ba%a5t" aria-label="Failure mode tệ nhất">Failure mode tệ nhất</a></li>
+                <li>
+                    <a href="#stress-test-v%c3%a0-monitoring" aria-label="Stress test và monitoring">Stress test và monitoring</a><ul>
+                        
+                <li>
+                    <a href="#c%c3%a1ch-test" aria-label="Cách test">Cách test</a></li>
+                <li>
+                    <a href="#metric-b%e1%ba%aft-bu%e1%bb%99c" aria-label="Metric bắt buộc">Metric bắt buộc</a></li>
+                <li>
+                    <a href="#checklist" aria-label="Checklist">Checklist</a></li></ul>
+                </li>
+                <li>
+                    <a href="#t%c3%b3m-t%e1%ba%aft" aria-label="Tóm tắt">Tóm tắt</a></li>
+                <li>
+                    <a href="#tham-kh%e1%ba%a3o" aria-label="Tham khảo">Tham khảo</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><blockquote>
+<p><em>Bài viết thuộc series <strong>Scalable System Design</strong>, nội dung tham khảo từ các bài viết trong group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a>. Phần diễn giải, kiến trúc, code và <strong>toàn bộ số liệu benchmark</strong> là tôi tự bổ sung, đo thật trên máy local (Go 1.24, Redis 7.4.2).</em></p>
+</blockquote>
+<h1 id="mở-đầu">Mở đầu<a hidden class="anchor" aria-hidden="true" href="#mở-đầu">¶</a></h1>
+<p><a href="../../posts/scalable-p01-3-rps-deep-dive/">P01.3</a> đào sâu hệ thống RPS-heavy dạng <strong>burst</strong> (flash sale 500.000 RPS trong 10 giây). Bài này là đầu còn lại: <strong>1.000.000 RPS bền, liên tục, đa tenant</strong> — một public API.</p>
+<p>Khác biệt làm đổi hẳn kiến trúc:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Flash sale (P01.3)</th>
+<th><strong>Public API (bài này)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hình dạng tải</td>
+<td>Burst 50× trong 10 giây</td>
+<td><strong>Bền, liên tục 24/7</strong></td>
+</tr>
+<tr>
+<td>Tenant</td>
+<td>1 (shop của bạn)</td>
+<td><strong>Hàng nghìn đến hàng triệu</strong></td>
+</tr>
+<tr>
+<td>Hot resource</td>
+<td><strong>Tồn kho</strong> (1 dòng)</td>
+<td><strong>Không có</strong> — nút thắt là chính limiter</td>
+</tr>
+<tr>
+<td>Lỗi tệ nhất</td>
+<td>Oversell</td>
+<td><strong>Noisy neighbor</strong> — 1 tenant giết trải nghiệm của tenant khác</td>
+</tr>
+<tr>
+<td>Giới hạn</td>
+<td>Một con số toàn cục</td>
+<td><strong>Theo tenant, theo tier, theo endpoint</strong></td>
+</tr>
+<tr>
+<td>Thứ phải bảo toàn</td>
+<td>Không bán âm tồn kho</td>
+<td><strong>Công bằng giữa các tenant</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Và một con số quyết định mọi thứ: <strong>ở 1M RPS, bạn không thể gọi Redis mỗi request.</strong> Phần lớn bài này là hệ quả của câu đó.</p>
+<h2 id="workload-model">Workload model<a hidden class="anchor" aria-hidden="true" href="#workload-model">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Chỉ số</th>
+<th style="text-align:right">Giá trị</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RPS bền</td>
+<td style="text-align:right"><strong>1.000.000</strong></td>
+</tr>
+<tr>
+<td>Số tenant</td>
+<td style="text-align:right">10.000</td>
+</tr>
+<tr>
+<td>Tenant lớn nhất</td>
+<td style="text-align:right">30% tổng traffic</td>
+</tr>
+<tr>
+<td>Tier</td>
+<td style="text-align:right">free (100 rps) · pro (5.000 rps) · enterprise (100.000 rps)</td>
+</tr>
+<tr>
+<td>Mục tiêu p99</td>
+<td style="text-align:right">&lt; 50 ms</td>
+</tr>
+<tr>
+<td>Mỗi request cần</td>
+<td style="text-align:right">verify API key + check quota + đếm usage</td>
+</tr>
+</tbody>
+</table>
+<p>Để ý dòng cuối: <strong>mỗi request phải làm 3 việc trước khi vào nghiệp vụ.</strong> Ở 1M RPS, đó là 3 triệu phép tra cứu mỗi giây — và chúng phải gần như miễn phí.</p>
+<hr>
+<h1 id="bức-tường-redis">Bức tường Redis<a hidden class="anchor" aria-hidden="true" href="#bức-tường-redis">¶</a></h1>
+<p>Đây là phát hiện quan trọng nhất của bài. Tôi đo token bucket phân tán trên Redis, 200.000 request, 120 worker:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:right">check/s</th>
+<th style="text-align:right">p99</th>
+<th style="text-align:right">Số lời gọi Redis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Redis mỗi request</strong></td>
+<td style="text-align:right"><strong>50.574</strong></td>
+<td style="text-align:right">5,12 ms</td>
+<td style="text-align:right">200.000</td>
+</tr>
+</tbody>
+</table>
+<p><strong>50.574 check/s.</strong> Để đạt 1.000.000 RPS, bạn cần:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">1.000.000 ÷ 50.574 ≈ 19,8 instance Redis
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Gần 20 instance Redis chỉ để làm rate limit</strong> — chưa tính cache, session, hay bất cứ việc gì khác. Và p99 <strong>5,12 ms</strong> đã chiếm 10% ngân sách 50 ms, chỉ cho một phép kiểm tra.</p>
+<p>Đây không phải vấn đề tối ưu Redis. Đây là ràng buộc kiến trúc: <strong>một round-trip mạng cho mỗi request không scale tới hàng triệu RPS.</strong></p>
+<h2 id="lời-giải-two-tier-limiter">Lời giải: two-tier limiter<a hidden class="anchor" aria-hidden="true" href="#lời-giải-two-tier-limiter">¶</a></h2>
+<p>Thay vì xin <strong>từng token</strong> từ Redis, mỗi instance xin <strong>một lô</strong> rồi tự phát cục bộ:</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="tt-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<marker id="tt-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="tt-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="480" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Hai tầng: xin một LÔ token, rồi tự phát cục bộ</text>
+<rect x="24" y="42" width="420" height="192" rx="12" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#tt-sh)"/>
+<text x="234" y="66" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">❌ Redis MỖI request</text>
+<rect x="46" y="80" width="78" height="112" rx="7" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.8"/>
+<text x="85" y="100" text-anchor="middle" font-size="10" font-weight="700" fill="#9F1239">API node</text>
+<rect x="56" y="110" width="58" height="16" rx="3" fill="#FFE9EC"/>
+<rect x="56" y="132" width="58" height="16" rx="3" fill="#FFE9EC"/>
+<rect x="56" y="154" width="58" height="16" rx="3" fill="#FFE9EC"/>
+<text x="85" y="122" text-anchor="middle" font-size="8" fill="#BE123C">req 1</text>
+<text x="85" y="144" text-anchor="middle" font-size="8" fill="#BE123C">req 2</text>
+<text x="85" y="166" text-anchor="middle" font-size="8" fill="#BE123C">req N</text>
+<text x="85" y="186" text-anchor="middle" font-size="8" fill="#A8A29E">...</text>
+<rect x="300" y="100" width="124" height="72" rx="8" fill="#DC2626"/>
+<text x="362" y="128" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">REDIS</text>
+<text x="362" y="148" text-anchor="middle" font-size="10" fill="#FFD9DE">1 round-trip</text>
+<text x="362" y="163" text-anchor="middle" font-size="10" fill="#FFD9DE">MỖI request</text>
+<line x1="128" y1="118" x2="296" y2="118" stroke="#DC2626" stroke-width="1.6" marker-end="url(#tt-a)"/>
+<line x1="128" y1="140" x2="296" y2="136" stroke="#DC2626" stroke-width="1.6" marker-end="url(#tt-a)"/>
+<line x1="128" y1="162" x2="296" y2="154" stroke="#DC2626" stroke-width="1.6" marker-end="url(#tt-a)"/>
+<rect x="46" y="200" width="378" height="26" rx="6" fill="#FFD9DE"/>
+<text x="235" y="218" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">50.574 check/s · p99 5,12 ms · cần 19,8 Redis cho 1M RPS</text>
+<rect x="456" y="42" width="420" height="192" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#tt-sh)"/>
+<text x="666" y="66" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">✅ Two-tier — xin một LÔ</text>
+<rect x="478" y="80" width="120" height="112" rx="7" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<text x="538" y="98" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">API node</text>
+<rect x="488" y="106" width="100" height="34" rx="5" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.4"/>
+<text x="538" y="120" text-anchor="middle" font-size="9" font-weight="800" fill="#134E4A">bucket CỤC BỘ</text>
+<text x="538" y="133" text-anchor="middle" font-size="9" fill="#0F766E">10.000 token</text>
+<rect x="488" y="148" width="30" height="14" rx="3" fill="#E6FBF9"/>
+<rect x="523" y="148" width="30" height="14" rx="3" fill="#E6FBF9"/>
+<rect x="558" y="148" width="30" height="14" rx="3" fill="#E6FBF9"/>
+<text x="538" y="178" text-anchor="middle" font-size="9" fill="#0F766E">phát trong RAM, 0 mạng</text>
+<rect x="736" y="100" width="124" height="72" rx="8" fill="#0D9488"/>
+<text x="798" y="124" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">REDIS</text>
+<text x="798" y="144" text-anchor="middle" font-size="10" fill="#CCFBF1">1 round-trip</text>
+<text x="798" y="159" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">cho CẢ LÔ</text>
+<line x1="602" y1="130" x2="732" y2="130" stroke="#0D9488" stroke-width="2.5" marker-end="url(#tt-t)"/>
+<text x="667" y="122" text-anchor="middle" font-size="9" font-weight="700" fill="#0F766E">xin 10.000</text>
+<rect x="478" y="200" width="382" height="26" rx="6" fill="#CCFBF1"/>
+<text x="669" y="218" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">2.893.314 check/s · p99 338 µs · chỉ 20 lời gọi Redis</text>
+<text x="450" y="266" text-anchor="middle" font-size="14" font-weight="800" fill="#374151">Đánh đổi: kích thước lô quyết định độ CHÍNH XÁC</text>
+<rect x="30" y="282" width="840" height="124" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="48" y="304" font-size="11" font-weight="800" fill="#374151">Cấu hình</text>
+<text x="290" y="304" font-size="11" font-weight="800" fill="#374151">check/s</text>
+<text x="400" y="304" font-size="11" font-weight="800" fill="#374151">p99</text>
+<text x="490" y="304" font-size="11" font-weight="800" fill="#374151">lời gọi Redis</text>
+<text x="640" y="304" font-size="11" font-weight="800" fill="#374151">cho qua</text>
+<line x1="48" y1="310" x2="852" y2="310" stroke="#E7E5E4" stroke-width="1.5"/>
+<text x="48" y="328" font-size="10" font-family="monospace" fill="#9F1239">lô 100 · deny ngay</text>
+<text x="290" y="328" font-size="10" font-family="monospace" fill="#57534E">3.551.081</text>
+<text x="400" y="328" font-size="10" font-family="monospace" fill="#57534E">127 µs</text>
+<text x="490" y="328" font-size="10" font-family="monospace" fill="#57534E">316</text>
+<text x="640" y="328" font-size="10" font-family="monospace" font-weight="700" fill="#DC2626">15,8% ❌ deny oan</text>
+<text x="48" y="348" font-size="10" font-family="monospace" fill="#9F1239">lô 1.000 · deny ngay</text>
+<text x="290" y="348" font-size="10" font-family="monospace" fill="#57534E">3.573.661</text>
+<text x="400" y="348" font-size="10" font-family="monospace" fill="#57534E">4 µs</text>
+<text x="490" y="348" font-size="10" font-family="monospace" fill="#57534E">115</text>
+<text x="640" y="348" font-size="10" font-family="monospace" font-weight="700" fill="#DC2626">57,0% ❌</text>
+<text x="48" y="368" font-size="10" font-family="monospace" fill="#7C4A03">lô 10.000 · deny ngay</text>
+<text x="290" y="368" font-size="10" font-family="monospace" fill="#57534E">3.257.018</text>
+<text x="400" y="368" font-size="10" font-family="monospace" fill="#57534E">159 µs</text>
+<text x="490" y="368" font-size="10" font-family="monospace" fill="#57534E">19</text>
+<text x="640" y="368" font-size="10" font-family="monospace" fill="#7C4A03">90,0%</text>
+<text x="48" y="390" font-size="10" font-family="monospace" font-weight="700" fill="#134E4A">lô 10.000 · CHỜ sync</text>
+<text x="290" y="390" font-size="10" font-family="monospace" font-weight="700" fill="#134E4A">2.893.314</text>
+<text x="400" y="390" font-size="10" font-family="monospace" font-weight="700" fill="#134E4A">338 µs</text>
+<text x="490" y="390" font-size="10" font-family="monospace" font-weight="700" fill="#134E4A">20</text>
+<text x="640" y="390" font-size="10" font-family="monospace" font-weight="800" fill="#0F766E">100% ✅ ĐÚNG</text>
+<rect x="30" y="418" width="840" height="54" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="48" y="440" font-size="11" fill="#92400E">Lô nhỏ + deny ngay = nhanh nhưng <tspan font-weight="700">từ chối oan tới 84%</tspan> traffic hợp lệ (bucket cục bộ cạn giữa 2 lần sync).</text>
+<text x="48" y="460" font-size="11" font-weight="800" fill="#7C4A03">Cấu hình đúng: lô LỚN + CHỜ lô đang xin → vẫn nhanh hơn Redis-mỗi-request 57×, và cho qua 100%.</text>
+</svg>
+</div>
+<p><strong>Cấu hình đúng (lô 10.000 + chờ sync) so với Redis mỗi request:</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:right">Redis mỗi request</th>
+<th style="text-align:right"><strong>Two-tier</strong></th>
+<th style="text-align:right">Cải thiện</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>check/s</td>
+<td style="text-align:right">50.574</td>
+<td style="text-align:right"><strong>2.893.314</strong></td>
+<td style="text-align:right"><strong>57×</strong></td>
+</tr>
+<tr>
+<td>p99</td>
+<td style="text-align:right">5,12 ms</td>
+<td style="text-align:right"><strong>338 µs</strong></td>
+<td style="text-align:right"><strong>15×</strong></td>
+</tr>
+<tr>
+<td>Lời gọi Redis</td>
+<td style="text-align:right">200.000</td>
+<td style="text-align:right"><strong>20</strong></td>
+<td style="text-align:right"><strong>10.000×</strong></td>
+</tr>
+<tr>
+<td>Cho qua đúng</td>
+<td style="text-align:right">100%</td>
+<td style="text-align:right"><strong>100%</strong></td>
+<td style="text-align:right">—</td>
+</tr>
+</tbody>
+</table>
+<p>Và quan trọng nhất: <strong>2.893.314 check/s nghĩa là một instance đủ cho 1M RPS</strong>, thay vì cần 19,8 instance Redis.</p>
+<h2 id="cái-bẫy-của-two-tier-deny-oan">Cái bẫy của two-tier: deny oan<a hidden class="anchor" aria-hidden="true" href="#cái-bẫy-của-two-tier-deny-oan">¶</a></h2>
+<p>Để ý cột &ldquo;cho qua&rdquo; trong sơ đồ. Với lô nhỏ và chính sách &ldquo;hết token cục bộ thì từ chối ngay&rdquo;, hệ thống <strong>từ chối tới 84% traffic hợp lệ</strong> (lô 100 → cho qua 15,8%).</p>
+<p>Nguyên nhân: bucket cục bộ cạn giữa hai lần sync, và trong lúc một goroutine đang đi xin lô mới thì <strong>mọi goroutine khác bị từ chối</strong> thay vì chờ. Đây là lỗi thiết kế, không phải đặc tính của two-tier.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
+</span><span class="lnt">66
+</span><span class="lnt">67
+</span><span class="lnt">68
+</span><span class="lnt">69
+</span><span class="lnt">70
+</span><span class="lnt">71
+</span><span class="lnt">72
+</span><span class="lnt">73
+</span><span class="lnt">74
+</span><span class="lnt">75
+</span><span class="lnt">76
+</span><span class="lnt">77
+</span><span class="lnt">78
+</span><span class="lnt">79
+</span><span class="lnt">80
+</span><span class="lnt">81
+</span><span class="lnt">82
+</span><span class="lnt">83
+</span><span class="lnt">84
+</span><span class="lnt">85
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/infrastructure/ratelimit/twotier.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// Lua: lấy TỚI N token trong MỘT lời gọi. Đây là mấu chốt —
+</span></span></span><span class="line"><span class="cl"><span class="c1">// gọi N lần để lấy N token thì mất hết ý nghĩa của two-tier.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">takeBatch</span> <span class="p">=</span> <span class="nx">redis</span><span class="p">.</span><span class="nf">NewScript</span><span class="p">(</span><span class="s">`
+</span></span></span><span class="line"><span class="cl"><span class="s">  local t = redis.call(&#39;TIME&#39;)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local now = tonumber(t[1])*1000 + math.floor(tonumber(t[2])/1000)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local d = redis.call(&#39;HMGET&#39;, KEYS[1], &#39;tk&#39;, &#39;ts&#39;)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local tk, ts = tonumber(d[1]), tonumber(d[2])
+</span></span></span><span class="line"><span class="cl"><span class="s">  local rate, burst, want = tonumber(ARGV[1]), tonumber(ARGV[2]), tonumber(ARGV[3])
+</span></span></span><span class="line"><span class="cl"><span class="s">  if tk == nil then tk = burst; ts = now end
+</span></span></span><span class="line"><span class="cl"><span class="s">  tk = math.min(burst, tk + math.max(0, now - ts)/1000.0 * rate)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local give = math.floor(math.min(tk, want))
+</span></span></span><span class="line"><span class="cl"><span class="s">  tk = tk - give
+</span></span></span><span class="line"><span class="cl"><span class="s">  redis.call(&#39;HSET&#39;, KEYS[1], &#39;tk&#39;, tk, &#39;ts&#39;, now)
+</span></span></span><span class="line"><span class="cl"><span class="s">  redis.call(&#39;PEXPIRE&#39;, KEYS[1], 120000)
+</span></span></span><span class="line"><span class="cl"><span class="s">  return give
+</span></span></span><span class="line"><span class="cl"><span class="s">`</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">bucket</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">mu</span>      <span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">tokens</span>  <span class="kt">int64</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">syncing</span> <span class="kt">bool</span>      <span class="c1">// đang có goroutine đi xin lô
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">TwoTier</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">rdb</span>     <span class="o">*</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Client</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">buckets</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">Map</span>    <span class="c1">// tenant -&gt; *bucket
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">batch</span>   <span class="kt">int64</span>       <span class="c1">// kích thước lô — ĐẶT LỚN
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">logger</span>  <span class="o">*</span><span class="nx">zap</span><span class="p">.</span><span class="nx">Logger</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">TwoTier</span><span class="p">)</span> <span class="nf">Allow</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">tenant</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">rate</span><span class="p">,</span> <span class="nx">burst</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">v</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">buckets</span><span class="p">.</span><span class="nf">LoadOrStore</span><span class="p">(</span><span class="nx">tenant</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">bucket</span><span class="p">{})</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span> <span class="o">:=</span> <span class="nx">v</span><span class="p">.(</span><span class="o">*</span><span class="nx">bucket</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">b</span><span class="p">.</span><span class="nx">tokens</span> <span class="p">&gt;</span> <span class="mi">0</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">b</span><span class="p">.</span><span class="nx">tokens</span><span class="o">--</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">true</span>            <span class="c1">// ĐƯỜNG NÓNG: 0 round-trip, ~73 ns
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">b</span><span class="p">.</span><span class="nx">syncing</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// CHỜ lô đang xin về rồi thử lại — ĐỪNG deny ngay.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// Deny ngay là nguyên nhân của 84% false denial trong benchmark.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span> <span class="nx">t</span><span class="p">.</span><span class="nf">waitForTokens</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span><span class="p">.</span><span class="nx">syncing</span> <span class="p">=</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// Gọi Redis NGOÀI lock, và chỉ MỘT lần cho cả lô
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">give</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">takeBatch</span><span class="p">.</span><span class="nf">Run</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">t</span><span class="p">.</span><span class="nx">rdb</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;rl:&#34;</span> <span class="o">+</span> <span class="nx">tenant</span><span class="p">},</span> <span class="nx">rate</span><span class="p">,</span> <span class="nx">burst</span><span class="p">,</span> <span class="nx">t</span><span class="p">.</span><span class="nx">batch</span><span class="p">).</span><span class="nf">Int64</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span><span class="p">.</span><span class="nx">syncing</span> <span class="p">=</span> <span class="kc">false</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="o">||</span> <span class="nx">give</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">false</span>           <span class="c1">// hết hạn mức toàn cục, hoặc Redis lỗi → fail closed
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span><span class="p">.</span><span class="nx">tokens</span> <span class="o">+=</span> <span class="nx">give</span> <span class="o">-</span> <span class="mi">1</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">TwoTier</span><span class="p">)</span> <span class="nf">waitForTokens</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">b</span> <span class="o">*</span><span class="nx">bucket</span><span class="p">)</span> <span class="kt">bool</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Chờ tối đa 10 ms — ngắn hơn nhiều so với p99 mục tiêu 50 ms
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">deadline</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Add</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Millisecond</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Before</span><span class="p">(</span><span class="nx">deadline</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">time</span><span class="p">.</span><span class="nf">Sleep</span><span class="p">(</span><span class="mi">50</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Microsecond</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">b</span><span class="p">.</span><span class="nx">tokens</span> <span class="p">&gt;</span> <span class="mi">0</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">b</span><span class="p">.</span><span class="nx">tokens</span><span class="o">--</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="kc">true</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">still</span> <span class="o">:=</span> <span class="nx">b</span><span class="p">.</span><span class="nx">syncing</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">b</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">!</span><span class="nx">still</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="kc">false</span>       <span class="c1">// lô đã về nhưng không có token → thật sự hết hạn mức
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">false</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Ba điểm thiết kế:</p>
+<ol>
+<li><strong>Đường nóng không có round-trip nào.</strong> Khi bucket cục bộ còn token, chi phí là một mutex + một phép trừ — khoảng 73 ns (đo ở phần auth bên dưới, cùng bậc độ lớn).</li>
+<li><strong>Một lời gọi Redis cho cả lô.</strong> Phiên bản đầu tôi viết gọi <code>takeBatch</code> một-token-một-lần trong vòng lặp 1.000 vòng <strong>trong khi giữ mutex</strong> — kết quả là 21.490 check/s, <strong>chậm hơn</strong> cả Redis-mỗi-request. Đó là lỗi tôi phải sửa, và nó cho thấy two-tier làm sai thì tệ hơn không làm.</li>
+<li><strong>Chờ, đừng deny.</strong> Chờ 10 ms rẻ hơn nhiều so với từ chối oan một request hợp lệ của khách hàng đang trả tiền.</li>
+</ol>
+<h3 id="đánh-đổi-phải-chấp-nhận">Đánh đổi phải chấp nhận<a hidden class="anchor" aria-hidden="true" href="#đánh-đổi-phải-chấp-nhận">¶</a></h3>
+<p>Two-tier <strong>không chính xác tuyệt đối</strong> khi có nhiều instance:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Redis mỗi request</th>
+<th>Two-tier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Độ chính xác giới hạn</td>
+<td>Tuyệt đối</td>
+<td><strong>Có thể vượt tới <code>batch × số instance</code></strong></td>
+</tr>
+<tr>
+<td>Instance chết</td>
+<td>Không ảnh hưởng</td>
+<td><strong>Token trong lô bị mất</strong> (tenant tạm bị thắt)</td>
+</tr>
+<tr>
+<td>Scale</td>
+<td>Cần thêm Redis</td>
+<td>Gần như không giới hạn</td>
+</tr>
+</tbody>
+</table>
+<p>Với <code>batch = 10.000</code> và 20 instance, worst case bạn cho qua vượt 200.000 token trong một khoảnh khắc. Nên: <strong>đặt <code>batch</code> theo tỉ lệ với hạn mức, không phải một số cố định</strong> — ví dụ <code>batch = rate / 50</code>, tức mỗi lô bằng 20 ms hạn mức.</p>
+<hr>
+<h1 id="hot-path-2--noisy-neighbor">Hot path #2 — Noisy neighbor<a hidden class="anchor" aria-hidden="true" href="#hot-path-2--noisy-neighbor">¶</a></h1>
+<p>Đây là failure mode <strong>riêng</strong> của public API, không có ở flash sale (vì flash sale chỉ có một tenant).</p>
+<p><strong>Tình huống</strong>: một tenant gọi endpoint đắt (query nặng, export lớn) với volume cao. Nếu không có isolation, tenant đó <strong>chiếm hết</strong> connection pool / CPU / Redis, và mọi tenant khác chịu latency của nó.</p>
+<p>Tôi đo: tenant &ldquo;noisy&rdquo; chiếm 90% traffic và gọi một operation đắt; tenant &ldquo;quiet&rdquo; chiếm 10% và gọi operation nhẹ.</p>
+<table>
+<thead>
+<tr>
+<th>Cấu hình</th>
+<th style="text-align:right">noisy p99</th>
+<th style="text-align:right"><strong>quiet p99</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Không isolate</strong></td>
+<td style="text-align:right">28,35 ms</td>
+<td style="text-align:right"><strong>28,33 ms</strong></td>
+</tr>
+<tr>
+<td><strong>Per-tenant inflight cap</strong></td>
+<td style="text-align:right">1,64 ms</td>
+<td style="text-align:right"><strong>2,06 ms</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Đọc dòng đầu: <strong>quiet p99 = 28,33 ms, gần như y hệt noisy p99 = 28,35 ms.</strong> Tenant nhẹ <strong>thừa hưởng toàn bộ latency</strong> của tenant nặng — đó chính là noisy neighbor, đo được.</p>
+<p>Sau khi cap inflight riêng cho mỗi tenant, quiet về <strong>2,06 ms — tốt hơn 13,7 lần</strong>, chỉ nhờ việc giới hạn <em>tenant khác</em>.</p>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 420" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="nn-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="420" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Noisy neighbor — tenant nhẹ thừa hưởng latency của tenant nặng</text>
+<rect x="24" y="48" width="408" height="200" rx="12" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#nn-sh)"/>
+<text x="228" y="72" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">❌ Không isolate — pool DÙNG CHUNG</text>
+<rect x="48" y="86" width="104" height="44" rx="7" fill="#DC2626"/>
+<rect x="48" y="140" width="104" height="44" rx="7" fill="#14B8A6"/>
+<text x="100" y="104" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">noisy</text>
+<text x="100" y="120" text-anchor="middle" font-size="9" fill="#FFD9DE">90% · nặng</text>
+<text x="100" y="158" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">quiet</text>
+<text x="100" y="174" text-anchor="middle" font-size="9" fill="#CCFBF1">10% · nhẹ</text>
+<rect x="190" y="98" width="86" height="74" rx="7" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="233" y="128" text-anchor="middle" font-size="10" font-weight="800" fill="#9F1239">1 POOL</text>
+<text x="233" y="144" text-anchor="middle" font-size="9" fill="#BE123C">dùng chung</text>
+<line x1="156" y1="108" x2="186" y2="120" stroke="#DC2626" stroke-width="2"/>
+<line x1="156" y1="162" x2="186" y2="150" stroke="#14B8A6" stroke-width="2"/>
+<rect x="300" y="86" width="116" height="44" rx="7" fill="#FFD9DE" stroke="#DC2626" stroke-width="1.8"/>
+<rect x="300" y="140" width="116" height="44" rx="7" fill="#FFD9DE" stroke="#DC2626" stroke-width="1.8"/>
+<text x="358" y="104" text-anchor="middle" font-size="10" fill="#9F1239">noisy p99</text>
+<text x="358" y="122" text-anchor="middle" font-size="13" font-weight="800" fill="#DC2626">28,35 ms</text>
+<text x="358" y="158" text-anchor="middle" font-size="10" fill="#9F1239">quiet p99</text>
+<text x="358" y="176" text-anchor="middle" font-size="13" font-weight="800" fill="#DC2626">28,33 ms</text>
+<rect x="48" y="196" width="368" height="40" rx="8" fill="#FFD9DE"/>
+<text x="232" y="214" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">Hai con số GẦN BẰNG NHAU</text>
+<text x="232" y="230" text-anchor="middle" font-size="10" fill="#BE123C">→ tenant nhẹ không hưởng lợi gì từ việc nó nhẹ</text>
+<rect x="448" y="48" width="408" height="200" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#nn-sh)"/>
+<text x="652" y="72" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">✅ Per-tenant inflight cap</text>
+<rect x="472" y="86" width="104" height="44" rx="7" fill="#DC2626"/>
+<rect x="472" y="140" width="104" height="44" rx="7" fill="#14B8A6"/>
+<text x="524" y="104" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">noisy</text>
+<text x="524" y="120" text-anchor="middle" font-size="9" fill="#FFD9DE">cap 8 inflight</text>
+<text x="524" y="158" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">quiet</text>
+<text x="524" y="174" text-anchor="middle" font-size="9" fill="#CCFBF1">cap 40 inflight</text>
+<rect x="608" y="86" width="64" height="44" rx="6" fill="#FFE9EC" stroke="#DC2626" stroke-width="1.6"/>
+<rect x="608" y="140" width="64" height="44" rx="6" fill="#CCFBF1" stroke="#0D9488" stroke-width="1.6"/>
+<text x="640" y="112" text-anchor="middle" font-size="9" font-weight="700" fill="#9F1239">pool A</text>
+<text x="640" y="166" text-anchor="middle" font-size="9" font-weight="700" fill="#134E4A">pool B</text>
+<line x1="580" y1="108" x2="604" y2="108" stroke="#DC2626" stroke-width="2"/>
+<line x1="580" y1="162" x2="604" y2="162" stroke="#0D9488" stroke-width="2"/>
+<rect x="700" y="86" width="132" height="44" rx="7" fill="#FFE9EC" stroke="#DC2626" stroke-width="1.8"/>
+<rect x="700" y="140" width="132" height="44" rx="7" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<text x="766" y="104" text-anchor="middle" font-size="10" fill="#9F1239">noisy p99</text>
+<text x="766" y="122" text-anchor="middle" font-size="13" font-weight="800" fill="#DC2626">1,64 ms</text>
+<text x="766" y="158" text-anchor="middle" font-size="10" fill="#134E4A">quiet p99</text>
+<text x="766" y="176" text-anchor="middle" font-size="13" font-weight="800" fill="#0F766E">2,06 ms</text>
+<rect x="472" y="196" width="360" height="40" rx="8" fill="#CCFBF1"/>
+<text x="652" y="214" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">quiet tốt hơn 13,7×</text>
+<text x="652" y="230" text-anchor="middle" font-size="10" fill="#0F766E">chỉ nhờ việc giới hạn TENANT KHÁC</text>
+<rect x="24" y="264" width="832" height="144" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="44" y="288" font-size="13" font-weight="800" fill="#374151">Bốn tầng isolation — rate limit MỘT MÌNH là không đủ</text>
+<text x="44" y="312" font-size="11" fill="#57534E"><tspan font-weight="700" fill="#0F766E">① Rate limit theo tenant</tspan> — chặn SỐ LƯỢNG request. Không chặn được endpoint ĐẮT.</text>
+<text x="44" y="334" font-size="11" fill="#57534E"><tspan font-weight="700" fill="#0F766E">② Inflight cap theo tenant</tspan> — chặn SỐ request đang xử lý. Đây là tầng hiệu quả nhất (đo được 13,7×).</text>
+<text x="44" y="356" font-size="11" fill="#57534E"><tspan font-weight="700" fill="#0F766E">③ Cost-based limiting</tspan> — endpoint đắt trừ nhiều token hơn. Chặn được "ít request nhưng mỗi cái rất nặng".</text>
+<text x="44" y="378" font-size="11" fill="#57534E"><tspan font-weight="700" fill="#0F766E">④ Tách hạ tầng theo tier</tspan> — enterprise có pool/node riêng. Đắt nhất, nhưng isolation thật sự.</text>
+<text x="44" y="400" font-size="11" font-weight="800" fill="#DC2626">Chỉ có ① là sai lầm phổ biến nhất: tenant gửi 100 request/s nhưng mỗi cái mất 2 giây vẫn giết hệ thống.</text>
+</svg>
+</div>
+<h2 id="code-inflight-cap-theo-tenant">Code: inflight cap theo tenant<a hidden class="anchor" aria-hidden="true" href="#code-inflight-cap-theo-tenant">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/presentation/middleware/tenant_isolation.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">TenantIsolation</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">sems</span>    <span class="nx">sync</span><span class="p">.</span><span class="nx">Map</span>        <span class="c1">// tenant -&gt; chan struct{}
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">byTier</span>  <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int</span>  <span class="c1">// tier -&gt; số inflight tối đa
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">logger</span>  <span class="o">*</span><span class="nx">zap</span><span class="p">.</span><span class="nx">Logger</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">NewTenantIsolation</span><span class="p">(</span><span class="nx">logger</span> <span class="o">*</span><span class="nx">zap</span><span class="p">.</span><span class="nx">Logger</span><span class="p">)</span> <span class="o">*</span><span class="nx">TenantIsolation</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="o">&amp;</span><span class="nx">TenantIsolation</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">byTier</span><span class="p">:</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int</span><span class="p">{</span><span class="s">&#34;free&#34;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&#34;pro&#34;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="s">&#34;enterprise&#34;</span><span class="p">:</span> <span class="mi">256</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">logger</span><span class="p">:</span> <span class="nx">logger</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">t</span> <span class="o">*</span><span class="nx">TenantIsolation</span><span class="p">)</span> <span class="nf">Middleware</span><span class="p">()</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">HandlerFunc</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kd">func</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">gin</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">tenant</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetString</span><span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">ContextTenantID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">tier</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nf">GetString</span><span class="p">(</span><span class="nx">auth</span><span class="p">.</span><span class="nx">ContextTier</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nx">cap</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">byTier</span><span class="p">[</span><span class="nx">tier</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">cap</span> <span class="p">=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">byTier</span><span class="p">[</span><span class="s">&#34;free&#34;</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">v</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">t</span><span class="p">.</span><span class="nx">sems</span><span class="p">.</span><span class="nf">LoadOrStore</span><span class="p">(</span><span class="nx">tenant</span><span class="p">,</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{},</span> <span class="nx">cap</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">sem</span> <span class="o">:=</span> <span class="nx">v</span><span class="p">.(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{})</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">select</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">case</span> <span class="nx">sem</span> <span class="o">&lt;-</span> <span class="kd">struct</span><span class="p">{}{}:</span>
+</span></span><span class="line"><span class="cl">            <span class="k">defer</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span> <span class="o">&lt;-</span><span class="nx">sem</span> <span class="p">}()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">default</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// Tenant này đã dùng hết hạn mức ĐỒNG THỜI của nó.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="c1">// Quan trọng: đây là 429, KHÔNG phải 503 —
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="c1">// lỗi ở phía tenant, không phải hệ thống quá tải.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="nx">metrics</span><span class="p">.</span><span class="nx">TenantThrottled</span><span class="p">.</span><span class="nf">WithLabelValues</span><span class="p">(</span><span class="nx">tenant</span><span class="p">,</span> <span class="nx">tier</span><span class="p">).</span><span class="nf">Inc</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">c</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="s">&#34;Retry-After&#34;</span><span class="p">,</span> <span class="s">&#34;1&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">c</span><span class="p">.</span><span class="nf">AbortWithStatusJSON</span><span class="p">(</span><span class="mi">429</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="s">&#34;success&#34;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                <span class="s">&#34;error&#34;</span><span class="p">:</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">                    <span class="s">&#34;code&#34;</span><span class="p">:</span>    <span class="s">&#34;TOO_MANY_CONCURRENT_REQUESTS&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">                    <span class="s">&#34;message&#34;</span><span class="p">:</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;tối đa %d request đồng thời cho tier %s&#34;</span><span class="p">,</span> <span class="nx">cap</span><span class="p">,</span> <span class="nx">tier</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">                <span class="p">},</span>
+</span></span><span class="line"><span class="cl">            <span class="p">})</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nf">Next</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Chi tiết phân biệt mã lỗi đáng nói: <strong>429 khi tenant vượt hạn mức của chính nó, 503 khi hệ thống quá tải.</strong> Trả 503 cho trường hợp đầu khiến tenant nghĩ lỗi ở bạn và&hellip; retry mạnh hơn. Trả 429 kèm <code>Retry-After</code> là tín hiệu đúng, và SDK tử tế sẽ tự backoff.</p>
+<h2 id="cost-based-limiting">Cost-based limiting<a hidden class="anchor" aria-hidden="true" href="#cost-based-limiting">¶</a></h2>
+<p>Tầng ① (đếm request) không chặn được &ldquo;ít request nhưng mỗi cái rất nặng&rdquo;. Giải pháp: mỗi endpoint trừ <strong>số token khác nhau</strong>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Chi phí theo endpoint — đo từ production, không phải đoán
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">endpointCost</span> <span class="p">=</span> <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int64</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;GET /v1/transactions&#34;</span><span class="p">:</span>        <span class="mi">1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;GET /v1/transactions/{id}&#34;</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;POST /v1/transactions&#34;</span><span class="p">:</span>       <span class="mi">2</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;GET /v1/reports/monthly&#34;</span><span class="p">:</span>    <span class="mi">50</span><span class="p">,</span>   <span class="c1">// aggregation nặng
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="s">&#34;POST /v1/exports&#34;</span><span class="p">:</span>           <span class="mi">500</span><span class="p">,</span>  <span class="c1">// sinh file, chạy phút
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Lua trừ N token một lần, atomic
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">takeCost</span> <span class="p">=</span> <span class="nx">redis</span><span class="p">.</span><span class="nf">NewScript</span><span class="p">(</span><span class="s">`
+</span></span></span><span class="line"><span class="cl"><span class="s">  local t = redis.call(&#39;TIME&#39;)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local now = tonumber(t[1])*1000 + math.floor(tonumber(t[2])/1000)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local d = redis.call(&#39;HMGET&#39;, KEYS[1], &#39;tk&#39;,&#39;ts&#39;)
+</span></span></span><span class="line"><span class="cl"><span class="s">  local tk, ts = tonumber(d[1]), tonumber(d[2])
+</span></span></span><span class="line"><span class="cl"><span class="s">  local rate, burst, cost = tonumber(ARGV[1]), tonumber(ARGV[2]), tonumber(ARGV[3])
+</span></span></span><span class="line"><span class="cl"><span class="s">  if tk == nil then tk = burst; ts = now end
+</span></span></span><span class="line"><span class="cl"><span class="s">  tk = math.min(burst, tk + math.max(0, now-ts)/1000.0*rate)
+</span></span></span><span class="line"><span class="cl"><span class="s">  if tk &lt; cost then
+</span></span></span><span class="line"><span class="cl"><span class="s">    redis.call(&#39;HSET&#39;, KEYS[1], &#39;tk&#39;, tk, &#39;ts&#39;, now)
+</span></span></span><span class="line"><span class="cl"><span class="s">    return 0
+</span></span></span><span class="line"><span class="cl"><span class="s">  end
+</span></span></span><span class="line"><span class="cl"><span class="s">  redis.call(&#39;HSET&#39;, KEYS[1], &#39;tk&#39;, tk - cost, &#39;ts&#39;, now)
+</span></span></span><span class="line"><span class="cl"><span class="s">  redis.call(&#39;PEXPIRE&#39;, KEYS[1], 120000)
+</span></span></span><span class="line"><span class="cl"><span class="s">  return 1
+</span></span></span><span class="line"><span class="cl"><span class="s">`</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nguyên tắc đặt <code>cost</code>: <strong>đo p50 latency thật của endpoint rồi chuẩn hoá về endpoint nhẹ nhất.</strong> Nếu <code>GET /transactions</code> mất 2 ms và <code>GET /reports/monthly</code> mất 100 ms, cost là 1 và 50. Đừng đặt theo cảm tính — và đừng quên cập nhật khi endpoint đổi.</p>
+<hr>
+<h1 id="hot-path-3--chi-phí-xác-thực">Hot path #3 — Chi phí xác thực<a hidden class="anchor" aria-hidden="true" href="#hot-path-3--chi-phí-xác-thực">¶</a></h1>
+<p>Ở 1M RPS, <strong>mỗi request phải verify API key</strong>. Nếu phép verify tốn 1 ms, bạn mất 1.000 core chỉ cho việc đó. Tôi đo 3 cách, 50.000 lần:</p>
+<table>
+<thead>
+<tr>
+<th>Cách</th>
+<th style="text-align:right"><strong>verify/s</strong></th>
+<th style="text-align:right">p50</th>
+<th style="text-align:right">p99</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>① <strong>Redis <code>GET</code> mỗi request</strong></td>
+<td style="text-align:right">93.697</td>
+<td style="text-align:right"><strong>1,20 ms</strong></td>
+<td style="text-align:right">2,51 ms</td>
+</tr>
+<tr>
+<td>② HMAC-SHA256 (stateless)</td>
+<td style="text-align:right"><strong>2.682.917</strong></td>
+<td style="text-align:right">853 ns</td>
+<td style="text-align:right">4 µs</td>
+</tr>
+<tr>
+<td>③ <strong>Cache cục bộ (<code>sync.Map</code>)</strong></td>
+<td style="text-align:right"><strong>2.773.244</strong></td>
+<td style="text-align:right"><strong>73 ns</strong></td>
+<td style="text-align:right">~0</td>
+</tr>
+</tbody>
+</table>
+<p>Chênh lệch <strong>~29 lần</strong> giữa Redis và hai cách còn lại, và p50 chênh <strong>16.400 lần</strong> (1,20 ms vs 73 ns).</p>
+<p>Ở 1M RPS:</p>
+<ul>
+<li>Redis mỗi request: cần <strong>10,7 instance Redis</strong> chỉ cho auth (1.000.000 ÷ 93.697)</li>
+<li>Cache cục bộ: <strong>0 round-trip</strong>, chi phí gần như không đo được</li>
+</ul>
+<h2 id="thiết-kế-auth-đúng-cho-1m-rps">Thiết kế auth đúng cho 1M RPS<a hidden class="anchor" aria-hidden="true" href="#thiết-kế-auth-đúng-cho-1m-rps">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/infrastructure/auth/keycache.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">KeyInfo</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">TenantID</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Tier</span>     <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Scopes</span>   <span class="p">[]</span><span class="kt">string</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">Revoked</span>  <span class="kt">bool</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">cachedAt</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Time</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">KeyCache</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">local</span>     <span class="nx">sync</span><span class="p">.</span><span class="nx">Map</span>          <span class="c1">// hash(apiKey) -&gt; *KeyInfo
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">rdb</span>       <span class="o">*</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Client</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">sf</span>        <span class="nx">singleflight</span><span class="p">.</span><span class="nx">Group</span> <span class="c1">// chống cache stampede — xem P02
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">ttl</span>       <span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span>      <span class="c1">// 60s: đủ ngắn để revoke kịp, đủ dài để rẻ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">logger</span>    <span class="o">*</span><span class="nx">zap</span><span class="p">.</span><span class="nx">Logger</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">KeyCache</span><span class="p">)</span> <span class="nf">Lookup</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">apiKey</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="o">*</span><span class="nx">KeyInfo</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">h</span> <span class="o">:=</span> <span class="nx">sha256</span><span class="p">.</span><span class="nf">Sum256</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">apiKey</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">k</span> <span class="o">:=</span> <span class="nx">hex</span><span class="p">.</span><span class="nf">EncodeToString</span><span class="p">(</span><span class="nx">h</span><span class="p">[:])</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// ĐƯỜNG NÓNG: ~73 ns, không mạng, không allocate
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="nx">v</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">local</span><span class="p">.</span><span class="nf">Load</span><span class="p">(</span><span class="nx">k</span><span class="p">);</span> <span class="nx">ok</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">info</span> <span class="o">:=</span> <span class="nx">v</span><span class="p">.(</span><span class="o">*</span><span class="nx">KeyInfo</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Since</span><span class="p">(</span><span class="nx">info</span><span class="p">.</span><span class="nx">cachedAt</span><span class="p">)</span> <span class="p">&lt;</span> <span class="nx">c</span><span class="p">.</span><span class="nx">ttl</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="nx">info</span><span class="p">.</span><span class="nx">Revoked</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">ErrKeyRevoked</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nx">info</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// MISS: singleflight để 10.000 request cùng miss không tạo 10.000 query.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// Đây đúng là bài toán cache stampede ở P02.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">v</span><span class="p">,</span> <span class="nx">err</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">sf</span><span class="p">.</span><span class="nf">Do</span><span class="p">(</span><span class="nx">k</span><span class="p">,</span> <span class="kd">func</span><span class="p">()</span> <span class="p">(</span><span class="nx">any</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">raw</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;apikey:&#34;</span><span class="o">+</span><span class="nx">k</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">Nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">ErrKeyNotFound</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="kd">var</span> <span class="nx">info</span> <span class="nx">KeyInfo</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Unmarshal</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">raw</span><span class="p">),</span> <span class="o">&amp;</span><span class="nx">info</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">info</span><span class="p">.</span><span class="nx">cachedAt</span> <span class="p">=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nx">local</span><span class="p">.</span><span class="nf">Store</span><span class="p">(</span><span class="nx">k</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">info</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="o">&amp;</span><span class="nx">info</span><span class="p">,</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">    <span class="p">})</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span><span class="p">,</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="nx">v</span><span class="p">.(</span><span class="o">*</span><span class="nx">KeyInfo</span><span class="p">),</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="cái-giá-của-cache-cục-bộ-độ-trễ-thu-hồi">Cái giá của cache cục bộ: độ trễ thu hồi<a hidden class="anchor" aria-hidden="true" href="#cái-giá-của-cache-cục-bộ-độ-trễ-thu-hồi">¶</a></h3>
+<p>TTL 60 giây nghĩa là <strong>một API key bị thu hồi vẫn dùng được tới 60 giây</strong> trên mỗi instance. Đây là đánh đổi thật và phải quyết định có ý thức — giống hệt bài toán thu hồi JWT ở <a href="../../posts/jwt/#23-b%E1%BB%91n-c%C3%A1ch-v%C3%A1-v%C3%A0-gi%C3%A1-c%E1%BB%A7a-t%E1%BB%ABng-c%C3%A1ch">bài JWT</a>.</p>
+<p>Ba cách thu hẹp:</p>
+<table>
+<thead>
+<tr>
+<th>Cách</th>
+<th>Độ trễ thu hồi</th>
+<th>Chi phí</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Giảm TTL xuống 5 giây</td>
+<td>≤ 5 giây</td>
+<td>Tăng 12× số lần tra Redis</td>
+</tr>
+<tr>
+<td><strong>Pub/Sub thông báo thu hồi</strong></td>
+<td><strong>~1 ms</strong></td>
+<td>Thêm 1 subscriber/instance; mất tin nếu instance offline</td>
+</tr>
+<tr>
+<td>Version key toàn cục</td>
+<td>≤ TTL, nhưng invalidate hàng loạt được</td>
+<td>1 lần tra version (cache được)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>Khuyến nghị: TTL 60 giây + Redis Pub/Sub để thu hồi tức thì.</strong> Pub/Sub mất tin (<a href="../../posts/system-design-p03-pubsub-vs-streams/">P03</a>) nhưng ở đây không sao: TTL là lưới an toàn — tin thu hồi bị lỡ thì 60 giây sau cache cũng hết hạn.</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Lắng nghe thông báo thu hồi — xoá ngay khỏi cache cục bộ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">KeyCache</span><span class="p">)</span> <span class="nf">WatchRevocations</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">sub</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Subscribe</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;apikey:revoked&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nx">sub</span><span class="p">.</span><span class="nf">Close</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">msg</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">sub</span><span class="p">.</span><span class="nf">Channel</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nx">local</span><span class="p">.</span><span class="nf">Delete</span><span class="p">(</span><span class="nx">msg</span><span class="p">.</span><span class="nx">Payload</span><span class="p">)</span>   <span class="c1">// payload = hash của key
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">metrics</span><span class="p">.</span><span class="nx">KeyRevocationApplied</span><span class="p">.</span><span class="nf">Inc</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="kiến-trúc-tổng-thể">Kiến trúc tổng thể<a hidden class="anchor" aria-hidden="true" href="#kiến-trúc-tổng-thể">¶</a></h1>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 540" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="ap-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="ap-sh2" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="540" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">1M RPS — mọi thứ trong hot path phải đo bằng nanosecond</text>
+<rect x="24" y="42" width="852" height="62" rx="10" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/>
+<text x="44" y="64" font-size="12" font-weight="800" fill="#3730A3">① EDGE — TLS, chống DDoS, cache response công khai</text>
+<text x="44" y="84" font-size="11" fill="#4338CA">Endpoint đọc dữ liệu công khai cache tại biên. Mỗi request chặn ở đây là một request không tốn gì.</text>
+<rect x="690" y="52" width="170" height="42" rx="7" fill="#6366F1"/>
+<text x="775" y="78" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">0 chi phí app</text>
+<rect x="24" y="116" width="852" height="80" rx="10" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5"/>
+<text x="44" y="138" font-size="12" font-weight="800" fill="#134E4A">② AUTH — cache cục bộ + singleflight khi miss</text>
+<text x="44" y="158" font-size="11" fill="#0F766E">Cache hit: <tspan font-family="monospace" font-weight="700">73 ns</tspan>, không mạng. Miss: 1 lần Redis, gộp bằng singleflight.</text>
+<text x="44" y="180" font-size="11" font-weight="700" fill="#134E4A">Nếu gọi Redis mỗi request: 93.697/s → cần 10,7 Redis chỉ cho auth.</text>
+<rect x="690" y="130" width="170" height="52" rx="7" fill="#0D9488"/>
+<text x="775" y="150" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">73 ns</text>
+<text x="775" y="168" text-anchor="middle" font-size="10" fill="#CCFBF1">vs 1,20 ms (Redis)</text>
+<rect x="24" y="208" width="852" height="80" rx="10" fill="#FFFAF0" stroke="#F5A623" stroke-width="2.5"/>
+<text x="44" y="230" font-size="12" font-weight="800" fill="#7C4A03">③ RATE LIMIT — two-tier: bucket cục bộ + sync lô với Redis</text>
+<text x="44" y="250" font-size="11" fill="#92400E">Đường nóng 0 round-trip. Hết lô → 1 lời gọi Lua lấy 10.000 token.</text>
+<text x="44" y="272" font-size="11" font-weight="700" fill="#7C4A03">Nếu gọi Redis mỗi request: 50.574/s → cần 19,8 Redis chỉ cho rate limit.</text>
+<rect x="690" y="222" width="170" height="52" rx="7" fill="#F5A623"/>
+<text x="775" y="242" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">2.893.314/s</text>
+<text x="775" y="260" text-anchor="middle" font-size="10" fill="#FFF3DB">20 lời gọi Redis</text>
+<rect x="24" y="300" width="852" height="80" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5"/>
+<text x="44" y="322" font-size="12" font-weight="800" fill="#9F1239">④ ISOLATION — inflight cap theo tenant + cost-based limiting</text>
+<text x="44" y="342" font-size="11" fill="#BE123C">Chặn SỐ request đang xử lý, không chỉ số request/giây. Endpoint đắt trừ nhiều token hơn.</text>
+<text x="44" y="364" font-size="11" font-weight="700" fill="#DC2626">Không có tầng này: tenant nhẹ có p99 = 28,33 ms, y hệt tenant nặng 28,35 ms.</text>
+<rect x="690" y="314" width="170" height="52" rx="7" fill="#DC2626"/>
+<text x="775" y="334" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">quiet tốt hơn</text>
+<text x="775" y="352" text-anchor="middle" font-size="12" font-weight="800" fill="#FFFFFF">13,7×</text>
+<rect x="24" y="392" width="852" height="62" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="44" y="414" font-size="12" font-weight="800" fill="#374151">⑤ USAGE ACCOUNTING — đếm để tính tiền, KHÔNG nằm trong hot path</text>
+<text x="44" y="434" font-size="11" fill="#57534E">Đếm cục bộ, flush định kỳ (1–10s) sang store bền. Mất 10 giây usage khi crash là chấp nhận được;</text>
+<text x="44" y="450" font-size="11" fill="#57534E">thêm 1 ms vào mỗi request của 1M RPS thì không.</text>
+<line x1="450" y1="106" x2="450" y2="112" stroke="#57534E" stroke-width="2" marker-end="url(#ap-a)"/>
+<line x1="450" y1="198" x2="450" y2="204" stroke="#57534E" stroke-width="2" marker-end="url(#ap-a)"/>
+<line x1="450" y1="290" x2="450" y2="296" stroke="#57534E" stroke-width="2" marker-end="url(#ap-a)"/>
+<line x1="450" y1="382" x2="450" y2="388" stroke="#57534E" stroke-width="2" marker-end="url(#ap-a)"/>
+<rect x="24" y="466" width="852" height="62" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="44" y="490" font-size="13" font-weight="800" fill="#7C4A03">Nguyên tắc chi phối: ở 1M RPS, MỖI round-trip mạng trong hot path là một ràng buộc kiến trúc</text>
+<text x="44" y="514" font-size="11" fill="#92400E">Cộng dồn auth (19,8) + rate limit (10,7) = <tspan font-weight="700">30 instance Redis</tspan> nếu làm theo cách "đúng chuẩn sách". Two-tier + cache cục bộ đưa về 1–2.</text>
+</svg>
+</div>
+<h2 id="usage-accounting-đếm-để-tính-tiền">Usage accounting: đếm để tính tiền<a hidden class="anchor" aria-hidden="true" href="#usage-accounting-đếm-để-tính-tiền">¶</a></h2>
+<p>Một chi tiết riêng của public API: bạn phải <strong>đếm usage để tính tiền</strong>, và nó không được nằm trong hot path.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// internal/infrastructure/usage/counter.go
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// Đếm cục bộ rồi flush theo lô. Mất tối đa `flushEvery` dữ liệu khi crash.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Counter</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">mu</span>      <span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">counts</span>  <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int64</span>   <span class="c1">// tenant:endpoint -&gt; số request
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">rdb</span>     <span class="o">*</span><span class="nx">redis</span><span class="p">.</span><span class="nx">Client</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">flushEvery</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Counter</span><span class="p">)</span> <span class="nf">Record</span><span class="p">(</span><span class="nx">tenant</span><span class="p">,</span> <span class="nx">endpoint</span> <span class="kt">string</span><span class="p">,</span> <span class="nx">cost</span> <span class="kt">int64</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nx">counts</span><span class="p">[</span><span class="nx">tenant</span><span class="o">+</span><span class="s">&#34;:&#34;</span><span class="o">+</span><span class="nx">endpoint</span><span class="p">]</span> <span class="o">+=</span> <span class="nx">cost</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>           <span class="c1">// ~50 ns, không mạng
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Counter</span><span class="p">)</span> <span class="nf">Run</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">t</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">NewTicker</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">flushEvery</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nx">t</span><span class="p">.</span><span class="nf">Stop</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">select</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">case</span> <span class="o">&lt;-</span><span class="nx">ctx</span><span class="p">.</span><span class="nf">Done</span><span class="p">():</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">c</span><span class="p">.</span><span class="nf">flush</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>     <span class="c1">// flush lần cuối khi shutdown
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="k">return</span>
+</span></span><span class="line"><span class="cl">        <span class="k">case</span> <span class="o">&lt;-</span><span class="nx">t</span><span class="p">.</span><span class="nx">C</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">c</span><span class="p">.</span><span class="nf">flush</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Counter</span><span class="p">)</span> <span class="nf">flush</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">batch</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">counts</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nx">counts</span> <span class="p">=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int64</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="nx">batch</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nx">batch</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// HINCRBY gộp — 1 pipeline cho hàng nghìn tenant
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">pipe</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Pipeline</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">hour</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Now</span><span class="p">().</span><span class="nf">Format</span><span class="p">(</span><span class="s">&#34;2006010215&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="nx">k</span><span class="p">,</span> <span class="nx">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">batch</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">parts</span> <span class="o">:=</span> <span class="nx">strings</span><span class="p">.</span><span class="nf">SplitN</span><span class="p">(</span><span class="nx">k</span><span class="p">,</span> <span class="s">&#34;:&#34;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">pipe</span><span class="p">.</span><span class="nf">HIncrBy</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;usage:&#34;</span><span class="o">+</span><span class="nx">hour</span><span class="o">+</span><span class="s">&#34;:&#34;</span><span class="o">+</span><span class="nx">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nx">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nx">v</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">pipe</span><span class="p">.</span><span class="nf">Expire</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;usage:&#34;</span><span class="o">+</span><span class="nx">hour</span><span class="o">+</span><span class="s">&#34;:&#34;</span><span class="o">+</span><span class="nx">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">90</span><span class="o">*</span><span class="mi">24</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Hour</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">pipe</span><span class="p">.</span><span class="nf">Exec</span><span class="p">(</span><span class="nx">ctx</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Thất bại → TRẢ LẠI vào counts để lần sau flush tiếp, không mất usage
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">k</span><span class="p">,</span> <span class="nx">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">batch</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">c</span><span class="p">.</span><span class="nx">counts</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span> <span class="o">+=</span> <span class="nx">v</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Hai chi tiết: <strong><code>Record</code> không bao giờ chạm mạng</strong> (~50 ns), và khi flush thất bại thì <strong>trả lại vào bộ đếm</strong> chứ không bỏ — vì đây là dữ liệu tính tiền.</p>
+<p>Đánh đổi phải nói rõ với bên business: <strong>crash làm mất tối đa <code>flushEvery</code> giây usage.</strong> Với <code>flushEvery = 5s</code> và 1M RPS, đó là 5 triệu request không được tính tiền. Nếu không chấp nhận được, phải đưa accounting vào hot path — và trả giá bằng latency.</p>
+<hr>
+<h1 id="failure-mode-tệ-nhất">Failure mode tệ nhất<a hidden class="anchor" aria-hidden="true" href="#failure-mode-tệ-nhất">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Failure mode</th>
+<th>Cơ chế</th>
+<th>Phòng vệ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Noisy neighbor</strong></td>
+<td>1 tenant chiếm pool → mọi tenant chịu p99 của nó (đo: 28,33 ms)</td>
+<td>Inflight cap theo tenant (đo: tốt hơn 13,7×)</td>
+</tr>
+<tr>
+<td><strong>Retry storm theo tenant</strong></td>
+<td>SDK của tenant retry 3× khi chậm → tải ×4 từ đúng tenant đang gây vấn đề</td>
+<td>Retry budget + trả <strong>429</strong> chứ không 503</td>
+</tr>
+<tr>
+<td><strong>Cache stampede khi deploy</strong></td>
+<td>Instance mới khởi động, cache auth rỗng → mọi request miss</td>
+<td>Singleflight (<a href="../../posts/system-design-p02-cache-stampede/">P02</a>) + warm cache trước khi nhận traffic</td>
+</tr>
+<tr>
+<td><strong>Token lô bị mất khi instance chết</strong></td>
+<td>Instance giữ 10.000 token chưa dùng thì chết → tenant bị thắt oan</td>
+<td>Lô nhỏ hơn · TTL trên bucket Redis để token tự hồi</td>
+</tr>
+<tr>
+<td><strong>Usage drift</strong></td>
+<td>Flush thất bại lặp lại → số liệu tính tiền sai</td>
+<td>Trả lại vào counter · đối chiếu định kỳ với log</td>
+</tr>
+<tr>
+<td><strong>Key revoke không kịp</strong></td>
+<td>Cache cục bộ TTL 60s → key bị thu hồi vẫn dùng được</td>
+<td>Pub/Sub thu hồi tức thì, TTL là lưới an toàn</td>
+</tr>
+</tbody>
+</table>
+<p>Failure mode đáng lo nhất là <strong>retry storm theo tenant</strong>, vì nó là vòng lặp tự khuếch đại giống <a href="../../posts/scalable-p01-3-rps-deep-dive/#failure-mode-t%E1%BB%87-nh%E1%BA%A5t-retry-storm">P01.3</a> nhưng tập trung vào <strong>đúng tenant đang có vấn đề</strong> — nên nó vừa làm hệ thống nặng hơn vừa làm trải nghiệm của tenant đó tệ hơn nữa.</p>
+<p>Chặn nó bằng cách trả <strong>mã lỗi đúng</strong>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Phân biệt rõ ràng, vì SDK của client hành xử khác nhau theo mã lỗi
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">switch</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="nx">tenantOverRateLimit</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 429 + Retry-After: SDK tử tế sẽ backoff. Lỗi ở phía TENANT.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">c</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="s">&#34;Retry-After&#34;</span><span class="p">,</span> <span class="s">&#34;1&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nf">AbortWithStatusJSON</span><span class="p">(</span><span class="mi">429</span><span class="p">,</span> <span class="nf">errBody</span><span class="p">(</span><span class="s">&#34;RATE_LIMIT_EXCEEDED&#34;</span><span class="p">,</span> <span class="nx">quotaMsg</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="nx">tenantOverConcurrency</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="s">&#34;Retry-After&#34;</span><span class="p">,</span> <span class="s">&#34;1&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nf">AbortWithStatusJSON</span><span class="p">(</span><span class="mi">429</span><span class="p">,</span> <span class="nf">errBody</span><span class="p">(</span><span class="s">&#34;TOO_MANY_CONCURRENT_REQUESTS&#34;</span><span class="p">,</span> <span class="nx">concMsg</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="nx">systemOverloaded</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 503: lỗi ở phía HỆ THỐNG. Jitter do server sinh.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">c</span><span class="p">.</span><span class="nf">Header</span><span class="p">(</span><span class="s">&#34;Retry-After&#34;</span><span class="p">,</span> <span class="s">&#34;2&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">c</span><span class="p">.</span><span class="nf">AbortWithStatusJSON</span><span class="p">(</span><span class="mi">503</span><span class="p">,</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;error&#34;</span><span class="p">:</span> <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span><span class="s">&#34;code&#34;</span><span class="p">:</span> <span class="s">&#34;SERVICE_OVERLOADED&#34;</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="s">&#34;meta&#34;</span><span class="p">:</span>  <span class="nx">gin</span><span class="p">.</span><span class="nx">H</span><span class="p">{</span><span class="s">&#34;retry_after_ms&#34;</span><span class="p">:</span> <span class="mi">1000</span> <span class="o">+</span> <span class="nx">rand</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">4000</span><span class="p">)},</span>
+</span></span><span class="line"><span class="cl">    <span class="p">})</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">case</span> <span class="nx">badRequest</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 400: KHÔNG BAO GIỜ retry được. Nói rõ để SDK đừng thử lại.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">c</span><span class="p">.</span><span class="nf">AbortWithStatusJSON</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="nf">errBody</span><span class="p">(</span><span class="s">&#34;INVALID_REQUEST&#34;</span><span class="p">,</span> <span class="nx">detail</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Trả 503 cho lỗi vượt quota là sai lầm tốn kém: tenant nghĩ lỗi ở bạn, SDK retry mạnh hơn, và bạn tự tạo retry storm từ chính thông điệp lỗi của mình.</p>
+<hr>
+<h1 id="stress-test-và-monitoring">Stress test và monitoring<a hidden class="anchor" aria-hidden="true" href="#stress-test-và-monitoring">¶</a></h1>
+<h2 id="cách-test">Cách test<a hidden class="anchor" aria-hidden="true" href="#cách-test">¶</a></h2>
+<ol>
+<li><strong>Test từng tầng riêng trước.</strong> Ở 1M RPS, bottleneck có thể là auth, limiter, hay nghiệp vụ — và nếu test cả cùng lúc bạn sẽ không biết là cái nào. Benchmark riêng: auth (đo được 2,77M/s), limiter (2,89M/s), rồi mới ghép.</li>
+<li><strong>Test với phân bố tenant thật.</strong> Đừng test 10.000 tenant đều nhau. Lấy phân bố thật: thường là power law — tenant lớn nhất chiếm 30%, top 10 chiếm 80%. Chính tenant lớn nhất quyết định isolation.</li>
+<li><strong>Test noisy neighbor có chủ đích.</strong> Cho một tenant gọi endpoint đắt nhất với volume cao, rồi đo <strong>p99 của tenant khác</strong>. Nếu hai con số gần nhau, bạn chưa có isolation — như số đo 28,33 vs 28,35 ms.</li>
+<li><strong>Test độ chính xác của limiter, không chỉ throughput.</strong> Đây là bước hay bị bỏ qua nhất. Đặt limit 5.000/s, bắn 20.000 request, <strong>đếm số được cho qua</strong>. Tôi tìm ra lỗi two-tier deny oan 84% chính bằng bước này — nó không lộ ra ở phép đo throughput.</li>
+<li><strong>Test cold start.</strong> Deploy instance mới vào lúc tải đỉnh. Cache auth rỗng = mọi request miss. Nếu không có singleflight, bạn sẽ thấy ngay.</li>
+<li><strong>Test revoke.</strong> Thu hồi một key rồi đo sau bao lâu nó thật sự bị chặn trên <strong>mọi</strong> instance.</li>
+</ol>
+<h2 id="metric-bắt-buộc">Metric bắt buộc<a hidden class="anchor" aria-hidden="true" href="#metric-bắt-buộc">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Nhóm</th>
+<th>Metric</th>
+<th>Vì sao</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Theo tenant</strong></td>
+<td>p99 latency <strong>theo tenant</strong> (top N)</td>
+<td>Trung bình toàn cục che hết noisy neighbor</td>
+</tr>
+<tr>
+<td></td>
+<td><code>tenant_throttled_total</code> theo tenant + lý do</td>
+<td>Phân biệt rate limit vs concurrency vs quota</td>
+</tr>
+<tr>
+<td></td>
+<td><code>tenant_share</code> (% traffic)</td>
+<td>Phát hiện tenant đang phình</td>
+</tr>
+<tr>
+<td><strong>Limiter</strong></td>
+<td><code>limiter_local_hit_ratio</code></td>
+<td><strong>Phải &gt; 99%.</strong> Thấp = lô quá nhỏ</td>
+</tr>
+<tr>
+<td></td>
+<td><code>limiter_redis_calls/s</code></td>
+<td>So với RPS để biết tỉ lệ giảm thật</td>
+</tr>
+<tr>
+<td></td>
+<td><strong><code>limiter_false_deny</code></strong></td>
+<td>Deny khi hạn mức toàn cục CÒN. Phải ~0</td>
+</tr>
+<tr>
+<td><strong>Auth</strong></td>
+<td><code>auth_cache_hit_ratio</code></td>
+<td>&lt; 99% ở steady state = TTL quá ngắn</td>
+</tr>
+<tr>
+<td></td>
+<td><code>auth_redis_calls/s</code></td>
+<td>Tăng vọt = cold start hoặc cache bị xoá</td>
+</tr>
+<tr>
+<td></td>
+<td><code>key_revocation_lag</code></td>
+<td>Thời gian từ revoke tới khi chặn thật</td>
+</tr>
+<tr>
+<td><strong>Usage</strong></td>
+<td><code>usage_flush_failures</code></td>
+<td>Dữ liệu tính tiền đang bị kẹt</td>
+</tr>
+<tr>
+<td></td>
+<td><code>usage_pending_count</code></td>
+<td>Bao nhiêu bản ghi chưa flush</td>
+</tr>
+<tr>
+<td><strong>Saturation</strong></td>
+<td><code>inflight_requests</code> theo tenant</td>
+<td>Tín hiệu sớm nhất</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Metric quan trọng nhất và hay thiếu nhất: <code>p99 theo tenant</code>.</strong> p99 toàn cục có thể rất đẹp trong khi một tenang cụ thể đang chịu 10× latency — và họ sẽ là người gửi ticket. Đo theo tenant (ít nhất là top 20 theo volume) là cách duy nhất thấy được điều đó.</p>
+<p><strong>Metric phải ~0: <code>limiter_false_deny</code></strong> — số lần từ chối trong khi hạn mức toàn cục vẫn còn. Nó là metric đúng đắn của two-tier limiter, tương đương <code>oversell_count</code> ở <a href="../../posts/scalable-p01-3-rps-deep-dive/">P01.3</a>.</p>
+<h2 id="checklist">Checklist<a hidden class="anchor" aria-hidden="true" href="#checklist">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">BỨC TƯỜNG REDIS
+</span></span><span class="line"><span class="cl">□ Đã tính số instance Redis cần nếu gọi mỗi request chưa? (đo được: 19,8 cho limiter + 10,7 cho auth)
+</span></span><span class="line"><span class="cl">□ Auth có cache cục bộ chưa? (73 ns vs 1,20 ms — chênh 16.400×)
+</span></span><span class="line"><span class="cl">□ Rate limit có two-tier chưa? Lấy cả LÔ trong MỘT lời gọi Lua?
+</span></span><span class="line"><span class="cl">□ Khi bucket cục bộ cạn: CHỜ lô đang xin, hay deny ngay? (deny ngay = false deny tới 84%)
+</span></span><span class="line"><span class="cl">□ batch có tỉ lệ với rate không? (gợi ý: rate/50 ≈ 20 ms hạn mức)
+</span></span><span class="line"><span class="cl">□ Cache miss có singleflight chưa? (cold start sẽ lộ ngay nếu không)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">ISOLATION ĐA TENANT
+</span></span><span class="line"><span class="cl">□ Có inflight cap THEO TENANT chưa? (không chỉ rate limit theo số lượng)
+</span></span><span class="line"><span class="cl">□ Có cost-based limiting cho endpoint đắt chưa? Cost dựa trên ĐO hay đoán?
+</span></span><span class="line"><span class="cl">□ Đã test noisy neighbor và so p99 giữa các tenant chưa?
+</span></span><span class="line"><span class="cl">□ Tier enterprise có cần hạ tầng riêng không?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">MÃ LỖI
+</span></span><span class="line"><span class="cl">□ 429 cho vượt quota của TENANT, 503 cho hệ thống quá tải — có phân biệt chưa?
+</span></span><span class="line"><span class="cl">□ Retry-After có jitter do SERVER sinh chưa?
+</span></span><span class="line"><span class="cl">□ 400 có nói rõ &#34;không retry được&#34; chưa?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">ĐÚNG ĐẮN
+</span></span><span class="line"><span class="cl">□ limiter_false_deny có được đo không? Có ~0 không?
+</span></span><span class="line"><span class="cl">□ Usage flush thất bại có TRẢ LẠI vào counter không?
+</span></span><span class="line"><span class="cl">□ Đã nói rõ với business &#34;crash mất tối đa N giây usage&#34; chưa?
+</span></span><span class="line"><span class="cl">□ Revoke key có Pub/Sub tức thì, hay chỉ chờ TTL?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">MONITORING
+</span></span><span class="line"><span class="cl">□ p99 THEO TENANT (top 20), không chỉ p99 toàn cục
+</span></span><span class="line"><span class="cl">□ limiter_local_hit_ratio &gt; 99%
+</span></span><span class="line"><span class="cl">□ auth_cache_hit_ratio &gt; 99%
+</span></span><span class="line"><span class="cl">□ inflight_requests theo tenant
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Câu hỏi</th>
+<th>Trả lời</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ràng buộc lớn nhất ở 1M RPS?</td>
+<td><strong>Mỗi round-trip mạng trong hot path.</strong> Gọi Redis mỗi request cần <strong>19,8 instance</strong> chỉ cho rate limit</td>
+</tr>
+<tr>
+<td>Lời giải?</td>
+<td><strong>Two-tier limiter</strong>: bucket cục bộ + xin lô. Đo thật <strong>2.893.314 check/s</strong>, nhanh hơn <strong>57×</strong>, chỉ <strong>20 lời gọi Redis</strong> thay vì 200.000</td>
+</tr>
+<tr>
+<td>Two-tier làm sai thì sao?</td>
+<td>Tệ hơn không làm. Phiên bản đầu của tôi gọi Redis 1.000 lần/sync trong khi giữ mutex → <strong>21.490 check/s</strong>, chậm hơn cả Redis-mỗi-request</td>
+</tr>
+<tr>
+<td>Cái bẫy của two-tier?</td>
+<td><strong>Deny oan.</strong> Lô nhỏ + &ldquo;deny ngay&rdquo; từ chối tới <strong>84%</strong> traffic hợp lệ. Phải CHỜ lô đang xin</td>
+</tr>
+<tr>
+<td>Chi phí auth?</td>
+<td>Redis <strong>1,20 ms</strong> vs cache cục bộ <strong>73 ns</strong> — chênh <strong>16.400×</strong>. Ở 1M RPS, Redis-mỗi-request cần 10,7 instance</td>
+</tr>
+<tr>
+<td>Noisy neighbor nghiêm trọng thế nào?</td>
+<td>Đo thật: tenant nhẹ có p99 <strong>28,33 ms</strong>, y hệt tenant nặng <strong>28,35 ms</strong> — không hưởng lợi gì từ việc nó nhẹ</td>
+</tr>
+<tr>
+<td>Cách sửa hiệu quả nhất?</td>
+<td><strong>Inflight cap theo tenant</strong> → tenant nhẹ tốt hơn <strong>13,7×</strong></td>
+</tr>
+<tr>
+<td>Rate limit theo số lượng đủ chưa?</td>
+<td><strong>Không.</strong> Tenant gửi 100 req/s nhưng mỗi cái 2 giây vẫn giết hệ thống → cần cost-based</td>
+</tr>
+<tr>
+<td>429 hay 503?</td>
+<td><strong>429</strong> khi tenant vượt hạn mức của mình, <strong>503</strong> khi hệ thống quá tải. Trả nhầm = tự tạo retry storm</td>
+</tr>
+<tr>
+<td>Metric phải ~0?</td>
+<td><strong><code>limiter_false_deny</code></strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="tham-khảo">Tham khảo<a hidden class="anchor" aria-hidden="true" href="#tham-khảo">¶</a></h1>
+<ul>
+<li><a href="https://stripe.com/blog/rate-limiters">Stripe — Scaling your API with rate limiters</a> — 4 loại limiter trong production thật</li>
+<li><a href="https://sre.google/sre-book/handling-overload/">Google SRE — Handling Overload</a> · <a href="https://sre.google/sre-book/addressing-cascading-failures/">Load Shedding</a></li>
+<li><a href="https://blog.cloudflare.com/counting-things-a-lot-of-different-things/">Cloudflare — How we built rate limiting capable of scaling to millions of domains</a> — two-tier ở quy mô thật</li>
+<li><a href="https://pkg.go.dev/golang.org/x/time/rate"><code>golang.org/x/time/rate</code></a> — token bucket cục bộ chuẩn của Go</li>
+<li>Group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a> — nguồn nội dung gốc</li>
+<li>Series: <a href="../../posts/scalable-p01-ccu-vs-rps/">P01 — CCU không phải RPS</a> · <a href="../../posts/scalable-p01-2-ccu-deep-dive/">P01.2 — 1M CCU gaming</a> · <a href="../../posts/scalable-p01-3-rps-deep-dive/">P01.3 — Triệu RPS flash sale</a> · <a href="../../posts/scalable-p01-4-chat-deep-dive/">P01.4 — Chat 1M CCU</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>
