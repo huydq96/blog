@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>System Design P05: Hiểu Đúng Về Queue — Redis Queue Hay RabbitMQ? | Huy Dang Blog</title>
+<meta name="keywords" content="system-design, redis, rabbitmq, queue, golang">
+<meta name="description" content="Queue rỗng không có nghĩa việc đã xong. Đo thật 4 cách triển khai queue: Redis List mất 20 job khi worker crash, 3 cách còn lại không mất — nhưng cả 4 đều gửi trùng.">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/system-design-p05-queue/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/system-design-p05-queue/">
+
+<meta name="twitter:title" content="System Design P05: Hiểu Đúng Về Queue — Redis Queue Hay RabbitMQ? | Huy Dang Blog" />
+<meta name="twitter:description" content="Queue rỗng không có nghĩa việc đã xong. Đo thật 4 cách triển khai queue: Redis List mất 20 job khi worker crash, 3 cách còn lại không mất — nhưng cả 4 đều gửi trùng." />
+<meta property="og:title" content="System Design P05: Hiểu Đúng Về Queue — Redis Queue Hay RabbitMQ? | Huy Dang Blog" />
+<meta property="og:description" content="Queue rỗng không có nghĩa việc đã xong. Đo thật 4 cách triển khai queue: Redis List mất 20 job khi worker crash, 3 cách còn lại không mất — nhưng cả 4 đều gửi trùng." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/system-design-p05-queue/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-10-23T09:00:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-10-23T09:00:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "System Design P05: Hiểu Đúng Về Queue — Redis Queue Hay RabbitMQ?",
+      "item": "https://blog.huydang.dev/posts/system-design-p05-queue/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "System Design P05: Hiểu Đúng Về Queue — Redis Queue Hay RabbitMQ? | Huy Dang Blog",
+  "name": "System Design P05: Hiểu Đúng Về Queue — Redis Queue Hay RabbitMQ?",
+  "description": "Queue rỗng không có nghĩa việc đã xong. Đo thật 4 cách triển khai queue: Redis List mất 20 job khi worker crash, 3 cách còn lại không mất — nhưng cả 4 đều gửi trùng.",
+  "keywords": [
+    "system-design", "redis", "rabbitmq", "queue", "golang"
+  ],
+  "wordCount" : "4537",
+  "inLanguage": "en",
+  "datePublished": "2026-10-23T09:00:00+07:00",
+  "dateModified": "2026-10-23T09:00:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/system-design-p05-queue/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">System Design P05: Hiểu Đúng Về Queue — Redis Queue Hay RabbitMQ?</h1>
+    <div class="post-description">Queue rỗng không có nghĩa việc đã xong. Đo thật 4 cách triển khai queue: Redis List mất 20 job khi worker crash, 3 cách còn lại không mất — nhưng cả 4 đều gửi trùng.</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>October 23, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/system-design/">System Design</a><a href="https://blog.huydang.dev/tags/redis/">Redis</a><a href="https://blog.huydang.dev/tags/rabbitmq/">Rabbitmq</a><a href="https://blog.huydang.dev/tags/queue/">Queue</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>22 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#c%c3%a2u-chuy%e1%bb%87n-m%e1%bb%9f-%c4%91%e1%ba%a7u" aria-label="Câu chuyện mở đầu">Câu chuyện mở đầu</a></li>
+                <li>
+                    <a href="#%c4%91o-th%e1%ba%adt-lpop-m%e1%ba%a5t-bao-nhi%c3%aau-job" aria-label="Đo thật: LPOP mất bao nhiêu job?">Đo thật: <code>LPOP</code> mất bao nhiêu job?</a></li>
+                <li>
+                    <a href="#redis-queue-ngh%c4%a9a-l%c3%a0-g%c3%ac-b%e1%bb%91n-c%c3%a1ch-r%e1%ba%a5t-kh%c3%a1c-nhau" aria-label="&amp;ldquo;Redis Queue&amp;rdquo; nghĩa là gì? Bốn cách rất khác nhau">&ldquo;Redis Queue&rdquo; nghĩa là gì? Bốn cách rất khác nhau</a><ul>
+                        
+                <li>
+                    <a href="#-list--lpop--c%c3%a1ch-l%c3%a0m-m%e1%ba%a5t-job" aria-label="① List &#43; LPOP — cách làm mất job">① List + <code>LPOP</code> — cách làm mất job</a></li>
+                <li>
+                    <a href="#-list--lmove--reliable-queue-t%e1%bb%b1-gh%c3%a9p" aria-label="② List &#43; LMOVE — reliable queue tự ghép">② List + <code>LMOVE</code> — reliable queue tự ghép</a></li>
+                <li>
+                    <a href="#-streams--consumer-group--redis-theo-d%c3%b5i-h%e1%bb%99" aria-label="③ Streams &#43; consumer group — Redis theo dõi hộ">③ Streams + consumer group — Redis theo dõi hộ</a></li>
+                <li>
+                    <a href="#-bullmq--asynq--th%c6%b0-vi%e1%bb%87n-%c4%91%c3%b3ng-g%c3%b3i-s%e1%ba%b5n" aria-label="④ BullMQ / Asynq — thư viện đóng gói sẵn">④ BullMQ / Asynq — thư viện đóng gói sẵn</a></li></ul>
+                </li>
+                <li>
+                    <a href="#rabbitmq--manual-ack" aria-label="RabbitMQ &#43; manual ACK">RabbitMQ + manual ACK</a></li>
+                <li>
+                    <a href="#b%e1%ba%aby-th%e1%bb%a9-hai-vi%e1%bb%87c-%c4%91%c3%a3-l%c3%a0m-xong-nh%c6%b0ng-ch%e1%ba%bft-tr%c6%b0%e1%bb%9bc-khi-ack" aria-label="Bẫy thứ hai: việc đã làm xong nhưng chết trước khi ACK">Bẫy thứ hai: việc đã làm xong nhưng chết trước khi ACK</a></li>
+                <li>
+                    <a href="#th%c3%b4ng-l%c6%b0%e1%bb%a3ng-con-s%e1%bb%91-v%c3%a0-nh%e1%bb%afng-g%c3%ac-n%c3%b3-kh%c3%b4ng-n%c3%b3i" aria-label="Thông lượng: con số và những gì nó KHÔNG nói">Thông lượng: con số và những gì nó KHÔNG nói</a></li>
+                <li>
+                    <a href="#%c4%91i%e1%bb%83m-ph%c3%a2n-bi%e1%bb%87t-th%e1%ba%adt-routing" aria-label="Điểm phân biệt thật: routing">Điểm phân biệt thật: routing</a><ul>
+                        
+                <li>
+                    <a href="#routing-c%c3%b3-%c4%91i%e1%bb%81u-ki%e1%bb%87n--ch%e1%bb%97-redis-kh%c3%b4ng-c%c3%b3-t%c6%b0%c6%a1ng-%c4%91%c6%b0%c6%a1ng" aria-label="Routing có điều kiện — chỗ Redis không có tương đương">Routing có điều kiện — chỗ Redis không có tương đương</a></li></ul>
+                </li>
+                <li>
+                    <a href="#ch%e1%bb%8dn-th%e1%ba%bf-n%c3%a0o" aria-label="Chọn thế nào?">Chọn thế nào?</a><ul>
+                        
+                <li>
+                    <a href="#m%e1%bb%99t-l%c6%b0u-%c3%bd-ri%c3%aang-cho-redis-l%c3%a0m-queue" aria-label="Một lưu ý riêng cho Redis làm queue">Một lưu ý riêng cho Redis làm queue</a></li></ul>
+                </li>
+                <li>
+                    <a href="#quay-l%e1%ba%a1i-c%c3%a2u-chuy%e1%bb%87n-%c4%91%e1%ba%a7u-b%c3%a0i" aria-label="Quay lại câu chuyện đầu bài">Quay lại câu chuyện đầu bài</a><ul>
+                        
+                <li>
+                    <a href="#metric-ph%e1%ba%a3i-c%c3%b3" aria-label="Metric phải có">Metric phải có</a></li></ul>
+                </li>
+                <li>
+                    <a href="#checklist" aria-label="Checklist">Checklist</a></li>
+                <li>
+                    <a href="#t%c3%b3m-t%e1%ba%aft" aria-label="Tóm tắt">Tóm tắt</a></li>
+                <li>
+                    <a href="#tham-kh%e1%ba%a3o" aria-label="Tham khảo">Tham khảo</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><blockquote>
+<p><em>Bài viết thuộc series <strong>System Design</strong>, nội dung tham khảo từ các bài viết trong group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a>. Phần diễn giải, code và <strong>toàn bộ số liệu benchmark</strong> là tôi tự bổ sung, đo thật trên Redis 7.4.2 và RabbitMQ 3.13.7 chạy local.</em></p>
+</blockquote>
+<h1 id="câu-chuyện-mở-đầu">Câu chuyện mở đầu<a hidden class="anchor" aria-hidden="true" href="#câu-chuyện-mở-đầu">¶</a></h1>
+<p>Một team cần hỗ trợ kiểm tra lỗi: <strong>khách đặt hàng thành công nhưng chờ mãi không nhận được email xác nhận.</strong></p>
+<p>Team nhìn vào queue thì <strong>không còn job nào chờ</strong>. Worker vẫn đang chạy. Nhìn qua chẳng thấy việc nào bị ùn lại cả.</p>
+<p>Hướng điều tra đầu tiên là dịch vụ gửi email — có thể bên đó đang chậm? Nhưng kiểm tra thì phía email <strong>chưa nhận được yêu cầu gửi</strong> cho đơn hàng ấy.</p>
+<p>Lần ngược về ứng dụng: job đã được tạo chưa? Đã. Đã giao cho worker chưa? Đã. Xem tiếp vòng đời của worker thì mới thấy — <strong>nó đã crash trước bước gửi email</strong>. Tiến trình team đang nhìn thấy là worker vừa được <strong>khởi động lại</strong>.</p>
+<p>Vậy job cũ đi đâu?</p>
+<p>Xem đoạn nhận job: ứng dụng dùng <strong>Redis List</strong>, worker <code>LPOP</code> job ra để xử lý. Thao tác <code>LPOP</code> <strong>đã lấy job khỏi hàng chờ</strong>. Tìm chỗ giữ thông tin job đang xử lý thì&hellip; ứng dụng chưa có.</p>
+<blockquote>
+<p><strong>Worker chết, thông tin về việc nó đang làm cũng mất theo. Worker mới lên nhìn vào một hàng đợi rỗng, chẳng có gì để nhận lại.</strong></p>
+</blockquote>
+<p>Và đây là câu quan trọng nhất của cả bài:</p>
+<blockquote>
+<p><strong>&ldquo;Queue rỗng&rdquo; chỉ cho biết không còn job đang CHỜ. Còn email đã được gửi hay chưa thì hệ thống không theo dõi được.</strong></p>
+</blockquote>
+<hr>
+<h1 id="đo-thật-lpop-mất-bao-nhiêu-job">Đo thật: <code>LPOP</code> mất bao nhiêu job?<a hidden class="anchor" aria-hidden="true" href="#đo-thật-lpop-mất-bao-nhiêu-job">¶</a></h1>
+<p>Tôi dựng lại đúng tình huống đó để đo. 2.000 job gửi email, 20 worker, <strong>mỗi worker crash khi đang giữ job thứ 31</strong> — tức đúng 20 job bị crash giữa chừng. Sau phục hồi, phải gửi đúng 2.000 email.</p>
+<table>
+<thead>
+<tr>
+<th>Cách triển khai</th>
+<th style="text-align:right">Gửi được</th>
+<th>Kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>① Redis List + <code>LPOP</code></strong></td>
+<td style="text-align:right"><strong>1.980/2.000</strong></td>
+<td><strong>❌ MẤT 20 job</strong></td>
+</tr>
+<tr>
+<td>② Redis List + <code>LMOVE</code> (có danh sách đang-xử-lý)</td>
+<td style="text-align:right">2.000/2.000</td>
+<td>✅ phục hồi 20 job</td>
+</tr>
+<tr>
+<td>③ Redis Streams + consumer group</td>
+<td style="text-align:right">2.000/2.000</td>
+<td>✅ PEL giữ 20 job</td>
+</tr>
+<tr>
+<td>④ RabbitMQ + manual ACK</td>
+<td style="text-align:right">2.000/2.000</td>
+<td>✅ tự requeue</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Mất đúng 20 job — bằng đúng số worker crash.</strong> Không có lỗi nào được ghi lại ở bất cứ đâu: Redis khoẻ, queue rỗng, worker mới đang chạy bình thường. Chỉ có 20 khách hàng không nhận được email.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="q1-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<marker id="q1-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="q1-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="460" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Job biến mất ở đâu — và vì sao monitoring không thấy</text>
+<rect x="24" y="44" width="852" height="178" rx="12" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#q1-sh)"/>
+<text x="44" y="68" font-size="13" font-weight="800" fill="#9F1239">❌ Redis List + LPOP — không có chỗ giữ job đang xử lý</text>
+<rect x="48" y="82" width="120" height="58" rx="8" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.8"/>
+<text x="108" y="104" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Redis List</text>
+<rect x="60" y="112" width="96" height="18" rx="4" fill="#FFE9EC"/>
+<text x="108" y="125" text-anchor="middle" font-size="9" fill="#BE123C">job 1..2000</text>
+<rect x="224" y="82" width="132" height="58" rx="8" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.8"/>
+<text x="290" y="100" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Worker</text>
+<text x="290" y="116" text-anchor="middle" font-size="10" font-family="monospace" fill="#BE123C">LPOP → job 847</text>
+<text x="290" y="132" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">đang giữ job 847</text>
+<rect x="412" y="82" width="120" height="58" rx="8" fill="#FFD9DE" stroke="#DC2626" stroke-width="2.5"/>
+<text x="472" y="104" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">💀 CRASH</text>
+<text x="472" y="122" text-anchor="middle" font-size="10" fill="#BE123C">trước khi gửi email</text>
+<rect x="588" y="82" width="132" height="58" rx="8" fill="#FFFFFF" stroke="#A8A29E" stroke-width="1.8" stroke-dasharray="5 4"/>
+<text x="654" y="100" text-anchor="middle" font-size="11" font-weight="700" fill="#78716C">Worker MỚI</text>
+<text x="654" y="116" text-anchor="middle" font-size="10" fill="#78716C">nhìn vào queue</text>
+<text x="654" y="132" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">không thấy gì</text>
+<rect x="760" y="82" width="96" height="58" rx="8" fill="#DC2626"/>
+<text x="808" y="106" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">job 847</text>
+<text x="808" y="124" text-anchor="middle" font-size="11" font-weight="800" fill="#FFFFFF">BỐC HƠI</text>
+<line x1="172" y1="111" x2="220" y2="111" stroke="#DC2626" stroke-width="2" marker-end="url(#q1-a)"/>
+<line x1="360" y1="111" x2="408" y2="111" stroke="#DC2626" stroke-width="2" marker-end="url(#q1-a)"/>
+<line x1="536" y1="111" x2="584" y2="111" stroke="#DC2626" stroke-width="2" marker-end="url(#q1-a)"/>
+<line x1="724" y1="111" x2="756" y2="111" stroke="#DC2626" stroke-width="2" marker-end="url(#q1-a)"/>
+<rect x="48" y="154" width="808" height="56" rx="9" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="68" y="176" font-size="12" font-weight="800" fill="#9F1239">Vì sao mọi chỉ số đều XANH</text>
+<text x="68" y="198" font-size="11" fill="#BE123C">Redis khoẻ · queue rỗng (= "không còn việc chờ") · worker mới đang chạy · không log lỗi nào. Chỉ có 20 khách không nhận email.</text>
+<rect x="24" y="238" width="852" height="124" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#q1-sh)"/>
+<text x="44" y="262" font-size="13" font-weight="800" fill="#134E4A">✅ Cách đúng — PHẢI có chỗ giữ job đã giao nhưng chưa xác nhận</text>
+<rect x="48" y="276" width="120" height="70" rx="8" fill="#FFFFFF" stroke="#0D9488" stroke-width="1.8"/>
+<text x="108" y="296" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">Queue CHỜ</text>
+<rect x="60" y="304" width="96" height="16" rx="4" fill="#CCFBF1"/>
+<rect x="60" y="324" width="96" height="16" rx="4" fill="#CCFBF1"/>
+<text x="108" y="316" text-anchor="middle" font-size="9" fill="#0F766E">job 848</text>
+<text x="108" y="336" text-anchor="middle" font-size="9" fill="#0F766E">job 849</text>
+<rect x="224" y="276" width="156" height="70" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<text x="302" y="296" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">ĐANG XỬ LÝ</text>
+<text x="302" y="313" text-anchor="middle" font-size="10" fill="#0F766E">(processing list / PEL /</text>
+<text x="302" y="328" text-anchor="middle" font-size="10" fill="#0F766E">unacked)</text>
+<text x="302" y="342" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">job 847 nằm ĐÂY</text>
+<rect x="436" y="276" width="120" height="70" rx="8" fill="#FFD9DE" stroke="#DC2626" stroke-width="2"/>
+<text x="496" y="302" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">💀 CRASH</text>
+<text x="496" y="322" text-anchor="middle" font-size="10" fill="#BE123C">job vẫn còn ở</text>
+<text x="496" y="337" text-anchor="middle" font-size="10" fill="#BE123C">danh sách bên trái</text>
+<rect x="612" y="276" width="244" height="70" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<text x="734" y="298" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">PHỤC HỒI</text>
+<text x="734" y="316" text-anchor="middle" font-size="10" fill="#0F766E">Worker mới thấy job 847 dang dở</text>
+<text x="734" y="334" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">→ nhận lại và xử lý tiếp</text>
+<line x1="172" y1="311" x2="220" y2="311" stroke="#0D9488" stroke-width="2" marker-end="url(#q1-t)"/>
+<line x1="384" y1="311" x2="432" y2="311" stroke="#0D9488" stroke-width="2" marker-end="url(#q1-t)"/>
+<line x1="560" y1="311" x2="608" y2="311" stroke="#0D9488" stroke-width="2" marker-end="url(#q1-t)"/>
+<rect x="24" y="380" width="852" height="66" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="44" y="404" font-size="13" font-weight="800" fill="#7C4A03">Đo thật: 2.000 job · 20 worker crash giữa chừng</text>
+<text x="44" y="428" font-size="11" fill="#92400E"><tspan font-family="monospace" font-weight="700" fill="#DC2626">LPOP → 1.980/2.000 (mất 20)</tspan>  ·  LMOVE → 2.000/2.000  ·  Streams → 2.000/2.000  ·  RabbitMQ → 2.000/2.000</text>
+</svg>
+</div>
+<hr>
+<h1 id="redis-queue-nghĩa-là-gì-bốn-cách-rất-khác-nhau">&ldquo;Redis Queue&rdquo; nghĩa là gì? Bốn cách rất khác nhau<a hidden class="anchor" aria-hidden="true" href="#redis-queue-nghĩa-là-gì-bốn-cách-rất-khác-nhau">¶</a></h1>
+<p>Khi một team nói họ dùng &ldquo;Redis Queue&rdquo;, câu đó <strong>chưa nói gì về độ bền của job</strong>. Có ít nhất bốn cách, và phần việc ứng dụng phải tự làm khác nhau rất xa.</p>
+<table>
+<thead>
+<tr>
+<th>Cách</th>
+<th style="text-align:center">Giữ job đang xử lý</th>
+<th style="text-align:center">Tự phát hiện job kẹt</th>
+<th style="text-align:center">Retry / DLQ</th>
+<th>Việc app phải tự làm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>List + <code>LPOP</code></strong></td>
+<td style="text-align:center">✗</td>
+<td style="text-align:center">✗</td>
+<td style="text-align:center">✗</td>
+<td><strong>Tất cả</strong> — và nếu không làm thì mất job</td>
+</tr>
+<tr>
+<td><strong>List + <code>LMOVE</code></strong></td>
+<td style="text-align:center">✓</td>
+<td style="text-align:center">✗</td>
+<td style="text-align:center">✗</td>
+<td>Reaper quét job kẹt, đếm retry, DLQ</td>
+</tr>
+<tr>
+<td><strong>Streams + consumer group</strong></td>
+<td style="text-align:center">✓ (PEL)</td>
+<td style="text-align:center">✗</td>
+<td style="text-align:center">✗</td>
+<td>Chạy <code>XAUTOCLAIM</code> định kỳ, DLQ theo <code>delivery_count</code></td>
+</tr>
+<tr>
+<td><strong>BullMQ / Asynq</strong></td>
+<td style="text-align:center">✓</td>
+<td style="text-align:center">✓</td>
+<td style="text-align:center">✓</td>
+<td>Gần như không — thư viện đóng gói sẵn</td>
+</tr>
+</tbody>
+</table>
+<h2 id="-list--lpop--cách-làm-mất-job">① List + <code>LPOP</code> — cách làm mất job<a hidden class="anchor" aria-hidden="true" href="#-list--lpop--cách-làm-mất-job">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ❌ Job rời khỏi Redis NGAY khi pop. Không ai biết worker nào đang giữ nó.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">w</span> <span class="o">*</span><span class="nx">Worker</span><span class="p">)</span> <span class="nf">runNaive</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">job</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">LPop</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;jobs:email&#34;</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">Nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">time</span><span class="p">.</span><span class="nf">Sleep</span><span class="p">(</span><span class="mi">200</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Millisecond</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// ← Crash ở đây = job biến mất vĩnh viễn.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">//   Queue rỗng, không log, không alert.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">w</span><span class="p">.</span><span class="nf">sendEmail</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">job</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="-list--lmove--reliable-queue-tự-ghép">② List + <code>LMOVE</code> — reliable queue tự ghép<a hidden class="anchor" aria-hidden="true" href="#-list--lmove--reliable-queue-tự-ghép">¶</a></h2>
+<p><code>LMOVE</code> (hoặc <code>BRPOPLPUSH</code> ở Redis cũ) <strong>atomic</strong>: lấy khỏi queue chờ <strong>và</strong> đặt vào danh sách đang-xử-lý trong cùng một lệnh.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">const</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">qPending</span>    <span class="p">=</span> <span class="s">&#34;jobs:email&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">qProcessing</span> <span class="p">=</span> <span class="s">&#34;jobs:email:processing&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">w</span> <span class="o">*</span><span class="nx">Worker</span><span class="p">)</span> <span class="nf">runReliable</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// Atomic: rời qPending VÀ vào qProcessing. Không có khoảng hở.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">job</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">LMove</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">qPending</span><span class="p">,</span> <span class="nx">qProcessing</span><span class="p">,</span> <span class="s">&#34;left&#34;</span><span class="p">,</span> <span class="s">&#34;right&#34;</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">==</span> <span class="nx">redis</span><span class="p">.</span><span class="nx">Nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">time</span><span class="p">.</span><span class="nf">Sleep</span><span class="p">(</span><span class="mi">200</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Millisecond</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">w</span><span class="p">.</span><span class="nx">logger</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="s">&#34;lmove thất bại&#34;</span><span class="p">,</span> <span class="nx">zap</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nf">sendEmail</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">job</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="c1">// Thất bại: để job NGUYÊN trong qProcessing cho reaper xử lý.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="c1">// Đừng tự đẩy về qPending ở đây — sẽ retry vô hạn không đếm được.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="nx">w</span><span class="p">.</span><span class="nx">logger</span><span class="p">.</span><span class="nf">Warn</span><span class="p">(</span><span class="s">&#34;gửi email lỗi&#34;</span><span class="p">,</span> <span class="nx">zap</span><span class="p">.</span><span class="nf">Error</span><span class="p">(</span><span class="nx">err</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// ACK = xoá khỏi danh sách đang-xử-lý
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">LRem</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">qProcessing</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">job</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nhưng <code>LMOVE</code> <strong>chỉ giải quyết một nửa</strong>. Phần còn lại ứng dụng phải tự viết: một <strong>reaper</strong> quét job kẹt quá lâu rồi đưa về queue chờ.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Reaper — Redis KHÔNG tự làm việc này
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">r</span> <span class="o">*</span><span class="nx">Reaper</span><span class="p">)</span> <span class="nf">Run</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">t</span> <span class="o">:=</span> <span class="nx">time</span><span class="p">.</span><span class="nf">NewTicker</span><span class="p">(</span><span class="mi">30</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nx">t</span><span class="p">.</span><span class="nf">Stop</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="k">range</span> <span class="nx">t</span><span class="p">.</span><span class="nx">C</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">jobs</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">LRange</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">qProcessing</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">raw</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">jobs</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="kd">var</span> <span class="nx">j</span> <span class="nx">Job</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Unmarshal</span><span class="p">([]</span><span class="nb">byte</span><span class="p">(</span><span class="nx">raw</span><span class="p">),</span> <span class="o">&amp;</span><span class="nx">j</span><span class="p">)</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Since</span><span class="p">(</span><span class="nx">j</span><span class="p">.</span><span class="nx">StartedAt</span><span class="p">)</span> <span class="p">&lt;</span> <span class="mi">5</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="k">continue</span>   <span class="c1">// vẫn đang chạy bình thường
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">j</span><span class="p">.</span><span class="nx">Attempts</span><span class="o">++</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="nx">j</span><span class="p">.</span><span class="nx">Attempts</span> <span class="p">&gt;</span> <span class="nx">maxAttempts</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="c1">// DLQ — cũng phải tự làm
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>                <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">LPush</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">qPending</span><span class="o">+</span><span class="s">&#34;:dlq&#34;</span><span class="p">,</span> <span class="nx">raw</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">LRem</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">qProcessing</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">raw</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">                <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">nb</span><span class="p">,</span> <span class="nx">_</span> <span class="o">:=</span> <span class="nx">json</span><span class="p">.</span><span class="nf">Marshal</span><span class="p">(</span><span class="nx">j</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">LRem</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">qProcessing</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">raw</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">r</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">LPush</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">qPending</span><span class="p">,</span> <span class="nx">nb</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>⚠️ <strong>Cái bẫy của <code>LMOVE</code></strong>: <code>j.StartedAt</code> phải nằm <strong>trong payload của job</strong>, không phải trong RAM của worker. Nếu bạn lưu thời điểm bắt đầu ở biến cục bộ của worker, worker chết là mất luôn — và reaper không có cách nào biết job kẹt bao lâu. Nghe hiển nhiên, nhưng đây đúng là lỗi tôi hay thấy khi team tự ghép reliable queue.</p>
+</blockquote>
+<h2 id="-streams--consumer-group--redis-theo-dõi-hộ">③ Streams + consumer group — Redis theo dõi hộ<a hidden class="anchor" aria-hidden="true" href="#-streams--consumer-group--redis-theo-dõi-hộ">¶</a></h2>
+<p>Streams có <strong>PEL</strong> (Pending Entries List) — Redis tự giữ danh sách &ldquo;đã giao, chưa <code>XACK</code>&rdquo;. Đo thật: 20 worker crash → <strong>PEL giữ đúng 20 job</strong>.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">w</span> <span class="o">*</span><span class="nx">Worker</span><span class="p">)</span> <span class="nf">runStream</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">res</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">XReadGroup</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">redis</span><span class="p">.</span><span class="nx">XReadGroupArgs</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">Group</span><span class="p">:</span> <span class="s">&#34;emailers&#34;</span><span class="p">,</span> <span class="nx">Consumer</span><span class="p">:</span> <span class="nx">w</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">Streams</span><span class="p">:</span> <span class="p">[]</span><span class="kt">string</span><span class="p">{</span><span class="s">&#34;jobs:email&#34;</span><span class="p">,</span> <span class="s">&#34;&gt;&#34;</span><span class="p">},</span>   <span class="c1">// &#34;&gt;&#34; = tin MỚI chưa ai nhận
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="nx">Count</span><span class="p">:</span>   <span class="mi">10</span><span class="p">,</span> <span class="nx">Block</span><span class="p">:</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="o">||</span> <span class="nb">len</span><span class="p">(</span><span class="nx">res</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">m</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">res</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">Messages</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nf">sendEmail</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">m</span><span class="p">.</span><span class="nx">Values</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">                <span class="k">continue</span>   <span class="c1">// không XACK → vẫn nằm trong PEL
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="p">}</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">XAck</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="s">&#34;jobs:email&#34;</span><span class="p">,</span> <span class="s">&#34;emailers&#34;</span><span class="p">,</span> <span class="nx">m</span><span class="p">.</span><span class="nx">ID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nhưng — như đã nói kỹ ở <a href="../../posts/system-design-p03-pubsub-vs-streams/#v%E1%BA%A5n-%C4%91%E1%BB%81-1--worker-nh%E1%BA%ADn-tin-r%E1%BB%93i-ch%E1%BA%BFt-tr%C6%B0%E1%BB%9Bc-khi-x%E1%BB%AD-l%C3%BD-xong">P03</a> — <strong>Redis không tự giao lại job trong PEL.</strong> Nó giữ vô thời hạn. App phải tự chạy <code>XAUTOCLAIM</code>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Phải chạy ĐỊNH KỲ. Không có nó, job nằm trong PEL mãi mãi.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">w</span> <span class="o">*</span><span class="nx">Worker</span><span class="p">)</span> <span class="nf">reclaim</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">start</span> <span class="o">:=</span> <span class="s">&#34;0-0&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">msgs</span><span class="p">,</span> <span class="nx">next</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">XAutoClaim</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="o">&amp;</span><span class="nx">redis</span><span class="p">.</span><span class="nx">XAutoClaimArgs</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">Stream</span><span class="p">:</span> <span class="s">&#34;jobs:email&#34;</span><span class="p">,</span> <span class="nx">Group</span><span class="p">:</span> <span class="s">&#34;emailers&#34;</span><span class="p">,</span> <span class="nx">Consumer</span><span class="p">:</span> <span class="nx">w</span><span class="p">.</span><span class="nx">name</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">MinIdle</span><span class="p">:</span> <span class="mi">5</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Minute</span><span class="p">,</span>   <span class="c1">// DÀI HƠN thời gian xử lý bình thường
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>            <span class="nx">Start</span><span class="p">:</span>   <span class="nx">start</span><span class="p">,</span> <span class="nx">Count</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="o">||</span> <span class="nb">len</span><span class="p">(</span><span class="nx">msgs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">m</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">msgs</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="nx">w</span><span class="p">.</span><span class="nf">handleWithRetryLimit</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">m</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="nx">next</span> <span class="o">==</span> <span class="s">&#34;0-0&#34;</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">start</span> <span class="p">=</span> <span class="nx">next</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="-bullmq--asynq--thư-viện-đóng-gói-sẵn">④ BullMQ / Asynq — thư viện đóng gói sẵn<a hidden class="anchor" aria-hidden="true" href="#-bullmq--asynq--thư-viện-đóng-gói-sẵn">¶</a></h2>
+<p><a href="https://docs.bullmq.io/">BullMQ</a> (Node) và <a href="https://github.com/hibiken/asynq">Asynq</a> (Go) dựng trên Redis nhưng đóng gói sẵn: phát hiện job kẹt (stalled job), retry có backoff, DLQ, scheduled job, rate limit theo queue.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Asynq — retry và DLQ là CẤU HÌNH, không phải code bạn viết
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">srv</span> <span class="o">:=</span> <span class="nx">asynq</span><span class="p">.</span><span class="nf">NewServer</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">asynq</span><span class="p">.</span><span class="nx">RedisClientOpt</span><span class="p">{</span><span class="nx">Addr</span><span class="p">:</span> <span class="s">&#34;127.0.0.1:6379&#34;</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">asynq</span><span class="p">.</span><span class="nx">Config</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Concurrency</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">Queues</span><span class="p">:</span>      <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">int</span><span class="p">{</span><span class="s">&#34;critical&#34;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s">&#34;default&#34;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s">&#34;low&#34;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">RetryDelayFunc</span><span class="p">:</span> <span class="kd">func</span><span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">err</span> <span class="kt">error</span><span class="p">,</span> <span class="nx">t</span> <span class="o">*</span><span class="nx">asynq</span><span class="p">.</span><span class="nx">Task</span><span class="p">)</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Duration</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="nx">time</span><span class="p">.</span><span class="nf">Duration</span><span class="p">(</span><span class="mi">1</span><span class="o">&lt;&lt;</span><span class="nb">uint</span><span class="p">(</span><span class="nx">n</span><span class="p">))</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span>   <span class="c1">// backoff 2^n
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">    <span class="p">},</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="c1">// Job hết lượt retry tự vào &#34;archived set&#34; — DLQ có sẵn
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">client</span><span class="p">.</span><span class="nf">Enqueue</span><span class="p">(</span><span class="nx">task</span><span class="p">,</span> <span class="nx">asynq</span><span class="p">.</span><span class="nf">MaxRetry</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="nx">asynq</span><span class="p">.</span><span class="nf">Timeout</span><span class="p">(</span><span class="mi">30</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">))</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>👉 <strong>Nếu bài toán của bạn là background job (gửi email, resize ảnh, đồng bộ dữ liệu), hãy dùng thư viện.</strong> Tự ghép reliable queue bằng <code>LMOVE</code> + reaper nghĩa là bạn sẽ tự viết lại — và tự debug lại — những thứ BullMQ/Asynq đã làm xong và đã được dùng ở nhiều nơi.</p>
+<hr>
+<h1 id="rabbitmq--manual-ack">RabbitMQ + manual ACK<a hidden class="anchor" aria-hidden="true" href="#rabbitmq--manual-ack">¶</a></h1>
+<p>RabbitMQ sinh ra cho đúng bài toán này, nên phần theo dõi job đang xử lý là <strong>mặc định của broker</strong>, không phải thứ app tự làm.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="nx">ch</span><span class="p">.</span><span class="nf">Qos</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span>   <span class="c1">// prefetch 1: không giữ nhiều job chưa ACK cùng lúc
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="nx">deliveries</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">ch</span><span class="p">.</span><span class="nf">Consume</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;jobs.email&#34;</span><span class="p">,</span> <span class="nx">consumerName</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="kc">false</span><span class="p">,</span>  <span class="c1">// autoAck = FALSE — ĐÂY là dòng quan trọng nhất
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="nx">d</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">deliveries</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nf">sendEmail</span><span class="p">(</span><span class="nx">d</span><span class="p">.</span><span class="nx">Body</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="c1">// requeue=false → đẩy sang DLQ đã cấu hình, KHÔNG quay lại queue cũ.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="c1">// requeue=true sẽ tạo vòng lặp vô hạn cho job lỗi vĩnh viễn.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="nx">d</span><span class="p">.</span><span class="nf">Nack</span><span class="p">(</span><span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">continue</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">d</span><span class="p">.</span><span class="nf">Ack</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Khi worker crash và RabbitMQ phát hiện <strong>kết nối đã đóng</strong>, mọi message chưa ACK trên kết nối đó <strong>tự động quay lại hàng đợi</strong>. Không cần reaper, không cần <code>XAUTOCLAIM</code>.</p>
+<blockquote>
+<p>📌 Đo thật, tôi thấy một chi tiết đáng chú ý: khi 20 worker đóng kết nối, RabbitMQ requeue ngay và <strong>phần lớn job được giao lại cho các worker còn sống trong lúc chạy</strong> — chỉ 8 job đến tay consumer phục hồi. Tức phục hồi diễn ra <strong>tự động và gần như tức thì</strong>, khác hẳn Redis Streams nơi job nằm im trong PEL tới khi bạn chủ động gọi <code>XAUTOCLAIM</code>.</p>
+</blockquote>
+<p>Nhưng <strong>retry bao lâu, tối đa mấy lần, lỗi mãi thì đi đâu</strong> vẫn cần cấu hình:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// DLQ trong RabbitMQ là cấu hình queue, không phải code
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">ch</span><span class="p">.</span><span class="nf">ExchangeDeclare</span><span class="p">(</span><span class="s">&#34;jobs.dlx&#34;</span><span class="p">,</span> <span class="s">&#34;direct&#34;</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">ch</span><span class="p">.</span><span class="nf">QueueDeclare</span><span class="p">(</span><span class="s">&#34;jobs.email.dlq&#34;</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">ch</span><span class="p">.</span><span class="nf">QueueBind</span><span class="p">(</span><span class="s">&#34;jobs.email.dlq&#34;</span><span class="p">,</span> <span class="s">&#34;email&#34;</span><span class="p">,</span> <span class="s">&#34;jobs.dlx&#34;</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">ch</span><span class="p">.</span><span class="nf">QueueDeclare</span><span class="p">(</span><span class="s">&#34;jobs.email&#34;</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="nx">amqp</span><span class="p">.</span><span class="nx">Table</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;x-dead-letter-exchange&#34;</span><span class="p">:</span>    <span class="s">&#34;jobs.dlx&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;x-dead-letter-routing-key&#34;</span><span class="p">:</span> <span class="s">&#34;email&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s">&#34;x-message-ttl&#34;</span><span class="p">:</span>             <span class="nb">int32</span><span class="p">(</span><span class="mi">300000</span><span class="p">),</span>  <span class="c1">// 5 phút
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="s">&#34;x-max-length&#34;</span><span class="p">:</span>              <span class="nb">int32</span><span class="p">(</span><span class="mi">100000</span><span class="p">),</span>  <span class="c1">// tránh queue phình vô hạn
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">})</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="bẫy-thứ-hai-việc-đã-làm-xong-nhưng-chết-trước-khi-ack">Bẫy thứ hai: việc đã làm xong nhưng chết trước khi ACK<a hidden class="anchor" aria-hidden="true" href="#bẫy-thứ-hai-việc-đã-làm-xong-nhưng-chết-trước-khi-ack">¶</a></h1>
+<p>Giữ được job mới giải quyết một nửa. Trường hợp ngược lại: <strong>email đã gửi thành công, worker chết trước lúc <code>ACK</code>.</strong> Job được giao lại, và khách nhận <strong>hai email</strong>.</p>
+<p>Tôi đo thật cùng kịch bản 20 worker crash, nhưng crash <strong>sau</strong> khi gửi email:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:right">Gửi được</th>
+<th style="text-align:right">Trùng</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>⑤ Streams, <strong>không</strong> chống trùng</td>
+<td style="text-align:right">2.000/2.000</td>
+<td style="text-align:right"><strong>⚠️ 20 email trùng</strong></td>
+</tr>
+<tr>
+<td>⑥ Streams + <code>SET NX</code> theo job id</td>
+<td style="text-align:right">2.000/2.000</td>
+<td style="text-align:right"><strong>0</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Trùng đúng 20 — bằng đúng số worker crash. Và đây là điều quan trọng: <strong>cả bốn phương án ở trên đều có vấn đề này.</strong> Nó là hệ quả tất yếu của <strong>at-least-once</strong>, không có broker nào tránh được — kể cả RabbitMQ, kể cả Kafka.</p>
+<p>Chỗ duy nhất sửa được là <strong>điểm thực hiện công việc</strong>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">w</span> <span class="o">*</span><span class="nx">Worker</span><span class="p">)</span> <span class="nf">sendEmailIdempotent</span><span class="p">(</span><span class="nx">ctx</span> <span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span> <span class="nx">job</span> <span class="nx">Job</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// Khoá theo ID NGHIỆP VỤ (order_id + loại email),
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// KHÔNG theo message ID — vì producer retry sẽ sinh message ID khác
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="c1">// cho cùng một sự kiện nghiệp vụ.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">key</span> <span class="o">:=</span> <span class="nx">fmt</span><span class="p">.</span><span class="nf">Sprintf</span><span class="p">(</span><span class="s">&#34;sent:order_confirm:%s&#34;</span><span class="p">,</span> <span class="nx">job</span><span class="p">.</span><span class="nx">OrderID</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">ok</span><span class="p">,</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">SetNX</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="s">&#34;sending&#34;</span><span class="p">,</span> <span class="mi">24</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Hour</span><span class="p">).</span><span class="nf">Result</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="nx">err</span>   <span class="c1">// lỗi Redis → KHÔNG ack, để được giao lại
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="p">!</span><span class="nx">ok</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="kc">nil</span>   <span class="c1">// đã gửi rồi → coi như thành công, ack và đi tiếp
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">w</span><span class="p">.</span><span class="nx">mailer</span><span class="p">.</span><span class="nf">Send</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">job</span><span class="p">);</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="nx">w</span><span class="p">.</span><span class="nx">rdb</span><span class="p">.</span><span class="nf">Del</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span> <span class="nx">key</span><span class="p">)</span>   <span class="c1">// NHẢ khoá để lần sau gửi lại được
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>        <span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Hai chi tiết quyết định:</p>
+<ol>
+<li><strong>Khoá theo ID nghiệp vụ, không theo message ID.</strong> Nếu service đặt hàng retry việc <em>tạo job</em>, bạn sẽ có hai message ID khác nhau cho cùng một đơn — khoá theo message ID không chặn được.</li>
+<li><strong>Nhả khoá khi thất bại.</strong> Quên bước này thì một lỗi SMTP tạm thời khiến đơn đó <strong>vĩnh viễn</strong> không bao giờ có email: khoá đã chiếm nhưng việc chưa làm.</li>
+</ol>
+<blockquote>
+<p>⚠️ Với các tác vụ liên quan tới <strong>tiền</strong> hoặc <strong>gọi dịch vụ bên ngoài</strong>, <code>SET NX</code> là chưa đủ — Redis có thể mất khoá (restart, eviction). Lớp bảo đảm cuối phải là <strong>unique constraint trong database</strong>, như đã viết kỹ ở <a href="../../posts/scalable-p01-3-rps-deep-dive/#hot-path-3--idempotency">P01.3</a>.</p>
+</blockquote>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="q2-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="q2-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="400" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Hai bẫy, hai chỗ sửa khác nhau</text>
+<rect x="24" y="46" width="408" height="200" rx="12" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#q2-sh)"/>
+<text x="228" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">BẪY 1 — MẤT việc</text>
+<rect x="46" y="84" width="364" height="34" rx="7" fill="#FFFFFF" stroke="#DC2626" stroke-width="1.6"/>
+<text x="228" y="106" text-anchor="middle" font-size="11" font-family="monospace" fill="#9F1239">pop job → 💀 CRASH → gửi email</text>
+<text x="46" y="140" font-size="11" font-weight="800" fill="#374151">Hậu quả</text>
+<text x="46" y="160" font-size="11" fill="#BE123C">Khách KHÔNG nhận được email.</text>
+<text x="46" y="178" font-size="11" fill="#BE123C">Queue rỗng, không log, không alert.</text>
+<rect x="46" y="190" width="364" height="44" rx="7" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="228" y="208" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">Sửa ở BROKER / cách nhận job</text>
+<text x="228" y="226" text-anchor="middle" font-size="10" fill="#BE123C">LMOVE · PEL · manual ACK — chọn 1 là xong</text>
+<rect x="448" y="46" width="408" height="200" rx="12" fill="#FFFAF0" stroke="#F5A623" stroke-width="2.5" filter="url(#q2-sh)"/>
+<text x="652" y="70" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">BẪY 2 — LÀM TRÙNG</text>
+<rect x="470" y="84" width="364" height="34" rx="7" fill="#FFFFFF" stroke="#F5A623" stroke-width="1.6"/>
+<text x="652" y="106" text-anchor="middle" font-size="11" font-family="monospace" fill="#7C4A03">pop → gửi email → 💀 CRASH → ACK</text>
+<text x="470" y="140" font-size="11" font-weight="800" fill="#374151">Hậu quả</text>
+<text x="470" y="160" font-size="11" fill="#92400E">Khách nhận HAI email cho cùng 1 đơn.</text>
+<text x="470" y="178" font-size="11" fill="#92400E">Với thanh toán: trừ tiền hai lần.</text>
+<rect x="470" y="190" width="364" height="44" rx="7" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="652" y="208" text-anchor="middle" font-size="11" font-weight="800" fill="#7C4A03">Sửa ở ỨNG DỤNG — broker KHÔNG giúp được</text>
+<text x="652" y="226" text-anchor="middle" font-size="10" fill="#92400E">SET NX theo ID nghiệp vụ + unique constraint DB</text>
+<rect x="24" y="266" width="832" height="54" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="44" y="288" font-size="12" font-weight="800" fill="#9F1239">Đo thật — cùng kịch bản 20 worker crash, chỉ khác thời điểm chết</text>
+<text x="44" y="310" font-size="11" fill="#BE123C">Crash TRƯỚC khi gửi + LPOP → <tspan font-family="monospace" font-weight="700">mất 20 job</tspan>.   Crash SAU khi gửi + không chống trùng → <tspan font-family="monospace" font-weight="700">20 email trùng</tspan>.</text>
+<rect x="24" y="334" width="832" height="52" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="44" y="356" font-size="12" font-weight="800" fill="#134E4A">Chọn broker nào cũng chỉ giải quyết BẪY 1. Bẫy 2 là at-least-once — không broker nào tránh được.</text>
+<text x="44" y="376" font-size="11" fill="#0F766E">RabbitMQ, Kafka, Redis Streams đều vậy. Phải chống trùng ở tầng nghiệp vụ, không có đường tắt.</text>
+</svg>
+</div>
+<hr>
+<h1 id="thông-lượng-con-số-và-những-gì-nó-không-nói">Thông lượng: con số và những gì nó KHÔNG nói<a hidden class="anchor" aria-hidden="true" href="#thông-lượng-con-số-và-những-gì-nó-không-nói">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Thao tác</th>
+<th style="text-align:right">Throughput</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Enqueue</strong> — Redis <code>RPUSH</code> (pipeline 2.000)</td>
+<td style="text-align:right">827.264 job/s</td>
+</tr>
+<tr>
+<td><strong>Enqueue</strong> — Redis <code>XADD</code> (pipeline 2.000)</td>
+<td style="text-align:right">497.416 job/s</td>
+</tr>
+<tr>
+<td><strong>Enqueue</strong> — RabbitMQ transient + publisher confirm</td>
+<td style="text-align:right">39.799 job/s</td>
+</tr>
+<tr>
+<td><strong>Enqueue</strong> — RabbitMQ <strong>persistent</strong> + publisher confirm</td>
+<td style="text-align:right">34.749 job/s</td>
+</tr>
+<tr>
+<td><strong>Dequeue+ACK</strong> — Redis Streams (batch 200)</td>
+<td style="text-align:right">86.263 job/s</td>
+</tr>
+<tr>
+<td><strong>Dequeue+ACK</strong> — RabbitMQ (prefetch 200)</td>
+<td style="text-align:right">69.208 job/s</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ <strong>Hai cột enqueue KHÔNG so sánh công bằng được, và tôi muốn nói rõ điều đó.</strong> Redis chạy pipeline 2.000 lệnh — gộp round-trip mạng và <strong>không chờ xác nhận ghi đĩa</strong>. RabbitMQ dùng <em>publisher confirm</em>, tức <strong>chờ broker xác nhận đã nhận</strong> từng message. Khoảng cách ~20× phản ánh <strong>mức bảo đảm khác nhau</strong> nhiều hơn là phản ánh tốc độ.</p>
+<p>Cột <strong>dequeue công bằng hơn</strong>: cả hai đều batch (200) và đều ACK. Ở đó khoảng cách chỉ còn <strong>1,25×</strong> (86.263 vs 69.208).</p>
+</blockquote>
+<p>Và đây là điều quan trọng hơn mọi con số trên: <strong>35.000 job/s cho background job là thừa sức với gần như mọi ứng dụng.</strong> Nếu bạn gửi 35.000 email mỗi giây thì nút thắt của bạn là nhà cung cấp email, không phải broker. Throughput <strong>không phải lý do</strong> để chọn giữa hai thứ này.</p>
+<hr>
+<h1 id="điểm-phân-biệt-thật-routing">Điểm phân biệt thật: routing<a hidden class="anchor" aria-hidden="true" href="#điểm-phân-biệt-thật-routing">¶</a></h1>
+<p>Đây mới là chỗ RabbitMQ khác về bản chất.</p>
+<p><strong>Tình huống</strong>: sau khi thanh toán, <strong>cả bên email và bên kho</strong> đều cần nhận sự kiện, nhưng xử lý <strong>độc lập</strong>.</p>
+<p>Nếu cho hai vai trò cùng lấy từ <strong>một work queue</strong>, mỗi lượt giao chỉ <strong>một bên</strong> nhận được việc — bên kia không thấy gì. Đây là lỗi thiết kế mà rất nhiều hệ thống mắc khi mới thêm consumer thứ hai.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>RabbitMQ</strong></th>
+<th><strong>Redis Streams</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cách làm</td>
+<td>1 exchange → bind nhiều queue</td>
+<td>1 stream → nhiều consumer group</td>
+</tr>
+<tr>
+<td>Ai lo routing</td>
+<td><strong>Broker</strong> (cấu hình, không code)</td>
+<td>Ứng dụng tự tạo group và quản lý</td>
+</tr>
+<tr>
+<td>Thêm vai trò mới</td>
+<td>Khai báo queue + bind — <strong>không sửa producer</strong></td>
+<td>Tạo consumer group — không sửa producer</td>
+</tr>
+<tr>
+<td>Routing theo điều kiện</td>
+<td><strong>Có sẵn</strong>: direct, topic, headers</td>
+<td><strong>Không có</strong> — phải tự lọc ở consumer hoặc tách stream</td>
+</tr>
+<tr>
+<td>Lưu trữ</td>
+<td><strong>Nhân bản</strong>: 2 queue = 2 bản</td>
+<td><strong>Không nhân bản</strong>: 1 bản, 2 con trỏ đọc</td>
+</tr>
+</tbody>
+</table>
+<p>Đo thật với 5.000 sự kiện và 2 vai trò:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:right">Thời gian publish</th>
+<th>Dữ liệu lưu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RabbitMQ fanout exchange</td>
+<td style="text-align:right">35 ms</td>
+<td><strong>10.000 message</strong> (5.000 × 2 queue)</td>
+</tr>
+<tr>
+<td>Redis Streams, 2 consumer group</td>
+<td style="text-align:right">11 ms</td>
+<td><strong>5.000 entry</strong> (2 group đọc cùng dữ liệu)</td>
+</tr>
+</tbody>
+</table>
+<p>Hai đặc tính rất khác nhau:</p>
+<ul>
+<li><strong>RabbitMQ nhân bản dữ liệu.</strong> Thêm vai trò thứ ba = thêm 5.000 message nữa. Bù lại mỗi queue có vòng đời độc lập hoàn toàn: xoá queue email không ảnh hưởng kho, và retention của mỗi queue tách biệt.</li>
+<li><strong>Redis Streams không nhân bản.</strong> 10 consumer group vẫn chỉ 5.000 entry. Bù lại chúng <strong>chia sẻ chung một vòng đời</strong>: <code>MAXLEN</code> cắt bớt là cắt cho <em>mọi</em> group — nếu một group đang chậm, nó có thể mất dữ liệu vì group khác đã đọc xong và stream bị trim.</li>
+</ul>
+<blockquote>
+<p>📌 Điểm đánh đổi này ít được nói tới nhưng rất thực tế: <strong>với Redis Streams, một consumer group chậm có thể bị mất dữ liệu do <code>MAXLEN</code>.</strong> Với RabbitMQ, queue của nó cứ dài ra (tới <code>x-max-length</code>) nhưng không mất gì vì queue khác. Nếu bạn có một consumer hay bị tụt lại (ví dụ đồng bộ sang hệ thống cũ, chậm và hay lỗi), RabbitMQ an toàn hơn về điểm này.</p>
+</blockquote>
+<h2 id="routing-có-điều-kiện--chỗ-redis-không-có-tương-đương">Routing có điều kiện — chỗ Redis không có tương đương<a hidden class="anchor" aria-hidden="true" href="#routing-có-điều-kiện--chỗ-redis-không-có-tương-đương">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// RabbitMQ topic exchange: routing theo PATTERN, broker lo hết
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">ch</span><span class="p">.</span><span class="nf">ExchangeDeclare</span><span class="p">(</span><span class="s">&#34;ev.order&#34;</span><span class="p">,</span> <span class="s">&#34;topic&#34;</span><span class="p">,</span> <span class="kc">true</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nx">ch</span><span class="p">.</span><span class="nf">QueueBind</span><span class="p">(</span><span class="s">&#34;q.email&#34;</span><span class="p">,</span>     <span class="s">&#34;order.paid.*&#34;</span><span class="p">,</span>      <span class="s">&#34;ev.order&#34;</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">ch</span><span class="p">.</span><span class="nf">QueueBind</span><span class="p">(</span><span class="s">&#34;q.warehouse&#34;</span><span class="p">,</span> <span class="s">&#34;order.paid.*&#34;</span><span class="p">,</span>      <span class="s">&#34;ev.order&#34;</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">ch</span><span class="p">.</span><span class="nf">QueueBind</span><span class="p">(</span><span class="s">&#34;q.fraud&#34;</span><span class="p">,</span>     <span class="s">&#34;order.paid.highval&#34;</span><span class="p">,</span><span class="s">&#34;ev.order&#34;</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span> <span class="c1">// CHỈ đơn giá trị cao
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">ch</span><span class="p">.</span><span class="nf">QueueBind</span><span class="p">(</span><span class="s">&#34;q.audit&#34;</span><span class="p">,</span>     <span class="s">&#34;order.#&#34;</span><span class="p">,</span>           <span class="s">&#34;ev.order&#34;</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span> <span class="c1">// MỌI sự kiện order
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// Producer chỉ cần publish 1 lần với routing key đúng
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">ch</span><span class="p">.</span><span class="nf">Publish</span><span class="p">(</span><span class="s">&#34;ev.order&#34;</span><span class="p">,</span> <span class="s">&#34;order.paid.highval&#34;</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="kc">false</span><span class="p">,</span> <span class="nx">msg</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Với Redis Streams, muốn có <code>q.fraud</code> chỉ nhận đơn giá trị cao thì bạn phải: <strong>tách stream riêng</strong> (producer phải biết logic này), hoặc <strong>cho consumer đọc hết rồi tự lọc</strong> (tốn băng thông và CPU cho những tin nó không cần).</p>
+<p>Đó chính là &ldquo;phần routing broker làm sẵn&rdquo; — và là lý do chính đáng nhất để chọn RabbitMQ.</p>
+<hr>
+<h1 id="chọn-thế-nào">Chọn thế nào?<a hidden class="anchor" aria-hidden="true" href="#chọn-thế-nào">¶</a></h1>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="q3-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="q3-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="480" fill="#FFFDF7" rx="16"/>
+<text x="440" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Hai câu hỏi, theo đúng thứ tự</text>
+<rect x="190" y="46" width="500" height="50" rx="10" fill="#DC2626" filter="url(#q3-sh)"/>
+<text x="440" y="68" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">① Cách triển khai hiện tại có GIỮ được job khi worker chết không?</text>
+<text x="440" y="87" text-anchor="middle" font-size="11" fill="#FFD9DE">Đây là câu hỏi ĐẦU TIÊN — không phải "Redis hay RabbitMQ"</text>
+<rect x="30" y="118" width="390" height="104" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5" filter="url(#q3-sh)"/>
+<text x="225" y="142" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">KHÔNG → sửa cái này TRƯỚC</text>
+<text x="48" y="164" font-size="11" fill="#BE123C">Thêm worker vào thiết kế đang mất job chỉ tạo thêm</text>
+<text x="48" y="182" font-size="11" fill="#BE123C">tiến trình nhìn vào một queue rỗng.</text>
+<text x="48" y="206" font-size="11" font-weight="800" fill="#DC2626">Đổi broker chưa cần. Đổi cách NHẬN job đã.</text>
+<rect x="450" y="118" width="400" height="104" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#q3-sh)"/>
+<text x="650" y="142" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">CÓ → sang câu ②</text>
+<text x="468" y="164" font-size="11" fill="#0F766E">Đã có LMOVE+reaper, hoặc Streams+XAUTOCLAIM,</text>
+<text x="468" y="182" font-size="11" fill="#0F766E">hoặc BullMQ/Asynq, hoặc RabbitMQ manual ACK.</text>
+<text x="468" y="206" font-size="11" font-weight="700" fill="#134E4A">Và đã TEST bằng cách kill worker giữa chừng.</text>
+<rect x="190" y="244" width="500" height="50" rx="10" fill="#374151" filter="url(#q3-sh)"/>
+<text x="440" y="266" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">② Có cần phân phối message theo nhiều RULE giữa các service?</text>
+<text x="440" y="285" text-anchor="middle" font-size="11" fill="#D6D3D1">Đây mới là chỗ Redis và RabbitMQ khác về bản chất</text>
+<rect x="30" y="316" width="390" height="136" rx="10" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#q3-sh)"/>
+<text x="225" y="340" text-anchor="middle" font-size="14" font-weight="800" fill="#134E4A">GIỮ REDIS</text>
+<text x="48" y="362" font-size="11" fill="#0F766E">• Background job: email, resize ảnh, đồng bộ</text>
+<text x="48" y="380" font-size="11" fill="#0F766E">• Fan-out đơn giản: vài consumer group độc lập</text>
+<text x="48" y="398" font-size="11" fill="#0F766E">• Thư viện đã lo giữ job, phục hồi, retry</text>
+<text x="48" y="420" font-size="11" font-weight="700" fill="#9F1239">Vẫn phải tự lo: persistence, tránh eviction xoá</text>
+<text x="48" y="436" font-size="11" font-weight="700" fill="#9F1239">key queue như cache, theo dõi job lỗi</text>
+<rect x="450" y="316" width="400" height="136" rx="10" fill="#EEF2FF" stroke="#6366F1" stroke-width="2.5" filter="url(#q3-sh)"/>
+<text x="650" y="340" text-anchor="middle" font-size="14" font-weight="800" fill="#3730A3">CÂN NHẮC RABBITMQ</text>
+<text x="468" y="362" font-size="11" fill="#4338CA">• Nhiều service nhận theo nhiều rule khác nhau</text>
+<text x="468" y="380" font-size="11" fill="#4338CA">• Muốn BROKER lo routing (topic, headers)</text>
+<text x="468" y="398" font-size="11" fill="#4338CA">• Có consumer hay tụt lại → queue riêng an toàn hơn</text>
+<text x="468" y="420" font-size="11" font-weight="700" fill="#9F1239">Vẫn phải tự lo: cấu hình persistence, DLQ,</text>
+<text x="468" y="436" font-size="11" font-weight="700" fill="#9F1239">retry policy, và công vận hành thêm 1 hệ thống</text>
+<line x1="225" y1="98" x2="225" y2="114" stroke="#DC2626" stroke-width="2" marker-end="url(#q3-a)"/>
+<line x1="650" y1="98" x2="650" y2="114" stroke="#0D9488" stroke-width="2" marker-end="url(#q3-a)"/>
+<line x1="650" y1="224" x2="650" y2="240" stroke="#57534E" stroke-width="2" marker-end="url(#q3-a)"/>
+<path d="M440,296 L440,306 L225,306 L225,312" stroke="#0D9488" stroke-width="2" fill="none" marker-end="url(#q3-a)"/>
+<path d="M440,296 L440,306 L650,306 L650,312" stroke="#6366F1" stroke-width="2" fill="none" marker-end="url(#q3-a)"/>
+<rect x="110" y="300" width="60" height="18" rx="5" fill="#0D9488"/>
+<rect x="710" y="300" width="48" height="18" rx="5" fill="#6366F1"/>
+<text x="140" y="314" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">KHÔNG</text>
+<text x="734" y="314" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">CÓ</text>
+</svg>
+</div>
+<p>Điểm then chốt ở sơ đồ: <strong>thứ tự hai câu hỏi.</strong> Team trong câu chuyện mở đầu không có vấn đề &ldquo;chọn sai broker&rdquo; — họ có vấn đề &ldquo;không có chỗ giữ job đang xử lý&rdquo;. Đổi sang RabbitMQ sẽ sửa được, nhưng <code>LMOVE</code> + reaper, hay đổi sang Asynq, cũng sửa được — và rẻ hơn nhiều so với thêm một hệ thống phân tán vào stack.</p>
+<h2 id="một-lưu-ý-riêng-cho-redis-làm-queue">Một lưu ý riêng cho Redis làm queue<a hidden class="anchor" aria-hidden="true" href="#một-lưu-ý-riêng-cho-redis-làm-queue">¶</a></h2>
+<p>Nếu Redis của bạn <strong>dùng chung cho cả cache và queue</strong>, có một rủi ro cụ thể mà tôi đã đo ở <a href="../../posts/system-design-p04-streams-vs-kafka/#chuy%E1%BB%87n-g%C3%AC-x%E1%BA%A3y-ra-khi-stream-d%C3%B9ng-chung-redis-v%E1%BB%9Bi-cache">P04</a>: với <code>maxmemory-policy = allkeys-lru</code>, Redis <strong>xoá cả key chứa queue</strong> khi hết bộ nhớ — mất 72.000 message, <code>XADD</code> vẫn báo thành công.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Instance cache — evict thoải mái, đó là bản chất cache</span>
+</span></span><span class="line"><span class="cl">redis-server --port <span class="m">6379</span> --maxmemory 4gb --maxmemory-policy allkeys-lru
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># Instance QUEUE — KHÔNG BAO GIỜ evict</span>
+</span></span><span class="line"><span class="cl">redis-server --port <span class="m">6380</span> --maxmemory 8gb --maxmemory-policy noeviction
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Đây chính là điều &ldquo;team vẫn phải lo lưu dữ liệu, tránh eviction xoá key của queue như cache&rdquo;.</p>
+<hr>
+<h1 id="quay-lại-câu-chuyện-đầu-bài">Quay lại câu chuyện đầu bài<a hidden class="anchor" aria-hidden="true" href="#quay-lại-câu-chuyện-đầu-bài">¶</a></h1>
+<p>Cách kiểm tra đúng không phải nhìn queue còn job hay không, mà là <strong>dựng lại đúng tình huống worker chết giữa chừng</strong>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">□ Kill worker ĐÚNG LÚC nó đang giữ job (không phải lúc rảnh)
+</span></span><span class="line"><span class="cl">□ Worker mới lên có TÌM ĐƯỢC job bỏ dở không?
+</span></span><span class="line"><span class="cl">□ Job đó có được xử lý tới bước gửi thành công không?
+</span></span><span class="line"><span class="cl">□ Có xác nhận hoàn tất (ACK) không?
+</span></span><span class="line"><span class="cl">□ Đếm: số job gửi vào = số email gửi ra? (khác nhau = đang mất job)
+</span></span><span class="line"><span class="cl">□ Kill worker SAU khi gửi, TRƯỚC khi ACK → có gửi trùng không?
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Nhìn queue hết job chờ thôi thì vẫn chưa biết khách đã nhận được gì.</p>
+<h2 id="metric-phải-có">Metric phải có<a hidden class="anchor" aria-hidden="true" href="#metric-phải-có">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Vì sao</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>jobs_enqueued</code> − <code>jobs_completed</code></strong></td>
+<td><strong>Phải về 0.</strong> Dương kéo dài = đang mất job</td>
+</tr>
+<tr>
+<td>Độ sâu <strong>danh sách đang-xử-lý</strong> (processing / PEL / unacked)</td>
+<td>Tăng đều không giảm = có worker chết không ai thu hồi</td>
+</tr>
+<tr>
+<td>Tuổi của job cũ nhất trong danh sách đó</td>
+<td>Tín hiệu sớm nhất của job kẹt</td>
+</tr>
+<tr>
+<td><code>jobs_reclaimed/s</code></td>
+<td>Reaper / <code>XAUTOCLAIM</code> có đang chạy thật không</td>
+</tr>
+<tr>
+<td><code>jobs_duplicate_blocked</code></td>
+<td>Chống trùng có hoạt động — và bị kích hoạt bao nhiêu lần</td>
+</tr>
+<tr>
+<td>Độ sâu DLQ</td>
+<td>Job lỗi vĩnh viễn đang tích tụ</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Metric quan trọng nhất: <code>jobs_enqueued − jobs_completed</code>.</strong> Nó là metric <strong>đúng đắn</strong>, không phải hiệu năng — giống <code>oversell_count</code> ở <a href="../../posts/scalable-p01-3-rps-deep-dive/">P01.3</a> và <code>messages_acked − messages_persisted</code> ở <a href="../../posts/scalable-p01-4-chat-deep-dive/">P01.4</a>. Nếu dương kéo dài, bạn đang mất việc — và &ldquo;queue rỗng&rdquo; sẽ không bao giờ nói cho bạn biết.</p>
+<hr>
+<h1 id="checklist">Checklist<a hidden class="anchor" aria-hidden="true" href="#checklist">¶</a></h1>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-txt" data-lang="txt"><span class="line"><span class="cl">TRƯỚC KHI ĐƯA QUEUE LÊN PRODUCTION
+</span></span><span class="line"><span class="cl">□ Nhận job bằng cách nào? LPOP (❌) / LMOVE / Streams / manual ACK?
+</span></span><span class="line"><span class="cl">□ Có chỗ giữ job ĐÃ GIAO nhưng CHƯA XÁC NHẬN không?
+</span></span><span class="line"><span class="cl">□ Ai thu hồi job kẹt? (reaper tự viết / XAUTOCLAIM / broker tự làm)
+</span></span><span class="line"><span class="cl">□ Nếu tự viết reaper: StartedAt nằm TRONG payload hay trong RAM worker?
+</span></span><span class="line"><span class="cl">□ MinIdle / timeout thu hồi có DÀI HƠN thời gian xử lý bình thường?
+</span></span><span class="line"><span class="cl">□ Đếm số lần retry ở đâu? Vượt ngưỡng thì job đi đâu (DLQ)?
+</span></span><span class="line"><span class="cl">□ Handler đã idempotent chưa? Khoá theo ID NGHIỆP VỤ hay message ID?
+</span></span><span class="line"><span class="cl">□ Khi xử lý thất bại, khoá idempotency có được NHẢ không?
+</span></span><span class="line"><span class="cl">□ Tác vụ liên quan tiền → có unique constraint trong DB chưa?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">NẾU DÙNG REDIS
+</span></span><span class="line"><span class="cl">□ Queue có nằm CHUNG instance với cache không? → TÁCH RA
+</span></span><span class="line"><span class="cl">□ maxmemory-policy của instance queue = noeviction?
+</span></span><span class="line"><span class="cl">□ AOF/RDB đã bật và đã TEST phục hồi thật chưa?
+</span></span><span class="line"><span class="cl">□ Streams có MAXLEN chưa? Consumer group chậm nhất có bị trim mất dữ liệu?
+</span></span><span class="line"><span class="cl">□ Đã cân nhắc dùng BullMQ/Asynq thay vì tự ghép chưa?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">NẾU DÙNG RABBITMQ
+</span></span><span class="line"><span class="cl">□ autoAck = false chưa? (true = mất job y như LPOP)
+</span></span><span class="line"><span class="cl">□ Qos/prefetch đã đặt chưa? (không đặt = 1 worker hút hết queue)
+</span></span><span class="line"><span class="cl">□ DLX + x-dead-letter-routing-key đã cấu hình chưa?
+</span></span><span class="line"><span class="cl">□ Nack(requeue=false) cho lỗi vĩnh viễn, không phải requeue=true?
+</span></span><span class="line"><span class="cl">□ x-max-length có chưa? (tránh queue phình vô hạn)
+</span></span><span class="line"><span class="cl">□ Queue và message đã durable + persistent chưa?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">TEST
+</span></span><span class="line"><span class="cl">□ Đã kill worker ĐANG GIỮ job và đếm lại chưa?
+</span></span><span class="line"><span class="cl">□ Đã kill worker SAU khi làm xong, TRƯỚC khi ACK chưa?
+</span></span><span class="line"><span class="cl">□ Có metric jobs_enqueued − jobs_completed không?
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Câu hỏi</th>
+<th>Trả lời</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&ldquo;Queue rỗng&rdquo; nghĩa là gì?</td>
+<td><strong>Chỉ là không còn job đang CHỜ.</strong> Nó không nói gì về việc đã xong hay chưa</td>
+</tr>
+<tr>
+<td><code>LPOP</code> mất bao nhiêu job?</td>
+<td>Đo thật: <strong>20/2.000</strong>, bằng đúng số worker crash. Không lỗi, không log</td>
+</tr>
+<tr>
+<td>&ldquo;Redis Queue&rdquo; là gì?</td>
+<td><strong>Bốn cách rất khác nhau</strong>: List+<code>LPOP</code> (mất job), List+<code>LMOVE</code>, Streams+PEL, BullMQ/Asynq</td>
+</tr>
+<tr>
+<td>Redis có tự thu hồi job kẹt?</td>
+<td><strong>Không.</strong> <code>LMOVE</code> cần reaper tự viết; Streams cần <code>XAUTOCLAIM</code> chạy định kỳ</td>
+</tr>
+<tr>
+<td>RabbitMQ khác gì ở đây?</td>
+<td><strong>Tự requeue khi kết nối đóng</strong> — phục hồi gần như tức thì, không cần reaper</td>
+</tr>
+<tr>
+<td>Chọn broker là xong chưa?</td>
+<td><strong>Chưa.</strong> Cả 4 đều gửi trùng khi crash sau khi làm xong: đo được <strong>20 email trùng</strong></td>
+</tr>
+<tr>
+<td>Chống trùng ở đâu?</td>
+<td><strong>Tầng nghiệp vụ</strong> — <code>SET NX</code> theo ID nghiệp vụ + unique constraint DB. Không broker nào làm hộ</td>
+</tr>
+<tr>
+<td>Throughput có phải lý do chọn?</td>
+<td><strong>Không.</strong> 35.000 job/s đã thừa cho background job. Và hai cột enqueue không so sánh công bằng được</td>
+</tr>
+<tr>
+<td>Điểm phân biệt thật?</td>
+<td><strong>Routing.</strong> RabbitMQ có exchange (direct/topic/headers); Redis không có tương đương</td>
+</tr>
+<tr>
+<td>Đánh đổi của fan-out?</td>
+<td>RabbitMQ <strong>nhân bản</strong> dữ liệu (2 queue = 2 bản) nhưng vòng đời độc lập; Redis <strong>1 bản</strong> nhưng <code>MAXLEN</code> cắt cho mọi group</td>
+</tr>
+<tr>
+<td>Metric phải về 0?</td>
+<td><strong><code>jobs_enqueued</code> − <code>jobs_completed</code></strong></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="tham-khảo">Tham khảo<a hidden class="anchor" aria-hidden="true" href="#tham-khảo">¶</a></h1>
+<ul>
+<li><a href="https://redis.io/docs/latest/commands/lmove/">Redis — Reliable queue pattern (<code>LMOVE</code>)</a> · <a href="https://redis.io/docs/latest/develop/data-types/streams/">Streams consumer group</a></li>
+<li><a href="https://www.rabbitmq.com/docs/confirms">RabbitMQ — Consumer Acknowledgements and Publisher Confirms</a> · <a href="https://www.rabbitmq.com/docs/dlx">Dead Letter Exchanges</a></li>
+<li><a href="https://github.com/hibiken/asynq">Asynq</a> (Go) · <a href="https://docs.bullmq.io/">BullMQ</a> (Node) — thư viện queue trên Redis</li>
+<li><a href="https://brandur.org/job-drain">Brandur — Transactionally Staged Job Drains</a> — vì sao nên tạo job trong cùng transaction với dữ liệu</li>
+<li>Group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a> — nguồn nội dung gốc</li>
+<li>Series: <a href="../../posts/system-design-p01-redis/">P01 — Redis không chỉ có GET/SET</a> · <a href="../../posts/system-design-p02-cache-stampede/">P02 — Cache Stampede</a> · <a href="../../posts/system-design-p03-pubsub-vs-streams/">P03 — Pub/Sub vs Streams</a> · <a href="../../posts/system-design-p04-streams-vs-kafka/">P04 — Streams vs Kafka</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>

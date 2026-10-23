@@ -488,5 +488,5 @@ NẾU CHỌN KAFKA
 - [Redis — Key eviction policies](https://redis.io/docs/latest/develop/reference/eviction/) — đọc kỹ phần `allkeys-*` vs `volatile-*`
 - [Kafka — Design: Persistence](https://kafka.apache.org/documentation/#persistence) · [Kafka Connect](https://kafka.apache.org/documentation/#connect)
 - Group Facebook [Viet Tran Premium Lab & Playground](https://www.facebook.com/groups/2512930739174619) — nguồn nội dung gốc của series
-- Series: [P01 — Redis không chỉ có GET/SET](/posts/system-design-p01-redis/) · [P02 — Cache Stampede](/posts/system-design-p02-cache-stampede/) · [P03 — Pub/Sub vs Streams](/posts/system-design-p03-pubsub-vs-streams/)
+- Series: [P01 — Redis không chỉ có GET/SET](/posts/system-design-p01-redis/) · [P02 — Cache Stampede](/posts/system-design-p02-cache-stampede/) · [P03 — Pub/Sub vs Streams](/posts/system-design-p03-pubsub-vs-streams/) · [P05 — Redis Queue hay RabbitMQ?](/posts/system-design-p05-queue/)
 - Trên blog: [Apache Kafka P1](/posts/apache-kafka-p1/) · [Apache Kafka P2](/posts/apache-kafka-p2/)
