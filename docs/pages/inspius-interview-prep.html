@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inspius Backend Interview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#ffffff; --surface-2:#f0eee8; --text:#1d1d1b; --muted:#6b6a64;
+  --border:#e2dfd6; --accent:#0f6e5c; --accent-soft:#e1f1ec; --warn:#a1530b; --warn-soft:#fbeedd;
+  --danger:#a82a2a; --danger-soft:#f8e3e1; --code-bg:#f2f0ea; --shadow:0 1px 2px rgba(0,0,0,.04),0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121412; --surface:#1b1e1c; --surface-2:#232725; --text:#e8e7e2; --muted:#9a9a93;
+    --border:#2e3330; --accent:#4cc3a6; --accent-soft:#183a32; --warn:#e7a35b; --warn-soft:#3a2a18;
+    --danger:#ef7a7a; --danger-soft:#3d1f1f; --code-bg:#252a27; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121412; --surface:#1b1e1c; --surface-2:#232725; --text:#e8e7e2; --muted:#9a9a93;
+  --border:#2e3330; --accent:#4cc3a6; --accent-soft:#183a32; --warn:#e7a35b; --warn-soft:#3a2a18;
+  --danger:#ef7a7a; --danger-soft:#3d1f1f; --code-bg:#252a27; --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.6}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:.86em}
+code{background:var(--code-bg);padding:1px 5px;border-radius:4px}
+pre{background:var(--code-bg);padding:12px 14px;border-radius:8px;overflow-x:auto;line-height:1.5;margin:10px 0}
+pre code{background:none;padding:0}
+.layout{display:grid;grid-template-columns:276px minmax(0,1fr);gap:32px;max-width:1280px;margin:0 auto;padding:0 20px}
+.content{padding:28px 0 80px;min-width:0}
+header h1{font-size:26px;margin:0 0 6px;letter-spacing:-.01em}
+header p{margin:0;color:var(--muted)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.pill{font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+
+/* Sidebar */
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;padding:22px 18px 28px 0;border-right:1px solid var(--border);scrollbar-width:thin}
+.side-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
+.side-title{font-size:13px;font-weight:700;letter-spacing:.02em}
+.side-title span{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.side-block+.side-block{margin-top:18px}
+.side-label{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-bottom:8px}
+input[type=search]{width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:14px}
+button,.chip{font:inherit;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:6px 11px;border-radius:999px}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+button.ghost{border-radius:8px}
+.btn-col{display:flex;flex-direction:column;gap:6px}
+.btn-col button{width:100%;text-align:left}
+.lv-row{display:flex;flex-wrap:wrap;gap:6px}
+.cat-list{display:flex;flex-direction:column;gap:3px}
+.cat-list .chip{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border-radius:8px;padding:7px 10px;border-color:transparent;background:transparent}
+.cat-list .chip:hover{background:var(--surface-2)}
+.cat-list .chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.progress{font-size:13px;color:var(--muted)}
+.bar{width:100%;height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:6px}
+.bar>i{display:block;height:100%;background:var(--accent);width:0}
+#filterToggle{display:none}
+.count{font-size:13px;color:var(--muted);margin:14px 0 4px}
+.section-title{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:26px 0 8px;font-weight:600}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:10px 0;box-shadow:var(--shadow)}
+.card.done{opacity:.62}
+.card-head{display:flex;gap:10px;align-items:flex-start}
+.num{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted);padding-top:3px;min-width:30px}
+.q{font-weight:600;flex:1}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0 40px}
+.tag{font-size:11.5px;padding:2px 8px;border-radius:6px;background:var(--surface-2);color:var(--muted)}
+.lv1{background:var(--accent-soft);color:var(--accent)}
+.lv2{background:var(--warn-soft);color:var(--warn)}
+.lv3{background:var(--danger-soft);color:var(--danger)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0 40px;align-items:center}
+.actions button{border-radius:8px;font-size:12.5px;padding:5px 10px}
+.actions label{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;margin-left:auto;cursor:pointer}
+.panel{margin:12px 0 0 40px;padding:12px 14px;border-radius:8px;border-left:3px solid var(--border);background:var(--surface-2);display:none}
+.panel.open{display:block}
+.panel.hint{border-left-color:var(--warn)}
+.panel.ans{border-left-color:var(--accent)}
+.panel h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.panel ul,.panel ol{margin:4px 0;padding-left:20px}
+.panel li{margin:3px 0}
+.panel p{margin:6px 0}
+.follow{margin-top:10px;padding-top:8px;border-top:1px dashed var(--border);font-size:14px}
+.follow b{color:var(--warn)}
+.empty{text-align:center;color:var(--muted);padding:40px 0}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:0;padding:0 16px}
+  .sidebar{position:static;height:auto;overflow:visible;border-right:0;border-bottom:1px solid var(--border);padding:16px 0}
+  .side-head{margin-bottom:0}
+  #filterToggle{display:inline-block}
+  .sidebar:not(.collapsed) .side-head{margin-bottom:14px}
+  .sidebar.collapsed .side-body{display:none}
+  .cat-list{flex-direction:row;flex-wrap:wrap;gap:6px}
+  .cat-list .chip{width:auto;border-radius:999px;border-color:var(--border);background:var(--surface)}
+  .btn-col{flex-direction:row;flex-wrap:wrap}
+  .btn-col button{width:auto}
+  .content{padding-top:20px}
+}
+@media (max-width:640px){
+  .tags,.actions,.panel{margin-left:0}
+  header h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar collapsed" id="sidebar">
+  <div class="side-head">
+    <div class="side-title">Interview<span>Backend Go · Trading</span></div>
+    <div style="display:flex;gap:6px">
+      <button class="ghost" id="filterToggle" aria-expanded="false">Bộ lọc ▾</button>
+      <button class="ghost" id="theme" title="Đổi giao diện sáng/tối">◐</button>
+    </div>
+  </div>
+  <div class="side-body">
+    <div class="side-block">
+      <input type="search" id="search" placeholder="Tìm keyword (nonce, GC, funding…)">
+    </div>
+    <div class="side-block">
+      <div class="side-label">Tiến độ</div>
+      <div class="progress"><span id="progText">0/0 đã ôn</span><div class="bar"><i id="progBar"></i></div></div>
+    </div>
+    <div class="side-block">
+      <div class="side-label">Hiển thị</div>
+      <div class="btn-col">
+        <button class="ghost" id="toggleHints">Mở tất cả gợi ý</button>
+        <button class="ghost" id="toggleAns">Mở tất cả đáp án</button>
+        <button class="chip ghost" id="hideDone" aria-pressed="false">Ẩn câu đã ôn</button>
+      </div>
+    </div>
+    <div class="side-block">
+      <div class="side-label">Độ khó</div>
+      <div class="lv-row">
+        <button class="chip" data-lv="1" aria-pressed="true">Nền tảng+</button>
+        <button class="chip" data-lv="2" aria-pressed="true">Khó</button>
+        <button class="chip" data-lv="3" aria-pressed="true">Rất khó</button>
+      </div>
+    </div>
+    <div class="side-block">
+      <div class="side-label">Chủ đề</div>
+      <div class="cat-list" id="cats"></div>
+    </div>
+  </div>
+</aside>
+
+<div class="content">
+<header>
+  <h1>Backend Engineer (Go) – Crypto Trading Systems</h1>
+  <p>Ngân hàng câu hỏi phỏng vấn kèm gợi ý và đáp án cho vị trí tuyển qua Inspius. Tập trung vòng 3 (Technical &amp; Culture Fit), có phần quant cho vòng 2.</p>
+  <div class="meta">
+    <span class="pill">Vòng 1 · Coding (không AI)</span>
+    <span class="pill">Vòng 2 · Quant / AMM / Funding / Arbitrage</span>
+    <span class="pill">Vòng 3 · System design · Incident · AI-assisted dev · Motivation</span>
+  </div>
+</header>
+
+<div class="count" id="count"></div>
+<main id="list"></main>
+</div>
+</div>
+
+<script>
+const CATS = {
+  go:   "Go runtime & internals",
+  conc: "Concurrency",
+  perf: "Performance & low-latency",
+  net:  "Networking & market data",
+  dist: "Distributed systems & correctness",
+  sd:   "System design",
+  obs:  "Observability & incident",
+  chain:"Blockchain / EVM / MEV",
+  defi: "DeFi & Quant",
+  ts:   "NodeJS / TypeScript",
+  ai:   "AI-assisted dev & brownfield",
+  exp:  "Kinh nghiệm & behavioral",
+  ask:  "Câu hỏi nên hỏi lại interviewer"
+};
+const LV = {1:"Nền tảng+",2:"Khó",3:"Rất khó"};
+
+const Q = [
+/* ================= GO ================= */
+{c:"go",l:2,q:"Giải thích mô hình G-M-P của Go scheduler. Khi một goroutine thực hiện blocking syscall (vd đọc file) thì chuyện gì xảy ra? Khác gì so với network I/O?",
+h:"Nghĩ xem P có bị \"kẹt\" theo M đang block không, và vai trò của netpoller.",
+a:`<ul>
+<li><b>G</b> = goroutine, <b>M</b> = OS thread, <b>P</b> = logical processor (số lượng = <code>GOMAXPROCS</code>). M phải giữ một P mới chạy được G.</li>
+<li>Mỗi P có local run queue (256 slot) và còn có global run queue. P rảnh sẽ <b>work-stealing</b> một nửa queue của P khác.</li>
+<li><b>Blocking syscall</b>: M bị block cùng G. P được <b>handoff</b> sang M khác (tạo mới hoặc lấy từ idle) để chạy tiếp các G còn lại. <code>sysmon</code> phát hiện syscall chạy lâu và lấy P lại.</li>
+<li><b>Network I/O</b> không block M: fd ở chế độ non-blocking, G bị park và đăng ký vào <b>netpoller</b> (epoll/kqueue). Khi fd ready, G được đưa lại vào run queue.</li>
+<li><b>Preemption</b>: cooperative tại function prologue, cộng thêm <b>async preemption bằng signal</b> từ Go 1.14 khi sysmon thấy G chạy quá khoảng 10ms.</li>
+<li>Liên hệ thực tế: trong container, Go trước 1.25 không đọc CPU quota của cgroup nên <code>GOMAXPROCS</code> bằng số core của host, dễ bị CPU throttling và gây p99 spike (thường xử lý bằng <code>automaxprocs</code>). Từ Go 1.25, giá trị mặc định đã tính đến cgroup limit.</li>
+</ul>`,
+f:"Trước Go 1.14, tight loop không có function call có thể làm treo GC/STW. Tại sao?"},
+
+{c:"go",l:3,q:"Go GC hoạt động thế nào? Với service yêu cầu tail latency thấp, bạn tune GC ra sao và trade-off là gì?",
+h:"Phân biệt STW pause với chi phí CPU của mark assist. Nhớ GOGC và GOMEMLIMIT.",
+a:`<ul>
+<li>Concurrent <b>tri-color mark &amp; sweep</b>, non-generational, non-compacting, dùng <b>hybrid write barrier</b>. STW chỉ xảy ra ngắn ở đầu và cuối mark phase (thường dưới 1ms).</li>
+<li>Thứ gây tail latency thường không phải STW mà là <b>mark assist</b> (goroutine đang allocate bị bắt làm việc GC) và khoảng 25% CPU dành cho GC worker.</li>
+<li><code>GOGC=100</code>: GC chạy khi heap tăng 100% so với live heap của lần trước. Tăng GOGC thì ít GC hơn nhưng tốn RAM hơn.</li>
+<li><code>GOMEMLIMIT</code> (Go 1.19) là soft memory limit. Kết hợp <code>GOGC=off</code> + <code>GOMEMLIMIT</code> cho process có memory footprint dự đoán được. Rủi ro: live heap tiến sát limit thì GC chạy liên tục (death spiral).</li>
+<li>Ưu tiên số 1 là <b>giảm allocation trên hot path</b> (preallocate, reuse buffer, tránh boxing interface, tránh <code>fmt</code>). Chỉnh tham số GC là bước sau.</li>
+<li>Đo bằng <code>GODEBUG=gctrace=1</code>, <code>runtime/metrics</code>, <code>go tool trace</code> (nhìn được GC và assist trên timeline).</li>
+</ul>`,
+f:"Trước khi có GOMEMLIMIT, \"memory ballast\" là gì và tại sao người ta dùng nó?"},
+
+{c:"go",l:2,q:"Khi nào một biến bị escape lên heap? Bạn kiểm tra và giảm allocation trên hot path như thế nào?",
+h:"Nghĩ tới compiler flag -m và benchmark -benchmem.",
+a:`<ul>
+<li>Các trường hợp escape phổ biến: trả về pointer tới biến local; gán vào interface (boxing); closure capture biến rồi sống lâu hơn function; kích thước không biết lúc compile hoặc quá lớn; gửi pointer qua channel; lưu vào global hoặc vào struct đã nằm trên heap.</li>
+<li>Kiểm tra bằng <code>go build -gcflags='-m -m'</code>. Đo bằng <code>go test -bench . -benchmem</code> (allocs/op) và heap profile (<code>alloc_space</code>).</li>
+<li>Cách giảm:
+  <ul>
+  <li>Truyền struct nhỏ theo value.</li>
+  <li><code>make([]T, 0, n)</code> với capacity biết trước.</li>
+  <li><code>strconv.AppendInt</code>/<code>AppendFloat</code> vào buffer reuse thay cho <code>fmt.Sprintf</code>.</li>
+  <li><code>sync.Pool</code> cho object tạm có vòng đời ngắn.</li>
+  <li>Tránh <code>[]byte</code> ↔ <code>string</code> conversion lặp lại.</li>
+  </ul></li>
+<li>Trade-off: code tối ưu allocation khó đọc hơn. Chỉ áp dụng ở hot path đã được profile chứng minh.</li>
+</ul>`,
+f:"sync.Pool có bị clear khi GC không? Victim cache (Go 1.13) thay đổi điều gì?"},
+
+{c:"go",l:1,q:"Một hàm trả về sub-slice của order book levels cho caller. Sau đó order book append thêm level và dữ liệu caller đang giữ bị thay đổi. Giải thích và sửa.",
+h:"Slice header gồm (ptr, len, cap). Sub-slice dùng chung backing array.",
+a:`<ul>
+<li>Sub-slice <code>s[a:b]</code> dùng chung backing array với slice gốc. Khi <code>append</code> trên slice gốc vẫn còn trong cap, phần tử bị ghi đè tại chỗ, nên caller thấy dữ liệu thay đổi. Nếu có goroutine khác đang đọc thì đây còn là data race.</li>
+<li>Cách sửa:
+  <ul>
+  <li><code>copy</code> sang slice mới (snapshot) trước khi trả về.</li>
+  <li>Hoặc dùng full slice expression <code>s[a:b:b]</code> để append buộc phải cấp phát array mới.</li>
+  <li>Hoặc publish snapshot immutable qua <code>atomic.Pointer</code>.</li>
+  </ul></li>
+<li>Trong trading, kiểu bug này rất nguy hiểm vì strategy ra quyết định dựa trên snapshot đã bị thay đổi giữa chừng.</li>
+</ul>`,
+f:"Tại sao giữ một sub-slice nhỏ của một buffer lớn có thể gây memory leak?"},
+
+{c:"go",l:2,q:"Tại sao concurrent map write làm process crash và không recover được? Khi nào dùng sync.Map, map+RWMutex, sharded map hay atomic.Pointer copy-on-write?",
+h:"Phân biệt fatal error với panic. Mỗi lựa chọn hợp với một access pattern khác nhau.",
+a:`<ul>
+<li>Runtime phát hiện ghi đồng thời qua cờ trong map header và gọi <code>fatal error: concurrent map writes</code>. Đây là <b>throw</b>, không phải panic, nên <code>recover</code> không bắt được.</li>
+<li><b>sync.Map</b> tối ưu cho hai trường hợp: key ghi một lần rồi đọc rất nhiều; hoặc các goroutine thao tác trên tập key rời nhau. Với write-heavy thì thường chậm hơn map+mutex.</li>
+<li><b>map + RWMutex</b> đơn giản, phù hợp read-heavy. Nhưng khi rất nhiều core cùng đọc, cache line của RWMutex vẫn bị contention.</li>
+<li><b>Sharded map</b> (N shard, mỗi shard một mutex, chọn shard theo hash key) phù hợp write-heavy với key phân tán, ví dụ state theo symbol.</li>
+<li><b>atomic.Pointer + copy-on-write</b>: đọc lock-free, mỗi lần ghi copy toàn bộ map. Hợp với symbol config, token metadata, routing table vốn hiếm khi đổi.</li>
+</ul>`,
+f:"Thiết kế nào cho state order book mà một goroutine ghi liên tục còn nhiều goroutine strategy đọc?"},
+
+{c:"go",l:3,q:"Goroutine A ghi `price = x` rồi set `ready = true` (bool thường). Goroutine B loop chờ `ready` rồi đọc `price`. Sai ở đâu theo Go memory model?",
+h:"Không có quan hệ happens-before. Compiler có thể hoist việc đọc ra khỏi loop.",
+a:`<ul>
+<li>Đây là <b>data race</b>: không có happens-before giữa thao tác ghi của A và thao tác đọc của B.</li>
+<li>Compiler/CPU có thể reorder: B thấy <code>ready=true</code> nhưng vẫn đọc <code>price</code> cũ. Compiler cũng có thể hoist việc đọc <code>ready</code> ra ngoài loop, làm loop chạy vô hạn.</li>
+<li>Cách sửa: <code>atomic.Bool</code> hoặc <code>atomic.Pointer[Snapshot]</code>, mutex, hoặc channel. Theo memory model đã sửa ở Go 1.19, các thao tác <code>sync/atomic</code> là <b>sequentially consistent</b> và tạo ra happens-before.</li>
+<li>Pattern thực tế: writer build một snapshot mới (immutable) rồi <code>Store</code> pointer; reader <code>Load</code> pointer. Reader luôn thấy một snapshot nhất quán.</li>
+<li>Luôn chạy test với <code>-race</code>. Lưu ý race detector chỉ phát hiện race trên những path thực sự được chạy.</li>
+</ul>`,
+f:"Chi phí của race detector là bao nhiêu? Có nên bật trong production không?"},
+
+{c:"go",l:1,q:"Dùng `select` với `time.After` trong vòng lặp hot path có vấn đề gì? Go 1.23 thay đổi gì về timer?",
+h:"Mỗi vòng lặp tạo một timer mới.",
+a:`<ul>
+<li>Mỗi lần gọi <code>time.After</code> tạo một timer và channel mới. Trước Go 1.23, timer chưa fire thì GC không thu hồi được, nên loop chạy nhanh sẽ tích tụ memory.</li>
+<li>Từ Go 1.23, timer không còn được tham chiếu có thể được GC dù chưa <code>Stop</code>. Channel của timer chuyển sang dạng đồng bộ (cap 0), nên <code>Reset</code>/<code>Stop</code> đảm bảo không đọc phải giá trị cũ.</li>
+<li>Dù vậy, hot path vẫn nên dùng <code>time.NewTimer</code> + <code>Reset</code> để tránh allocation mỗi vòng. Với deadline có cấu trúc thì dùng <code>context.WithTimeout</code>.</li>
+</ul>`,
+f:"Go 1.22 thay đổi semantics của biến vòng lặp for như thế nào? Bug kinh điển nào biến mất?"},
+
+/* ================= CONCURRENCY ================= */
+{c:"conc",l:2,q:"Hàm gọi N sàn song song, trả về sau 200ms timeout. Sau vài giờ, số goroutine tăng dần. Nguyên nhân có thể là gì và bạn phát hiện, sửa thế nào?",
+h:"Sau khi caller đã return, ai còn nhận kết quả từ channel?",
+a:`<ul>
+<li>Nguyên nhân kinh điển: kết quả được gửi qua <b>unbuffered channel</b>. Caller return sau timeout nên không còn ai nhận, các goroutine gửi muộn bị block vĩnh viễn.</li>
+<li>Các nguyên nhân khác: HTTP call không truyền <code>ctx</code> nên không bị cancel; ticker không <code>Stop</code>; goroutine đọc WS không có read deadline.</li>
+<li>Phát hiện: metric <code>runtime.NumGoroutine()</code>; <code>pprof/goroutine?debug=2</code> để xem stack các goroutine đang block; dùng <code>go.uber.org/goleak</code> trong test.</li>
+<li>Cách sửa:
+  <ul>
+  <li>Channel buffered với size N.</li>
+  <li>Hoặc gửi bằng <code>select { case ch &lt;- r: case &lt;-ctx.Done(): }</code>.</li>
+  <li>Truyền <code>ctx</code> vào mọi I/O (<code>http.NewRequestWithContext</code>).</li>
+  </ul></li>
+</ul>`,
+f:"Viết lại hàm này bằng errgroup có giới hạn concurrency."},
+
+{c:"conc",l:2,q:"Trên hot path xử lý market data, khi nào chọn channel, mutex, atomic hay mô hình single-writer?",
+h:"So sánh order of magnitude chi phí, và khả năng loại bỏ hoàn toàn shared state.",
+a:`<ul>
+<li>Chi phí tương đối (thay đổi theo phần cứng): atomic cỡ vài ns; mutex không bị contention cỡ chục ns; channel cao hơn vì vừa có lock vừa có thể kéo theo việc park/unpark goroutine. Khi contention cao, mutex cũng tăng mạnh.</li>
+<li><b>Channel</b> phù hợp cho chuyển ownership dữ liệu và pipeline giữa các stage. Không phù hợp để bảo vệ shared state.</li>
+<li><b>Mutex</b> phù hợp với shared state có critical section ngắn.</li>
+<li><b>Atomic</b> dùng cho counter, flag, publish snapshot pointer.</li>
+<li><b>Single-writer principle</b> (tương tự LMAX Disruptor): một goroutine sở hữu toàn bộ state của order book/strategy, các goroutine khác gửi command qua queue. Không cần lock, hành vi deterministic, dễ replay và test. Trade-off: throughput bị giới hạn bởi 1 core cho mỗi đơn vị state, nên cần partition theo symbol.</li>
+</ul>`,
+f:"Partition state theo symbol thì một strategy cần nhiều symbol (ví dụ triangular arb) xử lý ra sao?"},
+
+{c:"conc",l:3,q:"Hai counter atomic nằm cạnh nhau trong một struct, mỗi counter được một goroutine riêng cập nhật trên core khác nhau. Benchmark rất chậm. Tại sao?",
+h:"Cache line và cache coherence protocol.",
+a:`<ul>
+<li>Đây là <b>false sharing</b>: hai biến nằm chung một cache line (64 bytes trên x86). Mỗi lần một core ghi, cache line trên core kia bị invalidate (MESI), dẫn tới cache line ping-pong giữa các core.</li>
+<li>Cách sửa: padding để mỗi biến nằm trên cache line riêng (<code>_ [56]byte</code> hoặc <code>cpu.CacheLinePad</code> trong <code>golang.org/x/sys/cpu</code>). Cũng có thể dùng per-core/per-shard counter rồi cộng dồn khi đọc.</li>
+<li>Kiểm chứng bằng benchmark với <code>-cpu=1,2,4,8</code>: nếu có false sharing, throughput sẽ giảm khi tăng số core.</li>
+<li>Trade-off: padding làm tăng memory footprint. Chỉ áp dụng cho các biến nóng.</li>
+</ul>`,
+f:"Ring buffer SPSC đặt head và tail thế nào để tránh false sharing?"},
+
+{c:"conc",l:3,q:"Thiết kế một lock-free SPSC ring buffer để truyền tick từ goroutine đọc WS sang goroutine strategy. Khi nào đáng làm thay vì dùng channel?",
+h:"Size là power of 2, head/tail atomic, chỉ có một producer và một consumer.",
+a:`<ul>
+<li>Array có size 2^n, index = <code>seq &amp; (n-1)</code>. Producer chỉ ghi <code>tail</code>, consumer chỉ ghi <code>head</code>, cả hai đều là atomic uint64.</li>
+<li>Producer: nếu <code>tail - head == size</code> thì buffer đầy, xử lý theo policy (spin, drop hoặc báo lỗi). Ngược lại ghi slot trước rồi mới <code>Store(tail+1)</code>, đảm bảo publish sau khi dữ liệu đã được ghi.</li>
+<li>Consumer: <code>Load(tail)</code>, đọc các slot từ <code>head</code> đến <code>tail</code>, sau đó <code>Store(head)</code>.</li>
+<li>Đặt head và tail trên cache line riêng. Consumer có thể cache giá trị <code>tail</code> đã đọc để giảm số lần đọc atomic.</li>
+<li>MPMC khó hơn nhiều: cần CAS loop, xử lý ABA, sequence number cho từng slot.</li>
+<li>Trade-off so với channel:
+  <ul>
+  <li>Busy-spin cho latency thấp nhưng chiếm trọn 1 core.</li>
+  <li>Code khó review và test hơn nhiều.</li>
+  <li>Chỉ đáng làm khi profile cho thấy channel là bottleneck thực sự.</li>
+  </ul></li>
+</ul>`,
+f:"Go không có explicit acquire/release semantics. Điều này ảnh hưởng gì đến thiết kế?"},
+
+{c:"conc",l:2,q:"Một subscriber xử lý chậm làm cả pipeline market data bị nghẽn. Bạn có những backpressure strategy nào và chọn thế nào theo loại dữ liệu?",
+h:"Không phải loại dữ liệu nào cũng được phép drop.",
+a:`<ul>
+<li>Các lựa chọn: block producer; drop newest; drop oldest; <b>conflation</b> (chỉ giữ giá trị mới nhất cho mỗi key); ngắt kết nối subscriber chậm; buffer lớn kèm alert.</li>
+<li><b>Top-of-book / price tick</b>: conflation theo symbol. Strategy chỉ cần giá mới nhất, tick cũ không còn giá trị.</li>
+<li><b>Trade, fill, order update, balance</b>: KHÔNG được drop vì sẽ sai state. Phải dùng buffer đủ lớn, hoặc tách subscriber chậm ra khỏi hot path. Nếu buffer đầy thì coi là sự cố: alert và resync từ nguồn.</li>
+<li><b>Order book diff</b>: drop một diff là book sai. Phát hiện bằng sequence gap rồi resync snapshot.</li>
+<li>Nguyên tắc chung: <b>không bao giờ để producer của hot path bị block</b> bởi consumer phụ như logging, persistence hay analytics.</li>
+</ul>`,
+f:"Implement conflation buffer cho N symbol với độ phức tạp O(1) cho mỗi update."},
+
+{c:"conc",l:2,q:"Chuyển tiền giữa hai account, mỗi account có mutex riêng. Hai request A→B và B→A chạy đồng thời thì hệ thống treo. Giải thích và sửa. Go có phát hiện được deadlock này không?",
+h:"Lock ordering.",
+a:`<ul>
+<li>Request 1 lock A rồi chờ B, request 2 lock B rồi chờ A: circular wait, gây deadlock.</li>
+<li>Cách sửa:
+  <ul>
+  <li>Luôn lock theo thứ tự cố định (ví dụ theo ID tăng dần).</li>
+  <li>Hoặc dùng một goroutine duy nhất xử lý ledger (single-writer).</li>
+  <li>Hoặc dùng DB transaction kết hợp <code>SELECT ... FOR UPDATE</code> theo thứ tự ID.</li>
+  </ul></li>
+<li>Go chỉ báo <code>all goroutines are asleep - deadlock!</code> khi <b>toàn bộ</b> goroutine đều bị block. Deadlock cục bộ trong server vẫn chạy thì runtime không phát hiện. Cần goroutine dump (pprof) và metric timeout để phát hiện.</li>
+<li>Đây là chỗ nối tốt với kinh nghiệm payment: kể một case thực tế về lock hoặc double-spend.</li>
+</ul>`,
+f:"Trong DB, deadlock được phát hiện và xử lý thế nào (MySQL InnoDB)?"},
+
+{c:"conc",l:1,q:"errgroup.WithContext hoạt động thế nào? Pitfall khi dùng?",
+h:"Lỗi đầu tiên sẽ cancel context, nhưng goroutine có tôn trọng context đó không?",
+a:`<ul>
+<li><code>g, ctx := errgroup.WithContext(parent)</code>: khi một goroutine trả lỗi, <code>ctx</code> bị cancel và <code>Wait()</code> trả về lỗi đầu tiên.</li>
+<li><code>g.SetLimit(n)</code> giới hạn số goroutine chạy đồng thời. <code>TryGo</code> không block khi đã đạt limit.</li>
+<li>Pitfall 1: goroutine không kiểm tra <code>ctx</code> (I/O không gắn ctx) thì <code>Wait()</code> vẫn phải chờ goroutine đó xong.</li>
+<li>Pitfall 2: chỉ lấy được lỗi đầu tiên. Muốn có tất cả lỗi phải tự gom.</li>
+<li>Pitfall 3: panic trong goroutine không được errgroup bắt, làm crash process.</li>
+</ul>`,
+f:"Khi nào nên trả kết quả từng phần (partial results) thay vì fail toàn bộ?"},
+
+/* ================= PERF ================= */
+{c:"perf",l:2,q:"p99 latency của service thỉnh thoảng spike lên gấp 20 lần, còn p50 bình thường. Quy trình điều tra của bạn?",
+h:"CPU profile cho thấy giá trị trung bình, không cho thấy outlier. Đừng quên môi trường container.",
+a:`<ol>
+<li>Xác nhận bằng histogram và tìm tương quan theo thời gian: spike có định kỳ không, có trùng với deploy, GC, cron, giờ cao điểm thị trường không.</li>
+<li><b>Container CPU throttling</b> là nguyên nhân rất hay gặp: kiểm tra <code>nr_throttled</code>/<code>throttled_time</code> của cgroup, so sánh <code>GOMAXPROCS</code> với CPU limit.</li>
+<li><code>go tool trace</code>: xem GC/mark assist, scheduler latency (G ở trạng thái runnable nhưng chờ lâu), syscall blocking.</li>
+<li>Mutex profile (<code>runtime.SetMutexProfileFraction</code>) và block profile để tìm lock contention.</li>
+<li>Phía ngoài: downstream chậm (RPC node, API sàn), DNS, TCP retransmit, TLS handshake do không reuse connection.</li>
+<li>Sửa nguyên nhân, đo lại p99/p999. Cẩn thận <b>coordinated omission</b> khi load test.</li>
+</ol>`,
+f:"Coordinated omission là gì và tại sao nó làm số p99 trông đẹp hơn thực tế?"},
+
+{c:"perf",l:2,q:"Parse JSON từ WS sàn chiếm 40% CPU. Các lựa chọn tối ưu và trade-off?",
+h:"encoding/json dùng reflection. Có thư viện dùng code-gen, có thư viện parse không cần struct.",
+a:`<ul>
+<li><code>encoding/json</code> dùng reflection và allocate nhiều, dễ thành bottleneck.</li>
+<li>Các lựa chọn:
+  <ul>
+  <li><b>Code-gen</b> (easyjson): nhanh, type-safe, nhưng phải thêm bước generate.</li>
+  <li><b>Thư viện nhanh</b> (bytedance/sonic, goccy/go-json): drop-in replacement. Sonic phụ thuộc kiến trúc CPU.</li>
+  <li><b>Parse không cần struct</b> (valyala/fastjson): reuse parser, gần như không allocate, chỉ lấy đúng field cần.</li>
+  <li><b>Parser viết tay</b> cho schema cố định: nhanh nhất, nhưng dễ sai ở edge case (escape, số mũ).</li>
+  <li>Dùng <b>binary protocol</b> nếu sàn hỗ trợ (SBE, protobuf).</li>
+  </ul></li>
+<li>Giá/số lượng trong message thường là string: parse thẳng sang fixed-point int64, không đi qua float.</li>
+<li>Luôn benchmark với <b>payload thật</b> đã record, và có fuzz test để đảm bảo cách parse mới cho kết quả giống cách cũ.</li>
+</ul>`,
+f:"Làm thế nào để parse \"12345.678\" sang int64 với scale 1e8 mà không allocate?"},
+
+{c:"perf",l:2,q:"Biểu diễn price/quantity bằng kiểu gì: float64, decimal library, fixed-point int64 hay big.Int? Với on-chain thì sao?",
+h:"Cân nhắc correctness, tốc độ, overflow, và uint256 trên EVM.",
+a:`<ul>
+<li><b>float64</b>: nhanh nhưng sai số (0.1+0.2), sai số tích lũy khi cộng dồn PnL, và so sánh bằng không đáng tin. Chỉ chấp nhận được cho tính toán xấp xỉ, ví dụ scan cơ hội.</li>
+<li><b>decimal library</b> (shopspring/decimal): chính xác nhưng allocate nhiều vì bên dưới là big.Int, chậm trên hot path.</li>
+<li><b>Fixed-point int64</b> với scale theo tick size/step size của từng symbol: chính xác và rất nhanh. Rủi ro là <b>overflow</b> khi nhân price × qty (int64 max khoảng 9.2e18). Cần dùng scale nhỏ hơn hoặc 128-bit (<code>math/bits.Mul64</code>) khi nhân.</li>
+<li><b>On-chain</b> dùng uint256: <code>big.Int</code> đúng nhưng allocate; <code>holiman/uint256</code> (geth dùng) là fixed-size, không allocate, nhanh hơn nhiều.</li>
+<li>Thực tế hay dùng mô hình 2 tầng: lọc cơ hội nhanh bằng float, xác nhận lại bằng integer math khớp từng wei với contract trước khi gửi tx.</li>
+</ul>`,
+f:"Rounding khi tính amountOut: làm tròn lên hay xuống, và tại sao điều này quan trọng với contract?"},
+
+{c:"perf",l:3,q:"Phân tích latency budget của một đường CEX–DEX arbitrage: từ lúc nhận tick đến lúc lệnh/tx được thực thi. Tối ưu ở đâu là đáng nhất?",
+h:"Chia thành từng stage và đo bằng monotonic timestamp. Đường on-chain bị chi phối bởi block time.",
+a:`<ul>
+<li>Các stage:
+  <ol>
+  <li>Network từ sàn/node về máy.</li>
+  <li>Decode/parse.</li>
+  <li>Cập nhật state (book, pool reserves).</li>
+  <li>Phát hiện cơ hội và tính size.</li>
+  <li>Risk check.</li>
+  <li>Tạo lệnh, ký tx.</li>
+  <li>Gửi tới sàn hoặc RPC/relay.</li>
+  <li>Propagation và inclusion.</li>
+  </ol></li>
+<li>Gắn timestamp ở mỗi stage (<code>time.Now()</code> có monotonic reading) và xuất histogram cho từng stage.</li>
+<li>Thường thì <b>network và vị trí địa lý</b> chiếm phần lớn: đặt máy cùng region với matching engine của sàn hoặc gần node; dùng persistent connection; tự chạy node thay vì public RPC.</li>
+<li><b>Với chain có block time lớn</b> (Ethereum L1 khoảng 12s): vài ms trong code ít quan trọng hơn chuyện được include vào block, tức là priority fee/bid cho builder và gửi qua kênh private. Với CEX hoặc L2 có sequencer nhanh thì ms quan trọng hơn nhiều.</li>
+<li>Precompute những gì có thể: nonce, gas estimate, approval sẵn, calldata template.</li>
+</ul>`,
+f:"Leg risk là gì? Bạn chọn thực hiện leg nào trước?"},
+
+{c:"perf",l:1,q:"Batching giúp tăng throughput nhưng làm tăng latency. Áp dụng thế nào trong hệ trading (TCP, Kafka, DB, logging)?",
+h:"Hot path ưu tiên latency, cold path ưu tiên throughput.",
+a:`<ul>
+<li><b>TCP</b>: Nagle gom các packet nhỏ. Go mặc định bật <code>TCP_NODELAY</code> (tắt Nagle) cho TCP connection, phù hợp với gửi lệnh.</li>
+<li><b>Kafka</b>: <code>linger.ms</code>/<code>batch.size</code> tăng throughput nhưng thêm latency. Không nên đặt Kafka trên hot path ra quyết định; dùng cho downstream (persist, analytics).</li>
+<li><b>DB</b>: ghi fill/trade theo batch, bất đồng bộ, không chặn strategy, nhưng phải có cơ chế đảm bảo không mất dữ liệu (WAL/journal local).</li>
+<li><b>Logging</b>: async writer với buffer. Trade-off là có thể mất log cuối khi crash, cần flush khi shutdown.</li>
+</ul>`,
+f:"Giới hạn bao nhiêu thì nên flush: theo kích thước hay theo thời gian?"},
+
+{c:"perf",l:1,q:"Logging trên hot path: làm sao để log đủ để debug nhưng không ảnh hưởng latency?",
+h:"Zero-allocation logger, sampling, async.",
+a:`<ul>
+<li>Dùng logger zero-alloc (zerolog, zap) với structured field. Không dùng <code>fmt.Sprintf</code>.</li>
+<li>Kiểm tra level trước khi build message tốn kém. Debug log trên hot path phải tắt được lúc runtime.</li>
+<li><b>Sampling</b> cho log tần suất cao. Log đầy đủ cho event quan trọng (order sent, fill, error, risk reject).</li>
+<li>Ghi bất đồng bộ qua ring buffer, file local, rồi ship đi (Vector/Fluent Bit).</li>
+<li>Với decision log (vì sao bot vào lệnh), ưu tiên ghi binary/compact để có thể replay khi postmortem.</li>
+</ul>`,
+f:"Làm sao correlate log của một opportunity xuyên suốt nhiều service?"},
+
+/* ================= NETWORK ================= */
+{c:"net",l:3,q:"Bạn duy trì local order book từ WebSocket diff stream của sàn như thế nào để đảm bảo đúng tuyệt đối?",
+h:"Snapshot + diff, buffer, sequence/update ID, xử lý gap.",
+a:`<ol>
+<li>Mở WS và <b>buffer</b> các diff event trước.</li>
+<li>Lấy snapshot qua REST (có <code>lastUpdateId</code>).</li>
+<li>Bỏ các diff có update ID ≤ snapshot ID. Diff đầu tiên được áp dụng phải bao trùm <code>lastUpdateId+1</code>.</li>
+<li>Áp dụng tuần tự. Mỗi diff tiếp theo phải liền mạch với diff trước (first ID = previous last ID + 1). Có gap thì <b>bỏ book và resync</b>.</li>
+<li>Quantity bằng 0 nghĩa là xóa level.</li>
+<li>Nếu sàn cung cấp <b>checksum</b> (một số sàn dùng CRC32 trên top N level) thì verify định kỳ.</li>
+<li>Sanity check: best bid &lt; best ask. Nếu book bị crossed kéo dài thì book sai.</li>
+</ol>
+<p>Cấu trúc dữ liệu: sorted map (btree) theo price, hoặc array index theo tick nếu range giá hẹp, để có O(1) update.</p>`,
+f:"Khi đang resync thì strategy làm gì? Có nên tiếp tục giao dịch symbol đó không?"},
+
+{c:"net",l:2,q:"Thiết kế WebSocket client đọc market data đáng tin cậy 24/7.",
+h:"Heartbeat, read deadline, reconnect, stale detection, sàn chủ động ngắt kết nối.",
+a:`<ul>
+<li>Ping/pong theo yêu cầu của sàn, đặt <code>SetReadDeadline</code> để phát hiện connection chết ngầm (half-open TCP).</li>
+<li>Reconnect với <b>exponential backoff + jitter</b>, sau đó subscribe lại và resync state (snapshot).</li>
+<li><b>Stale feed detection</b>: connection vẫn sống nhưng không nhận được message trong X giây (theo từng symbol). Khi đó alert và đánh dấu dữ liệu không đáng tin để strategy dừng giao dịch symbol đó.</li>
+<li>Nhiều sàn ngắt kết nối định kỳ (ví dụ sau 24h). Chuẩn bị sẵn connection thứ hai (warm standby) và chuyển trước khi bị ngắt.</li>
+<li>Chạy 2 connection song song (có thể khác region) và <b>dedup theo sequence</b> để giảm tail latency và tránh mất dữ liệu.</li>
+<li>Tách goroutine đọc socket khỏi goroutine xử lý để việc đọc không bao giờ bị chậm.</li>
+</ul>`,
+f:"Đọc socket chậm thì phía server sàn xử lý ra sao, và hậu quả với bạn là gì?"},
+
+{c:"net",l:2,q:"Gửi lệnh qua REST, request bị timeout. Bạn có retry không? Làm sao tránh đặt trùng lệnh?",
+h:"Timeout không có nghĩa là lệnh thất bại.",
+a:`<ul>
+<li>Timeout = <b>trạng thái không xác định</b>: lệnh có thể đã lên sàn. Retry mù quáng sẽ tạo lệnh trùng và gấp đôi position.</li>
+<li>Gắn <b>client order ID</b> (idempotency key) duy nhất cho mỗi lệnh. Khi timeout, query trạng thái lệnh theo client order ID trước, rồi mới quyết định có gửi lại không.</li>
+<li>Theo dõi trạng thái lệnh qua user data stream (WS), không chỉ dựa vào REST response.</li>
+<li>Giới hạn rate limit phía client bằng token bucket theo weight. Xử lý 429 bằng backoff. Cần biết sàn có thể ban IP nếu tiếp tục vi phạm.</li>
+<li>Điểm này tương đồng trực tiếp với kinh nghiệm chuyển tiền: trạng thái "pending/unknown" phải được đối soát, không được retry mù.</li>
+</ul>`,
+f:"Thiết kế state machine cho một order (NEW, PARTIALLY_FILLED, …) có xử lý trạng thái UNKNOWN."},
+
+{c:"net",l:2,q:"Gọi REST API sàn có latency dao động, lâu lâu cao bất thường. Bạn kiểm tra gì ở phía HTTP client trong Go?",
+h:"Connection reuse và các giá trị mặc định của http.Transport.",
+a:`<ul>
+<li><code>http.DefaultTransport</code> có <code>MaxIdleConnsPerHost</code> = 2. Khi concurrency cao, connection liên tục bị đóng/mở, phải handshake TCP+TLS lại. Cần tăng giá trị này.</li>
+<li>Phải đọc hết và <code>Close</code> response body, nếu không connection không được trả về pool.</li>
+<li>Dùng <code>net/http/httptrace</code> để đo từng pha: DNS, connect, TLS, time to first byte.</li>
+<li>DNS: cache, TTL, tránh resolve mỗi lần. Keep-alive và warm-up connection trước giờ cao điểm.</li>
+<li>Region của server so với endpoint của sàn. Endpoint đi qua CDN có thể route khác nhau.</li>
+<li>Timeout phân lớp: dial, TLS, response header, và tổng thời gian qua <code>ctx</code>.</li>
+</ul>`,
+f:"HTTP/2 multiplexing giúp gì và gây ra vấn đề gì (head-of-line blocking ở tầng TCP)?"},
+
+/* ================= DISTRIBUTED ================= */
+{c:"dist",l:3,q:"Trong trading, \"exactly-once\" có thực sự đạt được không? Bạn đảm bảo không đặt trùng lệnh, không gửi trùng tx thế nào?",
+h:"Exactly-once delivery khác exactly-once effect. Idempotency key tự nhiên của EVM là gì?",
+a:`<ul>
+<li>Exactly-once delivery end-to-end qua mạng là không đạt được. Mục tiêu thực tế là <b>effectively-once</b>: at-least-once kết hợp idempotency và dedup.</li>
+<li><b>CEX</b>: client order ID là idempotency key. Sàn từ chối ID trùng.</li>
+<li><b>On-chain</b>: <b>nonce</b> là idempotency tự nhiên. Các tx cùng nonce thì tối đa một tx được mined. Gửi lại cùng tx (cùng hash) cũng vô hại.</li>
+<li>Kafka idempotent producer/transactions chỉ đảm bảo trong phạm vi Kafka, không bao gồm side effect ra ngoài (gọi sàn).</li>
+<li>Lớp cuối cùng là <b>reconciliation</b> định kỳ với nguồn sự thật (sàn, chain) để phát hiện mọi sai lệch.</li>
+</ul>`,
+f:"Consumer xử lý xong nhưng crash trước khi commit offset. Thiết kế thế nào để an toàn?"},
+
+{c:"dist",l:3,q:"Bot crash giữa chừng khi đang có lệnh mở và tx pending. Khi restart, bạn khôi phục state thế nào?",
+h:"Không tin state local. Có chế độ an toàn khi khởi động.",
+a:`<ul>
+<li>State cần khôi phục: open orders, positions/balances trên từng sàn, tx pending, nonce, inventory on-chain.</li>
+<li><b>Không tin state local</b>. Rebuild từ nguồn sự thật: API sàn (open orders, balances, fills gần đây), chain (balance, nonce đã mined, nonce pending), receipt của các tx đã gửi.</li>
+<li>Khởi động ở <b>safe mode</b>: không đặt lệnh mới cho tới khi reconcile xong và mọi trạng thái không xác định đã được xử lý (cancel lệnh lạ, chờ hoặc thay thế tx pending).</li>
+<li>Journal/event log local, append-only, ghi trước khi gửi lệnh (write-ahead), để biết mình đã định làm gì ngay trước khi crash.</li>
+<li>Có alert khi state local và state thực tế lệch nhau vượt ngưỡng.</li>
+</ul>`,
+f:"Lệnh lạ (không có trong journal) xuất hiện trên sàn thì xử lý thế nào?"},
+
+{c:"dist",l:2,q:"Thiết kế reconciliation cho hệ thống trading. Kinh nghiệm đối soát ở payment áp dụng thế nào?",
+h:"So sánh ledger nội bộ với sàn/chain, có tolerance và alert.",
+a:`<ul>
+<li>Ledger nội bộ được ghi theo <b>fill thực tế</b> (không theo ý định đặt lệnh), gồm fee, funding, gas.</li>
+<li>Định kỳ (theo phút) so sánh balance/position nội bộ với API sàn và chain. Sai lệch vượt tolerance thì alert. Sai lệch lớn thì tự động dừng strategy.</li>
+<li>PnL tách thành realized/unrealized, gồm cả fee, gas, funding. Mark to market bằng giá tham chiếu đáng tin.</li>
+<li>Từ payment: state machine giao dịch, xử lý trạng thái treo, đối soát cuối ngày với ngân hàng, idempotency key. Đây chính là bộ kỹ năng nên nhấn mạnh khi trả lời.</li>
+</ul>`,
+f:"Sàn báo fee khác với fee bạn tính. Bạn xử lý thế nào trong ledger?"},
+
+{c:"dist",l:2,q:"Dùng Kafka cho event của trading: ordering, duplicate, rebalance. Thiết kế key/partition và consumer thế nào?",
+h:"Ordering chỉ đảm bảo trong một partition.",
+a:`<ul>
+<li>Key theo symbol (hoặc account) để đảm bảo thứ tự trong phạm vi đó.</li>
+<li>Rebalance hoặc crash trước khi commit offset sẽ gây duplicate. Consumer phải <b>idempotent</b> (dedup theo event ID, upsert theo key).</li>
+<li>Commit offset sau khi xử lý xong (at-least-once). Nếu ghi DB và commit offset cần atomic thì lưu offset trong cùng transaction DB.</li>
+<li>Kafka thêm latency cỡ ms và có tail latency khi rebalance, nên không đặt trên đường ra quyết định. Phù hợp cho audit trail, analytics, persistence, fan-out cho service phụ.</li>
+</ul>`,
+f:"Partition nóng (một symbol chiếm 80% traffic) xử lý thế nào?"},
+
+{c:"dist",l:2,q:"Thời gian và clock trong hệ thống trading: wall clock, monotonic, clock skew. Bạn lưu ý những gì?",
+h:"time.Since dùng loại clock nào? Sàn kiểm tra timestamp của request như thế nào?",
+a:`<ul>
+<li>Trong Go, <code>time.Now()</code> chứa cả monotonic reading. <code>time.Since</code>/<code>Sub</code> dùng monotonic nên không bị ảnh hưởng khi NTP chỉnh giờ. Phải đo duration bằng monotonic.</li>
+<li>Sàn thường yêu cầu timestamp của request nằm trong một <code>recvWindow</code>. Clock lệch thì bị từ chối. Cần chạy chrony/NTP và theo dõi offset.</li>
+<li>So sánh latency giữa các máy cần clock đồng bộ chính xác (PTP), hoặc đo RTT rồi chia đôi.</li>
+<li>Phân biệt exchange timestamp (thời điểm khớp) với local receive timestamp. Hiệu số của chúng là độ trễ dữ liệu, rất đáng để theo dõi.</li>
+</ul>`,
+f:"Leap second / NTP step backward ảnh hưởng gì đến code dùng wall clock?"},
+
+{c:"dist",l:3,q:"Làm sao đảm bảo chỉ một instance bot hoạt động (tránh double trading) nhưng vẫn failover nhanh khi instance chính chết?",
+h:"Leader election với lease, và fencing token khi lock hết hạn trong lúc process bị pause.",
+a:`<ul>
+<li>Leader election bằng lease có TTL (etcd, Consul, Kubernetes Lease). Instance chính renew định kỳ, standby giành lease khi lease hết hạn.</li>
+<li>Vấn đề: process bị pause (GC, VM freeze) lâu hơn TTL, mất lease nhưng không biết, vẫn tiếp tục gửi lệnh trong khi instance mới cũng đã chạy (split brain).</li>
+<li>Giải pháp: <b>fencing token</b> tăng dần, phía nhận kiểm tra token. Sàn không hỗ trợ fencing, nên có thể dùng các cách thay thế: mỗi instance dùng account/API key riêng và chỉ được bật khi đang là leader; leader kiểm tra lease còn hạn ngay trước mỗi lần gửi lệnh; on-chain thì nonce chung giúp tránh trùng tx.</li>
+<li>Redis lock (Redlock) có tranh luận về độ an toàn dưới các giả định về timing. Không nên dùng làm cơ chế duy nhất cho một tác vụ liên quan đến tiền.</li>
+<li>Trade-off: TTL ngắn giúp failover nhanh nhưng dễ mất lease nhầm; TTL dài thì ngược lại.</li>
+</ul>`,
+f:"Active-active có khả thi cho trading không? Trong trường hợp nào?"},
+
+/* ================= SYSTEM DESIGN ================= */
+{c:"sd",l:3,q:"Thiết kế hệ thống CEX–DEX arbitrage cho một cặp ETH/USDC (sàn CEX và một pool Uniswap). Trình bày components, flow và các rủi ro.",
+h:"Market data → state → detect → risk → execute 2 leg → reconcile. Tập trung vào leg risk và inventory.",
+a:`<ul>
+<li><b>Ingestion</b>: WS order book của CEX; với DEX subscribe <code>newHeads</code> + logs <code>Sync</code>/<code>Swap</code> của pool (hoặc đọc reserves mỗi block), có thể thêm mempool nếu muốn dự đoán trước.</li>
+<li><b>State</b>: book CEX in-memory, reserves/tick của pool, balances trên cả hai phía.</li>
+<li><b>Detector</b>: so sánh giá có thể thực hiện (theo độ sâu book CEX, slippage AMM) sau khi trừ fee CEX, fee pool, gas. Tính <b>optimal size</b>.</li>
+<li><b>Risk</b>: max notional, max inventory lệch, price band so với giá tham chiếu, giới hạn gas, kill switch.</li>
+<li><b>Execution</b>:
+  <ul>
+  <li>Simulate tx (<code>eth_call</code> trên pending state).</li>
+  <li>Gửi qua private relay/bundle để tránh bị frontrun, đặt <code>amountOutMin</code> và deadline.</li>
+  <li>Hedge leg CEX bằng IOC.</li>
+  </ul></li>
+<li><b>Leg risk</b>: on-chain không deterministic về thời điểm và kết quả, nên thường hedge CEX sau khi tx đã confirm, hoặc chấp nhận rủi ro bằng cách hedge trước khi đã chắc chắn. Mỗi lựa chọn có profile rủi ro khác nhau, cần nêu rõ.</li>
+<li><b>Inventory</b>: hai phía lệch dần nên cần rebalance (rút/nạp, bridge), chi phí và độ trễ của rebalance ảnh hưởng tới PnL.</li>
+<li><b>Ops</b>: reorg, gas spike, RPC lỗi, sàn bảo trì; metric PnL theo thời gian thực, tỷ lệ tx revert, tỷ lệ cơ hội được thực thi.</li>
+</ul>`,
+f:"Đối thủ luôn thắng bạn ở cùng cơ hội. Bạn phân tích và cải thiện thế nào?"},
+
+{c:"sd",l:3,q:"Thiết kế market data platform cấp dữ liệu cho nhiều strategy, có record để backtest và replay.",
+h:"Normalize, phân phối, record raw. Đánh đổi giữa chạy in-process và tách service riêng.",
+a:`<ul>
+<li>Mỗi sàn một connector, <b>normalize</b> về schema nội bộ (symbol, price/qty fixed-point, timestamp của sàn và local).</li>
+<li>Phân phối:
+  <ul>
+  <li>In-process library: latency thấp nhất nhưng các strategy dính chung process.</li>
+  <li>Shared memory / IPC trên cùng host.</li>
+  <li>NATS/gRPC stream qua mạng: cô lập tốt, dễ scale nhưng thêm latency.</li>
+  </ul></li>
+<li><b>Record raw message</b> (trước khi normalize) cùng receive timestamp vào file local, ship lên object storage, lưu dạng Parquet để phân tích. Raw giúp replay chính xác kể cả khi normalizer có bug.</li>
+<li><b>Replay engine</b> dùng cùng interface với feed live, để strategy chạy được ở cả backtest và live mà không đổi code.</li>
+<li>Monitoring: message rate, gap, độ trễ theo sàn, thời gian từ lần message cuối.</li>
+</ul>`,
+f:"Strategy cần dữ liệu đồng bộ từ 3 sàn có độ trễ khác nhau. Xử lý thế nào?"},
+
+{c:"sd",l:2,q:"Thiết kế risk engine và kill switch cho bot tự động giao dịch bằng tiền thật.",
+h:"Pre-trade, post-trade, và kill switch phải độc lập với strategy.",
+a:`<ul>
+<li><b>Pre-trade checks</b>: max order size, max notional, max position/inventory, price band so với giá tham chiếu (chống fat finger hoặc dữ liệu sai), giới hạn tần suất lệnh, whitelist token/contract.</li>
+<li><b>Post-trade</b>: drawdown theo ngày hoặc theo giờ vượt ngưỡng thì tự dừng; tỷ lệ lỗi hoặc revert tăng đột biến thì dừng.</li>
+<li><b>Kill switch</b>: cancel tất cả lệnh, dừng strategy, (tùy chọn) đóng position. Phải chạy được <b>độc lập</b> với process strategy (process riêng, API key riêng), có thể kích hoạt thủ công và tự động, và được test định kỳ.</li>
+<li>Config risk thay đổi được lúc runtime nhưng có audit log.</li>
+<li>Fail-closed: risk engine lỗi thì không cho phép đặt lệnh.</li>
+</ul>`,
+f:"Risk check thêm latency vào hot path. Làm sao giữ nó dưới vài micro giây?"},
+
+{c:"sd",l:2,q:"Làm sao đảm bảo kết quả backtest gần với live? Những pitfall phổ biến?",
+h:"Lookahead bias, fee/latency/slippage, và cùng code path cho cả hai.",
+a:`<ul>
+<li>Strategy logic dùng <b>chung code</b> cho backtest và live, chỉ khác nguồn dữ liệu và executor (interface).</li>
+<li>Backtest dạng event-driven replay dữ liệu đã record, mô phỏng latency, fee, slippage, partial fill, và tx bị revert.</li>
+<li>Pitfall: lookahead bias (dùng dữ liệu tương lai); bỏ qua market impact; overfitting tham số; giả định luôn được fill tại best price; bỏ qua competition (on-chain, cơ hội đã bị người khác lấy).</li>
+<li>Trước khi live: paper trading hoặc <b>shadow mode</b> (tính quyết định nhưng không thực thi, so sánh với thị trường thực), sau đó chạy với size nhỏ.</li>
+</ul>`,
+f:"Làm sao đo \"slippage giữa backtest và live\" một cách có hệ thống?"},
+
+/* ================= OBS / INCIDENT ================= */
+{c:"obs",l:2,q:"Bạn sẽ đặt những metric và alert nào cho một trading bot?",
+h:"Hai lớp: system metric và business metric. Dùng histogram, không dùng giá trị trung bình.",
+a:`<ul>
+<li><b>System</b>: latency histogram từng stage, GC pause/CPU, số goroutine, message rate theo feed, <b>thời gian từ message cuối</b> theo feed, lỗi và độ trễ của API/RPC, số lần reconnect.</li>
+<li><b>Business</b>: PnL realized/unrealized theo thời gian thực, inventory từng asset, số cơ hội phát hiện / thực thi / thành công, fill rate, tỷ lệ tx revert, gas đã chi, chênh lệch giữa giá dự kiến và giá thực hiện.</li>
+<li>Alert: PnL giảm vượt ngưỡng trong X phút, feed stale, sai lệch reconciliation, tỷ lệ lỗi tăng, balance gas thấp.</li>
+<li>Prometheus: histogram (tổng hợp được giữa các instance) hay summary (không tổng hợp được). Cẩn thận <b>cardinality</b>: không gắn label theo order ID hay tx hash.</li>
+</ul>`,
+f:"Alert fatigue: làm sao để on-call không bị spam nhưng vẫn không bỏ sót sự cố?"},
+
+{c:"obs",l:3,q:"Tình huống: PnL của bot giảm mạnh trong 15 phút, không có lỗi nào trong log. Bạn làm gì?",
+h:"Cầm máu trước, điều tra sau. Liệt kê các giả thuyết theo khả năng xảy ra.",
+a:`<ol>
+<li><b>Cầm máu</b>: giảm size hoặc kích hoạt kill switch cho strategy bị ảnh hưởng. Mất ít hơn quan trọng hơn hiểu ngay nguyên nhân.</li>
+<li>Giữ lại bằng chứng: log, decision log, dữ liệu thị trường của khoảng thời gian đó.</li>
+<li>Giả thuyết:
+  <ul>
+  <li>Feed giá stale hoặc sai (bot giao dịch trên giá cũ).</li>
+  <li>Sai decimals của token mới.</li>
+  <li>Fee thay đổi (sàn đổi bậc phí, pool khác fee tier).</li>
+  <li>Bị frontrun/sandwich (đối thủ hoặc MEV bot).</li>
+  <li>Thanh khoản thay đổi làm slippage tăng.</li>
+  <li>Bug trong lần deploy gần nhất.</li>
+  <li>Token có cơ chế đặc biệt (fee-on-transfer, rebase).</li>
+  </ul></li>
+<li>So sánh với timeline deploy và config change. Replay dữ liệu đã record để tái hiện.</li>
+<li>Postmortem blameless: timeline, root cause, vì sao không phát hiện sớm hơn, action items (thêm metric/alert, thêm risk check).</li>
+</ol>`,
+f:"Làm sao phân biệt \"strategy hết hiệu quả\" với \"hệ thống có bug\"?"},
+
+{c:"obs",l:2,q:"Memory của service tăng chậm trong nhiều ngày rồi OOM. Bạn điều tra và xử lý thế nào?",
+h:"So sánh heap profile giữa hai thời điểm. Map không bao giờ được dọn.",
+a:`<ul>
+<li>Lấy heap profile tại hai thời điểm và so sánh: <code>go tool pprof -base old.pb.gz new.pb.gz</code> (xem <code>inuse_space</code>).</li>
+<li>Kiểm tra số goroutine (goroutine leak cũng giữ memory).</li>
+<li>Nguyên nhân hay gặp: map theo order ID/tx hash không bao giờ xóa entry; sub-slice giữ backing array lớn; cache không có giới hạn hoặc TTL; ticker/timer leak; cgo.</li>
+<li>Giảm thiểu tạm thời bằng <code>GOMEMLIMIT</code> và restart có kiểm soát, nhưng phải sửa root cause.</li>
+<li>Thêm metric kích thước của các map/cache quan trọng để phát hiện sớm.</li>
+</ul>`,
+f:"Lưu ý: map trong Go không thu nhỏ bucket sau khi delete. Hệ quả là gì?"},
+
+{c:"obs",l:2,q:"Làm sao trace một opportunity xuyên suốt pipeline (detect → risk → execute → fill/receipt → reconcile) mà không làm chậm hot path?",
+h:"Correlation ID, structured log, sampling.",
+a:`<ul>
+<li>Gán <b>correlation ID</b> (opportunity ID) ngay khi phát hiện. ID này đi theo client order ID và tx metadata, xuất hiện trong mọi log và event.</li>
+<li>Structured log để query theo ID. Ghi decision log dạng compact (input, quyết định, tham số).</li>
+<li>Distributed tracing (OpenTelemetry) đầy đủ có thể quá nặng cho hot path, nên dùng sampling hoặc chỉ trace ở phần cold path.</li>
+<li>Dashboard funnel: detect → passed risk → sent → filled → profitable.</li>
+</ul>`,
+f:"Nếu fill đến từ WS user stream mà không có correlation ID, bạn map lại thế nào?"},
+
+/* ================= CHAIN ================= */
+{c:"chain",l:2,q:"Mô tả vòng đời một transaction trên Ethereum, từ lúc ký tới lúc finalized.",
+h:"Mempool công khai so với private relay, builder/proposer, finality.",
+a:`<ul>
+<li>Ký tx gồm nonce, gas params, to, value, data, chainId (chống replay giữa các chain theo EIP-155).</li>
+<li>Gửi tới RPC node, tx được gossip trong <b>public mempool</b>. Hoặc gửi qua <b>private relay</b> để tránh bị nhìn thấy trước.</li>
+<li>Builder gom tx/bundle thành block, proposer chọn block có bid cao nhất (PBS qua MEV-Boost).</li>
+<li>Tx được include, có receipt. <b>Status = 0 (revert) vẫn mất phí gas.</b></li>
+<li>Finality trên Ethereum PoS khoảng 2 epoch (cỡ 13 phút). Trước đó có thể bị reorg. Block tag: <code>latest</code>, <code>safe</code>, <code>finalized</code>.</li>
+</ul>`,
+f:"L2 (Arbitrum, Base) khác L1 ở điểm nào trong vòng đời này? Sequencer đóng vai trò gì?"},
+
+{c:"chain",l:2,q:"Giải thích gas theo EIP-1559. Với bot arbitrage, bạn đặt gas thế nào?",
+h:"baseFee, priority fee, maxFee, và cách tính effective gas price.",
+a:`<ul>
+<li><b>baseFee</b>: do protocol xác định, bị burn, thay đổi tối đa ±12.5% mỗi block tùy theo block đầy hơn hay vơi hơn so với target.</li>
+<li><b>maxPriorityFeePerGas</b>: tip cho proposer. <b>maxFeePerGas</b>: mức trần sẵn sàng trả.</li>
+<li>Giá thực trả = <code>min(maxFee, baseFee + priorityFee)</code>. Phần chênh còn lại không bị thu.</li>
+<li>Cho arb: maxFee đủ cao để không bị loại khi baseFee tăng; priority fee mang tính cạnh tranh. Khi dùng bundle thường trả cho builder qua chuyển tiền trực tiếp cho <code>coinbase</code>, dựa trên lợi nhuận.</li>
+<li>Gas cost phải được trừ vào lợi nhuận khi quyết định có thực hiện cơ hội hay không và khi tính size.</li>
+</ul>`,
+f:"Gas limit đặt thế nào? Đặt quá thấp hay quá cao có rủi ro gì?"},
+
+{c:"chain",l:3,q:"Quản lý nonce cho bot gửi nhiều tx liên tục. Một tx bị kẹt (stuck) thì sao?",
+h:"Không gọi getTransactionCount(\"pending\") cho mỗi tx. Tx kẹt chặn tất cả tx sau nó.",
+a:`<ul>
+<li>Giữ <b>nonce counter local</b> cho mỗi account, cấp phát nguyên tử (mutex/atomic). Gọi <code>eth_getTransactionCount(pending)</code> mỗi lần dễ bị race, và các node khác nhau có thể trả về giá trị khác nhau.</li>
+<li>Nonce phải tuần tự: tx nonce N bị kẹt (gas thấp) sẽ chặn mọi tx N+1 trở đi.</li>
+<li>Xử lý: <b>replace</b> bằng tx cùng nonce với fee cao hơn (node thường yêu cầu tăng tối thiểu khoảng 10%), hoặc <b>cancel</b> bằng tx chuyển 0 ETH cho chính mình với cùng nonce.</li>
+<li>Muốn song song hóa thì dùng nhiều account (mỗi account có dòng nonce riêng). Trade-off là phải quản lý balance và gas trên nhiều ví.</li>
+<li>Khi restart: đồng bộ nonce từ chain và xử lý các tx pending của lần chạy trước.</li>
+</ul>`,
+f:"Bạn gửi tx nonce 5 và 6. Tx 5 bị drop khỏi mempool. Chuyện gì xảy ra với tx 6?"},
+
+{c:"chain",l:3,q:"MEV là gì? Giải thích frontrun, backrun, sandwich. Bot arb của bạn tự bảo vệ thế nào?",
+h:"Public mempool cho người khác thấy ý định của bạn. Bundle giúp giao dịch nguyên tử.",
+a:`<ul>
+<li><b>MEV</b>: giá trị kiếm được nhờ quyền sắp xếp, chèn hoặc loại bỏ tx trong block.</li>
+<li><b>Frontrun</b>: chèn tx trước tx mục tiêu. <b>Backrun</b>: chèn ngay sau (ví dụ arb lại pool sau một swap lớn). <b>Sandwich</b>: mua trước, để nạn nhân swap ở giá xấu, rồi bán sau.</li>
+<li>Tx arb gửi vào public mempool có thể bị <b>generalized frontrunner</b> sao chép calldata với gas cao hơn và lấy mất lợi nhuận.</li>
+<li>Bảo vệ:
+  <ul>
+  <li>Gửi qua <b>private orderflow</b> hoặc bundle tới builder. Bundle có tính nguyên tử, và với builder hỗ trợ revert protection thì không mất phí khi thất bại.</li>
+  <li>Contract kiểm tra lợi nhuận tối thiểu, revert nếu không đạt.</li>
+  <li>Đặt <code>amountOutMin</code> và deadline chặt.</li>
+  <li>Chỉ cho phép địa chỉ của bot gọi contract.</li>
+  </ul></li>
+</ul>`,
+f:"Contract của bot có thể bị tấn công thế nào nếu không giới hạn ai được gọi?"},
+
+{c:"chain",l:2,q:"Xử lý reorg thế nào khi bot dựa vào event on-chain để cập nhật state?",
+h:"Theo dõi block hash và parent hash, rollback state đã derive.",
+a:`<ul>
+<li>Event từ block chưa finalized có thể biến mất khi reorg. Log có trường <code>removed: true</code> khi subscribe qua WS.</li>
+<li>Lưu block number và hash cho mỗi thay đổi state. Khi block mới có parent hash không khớp với block đã lưu thì phát hiện reorg, rollback state về fork point rồi áp dụng lại.</li>
+<li>Hot path vẫn phải hành động trên <code>latest</code> để kịp cơ hội. Accounting và PnL chốt theo <code>safe</code>/<code>finalized</code>.</li>
+<li>Reconcile balance định kỳ với chain để bắt mọi sai lệch.</li>
+</ul>`,
+f:"Tx của bạn đã có receipt nhưng sau đó bị reorg ra khỏi chain. Hậu quả và cách xử lý?"},
+
+{c:"chain",l:2,q:"Tự chạy node hay dùng RPC provider? Bạn đánh giá thế nào?",
+h:"Latency, rate limit, tính nhất quán khi provider load-balance nhiều node.",
+a:`<ul>
+<li><b>Tự chạy node</b>: latency thấp, không bị rate limit, subscribe mempool đầy đủ, có thể trace/debug. Nhưng tốn chi phí vận hành (sync, disk, upgrade, monitoring).</li>
+<li><b>Provider</b>: dễ dùng, nhưng bị rate limit và latency cao hơn. Do load-balance qua nhiều node, các request liên tiếp có thể thấy head khác nhau, gây lỗi nonce và state không nhất quán.</li>
+<li>Thực tế: dùng node riêng cho hot path, dùng provider làm fallback và để kiểm tra chéo. Gửi tx tới nhiều kênh song song.</li>
+<li>Theo dõi độ trễ head block giữa các nguồn.</li>
+</ul>`,
+f:"Làm sao phát hiện node của bạn đang chậm hơn mạng (lagging)?"},
+
+{c:"chain",l:1,q:"Simulate tx trước khi gửi bằng eth_call có đảm bảo tx sẽ thành công không?",
+h:"State thay đổi giữa lúc simulate và lúc tx được thực thi.",
+a:`<ul>
+<li>Không đảm bảo. <code>eth_call</code> chạy trên state tại thời điểm gọi. Khi tx được include, state có thể đã khác (tx khác chạy trước) nên vẫn có thể revert.</li>
+<li>Tác dụng: lọc phần lớn lỗi logic, ước lượng output và gas, phát hiện token đặc biệt (fee-on-transfer, honeypot).</li>
+<li>Bổ sung bằng kiểm tra lợi nhuận và <code>amountOutMin</code> ngay trong contract, cùng bundle có revert protection.</li>
+<li>Khi phát triển: fork mainnet local (anvil) để test end-to-end. State override trong <code>eth_call</code> để thử các kịch bản.</li>
+</ul>`,
+f:"Token fee-on-transfer làm sai phép tính AMM của bạn như thế nào?"},
+
+/* ================= DEFI / QUANT ================= */
+{c:"defi",l:2,q:"Chứng minh công thức getAmountOut của Uniswap V2 có fee 0.3%. Tại sao kết quả được làm tròn xuống?",
+h:"Bắt đầu từ invariant (x + Δx·γ)(y − Δy) = x·y.",
+a:`<ul>
+<li>Gọi γ = 0.997 (sau fee). Invariant: <code>(x + γΔx)(y − Δy) = x·y</code>.</li>
+<li>Suy ra <code>Δy = y·γΔx / (x + γΔx)</code>. Trong contract dùng integer: <code>Δy = (Δx·997·y) / (x·1000 + Δx·997)</code>.</li>
+<li>Phép chia integer làm tròn xuống, có lợi cho pool. Nhờ vậy k không bao giờ giảm, người swap không lấy được nhiều hơn phần đúng.</li>
+<li>Toàn bộ Δx (cả phần fee) được cộng vào reserve, nên k tăng sau mỗi swap. Đây là cách LP nhận fee.</li>
+<li>Code off-chain phải khớp từng wei, tức là dùng đúng thứ tự phép tính và integer math.</li>
+</ul>`,
+f:"Viết getAmountIn (cần bao nhiêu input để nhận đúng Δy). Tại sao contract cộng thêm 1?"},
+
+{c:"defi",l:2,q:"Pool có 1,000 ETH và 3,000,000 USDC, fee 0.3%. Mua ETH bằng 30,000 USDC. Tính lượng ETH nhận được, giá thực hiện, price impact, và giá spot mới.",
+h:"Áp dụng getAmountOut, so sánh với giá spot 3,000.",
+a:`<ul>
+<li>Δx sau fee = 30,000 × 0.997 = 29,910 USDC.</li>
+<li>Δy = 1000 × 29,910 / (3,000,000 + 29,910) = 29,910,000 / 3,029,910 ≈ <b>9.8716 ETH</b>.</li>
+<li>Giá thực hiện ≈ 30,000 / 9.8716 ≈ <b>3,039 USDC/ETH</b>, cao hơn spot 3,000 khoảng 1.3% (trong đó 0.3% là fee, khoảng 1% là price impact).</li>
+<li>Nếu không có fee: 1000 × 30,000 / 3,030,000 ≈ 9.901 ETH, giá ≈ 3,030, impact ≈ 1% (xấp xỉ Δx/x).</li>
+<li>Reserve mới: USDC = 3,030,000; ETH ≈ 990.128. Giá spot mới ≈ 3,030,000 / 990.128 ≈ <b>3,060</b>.</li>
+<li>Giá spot di chuyển khoảng 2%, gấp đôi impact mà người swap chịu. Phần chênh này là cơ hội cho bot backrun.</li>
+</ul>`,
+f:"Nếu giá trên CEX vẫn là 3,000, cần bán bao nhiêu ETH vào pool để đưa giá về lại? (gợi ý: giá spot = y/x với k cố định)"},
+
+{c:"defi",l:3,q:"Tìm lượng input tối ưu cho cyclic arbitrage qua hai pool Uniswap V2 (A→B ở pool 1, B→A ở pool 2).",
+h:"Gộp hai pool thành một virtual pool (Ea, Eb), rồi lấy đạo hàm hàm lợi nhuận.",
+a:`<ul>
+<li>Pool 1: reserve (a₁ token A, b₁ token B). Pool 2: (b₂ token B, a₂ token A). Fee factor γ = 0.997.</li>
+<li>Ghép hai pool thành <b>virtual pool</b>:
+<pre><code>Ea = a1·b2 / (b2 + γ·b1)
+Eb = γ·a2·b1 / (b2 + γ·b1)</code></pre></li>
+<li>Output sau vòng: <code>out(Δ) = Eb·γΔ / (Ea + γΔ)</code>, lợi nhuận <code>P(Δ) = out(Δ) − Δ</code> (là hàm concave).</li>
+<li><code>P'(Δ) = 0</code> cho <code>(Ea + γΔ)² = γ·Ea·Eb</code>, suy ra:
+<pre><code>Δ* = (sqrt(γ·Ea·Eb) − Ea) / γ</code></pre></li>
+<li>Chỉ có lợi nhuận khi <code>γ·Eb / Ea &gt; 1</code> (đạo hàm tại 0 dương). Sau đó còn phải trừ gas.</li>
+<li>Với V3 hoặc đường đi nhiều hop, closed form khó áp dụng. Dùng tìm kiếm số (ternary search, vì hàm concave, hoặc Newton) trên hàm mô phỏng chính xác.</li>
+</ul>`,
+f:"Tổng quát cho đường đi n pool: có thể gộp tuần tự thành một virtual pool không?"},
+
+{c:"defi",l:2,q:"Impermanent loss là gì? Tính IL khi giá tăng gấp 2 và gấp 4.",
+h:"IL = 2√r / (1 + r) − 1, với r là tỷ lệ thay đổi giá.",
+a:`<ul>
+<li>IL là chênh lệch giữa giá trị vị thế LP và giá trị khi chỉ đơn giản HODL hai token ban đầu, chưa tính fee.</li>
+<li>Công thức cho pool 50/50 constant product: <code>IL = 2√r / (1 + r) − 1</code>.</li>
+<li>r = 2: 2×1.4142/3 − 1 ≈ <b>−5.72%</b>. r = 4: 2×2/5 − 1 = <b>−20%</b>. Giá giảm một nửa (r = 0.5) cũng cho −5.72%, vì công thức đối xứng theo log của r.</li>
+<li>LP có lời khi fee thu được lớn hơn IL. V3 (concentrated liquidity) khuếch đại cả fee lẫn IL.</li>
+<li>Bản chất: LP liên tục bán token tăng giá và mua token giảm giá, tức là đứng phía đối diện với arbitrageur.</li>
+</ul>`,
+f:"Chứng minh công thức IL từ x·y = k."},
+
+{c:"defi",l:2,q:"Funding rate của perpetual là gì? Tính lợi nhuận chiến lược long spot + short perp với notional 100,000 USDT, funding 0.01% mỗi 8 giờ. Rủi ro?",
+h:"Funding dương thì long trả cho short.",
+a:`<ul>
+<li>Funding là khoản thanh toán định kỳ giữa long và short để neo giá perp vào giá spot/index. Funding dương thì long trả short, âm thì ngược lại. Tần suất thường là 8h (một số cặp là 4h hoặc 1h).</li>
+<li>Mỗi kỳ: 100,000 × 0.01% = <b>10 USDT</b>. Mỗi ngày (3 kỳ): 30 USDT. Một năm (không compound): 0.01% × 3 × 365 ≈ <b>10.95%/năm</b>.</li>
+<li>Delta-neutral: lời/lỗ do giá spot và perp gần như triệt tiêu nhau, lợi nhuận đến từ funding.</li>
+<li>Rủi ro:
+  <ul>
+  <li>Funding đổi chiều sang âm.</li>
+  <li>Giá tăng mạnh làm vị thế short perp bị <b>liquidation</b> nếu margin không đủ, trong khi tài sản spot nằm ở chỗ khác.</li>
+  <li>Basis (chênh lệch perp và spot) biến động khi vào/ra lệnh.</li>
+  <li>Fee giao dịch lúc vào/ra.</li>
+  <li>Rủi ro đối tác của sàn.</li>
+  </ul></li>
+</ul>`,
+f:"Funding thay đổi thế nào nếu perp giao dịch cao hơn index 0.5% trong nhiều giờ?"},
+
+{c:"defi",l:1,q:"APR và APY khác nhau thế nào? 10% APR compound theo ngày tương đương bao nhiêu APY?",
+h:"APY = (1 + APR/n)^n − 1.",
+a:`<ul>
+<li>APR là lãi suất đơn theo năm. APY tính cả lãi kép.</li>
+<li><code>APY = (1 + APR/n)^n − 1</code>. Compound liên tục: <code>e^APR − 1</code>.</li>
+<li>10% APR compound theo ngày: (1 + 0.1/365)^365 − 1 ≈ <b>10.52%</b>. Compound liên tục: e^0.1 − 1 ≈ 10.52%.</li>
+<li>Thực tế việc compound tốn gas/fee, nên APY thực nhận thấp hơn. Tần suất compound tối ưu phụ thuộc vào chi phí mỗi lần.</li>
+</ul>`,
+f:"Lending protocol tính lãi theo từng block/giây. Quy đổi rate per second sang APY thế nào?"},
+
+{c:"defi",l:3,q:"Uniswap V3 khác V2 thế nào? Làm sao lấy giá từ sqrtPriceX96 và vì sao mô phỏng swap trên V3 khó hơn V2?",
+h:"Concentrated liquidity, tick, liquidity thay đổi khi giá đi qua tick.",
+a:`<ul>
+<li>LP cung cấp thanh khoản trong một khoảng giá (tick range). Giá tại tick i là <code>1.0001^i</code>.</li>
+<li>Pool lưu <code>sqrtPriceX96 = sqrt(price) × 2^96</code> (Q64.96 fixed point).</li>
+<li>Giá raw (token1 trên token0) = <code>(sqrtPriceX96 / 2^96)^2</code>. Giá theo đơn vị người dùng = raw × <code>10^(decimals0 − decimals1)</code>.</li>
+<li>Trong mỗi tick range, liquidity L là hằng số và công thức giống V2 với "virtual reserves". Khi giá đi qua tick đã khởi tạo, L thay đổi.</li>
+<li>Mô phỏng swap lớn phải duyệt qua từng tick (tick bitmap) và cập nhật L. Vì vậy cần đồng bộ thêm state tick, không chỉ reserves như V2. Các fee tier phổ biến: 0.01%, 0.05%, 0.3%, 1%.</li>
+</ul>`,
+f:"Nếu chỉ đọc slot0 và liquidity hiện tại để ước lượng swap lớn, sai số đến từ đâu?"},
+
+{c:"defi",l:1,q:"Triangular arbitrage trên một CEX: điều kiện có lợi và rủi ro khi thực thi.",
+h:"Tích tỷ giá sau fee của 3 leg phải lớn hơn 1. Các leg không nguyên tử.",
+a:`<ul>
+<li>Ví dụ USDT → BTC → ETH → USDT. Có lợi khi tích các tỷ giá (dùng giá ask/bid thực tế theo độ sâu) nhân với <code>(1 − fee)^3</code> lớn hơn 1. Với fee 0.1% mỗi leg, cần edge lớn hơn khoảng 0.3%.</li>
+<li>Bài toán phát hiện tổng quát: đồ thị với trọng số <code>−log(rate)</code> và tìm chu trình âm (Bellman-Ford).</li>
+<li>Rủi ro: các leg thực hiện tuần tự nên leg sau có thể trượt giá hoặc không được fill (leg risk); độ sâu book; rate limit; min notional/step size làm lệnh bị làm tròn.</li>
+</ul>`,
+f:"Tại sao các cơ hội này thường biến mất trong vài ms và ai là người lấy được chúng?"},
+
+/* ================= TS ================= */
+{c:"ts",l:2,q:"Giải thích event loop của Node.js. Một tác vụ CPU nặng ảnh hưởng gì tới bot đang giữ kết nối WebSocket?",
+h:"Single thread cho JS. Thứ tự microtask và macrotask.",
+a:`<ul>
+<li>Các phase của event loop: timers, pending callbacks, poll (I/O), check (<code>setImmediate</code>), close callbacks.</li>
+<li>Sau mỗi callback, Node chạy queue <code>process.nextTick</code> trước, rồi đến promise microtasks.</li>
+<li>Code JS đồng bộ nặng (parse JSON lớn, tính toán) sẽ <b>block toàn bộ</b>: không xử lý được message mới, timer heartbeat bị trễ, sàn ngắt kết nối vì không trả pong, dữ liệu bị dồn.</li>
+<li>Cách xử lý: chuyển phần tính toán sang <code>worker_threads</code> hoặc sang service Go; chia nhỏ công việc; theo dõi <b>event loop lag</b> (<code>perf_hooks.monitorEventLoopDelay</code>).</li>
+</ul>`,
+f:"Đệ quy process.nextTick vô hạn gây ra hiện tượng gì?"},
+
+{c:"ts",l:2,q:"Number trong JS gây vấn đề gì khi xử lý số lượng token (wei)? BigInt có những hạn chế gì?",
+h:"Number là IEEE 754 double. MAX_SAFE_INTEGER bằng bao nhiêu?",
+a:`<ul>
+<li>Number là double: <code>Number.MAX_SAFE_INTEGER = 2^53 − 1 ≈ 9×10^15</code>, nhỏ hơn 1 ETH = 10^18 wei. Mất chính xác âm thầm, không có lỗi.</li>
+<li><code>JSON.parse</code> mặc định parse số lớn thành Number nên mất precision. Vì vậy các sàn và RPC trả số dưới dạng string hoặc hex.</li>
+<li>BigInt: không cộng/nhân trộn với Number được (TypeError); <code>JSON.stringify</code> ném lỗi với BigInt; phép chia cắt phần thập phân; chậm hơn Number.</li>
+<li>ethers v6 và viem dùng native <code>bigint</code>. Cần thống nhất đơn vị (wei hay đơn vị hiển thị) ở các ranh giới giữa service Go và TS.</li>
+</ul>`,
+f:"Bạn sẽ serialize một struct có số lớn giữa Go và TS bằng định dạng nào?"},
+
+{c:"ts",l:1,q:"Unhandled promise rejection trong Node.js hiện xử lý thế nào? Có nên để bot crash không?",
+h:"Hành vi mặc định đã thay đổi từ Node 15.",
+a:`<ul>
+<li>Từ Node 15, unhandled rejection mặc định làm <b>crash process</b>.</li>
+<li>Nguồn gây lỗi phổ biến: floating promise (gọi async mà không <code>await</code> hay <code>.catch</code>). Dùng lint rule <code>@typescript-eslint/no-floating-promises</code> để chặn.</li>
+<li>Với bot: crash rồi restart vào safe mode thường an toàn hơn chạy tiếp với state không rõ ràng. Cần supervisor (systemd/k8s), alert khi crash, và cơ chế khôi phục đúng.</li>
+</ul>`,
+f:"Phân biệt lỗi nên crash (fail-fast) với lỗi nên retry trong bot."},
+
+{c:"ts",l:2,q:"Hệ thống brownfield có cả Go và TS. Bạn phân chia trách nhiệm và giao tiếp giữa hai phần thế nào để tránh lỗi đơn vị/decimals?",
+h:"Hot path đặt ở đâu, schema chung, contract test.",
+a:`<ul>
+<li>Thường dùng Go cho hot path (market data, detect, risk) và TS cho các phần tương tác chain dùng hệ sinh thái ethers/viem, hoặc các tool nội bộ.</li>
+<li>Giao tiếp qua gRPC/NATS/Unix socket với <b>schema chung</b> (protobuf). Số lớn truyền dạng string hoặc bytes kèm quy ước đơn vị rõ ràng ngay trong tên field (ví dụ <code>amount_wei</code>).</li>
+<li>Contract test giữa hai bên, cùng bộ test vector (input và output mong đợi) chạy ở cả Go và TS để đảm bảo cùng công thức cho cùng kết quả.</li>
+<li>Migrate dần các phần nhạy cảm về latency sang Go bằng strangler pattern, có shadow comparison.</li>
+</ul>`,
+f:"Khi nào thì nên giữ code ở TS thay vì viết lại bằng Go?"},
+
+/* ================= AI & BROWNFIELD ================= */
+{c:"ai",l:2,q:"Bạn dùng AI coding agent (Claude, Codex) thế nào trong hệ thống trading, và kiểm chứng code nó sinh ra ra sao?",
+h:"Coi output của AI như PR từ một người chưa quen codebase. Liệt kê các loại lỗi AI hay mắc.",
+a:`<ul>
+<li>Dùng cho: hiểu codebase brownfield nhanh, viết test/benchmark, boilerplate, refactor có test bảo vệ, phác thảo phương án. Hạn chế dùng cho: logic ký tx/quản lý key, risk check, math tiền tệ, trừ khi review từng dòng.</li>
+<li>Quy trình kiểm chứng:
+  <ul>
+  <li>Tự viết hoặc duyệt test trước, gồm cả property test cho invariant (ví dụ k không giảm, tổng balance bảo toàn).</li>
+  <li><code>-race</code>, benchmark trước và sau thay đổi.</li>
+  <li>Diff nhỏ, review như PR, chạy replay dữ liệu thật.</li>
+  </ul></li>
+<li>Các lỗi AI hay mắc: dùng float cho tiền; bỏ qua error; goroutine leak; gọi API hoặc method không tồn tại (hallucination); nhầm decimals/đơn vị; off-by-one; thay đổi hành vi ngoài phạm vi yêu cầu; dùng sai các idiom đã cũ (ví dụ <code>time.After</code> trong loop).</li>
+<li>Nên có một ví dụ cụ thể về lần bạn phát hiện AI sinh code sai.</li>
+</ul>`,
+f:"Làm sao đảm bảo AI không vô tình đưa secret/API key vào code hoặc log?"},
+
+{c:"ai",l:3,q:"Cần thay đổi một component trên hot path của hệ thống đang chạy tiền thật mà bạn chưa hiểu hết. Bạn làm thế nào để không gây sự cố?",
+h:"Characterization test, shadow mode, canary với size nhỏ, rollback.",
+a:`<ol>
+<li>Đọc code và trace luồng dữ liệu, vẽ lại kiến trúc, xác định invariant.</li>
+<li><b>Characterization/golden test</b>: ghi lại hành vi hiện tại bằng cách replay dữ liệu đã record. Version mới phải cho kết quả giống hệt, trừ phần được chủ đích thay đổi.</li>
+<li><b>Shadow mode</b>: version mới chạy song song, tính quyết định nhưng không thực thi, so sánh với version cũ trên dữ liệu live.</li>
+<li>Feature flag và <b>canary</b>: bật với size/vốn nhỏ hoặc một symbol trước. Có metric so sánh và tiêu chí dừng rõ ràng.</li>
+<li>Kế hoạch rollback đã được thử. Deploy ngoài giờ biến động mạnh của thị trường, có người trực.</li>
+</ol>`,
+f:"Thay đổi đòi hỏi migration state (format journal mới). Bạn làm thế nào để rollback vẫn an toàn?"},
+
+/* ================= EXPERIENCE ================= */
+{c:"exp",l:2,q:"Kể về incident production nghiêm trọng nhất bạn từng xử lý.",
+h:"STAR: bối cảnh, vai trò cụ thể của bạn, cách phát hiện, giảm thiểu, root cause, phòng ngừa. Có số liệu.",
+a:`<ul>
+<li>Interviewer chấm: phát hiện thế nào (alert hay khách báo); thời gian giảm thiểu; tách bạch được mitigation với root cause; <b>vai trò thực sự của bạn</b>; action items có làm thật không.</li>
+<li>Khung gợi ý, cần điền sự kiện thật từ kinh nghiệm payment: giao dịch chuyển tiền bị treo hoặc trùng do timeout phía ngân hàng; bạn khoanh vùng thế nào; đối soát ra sao để không mất tiền; sửa idempotency/state machine; thêm alert gì.</li>
+<li>Nêu con số: số giao dịch bị ảnh hưởng, thời gian phát hiện, thời gian xử lý, kết quả sau khi sửa.</li>
+<li>Kết bằng bài học áp dụng được cho trading: trạng thái không xác định, reconciliation, fail-safe.</li>
+</ul>`,
+f:"Nếu làm lại từ đầu, bạn sẽ làm gì khác?"},
+
+{c:"exp",l:2,q:"Hệ thống payment và hệ thống trading khác nhau thế nào? Kinh nghiệm nào của bạn chuyển sang được?",
+h:"Điểm giống: correctness, tiền thật. Điểm khác: latency, môi trường có đối thủ, P&L đo trực tiếp.",
+a:`<ul>
+<li><b>Chuyển sang được</b>: tư duy correctness và idempotency; state machine giao dịch; reconciliation; audit trail; xử lý trạng thái không xác định khi tích hợp bên thứ ba; on-call và incident; Go + event-driven (Kafka, WebSocket).</li>
+<li><b>Khác biệt</b>:
+  <ul>
+  <li>Latency ảnh hưởng trực tiếp tới lợi nhuận.</li>
+  <li>Môi trường <b>có đối thủ</b> chủ động tranh cùng cơ hội.</li>
+  <li>Vận hành 24/7.</li>
+  <li>Thua lỗ xảy ra trong vài giây chứ không phải sau đối soát cuối ngày.</li>
+  <li>Kết quả được đo bằng PnL, không chỉ là uptime.</li>
+  </ul></li>
+<li>Thể hiện rằng bạn ý thức được các khoảng trống (low-latency, DeFi) và đang chủ động lấp chúng, kèm bằng chứng cụ thể (đã tự viết simulator AMM, đọc whitepaper, v.v.).</li>
+</ul>`,
+f:"Điều gì ở trading khiến bạn lo nhất khi chuyển sang?"},
+
+{c:"exp",l:1,q:"Tại sao bạn muốn làm hệ thống crypto/trading?",
+h:"Động lực thật, có bằng chứng tự học. Tránh lấy lương làm lý do chính.",
+a:`<ul>
+<li>Nêu điểm hấp dẫn về kỹ thuật: hệ thống có đối thủ trực tiếp, tác động có thể đo bằng PnL, bài toán latency và correctness ở mức cao.</li>
+<li>Bằng chứng: những gì bạn đã tự học hoặc tự build (đọc Uniswap V2/V3 whitepaper, viết simulator AMM, theo dõi các vụ MEV, chạy thử trên testnet).</li>
+<li>Gắn với kinh nghiệm fintech: muốn đi sâu hơn vào phần "tiền vận động theo thời gian thực".</li>
+<li>Tránh: "crypto đang hot", "bonus cao", hoặc nói về đầu cơ cá nhân.</li>
+</ul>`,
+f:"Bạn có tự trade crypto không? (Trả lời trung thực, tránh phô trương lợi nhuận cá nhân.)"},
+
+{c:"exp",l:1,q:"Kể một lần bạn phải hiểu nhanh một hệ thống legacy lớn và thay đổi nó an toàn.",
+h:"Cách bạn khám phá codebase, cách giảm rủi ro.",
+a:`<ul>
+<li>Cách làm cụ thể: đọc theo request path; dùng log/trace thật; vẽ sơ đồ; hỏi đúng người; viết test trước khi sửa.</li>
+<li>Cách giảm rủi ro: thay đổi nhỏ, feature flag, chạy song song cũ và mới, có số liệu đối chiếu.</li>
+<li>Kết quả đo được và bài học. Có thể nhắc cách bạn dùng AI để đọc code nhanh hơn nhưng vẫn tự kiểm chứng (khớp với yêu cầu của JD).</li>
+</ul>`,
+f:"Bạn quyết định refactor hay giữ nguyên code legacy dựa trên tiêu chí gì?"},
+
+{c:"exp",l:1,q:"JD yêu cầu sẵn sàng hỗ trợ ngoài giờ. Bạn nhìn nhận chuyện on-call thế nào?",
+h:"Trung thực, thể hiện ownership, hỏi lại về cơ chế.",
+a:`<ul>
+<li>Khẳng định ownership: hệ thống trading 24/7 thì on-call là một phần công việc; bạn đã từng on-call cho hệ thống payment.</li>
+<li>Nêu quan điểm trưởng thành: mục tiêu là giảm số lần bị gọi bằng alert tốt, runbook, tự động hóa, chứ không phải chấp nhận bị gọi liên tục.</li>
+<li>Hỏi lại: rotation thế nào, tần suất sự cố thực tế, có phụ cấp hoặc nghỉ bù không.</li>
+</ul>`,
+f:"Runbook tốt cho một sự cố phổ biến gồm những gì?"},
+
+{c:"exp",l:2,q:"Trader muốn đẩy một thay đổi strategy lên live ngay trong ngày, còn bạn thấy chưa đủ test. Bạn xử lý thế nào?",
+h:"Cân bằng tốc độ và an toàn, đưa ra phương án có rủi ro được giới hạn.",
+a:`<ul>
+<li>Hiểu lý do cần gấp (cơ hội thị trường có thời hạn) thay vì từ chối thẳng.</li>
+<li>Đề xuất phương án giới hạn rủi ro: chạy shadow vài giờ; hoặc lên live với size/vốn rất nhỏ, risk limit chặt, có kill switch và người theo dõi.</li>
+<li>Nói rõ rủi ro bằng con số (mức thua lỗ tối đa trong kịch bản xấu) để quyết định được đưa ra chung.</li>
+<li>Sau đó bổ sung test và tự động hóa để lần sau nhanh hơn mà vẫn an toàn.</li>
+</ul>`,
+f:"Nếu thay đổi đó gây lỗ, ai chịu trách nhiệm và bạn xử lý sau sự việc thế nào?"},
+
+/* ================= ASK BACK ================= */
+{c:"ask",l:1,q:"Employer thực sự là ai, và hợp đồng ký với pháp nhân nào?",
+h:"Inspius là công ty tuyển dụng/staffing.",
+a:`<ul>
+<li>Ảnh hưởng tới bảo hiểm, thuế, mức độ ổn định, quyền lợi khi công ty thu hẹp.</li>
+<li>Câu trả lời tốt: có pháp nhân rõ ràng, hợp đồng lao động chính thức, đóng BHXH đầy đủ.</li>
+</ul>`},
+
+{c:"ask",l:1,q:"Bonus theo strategy P&L được tính cụ thể thế nào?",
+h:"Phần trăm của cái gì, có trần không, trả bao lâu một lần, xử lý ra sao khi lỗ.",
+a:`<ul>
+<li>Hỏi: % trên PnL của strategy bạn tham gia hay của cả desk? Có cap không? Trả theo quý hay năm? Lỗ ở kỳ trước có bị trừ vào kỳ sau (high-water mark) không?</li>
+<li>Bonus không định nghĩa rõ thì nên coi như bằng 0 khi so sánh offer.</li>
+</ul>`},
+
+{c:"ask",l:1,q:"Quy trình đưa một thay đổi lên production chạy tiền thật hiện nay như thế nào?",
+h:"Câu hỏi này cho thấy mức độ trưởng thành về kỹ thuật của team.",
+a:`<ul>
+<li>Câu trả lời tốt: có backtest/replay, shadow, canary size nhỏ, risk limit, kill switch, postmortem.</li>
+<li>Câu trả lời đáng lo: deploy thẳng, test trên production, không có replay.</li>
+</ul>`},
+
+{c:"ask",l:1,q:"Cơ chế on-call: rotation, tần suất sự cố, phụ cấp?",
+h:"Cần biết khối lượng công việc thực tế.",
+a:`<ul><li>Hỏi số lần bị gọi mỗi tháng trong thời gian gần đây, team bao nhiêu người chia rotation, có nghỉ bù hay phụ cấp không.</li></ul>`},
+
+{c:"ask",l:1,q:"Team hiện có bao nhiêu người, bạn báo cáo cho ai, mentorship trong 3 tháng đầu cụ thể là gì?",
+h:"JD hứa onboarding có cấu trúc và mentorship.",
+a:`<ul><li>Kiểm tra lời hứa trong JD: ai là mentor, kế hoạch 30/60/90 ngày, khi nào bạn được tự deploy lên production.</li></ul>`},
+
+{c:"ask",l:2,q:"Codebase chia Go và TS thế nào? Các vấn đề kỹ thuật lớn nhất team đang gặp là gì?",
+h:"Biết trước mình sẽ làm gì trong 6 tháng đầu.",
+a:`<ul><li>Cho thấy bạn quan tâm đến công việc thực tế. Câu trả lời cũng giúp bạn chuẩn bị đúng phần kỹ thuật cần ôn (ví dụ nếu phần lớn là TS thì gap lớn hơn bạn nghĩ).</li></ul>`}
+];
+
+/* ================= RENDER ================= */
+const $ = s => document.querySelector(s);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let done = new Set(store.get("ib_done", []));
+let activeCat = "all";
+let levels = new Set([1,2,3]);
+let hideDone = false;
+
+Q.forEach((q,i)=>{ q.id = "q"+(i+1); q.text = (q.q+" "+q.h+" "+q.a.replace(/<[^>]+>/g," ")+" "+(q.f||"")).toLowerCase(); });
+
+function renderCats(){
+  const box = $("#cats");
+  const counts = {};
+  Q.forEach(q=>counts[q.c]=(counts[q.c]||0)+1);
+  const mk = (key,label,n)=>`<button class="chip" data-cat="${key}" aria-pressed="${activeCat===key}">${label} <span style="opacity:.7">${n}</span></button>`;
+  box.innerHTML = mk("all","Tất cả",Q.length) + Object.keys(CATS).map(k=>mk(k,CATS[k],counts[k]||0)).join("");
+  box.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{
+    activeCat=b.dataset.cat; renderCats(); render();
+    const target = $("#count");
+    if(target.getBoundingClientRect().top < 0) target.scrollIntoView({behavior:"smooth",block:"start"});
+  });
+}
+
+function render(){
+  const term = $("#search").value.trim().toLowerCase();
+  const list = $("#list");
+  const items = Q.filter(q=>(activeCat==="all"||q.c===activeCat)&&levels.has(q.l)&&(!term||q.text.includes(term))&&!(hideDone&&done.has(q.id)));
+  $("#count").textContent = `Hiển thị ${items.length} / ${Q.length} câu`;
+  if(!items.length){ list.innerHTML = `<div class="empty">Không có câu hỏi phù hợp bộ lọc.</div>`; updateProgress(); return; }
+  let html = "", lastCat = null;
+  items.forEach(q=>{
+    if(q.c!==lastCat){ html += `<div class="section-title">${CATS[q.c]}</div>`; lastCat=q.c; }
+    const n = Q.indexOf(q)+1;
+    html += `<article class="card ${done.has(q.id)?"done":""}" id="${q.id}">
+      <div class="card-head"><span class="num">#${String(n).padStart(2,"0")}</span><div class="q">${q.q}</div></div>
+      <div class="tags"><span class="tag lv${q.l}">${LV[q.l]}</span><span class="tag">${CATS[q.c]}</span></div>
+      <div class="actions">
+        <button data-t="hint">Gợi ý</button>
+        <button data-t="ans">Đáp án</button>
+        <label><input type="checkbox" ${done.has(q.id)?"checked":""} data-done> Đã ôn</label>
+      </div>
+      <div class="panel hint"><h4>Gợi ý</h4>${q.h}</div>
+      <div class="panel ans"><h4>Đáp án / ý chính</h4>${q.a}${q.f?`<div class="follow"><b>Follow-up:</b> ${q.f}</div>`:""}</div>
+    </article>`;
+  });
+  list.innerHTML = html;
+  list.querySelectorAll(".card").forEach(card=>{
+    card.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>card.querySelector(".panel."+b.dataset.t).classList.toggle("open"));
+    card.querySelector("[data-done]").onchange = e=>{
+      e.target.checked ? done.add(card.id) : done.delete(card.id);
+      store.set("ib_done",[...done]);
+      card.classList.toggle("done",e.target.checked);
+      updateProgress();
+      if(hideDone && e.target.checked) render();
+    };
+  });
+  updateProgress();
+}
+
+function updateProgress(){
+  const n = Q.filter(q=>done.has(q.id)).length;
+  $("#progText").textContent = `${n}/${Q.length} đã ôn`;
+  $("#progBar").style.width = (n/Q.length*100)+"%";
+}
+
+function toggleAll(cls, btn, onLabel, offLabel){
+  const panels = document.querySelectorAll(".panel."+cls);
+  const anyClosed = [...panels].some(p=>!p.classList.contains("open"));
+  panels.forEach(p=>p.classList.toggle("open",anyClosed));
+  btn.textContent = anyClosed ? offLabel : onLabel;
+}
+
+$("#search").addEventListener("input",render);
+$("#toggleHints").onclick = e=>toggleAll("hint",e.target,"Mở tất cả gợi ý","Đóng tất cả gợi ý");
+$("#toggleAns").onclick = e=>toggleAll("ans",e.target,"Mở tất cả đáp án","Đóng tất cả đáp án");
+document.querySelectorAll("[data-lv]").forEach(b=>b.onclick=()=>{
+  const v=+b.dataset.lv;
+  levels.has(v)?levels.delete(v):levels.add(v);
+  b.setAttribute("aria-pressed",levels.has(v));
+  render();
+});
+$("#hideDone").onclick = e=>{hideDone=!hideDone;e.target.setAttribute("aria-pressed",hideDone);render();};
+$("#theme").onclick = ()=>{
+  const root=document.documentElement;
+  const isDark = root.dataset.theme ? root.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  root.dataset.theme = isDark ? "light" : "dark";
+  store.set("ib_theme",root.dataset.theme);
+};
+$("#filterToggle").onclick = e=>{
+  const sb = $("#sidebar");
+  const collapsed = sb.classList.toggle("collapsed");
+  e.target.setAttribute("aria-expanded", !collapsed);
+  e.target.textContent = collapsed ? "Bộ lọc ▾" : "Bộ lọc ▴";
+};
+const savedTheme = store.get("ib_theme",null);
+if(savedTheme) document.documentElement.dataset.theme = savedTheme;
+
+renderCats();
+render();
+</script>
+</body>
+</html>

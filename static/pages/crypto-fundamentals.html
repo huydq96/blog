@@ -1,0 +1,1039 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crypto Fundamentals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#ffffff; --surface-2:#f0eee8; --text:#1d1d1b; --muted:#6b6a64;
+  --border:#e2dfd6; --accent:#0f6e5c; --accent-soft:#e1f1ec; --warn:#a1530b; --warn-soft:#fbeedd;
+  --danger:#a82a2a; --danger-soft:#f8e3e1; --info:#2a5ea8; --info-soft:#e4ecf8; --code-bg:#f2f0ea;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121412; --surface:#1b1e1c; --surface-2:#232725; --text:#e8e7e2; --muted:#9a9a93;
+    --border:#2e3330; --accent:#4cc3a6; --accent-soft:#183a32; --warn:#e7a35b; --warn-soft:#3a2a18;
+    --danger:#ef7a7a; --danger-soft:#3d1f1f; --info:#7fb0f0; --info-soft:#1b2a3f; --code-bg:#252a27; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121412; --surface:#1b1e1c; --surface-2:#232725; --text:#e8e7e2; --muted:#9a9a93;
+  --border:#2e3330; --accent:#4cc3a6; --accent-soft:#183a32; --warn:#e7a35b; --warn-soft:#3a2a18;
+  --danger:#ef7a7a; --danger-soft:#3d1f1f; --info:#7fb0f0; --info-soft:#1b2a3f; --code-bg:#252a27; --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15.5px;line-height:1.7}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+code{font-size:.86em;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+pre{background:var(--code-bg);padding:12px 14px;border-radius:8px;overflow-x:auto;line-height:1.55;font-size:13.5px}
+pre code{background:none;padding:0}
+a{color:var(--accent)}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:40px;max-width:1240px;margin:0 auto;padding:0 20px}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;padding:22px 18px 28px 0;border-right:1px solid var(--border);scrollbar-width:thin}
+.side-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:18px}
+.side-title{font-size:13px;font-weight:700}
+.side-title span{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.toc{display:flex;flex-direction:column;gap:2px}
+.toc a{display:flex;gap:10px;align-items:baseline;text-decoration:none;color:var(--text);font-size:13.5px;padding:6px 10px;border-radius:8px;line-height:1.4}
+.toc a span{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);min-width:18px}
+.toc a:hover{background:var(--surface-2)}
+.toc a.active{background:var(--accent);color:#fff}
+.toc a.active span{color:#fff;opacity:.8}
+.toc-group{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;margin:14px 10px 4px}
+button{font:inherit;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:6px 11px;border-radius:8px}
+#tocToggle{display:none}
+.content{padding:32px 0 100px;min-width:0;max-width:860px}
+
+/* Typography */
+header.hero h1{font-size:30px;line-height:1.25;margin:0 0 10px;letter-spacing:-.015em}
+header.hero p{color:var(--muted);margin:0 0 6px}
+section{padding-top:28px;margin-top:28px;border-top:1px solid var(--border);scroll-margin-top:12px}
+section h2{font-size:23px;margin:0 0 4px;letter-spacing:-.01em;display:flex;gap:12px;align-items:baseline}
+section h2 .n{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--accent);font-weight:500}
+section .lead{color:var(--muted);margin:0 0 14px}
+h3{font-size:17px;margin:24px 0 6px}
+p{margin:8px 0}
+ul,ol{padding-left:22px;margin:8px 0}
+li{margin:4px 0}
+strong{font-weight:600}
+
+/* Components */
+.callout{border-radius:10px;padding:12px 16px;margin:14px 0;border-left:4px solid}
+.callout .lbl{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:4px}
+.callout p{margin:4px 0}
+.analogy{background:var(--accent-soft);border-color:var(--accent)} .analogy .lbl{color:var(--accent)}
+.dev{background:var(--info-soft);border-color:var(--info)} .dev .lbl{color:var(--info)}
+.warn{background:var(--warn-soft);border-color:var(--warn)} .warn .lbl{color:var(--warn)}
+.formula{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:14px 0;box-shadow:var(--shadow)}
+.formula .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--muted)}
+.formula .eq{font-family:"JetBrains Mono",monospace;font-size:15px;margin:8px 0;padding:10px 12px;background:var(--code-bg);border-radius:8px;overflow-x:auto;white-space:pre;line-height:1.7}
+.formula .ex{font-size:14.5px;margin-top:8px}
+.formula .ex b{color:var(--accent)}
+.table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:var(--surface-2);font-weight:600;font-size:13px}
+tr:last-child td{border-bottom:0}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:14px 0}
+.flow .step{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 11px;font-size:13.5px}
+.flow .step b{display:block;font-size:11px;color:var(--accent);font-family:"JetBrains Mono",monospace}
+.flow .arr{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;box-shadow:var(--shadow)}
+.card h4{margin:0 0 4px;font-size:14.5px}
+.card p{margin:0;font-size:14px;color:var(--muted)}
+
+/* Calculators */
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.calc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+.calc h4{margin:0 0 2px;font-size:15px}
+.calc .sub{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+.calc label{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin:6px 0}
+.calc input,.calc select{width:130px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);font:inherit;font-size:13px;font-family:"JetBrains Mono",monospace;text-align:right}
+.calc select{text-align:left;font-family:inherit}
+.out{margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);font-size:13.5px}
+.out div{display:flex;justify-content:space-between;gap:10px;margin:3px 0}
+.out span:last-child{font-family:"JetBrains Mono",monospace;font-weight:500}
+.out .hl span:last-child{color:var(--accent);font-weight:700}
+.out .bad span:last-child{color:var(--danger);font-weight:700}
+
+/* Glossary */
+.gl-tools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.gl-tools input{flex:1;min-width:200px;padding:9px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;font-size:14px}
+.gl-cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.gl-cats button{border-radius:999px;font-size:12.5px;padding:4px 10px}
+.gl-cats button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.gl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.term{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.term .t{font-weight:600;font-size:14.5px}
+.term .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-left:6px;font-weight:500}
+.term p{margin:3px 0 0;font-size:13.5px;color:var(--muted);line-height:1.55}
+.gl-count{font-size:13px;color:var(--muted)}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:0;padding:0 16px}
+  .sidebar{position:static;height:auto;overflow:visible;border-right:0;border-bottom:1px solid var(--border);padding:14px 0}
+  .side-head{margin-bottom:0}
+  #tocToggle{display:inline-block}
+  .sidebar.collapsed .toc{display:none}
+  .sidebar:not(.collapsed) .side-head{margin-bottom:12px}
+  .content{padding-top:22px}
+  .calc-grid,.grid2,.gl{grid-template-columns:1fr}
+  header.hero h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar collapsed" id="sidebar">
+  <div class="side-head">
+    <div class="side-title">Crypto Fundamentals<span>Từ con số 0 đến trading</span></div>
+    <div style="display:flex;gap:6px">
+      <button id="tocToggle">Mục lục ▾</button>
+      <button id="theme" title="Đổi giao diện sáng/tối">Sáng/Tối</button>
+    </div>
+  </div>
+  <nav class="toc" id="toc">
+    <div class="toc-group">Nền tảng</div>
+    <a href="#s1"><span>01</span>Blockchain là gì</a>
+    <a href="#s2"><span>02</span>Ví, khóa và địa chỉ</a>
+    <a href="#s3"><span>03</span>Ethereum, EVM và gas</a>
+    <a href="#s4"><span>04</span>Token và stablecoin</a>
+    <div class="toc-group">Thị trường</div>
+    <a href="#s5"><span>05</span>Sàn CEX và order book</a>
+    <a href="#s6"><span>06</span>DEX và AMM</a>
+    <a href="#s7"><span>07</span>Phái sinh: perp, leverage</a>
+    <a href="#s8"><span>08</span>Lending trong DeFi</a>
+    <div class="toc-group">Nâng cao</div>
+    <a href="#s9"><span>09</span>Arbitrage và chiến lược</a>
+    <a href="#s10"><span>10</span>Mempool và MEV</a>
+    <a href="#s11"><span>11</span>Layer 2, bridge, oracle</a>
+    <a href="#s12"><span>12</span>Rủi ro cần biết</a>
+    <div class="toc-group">Công cụ</div>
+    <a href="#s13"><span>13</span>Bảng công thức</a>
+    <a href="#s14"><span>14</span>Máy tính tương tác</a>
+    <a href="#s15"><span>15</span>Thuật ngữ A–Z</a>
+  </nav>
+</aside>
+
+<div class="content">
+
+<header class="hero">
+  <h1>Kiến thức nền tảng Crypto cho người mới</h1>
+  <p>Đọc theo thứ tự từ trên xuống: mỗi phần dựa trên phần trước. Thuật ngữ giữ nguyên tiếng Anh vì đó là cách cả ngành sử dụng.</p>
+  <p>Mỗi phần có ba loại hộp: <strong style="color:var(--accent)">Hiểu nhanh</strong> (ví von dễ nhớ), <strong style="color:var(--info)">Góc nhìn dev</strong> (chi tiết kỹ thuật khi viết code) và <strong style="color:var(--warn)">Lưu ý</strong> (bẫy thường gặp).</p>
+</header>
+
+<!-- ============ 01 ============ -->
+<section id="s1">
+<h2><span class="n">01</span>Blockchain là gì</h2>
+<p class="lead">Một cuốn sổ cái dùng chung, không ai sở hữu riêng, và không thể sửa lại những gì đã ghi.</p>
+
+<div class="callout analogy"><span class="lbl">Hiểu nhanh</span>
+<p>Hãy tưởng tượng một cuốn sổ ghi nợ mà hàng nghìn người cùng giữ một bản sao. Muốn ghi thêm một dòng, đa số phải đồng ý. Muốn sửa một dòng cũ, bạn phải sửa đồng thời bản sao của đa số người giữ sổ, điều gần như không thể làm được.</p>
+</div>
+
+<h3>Các khái niệm cốt lõi</h3>
+<ul>
+<li><strong>Transaction (tx)</strong>: một thao tác thay đổi trạng thái, ví dụ "A chuyển 1 ETH cho B".</li>
+<li><strong>Block</strong>: một nhóm transaction được đóng gói lại. Mỗi block chứa <strong>hash</strong> của block trước, tạo thành chuỗi (chain).</li>
+<li><strong>Hash</strong>: "dấu vân tay" của dữ liệu. Thay đổi một bit dữ liệu thì hash thay đổi hoàn toàn. Đây là lý do sửa một block cũ sẽ làm hỏng toàn bộ chuỗi phía sau.</li>
+<li><strong>Node</strong>: máy tính chạy phần mềm blockchain, giữ bản sao dữ liệu và kiểm tra tính hợp lệ của tx/block.</li>
+<li><strong>Consensus</strong>: cơ chế để các node đồng ý block nào hợp lệ.</li>
+</ul>
+
+<h3>Hai cơ chế consensus phổ biến</h3>
+<div class="table-wrap"><table>
+<tr><th></th><th>Proof of Work (PoW)</th><th>Proof of Stake (PoS)</th></tr>
+<tr><td>Ví dụ</td><td>Bitcoin</td><td>Ethereum (từ 2022)</td></tr>
+<tr><td>Ai tạo block</td><td>Miner giải bài toán hash tốn điện năng</td><td>Validator đặt cọc (stake) tài sản, được chọn ngẫu nhiên</td></tr>
+<tr><td>Phạt gian lận</td><td>Tốn chi phí điện vô ích</td><td>Bị tịch thu một phần stake (slashing)</td></tr>
+<tr><td>Thời gian block</td><td>Khoảng 10 phút</td><td>12 giây mỗi slot</td></tr>
+</table></div>
+
+<h3>Finality và reorg</h3>
+<p><strong>Finality</strong> là thời điểm một block được coi là không thể đảo ngược. Trước thời điểm đó, chain có thể bị <strong>reorg</strong>: một vài block gần nhất bị thay thế bằng nhánh khác. Trên Ethereum, block đạt finality sau khoảng 2 epoch (1 epoch = 32 slot × 12s), tức cỡ 13 phút.</p>
+
+<div class="callout dev"><span class="lbl">Góc nhìn dev</span>
+<p>Bitcoin dùng mô hình <strong>UTXO</strong> (giống tiền mặt: mỗi "tờ tiền" được tiêu hết và trả lại tiền thừa). Ethereum dùng mô hình <strong>account</strong> (giống tài khoản ngân hàng: mỗi địa chỉ có một số dư). Mô hình account quen thuộc hơn với backend dev và là mô hình bạn sẽ làm việc nhiều nhất.</p>
+<p>Trong hệ thống ghi nhận tiền: hành động ngay trên block mới nhất (<code>latest</code>) để kịp cơ hội, nhưng chốt sổ kế toán theo block <code>finalized</code>.</p>
+</div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section id="s2">
+<h2><span class="n">02</span>Ví, khóa và địa chỉ</h2>
+<p class="lead">"Ví" không chứa tiền. Tiền nằm trên blockchain; ví chỉ giữ chìa khóa để ký giao dịch.</p>
+
+<div class="callout analogy"><span class="lbl">Hiểu nhanh</span>
+<p><strong>Address</strong> giống số tài khoản: ai cũng có thể biết và gửi tiền vào. <strong>Private key</strong> giống chữ ký kèm mật khẩu: ai có nó thì toàn quyền chuyển tiền đi. Không có ngân hàng nào để gọi khi bị mất.</p>
+</div>
+
+<div class="flow">
+  <div class="step"><b>1</b>Private key<br><small>số ngẫu nhiên 256-bit</small></div><span class="arr">→</span>
+  <div class="step"><b>2</b>Public key<br><small>tính bằng ECDSA secp256k1</small></div><span class="arr">→</span>
+  <div class="step"><b>3</b>Address<br><small>20 byte cuối của Keccak-256(pubkey)</small></div>
+</div>
+<p>Chiều mũi tên chỉ đi một chiều: từ private key tính ra address rất dễ, nhưng từ address không thể tính ngược ra private key.</p>
+
+<h3>Seed phrase</h3>
+<p>Một chuỗi 12 hoặc 24 từ tiếng Anh (chuẩn BIP-39) dùng để sinh ra <em>nhiều</em> private key theo cây (HD wallet, BIP-32/44). Giữ seed phrase là giữ toàn bộ ví.</p>
+
+<h3>Phân loại ví</h3>
+<div class="table-wrap"><table>
+<tr><th>Loại</th><th>Ai giữ key</th><th>Ví dụ</th><th>Đánh đổi</th></tr>
+<tr><td>Custodial</td><td>Bên thứ ba (sàn)</td><td>Tài khoản trên sàn CEX</td><td>Tiện, nhưng phụ thuộc vào sàn ("not your keys, not your coins")</td></tr>
+<tr><td>Non-custodial</td><td>Chính bạn</td><td>MetaMask, Rabby</td><td>Toàn quyền, tự chịu trách nhiệm bảo mật</td></tr>
+<tr><td>Hot wallet</td><td>Key trên máy kết nối mạng</td><td>Ví của bot trading</td><td>Ký nhanh, dễ bị tấn công hơn</td></tr>
+<tr><td>Cold wallet</td><td>Key trên thiết bị offline</td><td>Ledger, Trezor</td><td>An toàn, nhưng ký chậm</td></tr>
+</table></div>
+
+<div class="callout dev"><span class="lbl">Góc nhìn dev</span>
+<p>Có hai loại account trên Ethereum: <strong>EOA</strong> (Externally Owned Account, do private key điều khiển, chủ động gửi tx) và <strong>Contract account</strong> (chứa code, chỉ chạy khi được gọi). Bot trading thường dùng EOA để gửi tx, gọi tới contract của chính mình.</p>
+<p>Hệ thống production: không bao giờ để key trong code hay log. Dùng KMS/HSM hoặc secret manager, giữ trong hot wallet chỉ số vốn cần thiết.</p>
+</div>
+</section>
+
+<!-- ============ 03 ============ -->
+<section id="s3">
+<h2><span class="n">03</span>Ethereum, EVM và gas</h2>
+<p class="lead">Ethereum là một "máy tính toàn cầu": ai cũng có thể triển khai chương trình (smart contract) và trả phí để chạy nó.</p>
+
+<h3>Smart contract và EVM</h3>
+<ul>
+<li><strong>Smart contract</strong>: chương trình nằm trên chain, thường viết bằng Solidity. Sau khi triển khai, code (về cơ bản) không sửa được.</li>
+<li><strong>EVM</strong> (Ethereum Virtual Machine): môi trường chạy contract. Nhiều chain khác cũng tương thích EVM (BNB Chain, Arbitrum, Base, Polygon…), nên kiến thức này dùng lại được rộng rãi.</li>
+<li><strong>ABI</strong>: mô tả các hàm và event của contract, giống file định nghĩa API.</li>
+<li><strong>Event / log</strong>: contract phát ra khi có sự kiện (ví dụ <code>Transfer</code>, <code>Swap</code>). Đây là nguồn dữ liệu chính để backend theo dõi chain.</li>
+</ul>
+
+<h3>Đơn vị của ETH</h3>
+<div class="formula"><span class="lbl">Quy đổi</span>
+<div class="eq">1 ETH = 10^9 gwei = 10^18 wei</div>
+<div class="ex">Gas thường được tính bằng <b>gwei</b>. Số dư và số lượng trên chain luôn được lưu bằng <b>wei</b> (số nguyên).</div>
+</div>
+
+<h3>Gas là gì</h3>
+<div class="callout analogy"><span class="lbl">Hiểu nhanh</span>
+<p>Gas giống "xăng" để EVM chạy code. Mỗi thao tác tốn một lượng gas cố định. Chuyển ETH đơn giản tốn 21,000 gas; một lệnh swap trên DEX thường tốn cỡ 100,000–200,000 gas. Giá mỗi đơn vị gas thay đổi theo mức độ tắc nghẽn của mạng.</p>
+</div>
+
+<p>Từ nâng cấp <strong>EIP-1559</strong>, giá gas gồm hai phần:</p>
+<ul>
+<li><strong>Base fee</strong>: do giao thức tự điều chỉnh theo độ đầy của block (tối đa ±12.5% mỗi block), bị đốt (burn).</li>
+<li><strong>Priority fee</strong> (tip): tiền boa cho validator để tx được ưu tiên.</li>
+</ul>
+
+<div class="formula"><span class="lbl">Phí giao dịch</span>
+<div class="eq">Fee = gasUsed × (baseFee + priorityFee)</div>
+<div class="ex">Ví dụ: swap tốn 150,000 gas, baseFee 18 gwei, tip 2 gwei.<br>
+Fee = 150,000 × 20 = 3,000,000 gwei = <b>0.003 ETH</b>. Với giá ETH 3,000 USD thì khoảng <b>9 USD</b>.</div>
+</div>
+
+<h3>Nonce</h3>
+<p>Mỗi EOA có một bộ đếm <strong>nonce</strong>, tăng 1 sau mỗi tx. Tx phải được xử lý đúng thứ tự nonce. Nếu tx nonce 5 bị kẹt, các tx nonce 6, 7… sẽ phải chờ.</p>
+
+<div class="callout warn"><span class="lbl">Lưu ý</span>
+<p>Tx bị <strong>revert</strong> (thất bại khi chạy) vẫn bị tính phí gas cho phần đã chạy. Với bot, tx revert nhiều đồng nghĩa với mất tiền liên tục.</p>
+</div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section id="s4">
+<h2><span class="n">04</span>Token và stablecoin</h2>
+<p class="lead">Coin là tài sản gốc của chain (ETH, BTC). Token là tài sản được tạo bởi smart contract chạy trên chain đó.</p>
+
+<h3>ERC-20: chuẩn token phổ biến nhất</h3>
+<p>Mọi token ERC-20 đều có cùng bộ hàm, nên ví và sàn hỗ trợ được mọi token theo một cách:</p>
+<ul>
+<li><code>balanceOf(address)</code>: số dư.</li>
+<li><code>transfer(to, amount)</code>: chuyển token.</li>
+<li><code>approve(spender, amount)</code>: cho phép một contract khác (ví dụ DEX) được tiêu tối đa <code>amount</code> token của bạn.</li>
+<li><code>transferFrom(from, to, amount)</code>: contract đã được approve thực hiện chuyển.</li>
+<li><code>decimals()</code>: số chữ số thập phân.</li>
+</ul>
+
+<div class="formula"><span class="lbl">Decimals</span>
+<div class="eq">raw_amount = human_amount × 10^decimals</div>
+<div class="ex">USDC có 6 decimals: 1.5 USDC = <b>1,500,000</b> raw.<br>
+WETH có 18 decimals: 0.25 WETH = <b>250,000,000,000,000,000</b> raw.<br>
+WBTC có 8 decimals.</div>
+</div>
+
+<div class="callout warn"><span class="lbl">Lưu ý</span>
+<p>Nhầm decimals là một trong những bug tốn tiền nhất. Luôn đọc <code>decimals()</code> từ contract thay vì giả định là 18.</p>
+<p><strong>Approve vô hạn</strong> (amount = max uint256) rất tiện nhưng nếu contract được approve bị hack, toàn bộ số token đó có thể bị lấy đi.</p>
+</div>
+
+<h3>Các loại token khác</h3>
+<ul>
+<li><strong>ERC-721 (NFT)</strong>: mỗi token là duy nhất, không chia nhỏ được.</li>
+<li><strong>Wrapped token</strong>: phiên bản ERC-20 của một tài sản khác. <strong>WETH</strong> là ETH được "bọc" thành ERC-20 (tỷ lệ 1:1) để dùng được trong các contract chỉ hỗ trợ ERC-20. WBTC là BTC được đưa sang Ethereum.</li>
+<li><strong>LP token</strong>: biên nhận khi bạn gửi thanh khoản vào pool DEX (xem phần 06).</li>
+</ul>
+
+<h3>Stablecoin</h3>
+<p>Token được thiết kế để giữ giá ổn định, thường là 1 USD.</p>
+<div class="table-wrap"><table>
+<tr><th>Loại</th><th>Cơ chế giữ giá</th><th>Ví dụ</th><th>Rủi ro chính</th></tr>
+<tr><td>Fiat-backed</td><td>Tổ chức phát hành giữ USD hoặc trái phiếu tương ứng</td><td>USDT, USDC</td><td>Tin tưởng tổ chức phát hành, bị đóng băng</td></tr>
+<tr><td>Crypto-collateralized</td><td>Thế chấp crypto vượt mức (over-collateralized)</td><td>DAI</td><td>Tài sản thế chấp giảm giá mạnh</td></tr>
+<tr><td>Algorithmic</td><td>Cơ chế thuật toán, ít hoặc không có tài sản đảm bảo</td><td>UST (đã sụp đổ năm 2022)</td><td>Mất neo giá dây chuyền (death spiral)</td></tr>
+</table></div>
+<p>Khi stablecoin lệch khỏi 1 USD, người ta gọi là <strong>depeg</strong>.</p>
+
+<div class="formula"><span class="lbl">Vốn hóa</span>
+<div class="eq">Market Cap = giá × lượng cung đang lưu hành
+FDV = giá × tổng cung tối đa</div>
+<div class="ex">Token giá 2 USD, đang lưu hành 500 triệu, tổng cung tối đa 2 tỷ:<br>
+Market cap = <b>1 tỷ USD</b>, FDV = <b>4 tỷ USD</b>. FDV cao hơn nhiều so với market cap nghĩa là còn nhiều token sẽ được mở khóa và có thể gây áp lực bán.</div>
+</div>
+</section>
+
+<!-- ============ 05 ============ -->
+<section id="s5">
+<h2><span class="n">05</span>Sàn CEX và order book</h2>
+<p class="lead">CEX (Centralized Exchange) hoạt động giống sàn chứng khoán: người mua và người bán đặt lệnh vào một order book, sàn khớp lệnh.</p>
+
+<h3>CEX và DEX khác nhau thế nào</h3>
+<div class="table-wrap"><table>
+<tr><th></th><th>CEX (Binance, OKX, Bybit…)</th><th>DEX (Uniswap, Curve…)</th></tr>
+<tr><td>Ai giữ tài sản</td><td>Sàn giữ</td><td>Bạn giữ trong ví</td></tr>
+<tr><td>Cơ chế khớp lệnh</td><td>Order book, matching engine trên server</td><td>Thường là AMM, chạy bằng smart contract</td></tr>
+<tr><td>Tốc độ</td><td>Mili giây</td><td>Theo block (vài giây)</td></tr>
+<tr><td>Phí</td><td>Phí giao dịch (maker/taker)</td><td>Phí pool + gas</td></tr>
+<tr><td>Kết nối cho dev</td><td>REST + WebSocket API, cần API key</td><td>Gọi contract qua RPC node</td></tr>
+</table></div>
+
+<h3>Order book</h3>
+<ul>
+<li><strong>Bid</strong>: giá người mua sẵn sàng trả. <strong>Ask</strong> (offer): giá người bán sẵn sàng bán.</li>
+<li><strong>Best bid</strong> luôn thấp hơn <strong>best ask</strong>. Khoảng chênh là <strong>spread</strong>.</li>
+<li><strong>Depth</strong> (độ sâu): tổng khối lượng ở các mức giá. Book sâu thì lệnh lớn ít làm giá trượt.</li>
+</ul>
+
+<div class="formula"><span class="lbl">Spread</span>
+<div class="eq">mid = (bid + ask) / 2
+spread_bps = (ask − bid) / mid × 10,000</div>
+<div class="ex">Bid 2,999.5, ask 3,000.5: mid = 3,000, spread = 1 USD = <b>3.33 bps</b> (1 bps = 0.01%).</div>
+</div>
+
+<h3>Các loại lệnh</h3>
+<div class="table-wrap"><table>
+<tr><th>Lệnh</th><th>Ý nghĩa</th></tr>
+<tr><td>Market</td><td>Khớp ngay theo giá tốt nhất hiện có. Nhanh nhưng có thể trượt giá.</td></tr>
+<tr><td>Limit</td><td>Chỉ khớp tại giá đặt hoặc tốt hơn. Nếu chưa khớp thì nằm chờ trên book.</td></tr>
+<tr><td>IOC (Immediate or Cancel)</td><td>Khớp được bao nhiêu thì khớp ngay, phần còn lại hủy.</td></tr>
+<tr><td>FOK (Fill or Kill)</td><td>Phải khớp toàn bộ ngay, không thì hủy hết.</td></tr>
+<tr><td>Post-only</td><td>Chỉ được nằm chờ trên book. Nếu khớp ngay thì bị hủy, để đảm bảo luôn là maker.</td></tr>
+</table></div>
+
+<p><strong>Maker</strong> là người đặt lệnh nằm chờ trên book (cung cấp thanh khoản), thường chịu phí thấp hơn. <strong>Taker</strong> là người khớp ngay vào lệnh có sẵn (lấy thanh khoản), chịu phí cao hơn.</p>
+
+<div class="formula"><span class="lbl">Slippage</span>
+<div class="eq">slippage = (giá khớp thực tế − giá kỳ vọng) / giá kỳ vọng</div>
+<div class="ex">Kỳ vọng mua ở 3,000 nhưng do book mỏng, giá khớp trung bình là 3,006: slippage = <b>0.2%</b>.</div>
+</div>
+
+<div class="callout dev"><span class="lbl">Góc nhìn dev</span>
+<p>Duy trì order book local: lấy snapshot qua REST, sau đó áp dụng các thay đổi (diff) từ WebSocket theo đúng sequence number. Thiếu một diff là book sai, phải lấy snapshot lại.</p>
+<p>Giá và số lượng trên sàn thường gửi dạng string. Parse sang số nguyên có scale cố định (fixed-point), tránh dùng float.</p>
+</div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section id="s6">
+<h2><span class="n">06</span>DEX và AMM</h2>
+<p class="lead">AMM (Automated Market Maker) thay order book bằng một công thức toán: bạn giao dịch trực tiếp với một "bể" (pool) chứa hai token.</p>
+
+<div class="callout analogy"><span class="lbl">Hiểu nhanh</span>
+<p>Hãy tưởng tượng một quầy đổi tiền tự động với hai ngăn: ETH và USDC. Khi bạn lấy ETH ra và bỏ USDC vào, ngăn ETH vơi đi nên ETH trở nên "hiếm" hơn, và quầy tự động tăng giá ETH. Không cần ai đặt lệnh bán, công thức tự định giá.</p>
+</div>
+
+<h3>Công thức constant product (Uniswap V2)</h3>
+<div class="formula"><span class="lbl">Bất biến</span>
+<div class="eq">x × y = k</div>
+<div class="ex">x, y là lượng hai token trong pool (reserves). Mọi giao dịch phải giữ tích k không đổi (thực tế k tăng nhẹ nhờ phí).<br>
+Giá spot của token X tính theo token Y: <b>P = y / x</b>.</div>
+</div>
+
+<div class="formula"><span class="lbl">Lượng nhận được khi swap</span>
+<div class="eq">Δy = y × Δx × (1 − fee) / (x + Δx × (1 − fee))</div>
+<div class="ex">Pool: 1,000 ETH và 3,000,000 USDC (giá spot 3,000). Phí 0.3%. Mua ETH bằng 30,000 USDC:<br>
+• Phần sau phí: 30,000 × 0.997 = 29,910 USDC<br>
+• Nhận: 1,000 × 29,910 / (3,000,000 + 29,910) ≈ <b>9.8716 ETH</b><br>
+• Giá thực hiện ≈ 30,000 / 9.8716 ≈ <b>3,039</b>, cao hơn spot khoảng 1.3% (0.3% phí + khoảng 1% price impact)<br>
+• Sau swap pool còn khoảng 990.13 ETH và 3,030,000 USDC, giá spot mới ≈ <b>3,060</b></div>
+</div>
+
+<p><strong>Price impact</strong> là mức giá bị đẩy đi do chính giao dịch của bạn. Lệnh càng lớn so với pool, impact càng lớn. Ước lượng nhanh: impact ≈ Δx / x.</p>
+
+<h3>Liquidity provider (LP)</h3>
+<p>Ai cũng có thể gửi hai token vào pool theo đúng tỷ lệ giá hiện tại để trở thành LP, nhận LP token làm biên nhận, và được hưởng phần phí giao dịch (ví dụ 0.3% mỗi swap).</p>
+
+<h3>Impermanent loss (IL)</h3>
+<p>Khi giá thay đổi, pool tự động bán token tăng giá và mua token giảm giá. Kết quả là LP có giá trị thấp hơn so với việc chỉ giữ nguyên hai token (HODL).</p>
+<div class="formula"><span class="lbl">Impermanent loss</span>
+<div class="eq">IL = 2 × √r / (1 + r) − 1      (r = giá mới / giá cũ)</div>
+<div class="ex">Gửi 1 ETH + 3,000 USDC khi giá 3,000 (tổng 6,000 USD). Giá ETH tăng lên 6,000 (r = 2):<br>
+• Pool tự cân bằng còn khoảng 0.7071 ETH + 4,242.64 USDC, tổng <b>8,485.28 USD</b><br>
+• Nếu chỉ giữ: 1 ETH + 3,000 USDC = <b>9,000 USD</b><br>
+• IL = 8,485.28 / 9,000 − 1 ≈ <b>−5.72%</b>. Với r = 4, IL = −20%.</div>
+</div>
+<p>Gọi là "impermanent" (tạm thời) vì nếu giá quay về như cũ, khoản lỗ biến mất. Nếu rút ra lúc giá đã lệch thì lỗ trở thành thật.</p>
+
+<h3>Uniswap V3: concentrated liquidity</h3>
+<ul>
+<li>LP chọn một khoảng giá để cung cấp thanh khoản, thay vì trải đều từ 0 đến vô cùng. Vốn được dùng hiệu quả hơn nhiều, nhưng IL cũng khuếch đại theo.</li>
+<li>Giá được chia thành các <strong>tick</strong>, giá tại tick i bằng <code>1.0001^i</code>.</li>
+<li>Pool lưu giá dưới dạng <code>sqrtPriceX96 = √price × 2^96</code>.</li>
+<li>Các mức phí phổ biến: 0.01%, 0.05%, 0.3%, 1%.</li>
+</ul>
+
+<div class="callout dev"><span class="lbl">Góc nhìn dev</span>
+<p>Contract tính toán bằng số nguyên và làm tròn xuống. Code off-chain phải dùng đúng công thức số nguyên (<code>big.Int</code> hoặc <code>uint256</code>) để kết quả khớp đến từng wei. Float chỉ dùng để lọc sơ bộ.</p>
+<p>Luôn đặt <code>amountOutMin</code> (lượng nhận tối thiểu) và <code>deadline</code> khi swap, nếu không bạn có thể bị sandwich (xem phần 10).</p>
+</div>
+</section>
+
+<!-- ============ 07 ============ -->
+<section id="s7">
+<h2><span class="n">07</span>Phái sinh: perpetual, leverage, liquidation</h2>
+<p class="lead">Phái sinh cho phép đặt cược vào giá mà không cần sở hữu tài sản thật, và thường đi kèm đòn bẩy.</p>
+
+<div class="table-wrap"><table>
+<tr><th>Loại</th><th>Đặc điểm</th></tr>
+<tr><td>Spot</td><td>Mua bán tài sản thật, giao ngay.</td></tr>
+<tr><td>Futures (có kỳ hạn)</td><td>Hợp đồng mua/bán ở một giá vào một ngày trong tương lai.</td></tr>
+<tr><td>Perpetual (perp)</td><td>Giống futures nhưng không có ngày đáo hạn. Giữ giá bám theo spot bằng cơ chế funding rate. Đây là sản phẩm có khối lượng lớn nhất trong crypto.</td></tr>
+</table></div>
+
+<h3>Long, short và leverage</h3>
+<ul>
+<li><strong>Long</strong>: lời khi giá tăng. <strong>Short</strong>: lời khi giá giảm.</li>
+<li><strong>Leverage</strong> (đòn bẩy) L: dùng một khoản ký quỹ (margin) để mở vị thế lớn gấp L lần.</li>
+<li><strong>Isolated margin</strong>: mỗi vị thế có margin riêng, cháy thì chỉ mất phần đó. <strong>Cross margin</strong>: dùng chung toàn bộ số dư tài khoản làm margin.</li>
+</ul>
+
+<div class="formula"><span class="lbl">PnL và ROE</span>
+<div class="eq">Notional = margin × L
+PnL (long)  = Q × (P_exit − P_entry)
+ROE = PnL / margin ≈ L × % thay đổi giá</div>
+<div class="ex">Ký quỹ 1,000 USDT, đòn bẩy 10x, long ETH ở 3,000: notional 10,000 USDT, Q ≈ 3.333 ETH.<br>
+• Giá +5% (3,150): PnL = +500 USDT, ROE = <b>+50%</b><br>
+• Giá −5% (2,850): PnL = −500 USDT, ROE = <b>−50%</b></div>
+</div>
+
+<h3>Liquidation</h3>
+<p>Khi lỗ làm số dư margin giảm xuống dưới mức <strong>maintenance margin</strong>, sàn sẽ tự động đóng vị thế (thanh lý).</p>
+<div class="formula"><span class="lbl">Giá thanh lý (isolated, đơn giản hóa, bỏ qua phí và funding)</span>
+<div class="eq">Long:  P_liq = P_entry × (1 − 1/L) / (1 − MMR)
+Short: P_liq = P_entry × (1 + 1/L) / (1 + MMR)</div>
+<div class="ex">MMR là tỷ lệ maintenance margin. Entry 3,000, đòn bẩy 10x, MMR 0.5%:<br>
+• Long bị thanh lý ở khoảng <b>2,713.6</b> (giá giảm khoảng 9.5%)<br>
+• Short bị thanh lý ở khoảng <b>3,283.6</b><br>
+Công thức thực tế của mỗi sàn khác nhau một chút, đây là bản đủ để hiểu cơ chế.</div>
+</div>
+
+<h3>Mark price và index price</h3>
+<ul>
+<li><strong>Index price</strong>: giá spot trung bình từ nhiều sàn.</li>
+<li><strong>Mark price</strong>: giá sàn dùng để tính PnL chưa chốt và kiểm tra thanh lý, để tránh việc một cú giật giá trên một sàn làm thanh lý hàng loạt.</li>
+<li><strong>Open interest</strong>: tổng giá trị các vị thế perp đang mở.</li>
+</ul>
+
+<h3>Funding rate</h3>
+<div class="callout analogy"><span class="lbl">Hiểu nhanh</span>
+<p>Perp không đáo hạn nên cần một cơ chế "kéo" giá perp về gần giá spot. Nếu perp đắt hơn spot (nhiều người long), phe long phải trả tiền cho phe short định kỳ, khuyến khích người ta short để kéo giá xuống. Ngược lại khi perp rẻ hơn spot.</p>
+</div>
+<div class="formula"><span class="lbl">Tiền funding</span>
+<div class="eq">funding_payment = notional × funding_rate</div>
+<div class="ex">Funding dương: long trả short. Kỳ thanh toán thường mỗi 8 giờ (một số cặp 4h hoặc 1h).<br>
+Vị thế 10,000 USDT, funding 0.01%/8h: trả hoặc nhận <b>1 USDT</b> mỗi kỳ, khoảng 3 USDT mỗi ngày.<br>
+Quy ra năm (không lãi kép): 0.01% × 3 × 365 ≈ <b>10.95%/năm</b>.</div>
+</div>
+
+<div class="formula"><span class="lbl">Basis của futures có kỳ hạn</span>
+<div class="eq">basis = (P_futures − P_spot) / P_spot
+basis_năm = basis × 365 / số_ngày_đến_đáo_hạn</div>
+<div class="ex">Spot 3,000, futures quý (90 ngày) 3,060: basis 2%, quy ra năm ≈ <b>8.11%</b>.</div>
+</div>
+
+<div class="callout warn"><span class="lbl">Lưu ý</span>
+<p>Đòn bẩy 10x nghĩa là giá đi ngược khoảng 10% là mất toàn bộ margin. Thị trường crypto có thể biến động 10% trong vài phút.</p>
+</div>
+</section>
+
+<!-- ============ 08 ============ -->
+<section id="s8">
+<h2><span class="n">08</span>Lending trong DeFi</h2>
+<p class="lead">Các giao thức như Aave, Compound cho phép gửi tài sản để nhận lãi, hoặc thế chấp tài sản để vay.</p>
+
+<ul>
+<li><strong>Collateral</strong> (tài sản thế chấp): luôn phải thế chấp nhiều hơn số vay (over-collateralized), vì không có xếp hạng tín dụng.</li>
+<li><strong>LTV</strong> (Loan-to-Value): tỷ lệ nợ trên giá trị tài sản thế chấp.</li>
+<li><strong>Liquidation threshold</strong>: ngưỡng LTV mà vượt qua thì bị thanh lý.</li>
+<li><strong>Utilization</strong>: tỷ lệ tài sản trong pool đang được cho vay. Utilization cao thì lãi suất tăng mạnh.</li>
+</ul>
+
+<div class="formula"><span class="lbl">Health factor (kiểu Aave)</span>
+<div class="eq">HF = Σ (collateral_i × liquidation_threshold_i) / tổng nợ</div>
+<div class="ex">Gửi 10 ETH (giá 3,000 = 30,000 USD), liquidation threshold 80%, vay 15,000 USDC:<br>
+HF = 30,000 × 0.8 / 15,000 = <b>1.6</b>.<br>
+HF dưới 1 thì bị thanh lý. Giá ETH để HF = 1: 10 × P × 0.8 = 15,000, suy ra P = <b>1,875</b>.</div>
+</div>
+
+<div class="formula"><span class="lbl">APR và APY</span>
+<div class="eq">APY = (1 + APR / n)^n − 1      (n = số lần lãi kép mỗi năm)</div>
+<div class="ex">APR 10%, lãi kép mỗi ngày: APY ≈ <b>10.52%</b>.<br>
+APR là lãi đơn, APY đã tính lãi kép. Các giao thức hay hiển thị APY vì con số đẹp hơn.</div>
+</div>
+
+<h3>Flash loan</h3>
+<p>Khoản vay không cần thế chấp với điều kiện phải trả lại trong <strong>cùng một transaction</strong>. Nếu không trả được, toàn bộ tx bị revert như chưa từng xảy ra. Flash loan được dùng cho arbitrage, thanh lý, và cũng bị kẻ tấn công dùng để thao túng giá.</p>
+</section>
+
+<!-- ============ 09 ============ -->
+<section id="s9">
+<h2><span class="n">09</span>Arbitrage và các chiến lược phổ biến</h2>
+<p class="lead">Arbitrage là kiếm lời từ chênh lệch giá của cùng một tài sản ở hai nơi khác nhau.</p>
+
+<div class="grid2">
+  <div class="card"><h4>CEX – CEX</h4><p>Mua trên sàn rẻ, bán trên sàn đắt. Cần sẵn vốn ở cả hai sàn vì chuyển tiền giữa sàn chậm.</p></div>
+  <div class="card"><h4>CEX – DEX</h4><p>Chênh lệch giữa order book của CEX và giá pool AMM. Leg on-chain chậm và không chắc chắn.</p></div>
+  <div class="card"><h4>DEX – DEX</h4><p>Chênh giữa hai pool. Có thể thực hiện nguyên tử trong một tx, thường kết hợp flash loan.</p></div>
+  <div class="card"><h4>Triangular</h4><p>Đi vòng qua 3 cặp (USDT → BTC → ETH → USDT), có lời khi tích tỷ giá sau phí lớn hơn 1.</p></div>
+  <div class="card"><h4>Funding arbitrage</h4><p>Long spot + short perp (cash-and-carry) để hưởng funding dương mà không chịu rủi ro giá.</p></div>
+  <div class="card"><h4>Market making</h4><p>Đặt đồng thời lệnh mua và bán quanh giá giữa để hưởng spread. Rủi ro là tồn kho lệch một phía.</p></div>
+</div>
+
+<div class="formula"><span class="lbl">Lợi nhuận thực của một lần arbitrage</span>
+<div class="eq">profit = doanh_thu_bán − chi_phí_mua − phí_sàn − phí_pool − gas − slippage</div>
+<div class="ex">DEX bán ETH giá 2,980, CEX mua giá 3,000. Chênh 20 USD (0.67%) trông có vẻ lời. Với 1 ETH:<br>
+• Mua trên DEX gồm phí pool 0.3%: 2,980 × 1.003 = 2,988.94<br>
+• Bán trên CEX trừ phí 0.1%: 3,000 × 0.999 = 2,997.00<br>
+• Chênh 8.06 USD, trừ gas 9 USD: <b>lỗ 0.94 USD</b>.<br>
+Bài học: phí và gas có thể ăn hết chênh lệch. Phải tính đủ mọi chi phí, và size lớn hơn thì gas được chia nhỏ hơn nhưng price impact lại tăng.</div>
+</div>
+
+<div class="callout warn"><span class="lbl">Lưu ý</span>
+<p><strong>Leg risk</strong>: arbitrage có hai chân. Nếu một chân khớp mà chân kia thất bại, bạn không còn là arbitrage mà đang ôm một vị thế có rủi ro giá.</p>
+</div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section id="s10">
+<h2><span class="n">10</span>Mempool và MEV</h2>
+<p class="lead">Trước khi được đưa vào block, tx nằm công khai trong mempool. Ai cũng nhìn thấy ý định của bạn.</p>
+
+<div class="flow">
+  <div class="step"><b>1</b>Ký tx</div><span class="arr">→</span>
+  <div class="step"><b>2</b>Mempool<br><small>công khai</small></div><span class="arr">→</span>
+  <div class="step"><b>3</b>Builder<br><small>sắp xếp tx</small></div><span class="arr">→</span>
+  <div class="step"><b>4</b>Proposer<br><small>đề xuất block</small></div><span class="arr">→</span>
+  <div class="step"><b>5</b>Included</div><span class="arr">→</span>
+  <div class="step"><b>6</b>Finalized</div>
+</div>
+
+<p><strong>MEV</strong> (Maximal Extractable Value) là giá trị kiếm được nhờ quyền sắp xếp thứ tự, chèn thêm hoặc loại bỏ tx trong một block.</p>
+<div class="table-wrap"><table>
+<tr><th>Kiểu</th><th>Cách làm</th></tr>
+<tr><td>Frontrun</td><td>Thấy tx có lợi của bạn trong mempool, chèn tx của mình lên trước với phí cao hơn.</td></tr>
+<tr><td>Backrun</td><td>Chèn ngay sau một tx lớn, ví dụ arbitrage lại pool vừa bị lệch giá.</td></tr>
+<tr><td>Sandwich</td><td>Mua trước tx swap của nạn nhân để đẩy giá, để nạn nhân mua ở giá xấu, rồi bán ra ngay sau.</td></tr>
+</table></div>
+
+<h3>Cách tự bảo vệ</h3>
+<ul>
+<li>Đặt <code>amountOutMin</code> chặt để sandwich không còn lời.</li>
+<li>Gửi tx qua kênh <strong>private</strong> (ví dụ Flashbots Protect) thay vì mempool công khai.</li>
+<li>Dùng <strong>bundle</strong>: một nhóm tx được builder đưa vào block cùng nhau theo đúng thứ tự, hoặc không đưa vào cái nào.</li>
+</ul>
+</section>
+
+<!-- ============ 11 ============ -->
+<section id="s11">
+<h2><span class="n">11</span>Layer 2, bridge và oracle</h2>
+
+<h3>Layer 2 (L2)</h3>
+<p>Ethereum L1 chậm và đắt. <strong>Rollup</strong> xử lý tx bên ngoài L1, sau đó gửi dữ liệu nén và bằng chứng về L1, được kế thừa phần lớn tính bảo mật của L1.</p>
+<div class="table-wrap"><table>
+<tr><th></th><th>Optimistic rollup</th><th>ZK rollup</th></tr>
+<tr><td>Ví dụ</td><td>Arbitrum, Optimism, Base</td><td>zkSync, Starknet, Linea, Scroll</td></tr>
+<tr><td>Cách đảm bảo đúng</td><td>Mặc định coi là đúng, ai thấy sai thì gửi fraud proof trong thời gian thử thách</td><td>Gửi validity proof toán học cho mỗi batch</td></tr>
+<tr><td>Rút về L1</td><td>Chờ khoảng 7 ngày (qua bridge chính thức)</td><td>Nhanh hơn, sau khi proof được xác nhận</td></tr>
+</table></div>
+<p><strong>Sequencer</strong> là thành phần sắp xếp tx trên L2. Hiện đa số L2 dùng một sequencer tập trung, nên tx được xác nhận rất nhanh nhưng phụ thuộc vào bên vận hành.</p>
+
+<h3>Bridge</h3>
+<p>Cầu nối chuyển tài sản giữa các chain, thường bằng cách khóa tài sản ở chain A và phát hành bản "wrapped" ở chain B. Bridge từng là mục tiêu của nhiều vụ hack lớn nhất trong lịch sử crypto.</p>
+
+<h3>Oracle</h3>
+<p>Smart contract không tự đọc được dữ liệu ngoài chain (như giá ETH trên sàn). <strong>Oracle</strong> (ví dụ Chainlink) đưa dữ liệu đó lên chain. Một số giao thức dùng giá <strong>TWAP</strong> (giá trung bình theo thời gian) từ chính pool DEX để khó bị thao túng hơn.</p>
+
+<div class="callout warn"><span class="lbl">Lưu ý</span>
+<p>Giao thức dùng giá spot của một pool nhỏ làm oracle rất dễ bị tấn công: kẻ xấu dùng flash loan đẩy giá pool, vay hoặc thanh lý theo giá sai, rồi trả lại flash loan trong cùng một tx.</p>
+</div>
+</section>
+
+<!-- ============ 12 ============ -->
+<section id="s12">
+<h2><span class="n">12</span>Rủi ro cần biết</h2>
+<div class="grid2">
+  <div class="card"><h4>Smart contract risk</h4><p>Bug trong contract có thể làm mất toàn bộ tiền. Audit giúp giảm nhưng không loại bỏ rủi ro.</p></div>
+  <div class="card"><h4>Private key</h4><p>Lộ key là mất tiền ngay, không thể đảo ngược. Phishing và mã độc là con đường phổ biến.</p></div>
+  <div class="card"><h4>Counterparty (CEX)</h4><p>Sàn có thể bị hack, phá sản hoặc đóng băng rút tiền (ví dụ FTX năm 2022).</p></div>
+  <div class="card"><h4>Depeg</h4><p>Stablecoin hoặc wrapped token mất neo giá.</p></div>
+  <div class="card"><h4>Rug pull</h4><p>Đội ngũ phát triển rút hết thanh khoản hoặc bán tháo token rồi biến mất.</p></div>
+  <div class="card"><h4>Token độc hại</h4><p>Token có cơ chế ẩn: thu phí khi chuyển (fee-on-transfer), chặn bán (honeypot), tự thay đổi số dư (rebase).</p></div>
+  <div class="card"><h4>Thanh lý dây chuyền</h4><p>Giá giảm gây thanh lý hàng loạt, càng đẩy giá giảm thêm.</p></div>
+  <div class="card"><h4>Pháp lý</h4><p>Quy định về crypto khác nhau theo quốc gia và còn đang thay đổi.</p></div>
+</div>
+</section>
+
+<!-- ============ 13 ============ -->
+<section id="s13">
+<h2><span class="n">13</span>Bảng công thức tổng hợp</h2>
+<p class="lead">Tra cứu nhanh. Ví dụ chi tiết nằm trong từng phần tương ứng.</p>
+<div class="table-wrap"><table>
+<tr><th>Chủ đề</th><th>Công thức</th></tr>
+<tr><td>Đơn vị ETH</td><td class="mono">1 ETH = 10^9 gwei = 10^18 wei</td></tr>
+<tr><td>Decimals</td><td class="mono">raw = human × 10^decimals</td></tr>
+<tr><td>Phí gas</td><td class="mono">fee = gasUsed × (baseFee + priorityFee)</td></tr>
+<tr><td>Spread</td><td class="mono">spread_bps = (ask − bid) / mid × 10,000</td></tr>
+<tr><td>Slippage</td><td class="mono">(P_exec − P_expected) / P_expected</td></tr>
+<tr><td>AMM bất biến</td><td class="mono">x × y = k,   P_spot = y / x</td></tr>
+<tr><td>AMM swap</td><td class="mono">Δy = y·Δx·(1−f) / (x + Δx·(1−f))</td></tr>
+<tr><td>Price impact (ước lượng)</td><td class="mono">≈ Δx / x</td></tr>
+<tr><td>Impermanent loss</td><td class="mono">IL = 2√r / (1 + r) − 1</td></tr>
+<tr><td>V3 tick → giá</td><td class="mono">price = 1.0001^tick</td></tr>
+<tr><td>V3 sqrtPriceX96 → giá</td><td class="mono">price_raw = (sqrtPriceX96 / 2^96)^2, giá thực = raw × 10^(dec0 − dec1)</td></tr>
+<tr><td>Notional</td><td class="mono">notional = margin × leverage</td></tr>
+<tr><td>PnL (long / short)</td><td class="mono">Q·(P_exit − P_entry)   /   Q·(P_entry − P_exit)</td></tr>
+<tr><td>Thanh lý long</td><td class="mono">P_entry × (1 − 1/L) / (1 − MMR)</td></tr>
+<tr><td>Thanh lý short</td><td class="mono">P_entry × (1 + 1/L) / (1 + MMR)</td></tr>
+<tr><td>Funding</td><td class="mono">payment = notional × rate</td></tr>
+<tr><td>Basis quy năm</td><td class="mono">(F − S)/S × 365/days</td></tr>
+<tr><td>APR → APY</td><td class="mono">(1 + APR/n)^n − 1</td></tr>
+<tr><td>Health factor</td><td class="mono">Σ(collateral × threshold) / debt</td></tr>
+<tr><td>Market cap / FDV</td><td class="mono">giá × cung lưu hành   /   giá × cung tối đa</td></tr>
+<tr><td>Lợi nhuận arbitrage</td><td class="mono">bán − mua − phí − gas − slippage</td></tr>
+</table></div>
+</section>
+
+<!-- ============ 14 ============ -->
+<section id="s14">
+<h2><span class="n">14</span>Máy tính tương tác</h2>
+<p class="lead">Thay đổi số liệu để cảm nhận các công thức hoạt động thế nào. Kết quả cập nhật ngay khi bạn nhập.</p>
+
+<div class="calc-grid">
+
+<div class="calc" id="c-amm">
+  <h4>AMM swap (Uniswap V2)</h4>
+  <p class="sub">Đổi token In lấy token Out</p>
+  <label>Reserve In <input type="number" data-k="rin" value="3000000"></label>
+  <label>Reserve Out <input type="number" data-k="rout" value="1000"></label>
+  <label>Amount In <input type="number" data-k="ain" value="30000"></label>
+  <label>Fee (%) <input type="number" data-k="fee" value="0.3" step="0.01"></label>
+  <div class="out"></div>
+</div>
+
+<div class="calc" id="c-il">
+  <h4>Impermanent loss</h4>
+  <p class="sub">So sánh LP với chỉ giữ token (pool 50/50)</p>
+  <label>Giá ban đầu <input type="number" data-k="p0" value="3000"></label>
+  <label>Giá mới <input type="number" data-k="p1" value="6000"></label>
+  <label>Vốn gửi (USD) <input type="number" data-k="v" value="6000"></label>
+  <div class="out"></div>
+</div>
+
+<div class="calc" id="c-lev">
+  <h4>Leverage và thanh lý</h4>
+  <p class="sub">Isolated margin, bỏ qua phí và funding</p>
+  <label>Chiều <select data-k="side"><option value="long">Long</option><option value="short">Short</option></select></label>
+  <label>Giá vào <input type="number" data-k="entry" value="3000"></label>
+  <label>Margin (USDT) <input type="number" data-k="margin" value="1000"></label>
+  <label>Leverage (x) <input type="number" data-k="lev" value="10"></label>
+  <label>MMR (%) <input type="number" data-k="mmr" value="0.5" step="0.1"></label>
+  <label>Giá thoát <input type="number" data-k="exit" value="3150"></label>
+  <div class="out"></div>
+</div>
+
+<div class="calc" id="c-fund">
+  <h4>Funding rate</h4>
+  <p class="sub">Funding dương: long trả, short nhận</p>
+  <label>Notional (USDT) <input type="number" data-k="n" value="100000"></label>
+  <label>Funding mỗi kỳ (%) <input type="number" data-k="r" value="0.01" step="0.001"></label>
+  <label>Chu kỳ (giờ) <input type="number" data-k="h" value="8"></label>
+  <label>Số ngày giữ <input type="number" data-k="d" value="30"></label>
+  <div class="out"></div>
+</div>
+
+<div class="calc" id="c-apy">
+  <h4>APR → APY</h4>
+  <p class="sub">Tác động của lãi kép</p>
+  <label>APR (%) <input type="number" data-k="apr" value="10" step="0.1"></label>
+  <label>Số lần compound/năm <input type="number" data-k="n" value="365"></label>
+  <label>Vốn ban đầu <input type="number" data-k="p" value="10000"></label>
+  <div class="out"></div>
+</div>
+
+<div class="calc" id="c-gas">
+  <h4>Phí gas</h4>
+  <p class="sub">EIP-1559</p>
+  <label>Gas used <input type="number" data-k="g" value="150000"></label>
+  <label>Base fee (gwei) <input type="number" data-k="b" value="18" step="0.1"></label>
+  <label>Priority fee (gwei) <input type="number" data-k="t" value="2" step="0.1"></label>
+  <label>Giá ETH (USD) <input type="number" data-k="eth" value="3000"></label>
+  <div class="out"></div>
+</div>
+
+<div class="calc" id="c-dec">
+  <h4>Decimals converter</h4>
+  <p class="sub">Tính chính xác bằng chuỗi số, không dùng float</p>
+  <label>Số lượng hiển thị <input type="text" data-k="h" value="1.5"></label>
+  <label>Decimals <input type="number" data-k="d" value="6"></label>
+  <div class="out"></div>
+</div>
+
+<div class="calc" id="c-arb">
+  <h4>Arbitrage CEX–DEX</h4>
+  <p class="sub">Mua trên DEX, bán trên CEX (bỏ qua price impact)</p>
+  <label>Giá DEX <input type="number" data-k="pd" value="2980"></label>
+  <label>Giá CEX <input type="number" data-k="pc" value="3000"></label>
+  <label>Số lượng <input type="number" data-k="q" value="1" step="0.1"></label>
+  <label>Phí pool (%) <input type="number" data-k="fd" value="0.3" step="0.01"></label>
+  <label>Phí CEX (%) <input type="number" data-k="fc" value="0.1" step="0.01"></label>
+  <label>Gas (USD) <input type="number" data-k="gas" value="9"></label>
+  <div class="out"></div>
+</div>
+
+</div>
+</section>
+
+<!-- ============ 15 ============ -->
+<section id="s15">
+<h2><span class="n">15</span>Thuật ngữ A–Z</h2>
+<p class="lead">Tìm theo tên hoặc nội dung giải thích, lọc theo nhóm.</p>
+<div class="gl-tools"><input type="search" id="glSearch" placeholder="Tìm thuật ngữ (vd: slippage, nonce, thanh lý)…"></div>
+<div class="gl-cats" id="glCats"></div>
+<p class="gl-count" id="glCount"></p>
+<div class="gl" id="gl"></div>
+</section>
+
+</div>
+</div>
+
+<script>
+/* ============ Calculators ============ */
+const fmt = (v, d=2) => (isFinite(v) ? Number(v).toLocaleString("en-US",{maximumFractionDigits:d,minimumFractionDigits:0}) : "—");
+const pct = (v, d=2) => (isFinite(v) ? (v*100).toFixed(d)+"%" : "—");
+const row = (k, v, cls="") => `<div class="${cls}"><span>${k}</span><span>${v}</span></div>`;
+
+function bindCalc(id, fn){
+  const el = document.getElementById(id);
+  const get = () => { const o={}; el.querySelectorAll("[data-k]").forEach(i=>{ o[i.dataset.k] = i.type==="number" ? parseFloat(i.value) : i.value; }); return o; };
+  const run = () => { try{ el.querySelector(".out").innerHTML = fn(get()); }catch(e){ el.querySelector(".out").innerHTML = row("Lỗi", "Kiểm tra lại số liệu"); } };
+  el.querySelectorAll("[data-k]").forEach(i=>i.addEventListener("input",run));
+  run();
+}
+
+bindCalc("c-amm", ({rin,rout,ain,fee})=>{
+  const inF = ain*(1-fee/100);
+  const out = rout*inF/(rin+inF);
+  const spot = rout/rin;
+  const exec = out/ain;
+  const after = (rout-out)/(rin+ain);
+  return row("Nhận được", fmt(out,6), "hl")
+    + row("Giá thực hiện (In/Out)", fmt(1/exec,4))
+    + row("Giá spot trước (In/Out)", fmt(1/spot,4))
+    + row("Giá spot sau (In/Out)", fmt(1/after,4))
+    + row("Chênh so với spot (gồm phí)", pct(1-exec/spot), (1-exec/spot)>0.02?"bad":"");
+});
+
+bindCalc("c-il", ({p0,p1,v})=>{
+  const r = p1/p0;
+  const il = 2*Math.sqrt(r)/(1+r)-1;
+  const hodl = v/2 + (v/2)*r;
+  const lp = hodl*(1+il);
+  return row("Tỷ lệ giá r", fmt(r,4))
+    + row("Giá trị nếu HODL", fmt(hodl))
+    + row("Giá trị vị thế LP", fmt(lp))
+    + row("Impermanent loss", pct(il), "bad")
+    + row("Thiệt hại (USD)", fmt(lp-hodl));
+});
+
+bindCalc("c-lev", ({side,entry,margin,lev,mmr,exit})=>{
+  const notional = margin*lev, q = notional/entry, m = mmr/100;
+  const pnl = side==="long" ? q*(exit-entry) : q*(entry-exit);
+  const liq = side==="long" ? entry*(1-1/lev)/(1-m) : entry*(1+1/lev)/(1+m);
+  const dist = Math.abs(liq-entry)/entry;
+  const liquidated = side==="long" ? exit<=liq : exit>=liq;
+  return row("Notional", fmt(notional))
+    + row("Khối lượng Q", fmt(q,6))
+    + row("PnL", liquidated ? "Đã bị thanh lý" : fmt(pnl), liquidated||pnl<0 ? "bad" : "hl")
+    + row("ROE", liquidated ? "≈ −100%" : pct(pnl/margin), liquidated||pnl<0 ? "bad" : "hl")
+    + row("Giá thanh lý", fmt(liq,2), "bad")
+    + row("Khoảng cách tới thanh lý", pct(dist));
+});
+
+bindCalc("c-fund", ({n,r,h,d})=>{
+  const per = n*r/100, perDay = per*24/h, total = perDay*d;
+  return row("Mỗi kỳ", fmt(per,4))
+    + row("Mỗi ngày", fmt(perDay,4))
+    + row(`Tổng ${fmt(d,0)} ngày`, fmt(total,2), "hl")
+    + row("Quy ra năm (đơn)", pct((r/100)*(24/h)*365));
+});
+
+bindCalc("c-apy", ({apr,n,p})=>{
+  const apy = Math.pow(1+apr/100/n,n)-1;
+  const cont = Math.exp(apr/100)-1;
+  return row("APY", pct(apy,3), "hl")
+    + row("Compound liên tục", pct(cont,3))
+    + row("Sau 1 năm", fmt(p*(1+apy)))
+    + row("Chênh so với lãi đơn", fmt(p*(apy-apr/100)));
+});
+
+bindCalc("c-gas", ({g,b,t,eth})=>{
+  const gwei = g*(b+t), ethFee = gwei/1e9;
+  return row("Effective gas price", fmt(b+t,2)+" gwei")
+    + row("Phí (gwei)", fmt(gwei,0))
+    + row("Phí (ETH)", fmt(ethFee,6))
+    + row("Phí (USD)", fmt(ethFee*eth,2), "hl")
+    + row("Phần bị burn (ETH)", fmt(g*b/1e9,6));
+});
+
+function toRaw(h, d){
+  h = String(h).trim();
+  if(!/^\d*\.?\d*$/.test(h) || h==="" || h===".") throw new Error("bad");
+  let [i, f=""] = h.split(".");
+  if(f.length > d) return {raw:null, note:"Nhiều chữ số thập phân hơn decimals cho phép"};
+  const raw = ((i||"0") + f.padEnd(d,"0")).replace(/^0+(?=\d)/,"");
+  return {raw};
+}
+const group = s => s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+bindCalc("c-dec", ({h,d})=>{
+  d = Math.max(0, Math.min(36, Math.floor(d||0)));
+  const {raw, note} = toRaw(h, d);
+  if(!raw) return row("Kết quả", note, "bad");
+  return row("Raw amount", group(raw), "hl")
+    + row("Số chữ số", raw.length)
+    + row("Vượt MAX_SAFE_INTEGER (JS)?", BigInt(raw) > BigInt(Number.MAX_SAFE_INTEGER) ? "Có, cần BigInt" : "Không");
+});
+
+bindCalc("c-arb", ({pd,pc,q,fd,fc,gas})=>{
+  const cost = pd*q*(1+fd/100), rev = pc*q*(1-fc/100), profit = rev-cost-gas;
+  const gross = (pc-pd)*q;
+  const breakeven = (pc*(1-fc/100) - pd*(1+fd/100))>0 ? gas/(pc*(1-fc/100)-pd*(1+fd/100)) : Infinity;
+  return row("Chênh lệch gộp", fmt(gross))
+    + row("Chi phí mua (gồm phí)", fmt(cost))
+    + row("Doanh thu bán (sau phí)", fmt(rev))
+    + row("Lợi nhuận ròng", fmt(profit), profit>0?"hl":"bad")
+    + row("Size hòa vốn (bỏ qua impact)", isFinite(breakeven) ? fmt(breakeven,4) : "Không có lời ở mọi size");
+});
+
+/* ============ Glossary ============ */
+const GL_CATS = {base:"Nền tảng", eth:"Ethereum", trade:"Giao dịch", defi:"DeFi", deriv:"Phái sinh", risk:"Rủi ro & MEV"};
+const GL = [
+["Address","base","Địa chỉ công khai để nhận tài sản, trên EVM là chuỗi hex 20 byte bắt đầu bằng 0x."],
+["Airdrop","base","Phát token miễn phí cho một nhóm ví, thường để thưởng người dùng sớm."],
+["AMM","defi","Automated Market Maker: sàn phi tập trung định giá bằng công thức (vd x·y=k) thay vì order book."],
+["APR","defi","Lãi suất năm dạng lãi đơn."],
+["APY","defi","Lãi suất năm đã tính lãi kép."],
+["Arbitrage","trade","Kiếm lời từ chênh lệch giá của cùng một tài sản ở hai nơi."],
+["Ask","trade","Giá chào bán thấp nhất trên order book."],
+["Basis","deriv","Chênh lệch giữa giá futures và giá spot."],
+["Bid","trade","Giá chào mua cao nhất trên order book."],
+["Block","base","Một nhóm transaction được đóng gói, liên kết với block trước bằng hash."],
+["Block explorer","base","Website tra cứu tx, địa chỉ, block (vd Etherscan)."],
+["Bridge","base","Cầu nối chuyển tài sản giữa các blockchain."],
+["Builder","eth","Bên xây dựng nội dung block, chọn và sắp xếp tx/bundle để tối đa lợi nhuận."],
+["Bundle","risk","Nhóm tx gửi tới builder để được đưa vào block cùng nhau theo đúng thứ tự, hoặc không cái nào."],
+["Burn","base","Gửi token tới địa chỉ không ai dùng được, làm giảm tổng cung."],
+["CEX","trade","Centralized Exchange: sàn tập trung giữ tài sản của người dùng (Binance, OKX…)."],
+["Cold wallet","base","Ví lưu key trên thiết bị không kết nối internet."],
+["Collateral","defi","Tài sản thế chấp để vay hoặc mở vị thế."],
+["Consensus","base","Cơ chế để các node thống nhất block nào hợp lệ (PoW, PoS)."],
+["Cross margin","deriv","Dùng chung toàn bộ số dư tài khoản làm ký quỹ cho các vị thế."],
+["DAO","base","Tổ chức tự trị phi tập trung, quyết định bằng bỏ phiếu của người giữ token."],
+["Decimals","eth","Số chữ số thập phân của token. Raw amount = số hiển thị × 10^decimals."],
+["DeFi","defi","Decentralized Finance: dịch vụ tài chính chạy bằng smart contract."],
+["Depeg","risk","Stablecoin hoặc wrapped token lệch khỏi giá neo."],
+["Depth","trade","Tổng khối lượng lệnh ở các mức giá trên order book."],
+["DEX","trade","Decentralized Exchange: sàn phi tập trung chạy bằng smart contract."],
+["EIP-1559","eth","Cơ chế phí gồm base fee (bị burn) và priority fee (tip)."],
+["EOA","eth","Externally Owned Account: account do private key điều khiển."],
+["ERC-20","eth","Chuẩn token có thể thay thế lẫn nhau trên Ethereum."],
+["ERC-721","eth","Chuẩn NFT, mỗi token là duy nhất."],
+["EVM","eth","Ethereum Virtual Machine: môi trường chạy smart contract."],
+["FDV","base","Fully Diluted Valuation: giá × tổng cung tối đa."],
+["Finality","base","Thời điểm block không thể bị đảo ngược nữa."],
+["Flash loan","defi","Khoản vay không thế chấp, phải trả trong cùng một transaction."],
+["FOK","trade","Fill or Kill: khớp toàn bộ ngay hoặc hủy hết."],
+["Frontrun","risk","Chèn tx của mình lên trước tx của người khác để hưởng lợi."],
+["Funding rate","deriv","Khoản thanh toán định kỳ giữa long và short trên perp để giữ giá bám spot."],
+["Gas","eth","Đơn vị đo lượng tính toán. Phí = gas used × giá gas."],
+["Gwei","eth","1 gwei = 10^-9 ETH, đơn vị thường dùng cho giá gas."],
+["Hash","base","Dấu vân tay của dữ liệu, thay đổi dữ liệu thì hash đổi hoàn toàn."],
+["Health factor","defi","Chỉ số an toàn của khoản vay. Dưới 1 thì bị thanh lý."],
+["Hot wallet","base","Ví có key trên máy kết nối mạng, tiện cho giao dịch tự động."],
+["Impermanent loss","defi","Thiệt hại của LP so với việc chỉ giữ token khi giá thay đổi."],
+["Index price","deriv","Giá spot trung bình từ nhiều sàn."],
+["IOC","trade","Immediate or Cancel: khớp được bao nhiêu thì khớp, phần còn lại hủy."],
+["Isolated margin","deriv","Mỗi vị thế có ký quỹ riêng, thanh lý chỉ mất phần đó."],
+["L1","base","Blockchain gốc (Ethereum, Bitcoin, Solana…)."],
+["L2","base","Mạng xây trên L1 để mở rộng (Arbitrum, Base…), thường là rollup."],
+["Leg risk","trade","Rủi ro một chân của giao dịch nhiều chân khớp, chân còn lại thất bại."],
+["Leverage","deriv","Đòn bẩy: vị thế lớn gấp nhiều lần ký quỹ."],
+["Limit order","trade","Lệnh chỉ khớp tại giá đặt hoặc tốt hơn."],
+["Liquidation","deriv","Vị thế hoặc khoản vay bị đóng cưỡng bức khi ký quỹ không đủ."],
+["Liquidity","trade","Mức độ dễ mua bán khối lượng lớn mà giá không bị đẩy nhiều."],
+["Liquidity pool","defi","Bể chứa hai (hoặc nhiều) token trong AMM."],
+["LP token","defi","Biên nhận cho phần sở hữu của LP trong pool."],
+["LTV","defi","Loan-to-Value: tỷ lệ nợ trên giá trị tài sản thế chấp."],
+["Maker","trade","Người đặt lệnh nằm chờ trên book, cung cấp thanh khoản."],
+["Mainnet / Testnet","base","Mạng chính có tiền thật / mạng thử nghiệm dùng token không giá trị."],
+["Mark price","deriv","Giá sàn dùng để tính PnL chưa chốt và kiểm tra thanh lý."],
+["Market cap","base","Giá × lượng cung đang lưu hành."],
+["Market maker","trade","Bên liên tục đặt lệnh mua và bán để hưởng spread."],
+["Market order","trade","Lệnh khớp ngay theo giá tốt nhất hiện có."],
+["Mempool","eth","Nơi chứa các tx đã gửi nhưng chưa vào block."],
+["MEV","risk","Giá trị kiếm được nhờ sắp xếp, chèn hoặc loại bỏ tx trong block."],
+["Mint","base","Tạo ra token mới."],
+["MMR","deriv","Maintenance Margin Rate: tỷ lệ ký quỹ duy trì tối thiểu trước khi bị thanh lý."],
+["Nonce","eth","Bộ đếm tx của mỗi EOA, tx phải xử lý theo đúng thứ tự nonce."],
+["Notional","deriv","Giá trị danh nghĩa của vị thế = khối lượng × giá."],
+["Open interest","deriv","Tổng giá trị các vị thế phái sinh đang mở."],
+["Oracle","defi","Dịch vụ đưa dữ liệu ngoài chain (như giá) lên smart contract."],
+["Order book","trade","Danh sách các lệnh mua/bán đang chờ, sắp xếp theo giá."],
+["Perpetual","deriv","Hợp đồng tương lai không có ngày đáo hạn."],
+["PnL","trade","Profit and Loss: lời/lỗ. Realized là đã chốt, unrealized là chưa chốt."],
+["PoS","base","Proof of Stake: validator đặt cọc tài sản để được tạo block."],
+["PoW","base","Proof of Work: miner tiêu tốn năng lượng giải bài toán hash."],
+["Post-only","trade","Lệnh chỉ được nằm chờ trên book, khớp ngay thì bị hủy."],
+["Price impact","defi","Mức giá bị đẩy đi do chính giao dịch của bạn."],
+["Private key","base","Khóa bí mật cho phép ký tx. Mất là mất tiền."],
+["Public key","base","Khóa công khai suy ra từ private key, dùng để tạo địa chỉ."],
+["Reorg","base","Một số block gần nhất bị thay thế bằng nhánh khác."],
+["Revert","eth","Tx thất bại khi chạy, trạng thái không đổi nhưng vẫn mất phí gas."],
+["Rollup","base","L2 gom tx thành batch rồi đăng dữ liệu và bằng chứng lên L1."],
+["Rug pull","risk","Đội ngũ dự án rút thanh khoản hoặc bán tháo rồi biến mất."],
+["Sandwich","risk","Mua trước và bán ngay sau tx swap của nạn nhân để hưởng chênh lệch."],
+["Seed phrase","base","12 hoặc 24 từ dùng để khôi phục toàn bộ ví."],
+["Sequencer","base","Thành phần sắp xếp tx trên L2."],
+["Slashing","base","Tịch thu một phần stake của validator vi phạm quy tắc."],
+["Slippage","trade","Chênh lệch giữa giá kỳ vọng và giá khớp thực tế."],
+["Smart contract","eth","Chương trình chạy trên blockchain."],
+["Spot","trade","Mua bán tài sản thật, giao ngay."],
+["Spread","trade","Khoảng chênh giữa best ask và best bid."],
+["Stablecoin","base","Token neo giá vào tài sản ổn định, thường là USD."],
+["Staking","base","Khóa tài sản để tham gia bảo mật mạng PoS và nhận thưởng."],
+["Swap","defi","Đổi token này lấy token khác."],
+["Taker","trade","Người khớp ngay vào lệnh có sẵn, lấy thanh khoản."],
+["Tick","defi","Mức giá rời rạc trong Uniswap V3, giá = 1.0001^tick."],
+["TVL","defi","Total Value Locked: tổng giá trị tài sản gửi vào giao thức."],
+["TWAP","defi","Giá trung bình theo thời gian, khó thao túng hơn giá tức thời."],
+["Tx hash","base","Mã định danh duy nhất của một transaction."],
+["UTXO","base","Mô hình của Bitcoin: số dư là tập các đầu ra chưa được tiêu."],
+["Validator","base","Node đặt cọc để đề xuất và xác thực block trong PoS."],
+["Wei","eth","Đơn vị nhỏ nhất của ETH, 1 ETH = 10^18 wei."],
+["Whale","trade","Người hoặc tổ chức nắm giữ khối lượng rất lớn."],
+["Wrapped token","base","Phiên bản token hóa của tài sản khác (WETH, WBTC)."],
+["Yield farming","defi","Di chuyển vốn giữa các giao thức để tối đa lợi suất."]
+];
+
+let glCat = "all";
+function renderGlCats(){
+  const counts = {}; GL.forEach(g=>counts[g[1]]=(counts[g[1]]||0)+1);
+  const mk=(k,l,n)=>`<button data-c="${k}" aria-pressed="${glCat===k}">${l} ${n}</button>`;
+  const box = document.getElementById("glCats");
+  box.innerHTML = mk("all","Tất cả",GL.length) + Object.keys(GL_CATS).map(k=>mk(k,GL_CATS[k],counts[k]||0)).join("");
+  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{glCat=b.dataset.c;renderGlCats();renderGl();});
+}
+function renderGl(){
+  const t = document.getElementById("glSearch").value.trim().toLowerCase();
+  const items = GL.filter(g=>(glCat==="all"||g[1]===glCat)&&(!t||(g[0]+" "+g[2]).toLowerCase().includes(t)))
+                  .sort((a,b)=>a[0].localeCompare(b[0]));
+  document.getElementById("glCount").textContent = `${items.length} thuật ngữ`;
+  document.getElementById("gl").innerHTML = items.map(g=>`<div class="term"><span class="t">${g[0]}</span><span class="k">${GL_CATS[g[1]]}</span><p>${g[2]}</p></div>`).join("") || `<p class="gl-count">Không tìm thấy.</p>`;
+}
+document.getElementById("glSearch").addEventListener("input",renderGl);
+renderGlCats(); renderGl();
+
+/* ============ TOC, scrollspy, theme ============ */
+const links = [...document.querySelectorAll(".toc a")];
+const byId = Object.fromEntries(links.map(a=>[a.getAttribute("href").slice(1),a]));
+if("IntersectionObserver" in window){
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ links.forEach(a=>a.classList.remove("active")); byId[e.target.id]?.classList.add("active"); }
+    });
+  },{rootMargin:"-10% 0px -80% 0px"});
+  document.querySelectorAll("section[id]").forEach(s=>obs.observe(s));
+}
+document.getElementById("tocToggle").onclick = e=>{
+  const c = document.getElementById("sidebar").classList.toggle("collapsed");
+  e.target.textContent = c ? "Mục lục ▾" : "Mục lục ▴";
+};
+links.forEach(a=>a.addEventListener("click",()=>{ if(innerWidth<=900){ document.getElementById("sidebar").classList.add("collapsed"); document.getElementById("tocToggle").textContent="Mục lục ▾"; } }));
+
+const store = { get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }, set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} } };
+const saved = store.get("cf_theme"); if(saved) document.documentElement.dataset.theme = saved;
+document.getElementById("theme").onclick = ()=>{
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark";
+  store.set("cf_theme", r.dataset.theme);
+};
+</script>
+</body>
+</html>
