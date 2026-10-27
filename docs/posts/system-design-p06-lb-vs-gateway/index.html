@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>System Design P06: Các Hiểu Sai Về API Gateway Và Load Balancer | Huy Dang Blog</title>
+<meta name="keywords" content="system-design, load-balancer, api-gateway, nginx, golang">
+<meta name="description" content="Ranh giới LB và Gateway chồng lấn nhiều hơn bạn nghĩ. Đo thật trên nginx: cùng một tải, L4 lệch tới ∞ còn L7 đều 1.0×, và crash làm 30/30 request thất bại.">
+<meta name="author" content="Huy Dang Quang">
+<link rel="canonical" href="https://blog.huydang.dev/posts/system-design-p06-lb-vs-gateway/">
+<link crossorigin="anonymous" href="../../assets/css/stylesheet.min.7da7716a1f2d0725f74c6ae7f8d6adafc43aabe2b366b65bfbf433448e2a2001.css" integrity="sha256-fadxah8tByX3TGrn&#43;Natr8Q6q&#43;KzZrZb&#43;/QzRI4qIAE=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://blog.huydang.dev/favicon.ico">
+<link rel="apple-touch-icon" href="https://blog.huydang.dev/apple-touch-icon.png">
+<link rel="alternate" hreflang="en" href="https://blog.huydang.dev/posts/system-design-p06-lb-vs-gateway/">
+
+<meta name="twitter:title" content="System Design P06: Các Hiểu Sai Về API Gateway Và Load Balancer | Huy Dang Blog" />
+<meta name="twitter:description" content="Ranh giới LB và Gateway chồng lấn nhiều hơn bạn nghĩ. Đo thật trên nginx: cùng một tải, L4 lệch tới ∞ còn L7 đều 1.0×, và crash làm 30/30 request thất bại." />
+<meta property="og:title" content="System Design P06: Các Hiểu Sai Về API Gateway Và Load Balancer | Huy Dang Blog" />
+<meta property="og:description" content="Ranh giới LB và Gateway chồng lấn nhiều hơn bạn nghĩ. Đo thật trên nginx: cùng một tải, L4 lệch tới ∞ còn L7 đều 1.0×, và crash làm 30/30 request thất bại." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://blog.huydang.dev/posts/system-design-p06-lb-vs-gateway/" />
+<meta property="article:section" content="posts" />
+  <meta property="article:published_time" content="2026-10-27T09:00:00&#43;07:00" />
+  <meta property="article:modified_time" content="2026-10-27T09:00:00&#43;07:00" />
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://blog.huydang.dev/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "System Design P06: Các Hiểu Sai Về API Gateway Và Load Balancer",
+      "item": "https://blog.huydang.dev/posts/system-design-p06-lb-vs-gateway/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "System Design P06: Các Hiểu Sai Về API Gateway Và Load Balancer | Huy Dang Blog",
+  "name": "System Design P06: Các Hiểu Sai Về API Gateway Và Load Balancer",
+  "description": "Ranh giới LB và Gateway chồng lấn nhiều hơn bạn nghĩ. Đo thật trên nginx: cùng một tải, L4 lệch tới ∞ còn L7 đều 1.0×, và crash làm 30/30 request thất bại.",
+  "keywords": [
+    "system-design", "load-balancer", "api-gateway", "nginx", "golang"
+  ],
+  "wordCount" : "2908",
+  "inLanguage": "en",
+  "datePublished": "2026-10-27T09:00:00+07:00",
+  "dateModified": "2026-10-27T09:00:00+07:00",
+  "author":{
+    "@type": "Person",
+    "name": "Huy Dang Quang"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://blog.huydang.dev/posts/system-design-p06-lb-vs-gateway/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Huy Dang Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://blog.huydang.dev/favicon.ico"
+    }
+  }
+}
+</script>
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+</noscript>
+
+</head>
+
+<body class=" type-posts kind-page layout-" id="top"><script data-no-instant>
+function switchTheme(theme) {
+  switch (theme) {
+    case 'light':
+      document.body.classList.remove('dark');
+      break;
+    case 'dark':
+      document.body.classList.add('dark');
+      break;
+    
+    default:
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+      }
+  }
+}
+
+function isDarkTheme() {
+  return document.body.className.includes("dark");
+}
+
+function getPrefTheme() {
+  return localStorage.getItem("pref-theme");
+}
+
+function setPrefTheme(theme) {
+  switchTheme(theme)
+  localStorage.setItem("pref-theme", theme);
+}
+
+const toggleThemeCallbacks = {}
+toggleThemeCallbacks['main'] = (isDark) => {
+  
+  if (isDark) {
+    setPrefTheme('light');
+  } else {
+    setPrefTheme('dark');
+  }
+}
+
+
+
+
+window.addEventListener('toggle-theme', function() {
+  
+  const isDark = isDarkTheme()
+  for (const key in toggleThemeCallbacks) {
+    toggleThemeCallbacks[key](isDark)
+  }
+});
+
+
+function toggleThemeListener() {
+  
+  window.dispatchEvent(new CustomEvent('toggle-theme'));
+}
+
+</script>
+<script>
+  
+  (function() {
+    const defaultTheme = 'light';
+    const prefTheme = getPrefTheme();
+    const theme = prefTheme ? prefTheme : defaultTheme;
+
+    switchTheme(theme);
+  })();
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://blog.huydang.dev/" accesskey="h" title="Huy Dang Blog (Alt + H)">Huy Dang Blog</a>
+            <span class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </span>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://blog.huydang.dev/posts/" title="Posts" class="active"
+                >Posts
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/categories/" title="Categories"
+                >Categories
+                </a>
+            </li>
+            <li>
+                <a href="https://blog.huydang.dev/tags/" title="Tags"
+                >Tags
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main post">
+
+<article class="post-single">
+  <header class="post-header">
+    <h1 class="post-title">System Design P06: Các Hiểu Sai Về API Gateway Và Load Balancer</h1>
+    <div class="post-description">Ranh giới LB và Gateway chồng lấn nhiều hơn bạn nghĩ. Đo thật trên nginx: cùng một tải, L4 lệch tới ∞ còn L7 đều 1.0×, và crash làm 30/30 request thất bại.</div>
+    <div class="post-meta"><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar" style="user-select: text;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" style="user-select: text;"></rect><line x1="16" y1="2" x2="16" y2="6" style="user-select: text;"></line><line x1="8" y1="2" x2="8" y2="6" style="user-select: text;"></line><line x1="3" y1="10" x2="21" y2="10" style="user-select: text;"></line></svg>
+  <span>October 27, 2026</span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
+  <span class="post-tags"><a href="https://blog.huydang.dev/tags/system-design/">System Design</a><a href="https://blog.huydang.dev/tags/load-balancer/">Load-Balancer</a><a href="https://blog.huydang.dev/tags/api-gateway/">Api-Gateway</a><a href="https://blog.huydang.dev/tags/nginx/">Nginx</a><a href="https://blog.huydang.dev/tags/golang/">Golang</a></span></span><span class="meta-item">
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+  <span>14 min</span></span>
+
+      
+      
+    </div>
+  </header> <div class="toc side right">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#c%c3%b4ng-th%e1%bb%a9c-m%e1%ba%b7c-%c4%91%e1%bb%8bnh" aria-label="Công thức mặc định">Công thức mặc định</a></li>
+                <li>
+                    <a href="#ch%e1%ba%bb-m%e1%bb%99t-request-th%c3%a0nh-ba-b%c6%b0%e1%bb%9bc" aria-label="Chẻ một request thành ba bước">Chẻ một request thành ba bước</a><ul>
+                        
+                <li>
+                    <a href="#%c4%91o-th%e1%ba%adt-lb-l7-l%c3%a0m-%c4%91%c6%b0%e1%bb%a3c-b%c6%b0%e1%bb%9bc-1" aria-label="Đo thật: LB L7 làm được bước 1">Đo thật: LB L7 làm được bước 1</a></li></ul>
+                </li>
+                <li>
+                    <a href="#ph%c3%a1t-hi%e1%bb%87n-quan-tr%e1%bb%8dng-nh%e1%ba%a5t-l4-chia-theo-k%e1%ba%bft-n%e1%bb%91i-l7-chia-theo-request" aria-label="Phát hiện quan trọng nhất: L4 chia theo kết nối, L7 chia theo request">Phát hiện quan trọng nhất: L4 chia theo kết nối, L7 chia theo request</a></li>
+                <li>
+                    <a href="#v%e1%ba%ady-sao-v%e1%ba%abn-%c4%91%e1%ba%b7t-load-balancer-tr%c6%b0%e1%bb%9bc-api-gateway" aria-label="Vậy sao vẫn đặt Load Balancer trước API Gateway?">Vậy sao vẫn đặt Load Balancer trước API Gateway?</a></li>
+                <li>
+                    <a href="#l%c3%bac-deploy-port-m%e1%bb%9f-kh%c3%b4ng-c%c3%b3-ngh%c4%a9a-l%c3%a0-s%e1%ba%b5n-s%c3%a0ng" aria-label="Lúc deploy: port mở không có nghĩa là sẵn sàng">Lúc deploy: port mở không có nghĩa là sẵn sàng</a></li>
+                <li>
+                    <a href="#l%c3%bac-t%e1%ba%aft-graceful-shutdown-v%c3%a0-crash-l%c3%a0-hai-chuy%e1%bb%87n-kh%c3%a1c-nhau" aria-label="Lúc tắt: graceful shutdown và crash là hai chuyện khác nhau">Lúc tắt: graceful shutdown và crash là hai chuyện khác nhau</a></li>
+                <li>
+                    <a href="#service-discovery" aria-label="Service Discovery">Service Discovery</a></li>
+                <li>
+                    <a href="#v%e1%ba%ady-ch%e1%bb%8dn-th%e1%ba%bf-n%c3%a0o" aria-label="Vậy chọn thế nào?">Vậy chọn thế nào?</a></li>
+                <li>
+                    <a href="#checklist" aria-label="Checklist">Checklist</a></li>
+                <li>
+                    <a href="#t%c3%b3m-t%e1%ba%aft" aria-label="Tóm tắt">Tóm tắt</a></li>
+                <li>
+                    <a href="#tham-kh%e1%ba%a3o" aria-label="Tham khảo">Tham khảo</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><blockquote>
+<p><em>Bài viết thuộc series <strong>System Design</strong>, nội dung tham khảo từ các bài viết trong group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a>. Phần diễn giải, sơ đồ và <strong>toàn bộ số liệu benchmark</strong> là tôi tự bổ sung, đo thật trên nginx 1.27 (alpine) + Go 1.24 chạy local.</em></p>
+</blockquote>
+<h1 id="công-thức-mặc-định">Công thức mặc định<a hidden class="anchor" aria-hidden="true" href="#công-thức-mặc-định">¶</a></h1>
+<p>Khi mới bước từ việc code một con app chạy được sang vẽ sơ đồ kiến trúc, rất nhiều người mặc định một công thức:</p>
+<blockquote>
+<p>Cứ có nhiều server là đặt <strong>Load Balancer</strong>. Hễ tách ra vài service là phải nhét thêm <strong>API Gateway</strong>.</p>
+</blockquote>
+<p>Nhưng công thức đó vỡ ngay khi hỏi hai câu:</p>
+<ul>
+<li>Nếu <strong>Gateway đã chia tải được</strong> cho backend, thì còn cần LB ở phía trước để làm gì?</li>
+<li>Nếu <strong>LB đã route được</strong> request đến đúng service, Gateway sẽ xử lý thêm phần nào?</li>
+</ul>
+<p>Bài này trả lời bằng số đo thật, và kết luận có thể hơi phản trực giác: <strong>ranh giới giữa hai thứ này chồng lấn nhiều hơn phần lớn sơ đồ kiến trúc thể hiện.</strong></p>
+<hr>
+<h1 id="chẻ-một-request-thành-ba-bước">Chẻ một request thành ba bước<a hidden class="anchor" aria-hidden="true" href="#chẻ-một-request-thành-ba-bước">¶</a></h1>
+<p>Giả sử ứng dụng có hai cụm backend — <code>user-service</code> và <code>order-service</code> — mỗi cụm 3 instance. Một request đi vào hệ thống cần qua:</p>
+<table>
+<thead>
+<tr>
+<th>Bước</th>
+<th>Việc</th>
+<th>Cần đọc tới đâu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1</strong></td>
+<td>Nhận kết nối từ client, đọc thông tin để biết request gọi <code>user-service</code> hay <code>order-service</code></td>
+<td><strong>HTTP</strong> (host, path, header)</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>Áp policy chung: validate token, rate limit, kiểm tra quyền</td>
+<td>HTTP + logic nghiệp vụ</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>Chốt được là <code>order-service</code> rồi, chọn <strong>1 trong 3 instance đang sống</strong> để chuyển request tới</td>
+<td>Chỉ cần danh sách instance</td>
+</tr>
+</tbody>
+</table>
+<p>Chẻ ra như vậy mới thấy rõ chỗ hiểu sai: <strong>nhiều người nghĩ LB chỉ làm bước 3, và chỉ ở L4.</strong></p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="ov-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="480" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Ba bước, và ai làm được bước nào</text>
+<text x="450" y="48" text-anchor="middle" font-size="11" fill="#78716C">Vùng chồng lấn rộng hơn phần lớn sơ đồ kiến trúc thể hiện</text>
+<rect x="150" y="66" width="200" height="34" rx="8" fill="#374151"/>
+<rect x="360" y="66" width="200" height="34" rx="8" fill="#374151"/>
+<rect x="570" y="66" width="200" height="34" rx="8" fill="#374151"/>
+<text x="250" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">① Route tới service nào</text>
+<text x="460" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">② API policy</text>
+<text x="670" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">③ Chọn 1/3 instance</text>
+<rect x="24" y="116" width="120" height="48" rx="8" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="84" y="136" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">LB L4</text>
+<text x="84" y="153" text-anchor="middle" font-size="10" fill="#BE123C">TCP/IP + port</text>
+<rect x="150" y="116" width="200" height="48" rx="8" fill="#F5F5F4" stroke="#D6D3D1" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="360" y="116" width="200" height="48" rx="8" fill="#F5F5F4" stroke="#D6D3D1" stroke-width="1.5" stroke-dasharray="5 4"/>
+<rect x="570" y="116" width="200" height="48" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<text x="250" y="145" text-anchor="middle" font-size="11" fill="#A8A29E">✗ không đọc được HTTP</text>
+<text x="460" y="145" text-anchor="middle" font-size="11" fill="#A8A29E">✗</text>
+<text x="670" y="145" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">✓ LÀM ĐƯỢC</text>
+<rect x="24" y="176" width="120" height="48" rx="8" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="84" y="196" text-anchor="middle" font-size="12" font-weight="800" fill="#7C4A03">LB L7</text>
+<text x="84" y="213" text-anchor="middle" font-size="10" fill="#92400E">nginx, ALB</text>
+<rect x="150" y="176" width="200" height="48" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<rect x="360" y="176" width="200" height="48" rx="8" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<rect x="570" y="176" width="200" height="48" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<text x="250" y="205" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">✓ LÀM ĐƯỢC</text>
+<text x="460" y="198" text-anchor="middle" font-size="11" font-weight="700" fill="#7C4A03">~ một phần</text>
+<text x="460" y="214" text-anchor="middle" font-size="10" fill="#92400E">ALB có auth sẵn</text>
+<text x="670" y="205" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">✓ LÀM ĐƯỢC</text>
+<rect x="24" y="236" width="120" height="48" rx="8" fill="#EEF2FF" stroke="#6366F1" stroke-width="2"/>
+<text x="84" y="256" text-anchor="middle" font-size="12" font-weight="800" fill="#3730A3">Gateway</text>
+<text x="84" y="273" text-anchor="middle" font-size="10" fill="#4338CA">Kong, Envoy</text>
+<rect x="150" y="236" width="200" height="48" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<rect x="360" y="236" width="200" height="48" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<rect x="570" y="236" width="200" height="48" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<text x="250" y="265" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">✓ LÀM ĐƯỢC</text>
+<text x="460" y="258" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">✓ ĐIỂM MẠNH</text>
+<text x="460" y="274" text-anchor="middle" font-size="10" fill="#0F766E">gom về một chỗ</text>
+<text x="670" y="258" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">✓ LÀM ĐƯỢC</text>
+<text x="670" y="274" text-anchor="middle" font-size="10" fill="#0F766E">Kong: Upstream + Target</text>
+<rect x="24" y="306" width="852" height="74" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="44" y="330" font-size="13" font-weight="800" fill="#7C4A03">Hai kết luận rút ra từ bảng trên</text>
+<text x="44" y="352" font-size="11" fill="#92400E">• Chỉ cần route theo path + chia tải backend? <tspan font-weight="700">Một LB L7 là đủ</tspan> — chưa cần Gateway riêng.</text>
+<text x="44" y="372" font-size="11" fill="#92400E">• Gateway đã chia tải xuống target? <tspan font-weight="700">Chưa cần LB giữa Gateway và backend</tspan> chỉ để làm lại việc đó.</text>
+<rect x="24" y="392" width="852" height="70" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="44" y="416" font-size="13" font-weight="800" fill="#9F1239">Chỗ hiểu sai phổ biến nhất</text>
+<text x="44" y="438" font-size="11" fill="#BE123C">"LB chỉ làm bước 3". Thực tế <tspan font-weight="700">LB L7 làm được cả bước 1</tspan>, và một số LB cloud có sẵn authentication.</text>
+<text x="44" y="456" font-size="11" fill="#BE123C">Riêng <tspan font-weight="700">LB L4 thì đúng là không đọc được HTTP</tspan> — nó không biết request gọi /users hay /orders.</text>
+</svg>
+</div>
+<h2 id="đo-thật-lb-l7-làm-được-bước-1">Đo thật: LB L7 làm được bước 1<a hidden class="anchor" aria-hidden="true" href="#đo-thật-lb-l7-làm-được-bước-1">¶</a></h2>
+<p>Chỉ cần một khối <code>location</code> trong nginx:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-nginx" data-lang="nginx"><span class="line"><span class="cl"><span class="k">upstream</span> <span class="s">user_svc</span>  <span class="p">{</span> <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">9001</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="k">upstream</span> <span class="s">order_svc</span> <span class="p">{</span> <span class="kn">server</span> <span class="n">127.0.0.1</span><span class="p">:</span><span class="mi">9002</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">server</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="kn">listen</span> <span class="mi">8083</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="kn">location</span> <span class="s">/users/</span>  <span class="p">{</span> <span class="kn">proxy_pass</span> <span class="s">http://user_svc</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">  <span class="kn">location</span> <span class="s">/orders/</span> <span class="p">{</span> <span class="kn">proxy_pass</span> <span class="s">http://order_svc</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">  <span class="kn">location</span> <span class="s">/</span>        <span class="p">{</span> <span class="kn">return</span> <span class="mi">404</span> <span class="s">&#34;no</span> <span class="s">route\n&#34;</span><span class="p">;</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Kết quả:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">/users/42    → HTTP 200  be-1
+</span></span><span class="line"><span class="cl">/orders/99   → HTTP 200  be-2
+</span></span><span class="line"><span class="cl">/unknown     → HTTP 404  no route
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Bước 1 xong, không có Gateway nào tham gia. Nếu nhu cầu của bạn dừng ở đây thì <strong>thêm Gateway chỉ là thêm một hop và một thứ phải vận hành</strong>.</p>
+<hr>
+<h1 id="phát-hiện-quan-trọng-nhất-l4-chia-theo-kết-nối-l7-chia-theo-request">Phát hiện quan trọng nhất: L4 chia theo kết nối, L7 chia theo request<a hidden class="anchor" aria-hidden="true" href="#phát-hiện-quan-trọng-nhất-l4-chia-theo-kết-nối-l7-chia-theo-request">¶</a></h1>
+<p>Đây là chỗ con số nói to hơn mọi lời giải thích.</p>
+<p>Tình huống đúng như bài gốc nêu: hai client, mỗi client <strong>một kết nối keep-alive</strong>. Client A gửi <strong>100 request</strong> trên kết nối đang có, client B chỉ gửi <strong>2</strong>. Ba backend đang sống. Tôi chạy cùng một tải qua hai chế độ nginx:</p>
+<table>
+<thead>
+<tr>
+<th>Chế độ nginx</th>
+<th style="text-align:right">be-1</th>
+<th style="text-align:right">be-2</th>
+<th style="text-align:right">be-3</th>
+<th>Độ lệch max/min</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L7</strong> (<code>http</code> + <code>proxy_pass</code>)</td>
+<td style="text-align:right"><strong>34</strong></td>
+<td style="text-align:right"><strong>34</strong></td>
+<td style="text-align:right"><strong>34</strong></td>
+<td><strong>1.0×</strong></td>
+</tr>
+<tr>
+<td><strong>L4</strong> (<code>stream</code> + <code>proxy_pass</code>)</td>
+<td style="text-align:right">2</td>
+<td style="text-align:right"><strong>100</strong></td>
+<td style="text-align:right"><strong>0</strong></td>
+<td><strong>∞ — một instance nhận 0 request</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Đọc kỹ dòng L4: <strong>be-2 nhận 100 request, be-3 nhận không một request nào.</strong> LB đã chia <em>hai kết nối</em> sang <em>hai backend</em> — nó làm đúng việc của nó. Nhưng <strong>số request thì lệch hoàn toàn</strong>.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="l4-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<marker id="l7-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="d2-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="440" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Cùng một tải — hai cách chia, hai kết cục</text>
+<text x="450" y="46" text-anchor="middle" font-size="11" fill="#78716C">Client A: 1 kết nối · 100 request   ·   Client B: 1 kết nối · 2 request</text>
+<rect x="24" y="62" width="420" height="198" rx="12" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#d2-sh)"/>
+<text x="234" y="86" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">L4 — chia theo KẾT NỐI</text>
+<rect x="44" y="100" width="76" height="30" rx="6" fill="#57534E"/>
+<rect x="44" y="140" width="76" height="30" rx="6" fill="#A8A29E"/>
+<text x="82" y="120" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">A · 100 req</text>
+<text x="82" y="160" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">B · 2 req</text>
+<rect x="320" y="92" width="104" height="40" rx="6" fill="#FFE9EC" stroke="#DC2626" stroke-width="1.8"/>
+<rect x="320" y="140" width="104" height="40" rx="6" fill="#FFD9DE" stroke="#DC2626" stroke-width="2.5"/>
+<rect x="320" y="188" width="104" height="40" rx="6" fill="#F5F5F4" stroke="#A8A29E" stroke-width="1.5" stroke-dasharray="4 3"/>
+<text x="372" y="108" text-anchor="middle" font-size="10" fill="#9F1239">be-1</text>
+<text x="372" y="124" text-anchor="middle" font-size="13" font-weight="800" fill="#9F1239">2</text>
+<text x="372" y="156" text-anchor="middle" font-size="10" fill="#9F1239">be-2</text>
+<text x="372" y="172" text-anchor="middle" font-size="13" font-weight="800" fill="#DC2626">100</text>
+<text x="372" y="204" text-anchor="middle" font-size="10" fill="#78716C">be-3</text>
+<text x="372" y="220" text-anchor="middle" font-size="13" font-weight="800" fill="#A8A29E">0</text>
+<path d="M124,112 C200,112 250,150 316,158" stroke="#DC2626" stroke-width="2.5" fill="none" marker-end="url(#l4-a)"/>
+<path d="M124,152 C200,150 250,120 316,110" stroke="#A8A29E" stroke-width="2" fill="none" marker-end="url(#l4-a)"/>
+<text x="222" y="190" text-anchor="middle" font-size="10" font-weight="700" fill="#9F1239">1 kết nối = 1 backend, mãi mãi</text>
+<rect x="44" y="236" width="380" height="18" rx="5" fill="#FFD9DE"/>
+<text x="234" y="249" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">lệch ∞ — be-3 không nhận gì cả</text>
+<rect x="456" y="62" width="420" height="198" rx="12" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#d2-sh)"/>
+<text x="666" y="86" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">L7 — chia theo REQUEST</text>
+<rect x="476" y="100" width="76" height="30" rx="6" fill="#57534E"/>
+<rect x="476" y="140" width="76" height="30" rx="6" fill="#A8A29E"/>
+<text x="514" y="120" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">A · 100 req</text>
+<text x="514" y="160" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">B · 2 req</text>
+<rect x="752" y="92" width="104" height="40" rx="6" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<rect x="752" y="140" width="104" height="40" rx="6" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<rect x="752" y="188" width="104" height="40" rx="6" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="804" y="108" text-anchor="middle" font-size="10" fill="#134E4A">be-1</text>
+<text x="804" y="124" text-anchor="middle" font-size="13" font-weight="800" fill="#0F766E">34</text>
+<text x="804" y="156" text-anchor="middle" font-size="10" fill="#134E4A">be-2</text>
+<text x="804" y="172" text-anchor="middle" font-size="13" font-weight="800" fill="#0F766E">34</text>
+<text x="804" y="204" text-anchor="middle" font-size="10" fill="#134E4A">be-3</text>
+<text x="804" y="220" text-anchor="middle" font-size="13" font-weight="800" fill="#0F766E">34</text>
+<path d="M556,112 C620,112 690,106 748,108" stroke="#0D9488" stroke-width="1.8" fill="none" marker-end="url(#l7-a)"/>
+<path d="M556,118 C620,130 690,150 748,156" stroke="#0D9488" stroke-width="1.8" fill="none" marker-end="url(#l7-a)"/>
+<path d="M556,124 C620,160 690,196 748,204" stroke="#0D9488" stroke-width="1.8" fill="none" marker-end="url(#l7-a)"/>
+<text x="640" y="218" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">mỗi request chọn lại backend</text>
+<rect x="476" y="236" width="380" height="18" rx="5" fill="#CCFBF1"/>
+<text x="666" y="249" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">lệch 1.0× — đều tuyệt đối</text>
+<rect x="24" y="276" width="852" height="70" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="44" y="300" font-size="13" font-weight="800" fill="#7C4A03">HTTP/2 làm chuyện này tệ hơn nữa</text>
+<text x="44" y="322" font-size="11" fill="#92400E">Đo trên là HTTP/1.1 keep-alive. HTTP/2 <tspan font-weight="700">multiplexing nhiều request song song</tspan> trên cùng một kết nối,</text>
+<text x="44" y="340" font-size="11" fill="#92400E">nên số request dồn vào một đích càng lớn. Một client HTTP/2 duy nhất có thể làm nghẽn đúng một instance.</text>
+<rect x="24" y="358" width="852" height="68" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="44" y="382" font-size="12" font-weight="800" fill="#9F1239">Khi thấy một instance bận hơn hẳn các instance còn lại</text>
+<text x="44" y="404" font-size="11" fill="#BE123C">Câu hỏi đầu tiên: <tspan font-weight="700">LB đang chia theo KẾT NỐI hay theo REQUEST?</tspan></text>
+<text x="44" y="420" font-size="11" fill="#BE123C">Và kể cả khi số request đã đều, vẫn phải xem <tspan font-weight="700">từng loại request tốn bao nhiêu công xử lý</tspan>.</text>
+</svg>
+</div>
+<blockquote>
+<p>📌 Đo trên dùng <strong>HTTP/1.1 keep-alive</strong>, không phải HTTP/2 — tức vấn đề này tồn tại ngay cả với HTTP/1.1, không cần tới HTTP/2. HTTP/2 chỉ làm nó tệ hơn vì multiplexing cho phép <strong>nhiều request song song</strong> trên cùng một kết nối.</p>
+</blockquote>
+<hr>
+<h1 id="vậy-sao-vẫn-đặt-load-balancer-trước-api-gateway">Vậy sao vẫn đặt Load Balancer trước API Gateway?<a hidden class="anchor" aria-hidden="true" href="#vậy-sao-vẫn-đặt-load-balancer-trước-api-gateway">¶</a></h1>
+<p>Vì lúc đó bạn đang <strong>scale cho chính bản thân Gateway</strong>.</p>
+<p>Chạy 4 instance Gateway để dự phòng và chia tải — traffic của người dùng được phân phối tới 4 instance đó bằng cách nào? Đó là một bài toán chia tải <strong>hoàn toàn khác</strong> với việc chọn 1 trong 3 instance của <code>order-service</code>.</p>
+<p><strong>Hai bước chia tải, hai nhóm destination khác nhau.</strong> Tôi dựng đúng topology đó và đo cùng một lúc:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Client (1 kết nối, 100 req)  ─┐
+</span></span><span class="line"><span class="cl">                               ├─→  LB L4  ─→  2 Gateway (L7)  ─→  3 Backend
+</span></span><span class="line"><span class="cl">Client (1 kết nối, 2 req)    ─┘
+</span></span></code></pre></td></tr></table>
+</div>
+</div><table>
+<thead>
+<tr>
+<th>Tầng</th>
+<th>Nhóm destination</th>
+<th>Kết quả đo</th>
+<th>Độ lệch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1 — LB (L4)</strong></td>
+<td>cụm <strong>Gateway</strong></td>
+<td><code>gw-1=100  gw-2=2</code></td>
+<td><strong>50.0×</strong></td>
+</tr>
+<tr>
+<td><strong>2 — Gateway (L7)</strong></td>
+<td>cụm <strong>Backend</strong></td>
+<td><code>be-1=34  be-2=34  be-3=34</code></td>
+<td><strong>1.0×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Cùng một traffic, cùng một thời điểm, hai tầng cho ra hai phân bố hoàn toàn khác nhau. Tầng L4 lệch 50 lần vì chia theo kết nối; tầng L7 đều tuyệt đối vì chia theo request.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="t2-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="t2-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="400" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Hai bước chia tải, hai nhóm destination — đo cùng lúc</text>
+<rect x="24" y="52" width="130" height="86" rx="10" fill="#FFFFFF" stroke="#57534E" stroke-width="2" filter="url(#t2-sh)"/>
+<text x="89" y="76" text-anchor="middle" font-size="11" font-weight="700" fill="#374151">Client</text>
+<rect x="38" y="86" width="102" height="20" rx="4" fill="#F5F5F4"/>
+<rect x="38" y="110" width="102" height="20" rx="4" fill="#F5F5F4"/>
+<text x="89" y="100" text-anchor="middle" font-size="9" fill="#57534E">A: 1 conn · 100 req</text>
+<text x="89" y="124" text-anchor="middle" font-size="9" fill="#57534E">B: 1 conn · 2 req</text>
+<rect x="196" y="52" width="130" height="86" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5" filter="url(#t2-sh)"/>
+<text x="261" y="78" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">LB (L4)</text>
+<text x="261" y="98" text-anchor="middle" font-size="10" fill="#BE123C">chia theo KẾT NỐI</text>
+<rect x="210" y="106" width="102" height="22" rx="5" fill="#FFD9DE"/>
+<text x="261" y="121" text-anchor="middle" font-size="10" font-weight="800" fill="#9F1239">TẦNG 1</text>
+<rect x="368" y="40" width="150" height="48" rx="9" fill="#FFD9DE" stroke="#DC2626" stroke-width="2.5"/>
+<rect x="368" y="102" width="150" height="48" rx="9" fill="#FFE9EC" stroke="#DC2626" stroke-width="1.8"/>
+<text x="443" y="60" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Gateway gw-1</text>
+<text x="443" y="79" text-anchor="middle" font-size="15" font-weight="800" fill="#DC2626">100 req</text>
+<text x="443" y="122" text-anchor="middle" font-size="11" font-weight="700" fill="#9F1239">Gateway gw-2</text>
+<text x="443" y="141" text-anchor="middle" font-size="15" font-weight="800" fill="#9F1239">2 req</text>
+<rect x="560" y="52" width="130" height="86" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#t2-sh)"/>
+<text x="625" y="78" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">Gateway (L7)</text>
+<text x="625" y="98" text-anchor="middle" font-size="10" fill="#0F766E">chia theo REQUEST</text>
+<rect x="574" y="106" width="102" height="22" rx="5" fill="#A7F3D0"/>
+<text x="625" y="121" text-anchor="middle" font-size="10" font-weight="800" fill="#134E4A">TẦNG 2</text>
+<rect x="732" y="34" width="144" height="34" rx="7" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<rect x="732" y="78" width="144" height="34" rx="7" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<rect x="732" y="122" width="144" height="34" rx="7" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="804" y="56" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">be-1 · 34 req</text>
+<text x="804" y="100" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">be-2 · 34 req</text>
+<text x="804" y="144" text-anchor="middle" font-size="11" font-weight="700" fill="#134E4A">be-3 · 34 req</text>
+<line x1="158" y1="95" x2="192" y2="95" stroke="#57534E" stroke-width="2" marker-end="url(#t2-a)"/>
+<path d="M330,88 C348,80 352,70 364,64" stroke="#DC2626" stroke-width="2.5" fill="none" marker-end="url(#t2-a)"/>
+<path d="M330,102 C348,110 352,120 364,126" stroke="#DC2626" stroke-width="1.6" fill="none" marker-end="url(#t2-a)"/>
+<line x1="522" y1="95" x2="556" y2="95" stroke="#57534E" stroke-width="2" marker-end="url(#t2-a)"/>
+<path d="M694,88 C710,74 716,60 728,51" stroke="#0D9488" stroke-width="1.8" fill="none" marker-end="url(#t2-a)"/>
+<line x1="694" y1="95" x2="728" y2="95" stroke="#0D9488" stroke-width="1.8" marker-end="url(#t2-a)"/>
+<path d="M694,102 C710,116 716,130 728,139" stroke="#0D9488" stroke-width="1.8" fill="none" marker-end="url(#t2-a)"/>
+<rect x="24" y="172" width="420" height="78" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="234" y="196" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">Tầng 1 lệch 50.0×</text>
+<text x="44" y="218" font-size="11" fill="#BE123C">gw-1 nhận 100, gw-2 nhận 2. LB chia đúng</text>
+<text x="44" y="236" font-size="11" fill="#BE123C">2 kết nối sang 2 gateway — nhưng request thì không.</text>
+<rect x="456" y="172" width="420" height="78" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="666" y="196" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">Tầng 2 đều 1.0×</text>
+<text x="476" y="218" font-size="11" fill="#0F766E">Gateway đọc được HTTP nên chọn lại backend</text>
+<text x="476" y="236" font-size="11" fill="#0F766E">cho TỪNG request → 34/34/34.</text>
+<rect x="24" y="264" width="852" height="60" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="44" y="288" font-size="12" font-weight="800" fill="#374151">Hai tầng này KHÔNG dư thừa — chúng chia cho hai nhóm máy khác nhau</text>
+<text x="44" y="310" font-size="11" fill="#57534E">Nhưng nếu dịch vụ Gateway managed đã lo sẵn entry point và phân phối traffic thì <tspan font-weight="700">không cần tự dựng thêm LB</tspan> chỉ để làm lại việc đó.</text>
+<rect x="24" y="336" width="852" height="52" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="44" y="358" font-size="12" font-weight="800" fill="#7C4A03">Hệ quả vận hành của số 50.0×</text>
+<text x="44" y="378" font-size="11" fill="#92400E">Dựng 4 Gateway để chia tải, nhưng nếu LB phía trước là L4 thì <tspan font-weight="700">tải thực tế có thể dồn vào một con</tspan>. Thêm instance không giải quyết được.</text>
+</svg>
+</div>
+<hr>
+<h1 id="lúc-deploy-port-mở-không-có-nghĩa-là-sẵn-sàng">Lúc deploy: port mở không có nghĩa là sẵn sàng<a hidden class="anchor" aria-hidden="true" href="#lúc-deploy-port-mở-không-có-nghĩa-là-sẵn-sàng">¶</a></h1>
+<p>Đây là lỗi gây ra sự cố ngay trong lúc deploy, và nó rất dễ bị bỏ qua.</p>
+<p>Tình huống: một Gateway vừa khởi động <strong>đã mở port</strong>, nhưng vẫn đang nạp cấu hình routing. LB thử kết nối thấy thành công nên bắt đầu chuyển request vào. Gateway chưa có đủ config để route — người dùng gặp lỗi.</p>
+<p>Tôi dựng một instance mở port ngay nhưng chỉ sẵn sàng sau 2,5 giây:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">Instance vừa khởi động: port 9004 đã MỞ, config chưa nạp xong
+</span></span><span class="line"><span class="cl">  → TCP connect: THÀNH CÔNG     ← đây là tất cả những gì LB L4 kiểm tra
+</span></span><span class="line"><span class="cl">  → GET /readyz : HTTP 503 not ready        ← readiness check thấy đúng
+</span></span><span class="line"><span class="cl">  → Request thật: HTTP 500 CONFIG_NOT_LOADED
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Sau 2,5s (config đã nạp) → HTTP 200
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>TCP connect thành công trong khi request thật trả về 500.</strong> Nếu health check của bạn chỉ là &ldquo;mở được port&rdquo;, LB sẽ gửi traffic vào từ giây đầu tiên và người dùng ăn lỗi 500 suốt 2,5 giây mỗi lần deploy một instance.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-nginx" data-lang="nginx"><span class="line"><span class="cl"><span class="c1"># nginx mã nguồn mở không có active health check — nó chỉ passive
+</span></span></span><span class="line"><span class="cl"><span class="c1"># (đánh dấu fail sau max_fails lần lỗi). Muốn readiness thật thì cần
+</span></span></span><span class="line"><span class="cl"><span class="c1"># nginx Plus, hoặc để tầng orchestration lo.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">upstream</span> <span class="s">gateways</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="kn">server</span> <span class="n">gw-1</span><span class="p">:</span><span class="mi">8080</span> <span class="s">max_fails=3</span> <span class="s">fail_timeout=10s</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="kn">server</span> <span class="n">gw-2</span><span class="p">:</span><span class="mi">8080</span> <span class="s">max_fails=3</span> <span class="s">fail_timeout=10s</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yaml" data-lang="yaml"><span class="line"><span class="cl"><span class="c"># Kubernetes: readinessProbe là thứ quyết định có nhận traffic hay không.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c"># TCP socket KHÔNG đủ — phải là endpoint tự báo &#34;config đã nạp xong&#34;.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">readinessProbe</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">httpGet</span><span class="p">:</span><span class="w"> </span>{<span class="nt">path: /readyz, port</span><span class="p">:</span><span class="w"> </span><span class="m">8080</span>}<span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">periodSeconds</span><span class="p">:</span><span class="w"> </span><span class="m">2</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">failureThreshold</span><span class="p">:</span><span class="w"> </span><span class="m">2</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nt">livenessProbe:                      # khác mục đích</span><span class="p">:</span><span class="w"> </span><span class="l">phát hiện treo, để RESTART</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">httpGet</span><span class="p">:</span><span class="w"> </span>{<span class="nt">path: /healthz, port</span><span class="p">:</span><span class="w"> </span><span class="m">8080</span>}<span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">periodSeconds</span><span class="p">:</span><span class="w"> </span><span class="m">10</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>💡 <strong>Phân biệt rõ hai probe</strong>: <code>readiness</code> trả lời <em>&ldquo;có nên gửi traffic vào không&rdquo;</em>; <code>liveness</code> trả lời <em>&ldquo;có nên restart không&rdquo;</em>. Dùng cùng một endpoint cho cả hai là lỗi hay gặp — khi đó một instance đang nạp config sẽ bị <strong>restart liên tục</strong> thay vì được chờ.</p>
+</blockquote>
+<hr>
+<h1 id="lúc-tắt-graceful-shutdown-và-crash-là-hai-chuyện-khác-nhau">Lúc tắt: graceful shutdown và crash là hai chuyện khác nhau<a hidden class="anchor" aria-hidden="true" href="#lúc-tắt-graceful-shutdown-và-crash-là-hai-chuyện-khác-nhau">¶</a></h1>
+<p>Chiều ngược lại: ngừng chuyển request mới vào instance đó, <strong>chờ các request đang chạy hoàn tất</strong> rồi mới tắt.</p>
+<p>Tôi đo với 30 request đang chạy dở (mỗi request mất 800ms), rồi tắt instance theo hai cách:</p>
+<table>
+<thead>
+<tr>
+<th>Cách tắt</th>
+<th style="text-align:right">Request hoàn tất</th>
+<th>Kết quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Graceful shutdown</strong></td>
+<td style="text-align:right"><strong>30/30</strong></td>
+<td>✅ không mất request nào</td>
+</tr>
+<tr>
+<td><strong>Crash</strong> (<code>Close()</code> ngay)</td>
+<td style="text-align:right"><strong>0/30</strong></td>
+<td>❌ <strong>cả 30 request thất bại</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Chênh lệch tuyệt đối. Và điều quan trọng cần hiểu rõ:</p>
+<blockquote>
+<p><strong>LB không mang request đang xử lý dở sang instance khác để chạy tiếp.</strong> Nó chỉ ngừng gửi request <em>mới</em>. Request đang chạy trên instance crash là mất.</p>
+</blockquote>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Graceful shutdown trong Go — đúng thứ tự
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">srv</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">http</span><span class="p">.</span><span class="nx">Server</span><span class="p">{</span><span class="nx">Addr</span><span class="p">:</span> <span class="s">&#34;:8080&#34;</span><span class="p">,</span> <span class="nx">Handler</span><span class="p">:</span> <span class="nx">h</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="k">go</span> <span class="nx">srv</span><span class="p">.</span><span class="nf">ListenAndServe</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nx">stop</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Signal</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">signal</span><span class="p">.</span><span class="nf">Notify</span><span class="p">(</span><span class="nx">stop</span><span class="p">,</span> <span class="nx">os</span><span class="p">.</span><span class="nx">Interrupt</span><span class="p">,</span> <span class="nx">syscall</span><span class="p">.</span><span class="nx">SIGTERM</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="o">&lt;-</span><span class="nx">stop</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1">// 1. Báo readiness = false TRƯỚC, để LB ngừng gửi request mới
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">ready</span><span class="p">.</span><span class="nf">Store</span><span class="p">(</span><span class="kc">false</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 2. Chờ LB nhận ra (= chu kỳ probe × failureThreshold)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">time</span><span class="p">.</span><span class="nf">Sleep</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1">// 3. Giờ mới drain request đang chạy
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="nx">ctx</span><span class="p">,</span> <span class="nx">cancel</span> <span class="o">:=</span> <span class="nx">context</span><span class="p">.</span><span class="nf">WithTimeout</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nf">Background</span><span class="p">(),</span> <span class="mi">30</span><span class="o">*</span><span class="nx">time</span><span class="p">.</span><span class="nx">Second</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">defer</span> <span class="nf">cancel</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">    <span class="nx">srv</span><span class="p">.</span><span class="nf">Shutdown</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Bước 2 là bước hay bị thiếu nhất. Nếu <code>Shutdown()</code> ngay khi nhận <code>SIGTERM</code>, LB vẫn đang gửi request mới vào trong vài giây nữa — và những request đó bị từ chối. Phải <strong>ngừng quảng bá mình là ready, chờ LB biết, rồi mới drain</strong>.</p>
+<blockquote>
+<p>⚠️ Kubernetes cũng vậy: <code>terminationGracePeriodSeconds</code> phải <strong>dài hơn</strong> (thời gian chờ LB + thời gian drain). Và <code>preStop</code> hook là chỗ đặt bước sleep đó.</p>
+</blockquote>
+<hr>
+<h1 id="service-discovery">Service Discovery<a hidden class="anchor" aria-hidden="true" href="#service-discovery">¶</a></h1>
+<p>Để LB và Gateway tự biết có instance mới, instance đổi địa chỉ, hoặc instance ngừng hoạt động, cần <strong>Service Discovery kết hợp health check</strong> — danh sách destination được cập nhật để phân phối traffic cho phù hợp.</p>
+<table>
+<thead>
+<tr>
+<th>Cách</th>
+<th>Cập nhật danh sách bằng</th>
+<th>Phù hợp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Cấu hình tĩnh</strong></td>
+<td>Sửa file + reload</td>
+<td>Số instance cố định, ít đổi</td>
+</tr>
+<tr>
+<td><strong>DNS</strong></td>
+<td>Resolve lại theo TTL</td>
+<td>Đơn giản, nhưng TTL gây trễ và client hay cache quá lâu</td>
+</tr>
+<tr>
+<td><strong>Kubernetes Service / Endpoints</strong></td>
+<td>Control plane tự cập nhật</td>
+<td>Đã chạy k8s</td>
+</tr>
+<tr>
+<td><strong>Consul / etcd</strong></td>
+<td>Instance tự đăng ký + health check</td>
+<td>Nhiều môi trường, không k8s</td>
+</tr>
+<tr>
+<td><strong>xDS (Envoy)</strong></td>
+<td>Control plane đẩy xuống</td>
+<td>Service mesh, cần cập nhật tức thì</td>
+</tr>
+</tbody>
+</table>
+<p>Phần này đáng một bài riêng nên tôi không đi sâu ở đây. Nhưng có một điểm đáng nhớ ngay: <strong>health check của Service Discovery và readiness check của LB không nhất thiết là cùng một thứ</strong> — và nếu chúng khác nhau, bạn sẽ có instance đã bị xoá khỏi discovery mà LB vẫn gửi traffic vào.</p>
+<hr>
+<h1 id="vậy-chọn-thế-nào">Vậy chọn thế nào?<a hidden class="anchor" aria-hidden="true" href="#vậy-chọn-thế-nào">¶</a></h1>
+<div class="zoomable-diagram" style="max-width:860px;margin:2rem auto;">
+<svg viewBox="0 0 860 440" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="ch6-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="ch6-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="860" height="440" fill="#FFFDF7" rx="16"/>
+<text x="430" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Hỏi theo CÔNG VIỆC, không hỏi theo tên component</text>
+<rect x="30" y="48" width="800" height="44" rx="9" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.8"/>
+<rect x="30" y="104" width="800" height="44" rx="9" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.8"/>
+<rect x="30" y="160" width="800" height="44" rx="9" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.8"/>
+<rect x="30" y="216" width="800" height="44" rx="9" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="1.8"/>
+<rect x="30" y="48" width="10" height="44" rx="4" fill="#0D9488"/>
+<rect x="30" y="104" width="10" height="44" rx="4" fill="#F5A623"/>
+<rect x="30" y="160" width="10" height="44" rx="4" fill="#6366F1"/>
+<rect x="30" y="216" width="10" height="44" rx="4" fill="#DC2626"/>
+<text x="56" y="68" font-size="12" font-weight="800" fill="#374151">Chỉ cần route theo path + chia tải backend?</text>
+<text x="56" y="85" font-size="11" fill="#0F766E">→ <tspan font-weight="700">Một LB L7 là đủ.</tspan> Đã đo: nginx làm được cả bước 1 và bước 3. Chưa cần Gateway.</text>
+<text x="56" y="124" font-size="12" font-weight="800" fill="#374151">Cần gom token validation, rate limit, transform về một chỗ?</text>
+<text x="56" y="141" font-size="11" fill="#92400E">→ <tspan font-weight="700">Gateway.</tspan> Đây là bước 2 — điểm mạnh thật của nó. Và Gateway chia tải backend luôn được.</text>
+<text x="56" y="180" font-size="12" font-weight="800" fill="#374151">Cần scale CHÍNH Gateway (nhiều instance Gateway)?</text>
+<text x="56" y="197" font-size="11" fill="#4338CA">→ <tspan font-weight="700">LB trước Gateway.</tspan> Hai nhóm destination khác nhau, không dư thừa.</text>
+<text x="56" y="236" font-size="12" font-weight="800" fill="#374151">Dùng Gateway managed đã có entry point sẵn?</text>
+<text x="56" y="253" font-size="11" fill="#BE123C">→ <tspan font-weight="700">Không tự dựng thêm LB</tspan> chỉ để làm lại việc dịch vụ đã lo. Xem cách triển khai cụ thể.</text>
+<rect x="30" y="280" width="800" height="66" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5"/>
+<text x="50" y="304" font-size="13" font-weight="800" fill="#9F1239">Và bất kể chọn gì, ba câu này vẫn phải trả lời</text>
+<text x="50" y="326" font-size="11" fill="#BE123C">① LB đang chia theo <tspan font-weight="700">kết nối</tspan> hay theo <tspan font-weight="700">request</tspan>?  ② Readiness check có <tspan font-weight="700">hơn</tspan> việc mở port không?</text>
+<text x="50" y="342" font-size="11" fill="#BE123C">③ Lúc tắt instance có <tspan font-weight="700">ngừng nhận mới rồi mới drain</tspan> không?</text>
+<rect x="30" y="362" width="800" height="62" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="50" y="386" font-size="12" font-weight="800" fill="#134E4A">Cách nghĩ thay cho công thức "nhiều server = LB, nhiều service = Gateway"</text>
+<text x="50" y="408" font-size="11" fill="#0F766E">Liệt kê <tspan font-weight="700">ba bước một request phải đi qua</tspan>, rồi hỏi: thứ tôi đang có đã làm bước nào? Thiếu bước nào thì mới thêm.</text>
+</svg>
+</div>
+<table>
+<thead>
+<tr>
+<th>Nhu cầu</th>
+<th>Đủ dùng</th>
+<th>Chưa cần</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Route theo path, chia tải backend</td>
+<td><strong>LB L7</strong> (nginx, ALB, Traefik)</td>
+<td>Gateway riêng</td>
+</tr>
+<tr>
+<td>Gateway đã chia tải xuống target</td>
+<td><strong>Gateway</strong></td>
+<td>LB giữa Gateway và backend</td>
+</tr>
+<tr>
+<td>Scale chính Gateway, nhiều instance</td>
+<td><strong>LB trước Gateway</strong></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Gateway managed có entry point sẵn</td>
+<td><strong>Chỉ Gateway</strong></td>
+<td>LB tự dựng</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="checklist">Checklist<a hidden class="anchor" aria-hidden="true" href="#checklist">¶</a></h1>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">RANH GIỚI COMPONENT
+</span></span><span class="line"><span class="cl">□ Liệt kê 3 bước (route / policy / chọn instance) — thứ đang có làm bước nào?
+</span></span><span class="line"><span class="cl">□ Có component nào trong sơ đồ đang làm lại việc component khác đã làm?
+</span></span><span class="line"><span class="cl">□ Có LB nào đặt giữa Gateway và backend chỉ để chia tải lần hai không?
+</span></span><span class="line"><span class="cl">□ Dùng Gateway managed? → nó đã có entry point chưa, có cần LB nữa không?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">PHÂN BỐ TẢI
+</span></span><span class="line"><span class="cl">□ LB đang chia theo KẾT NỐI (L4) hay theo REQUEST (L7)?
+</span></span><span class="line"><span class="cl">□ Client có dùng keep-alive / HTTP/2 không? (càng dùng, L4 càng lệch)
+</span></span><span class="line"><span class="cl">□ Đã ĐO phân bố request thật trên từng instance chưa, hay chỉ tin là đều?
+</span></span><span class="line"><span class="cl">□ Một instance bận hơn hẳn → kiểm cách chia TRƯỚC khi thêm instance
+</span></span><span class="line"><span class="cl">□ Request có đồng đều về chi phí xử lý không? (số request đều ≠ tải đều)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">DEPLOY
+</span></span><span class="line"><span class="cl">□ Health check có hơn việc &#34;mở được port&#34; không?
+</span></span><span class="line"><span class="cl">□ readiness và liveness có TÁCH RIÊNG không? (dùng chung = restart khi đang nạp config)
+</span></span><span class="line"><span class="cl">□ Graceful shutdown: có NGỪNG báo ready, CHỜ LB biết, rồi mới drain?
+</span></span><span class="line"><span class="cl">□ terminationGracePeriod &gt; (thời gian chờ LB + thời gian drain)?
+</span></span><span class="line"><span class="cl">□ Đã test kill instance giữa lúc có tải và ĐẾM request thất bại chưa?
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">SERVICE DISCOVERY
+</span></span><span class="line"><span class="cl">□ Danh sách destination cập nhật bằng gì khi instance đổi?
+</span></span><span class="line"><span class="cl">□ Health check của discovery và của LB có nhất quán không?
+</span></span></code></pre></td></tr></table>
+</div>
+</div><hr>
+<h1 id="tóm-tắt">Tóm tắt<a hidden class="anchor" aria-hidden="true" href="#tóm-tắt">¶</a></h1>
+<table>
+<thead>
+<tr>
+<th>Câu hỏi</th>
+<th>Trả lời</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LB chỉ làm bước 3 phải không?</td>
+<td><strong>Không.</strong> LB <strong>L7</strong> làm được cả bước 1 (route theo path), một số LB cloud có sẵn auth</td>
+</tr>
+<tr>
+<td>Gateway có chia tải được không?</td>
+<td><strong>Có.</strong> Kong có Upstream + Target, Envoy có cluster — tức Gateway làm luôn bước 3</td>
+</tr>
+<tr>
+<td>Chỉ route path + chia tải thì cần gì?</td>
+<td><strong>Một LB L7 là đủ.</strong> Thêm Gateway chỉ là thêm một hop</td>
+</tr>
+<tr>
+<td>Sao vẫn đặt LB trước Gateway?</td>
+<td>Để <strong>scale chính Gateway</strong> — hai nhóm destination khác nhau</td>
+</tr>
+<tr>
+<td>Đặt LB rồi thì tải có đều?</td>
+<td><strong>Chưa chắc.</strong> Đo thật: L4 cho <code>100 / 2 / 0</code>, L7 cho <code>34 / 34 / 34</code></td>
+</tr>
+<tr>
+<td>Vì sao L4 lệch?</td>
+<td>Nó chia theo <strong>kết nối</strong>. Keep-alive và HTTP/2 dồn nhiều request vào một kết nối</td>
+</tr>
+<tr>
+<td>Hai tầng chia tải lệch bao nhiêu?</td>
+<td>Đo cùng lúc: tầng L4 lệch <strong>50.0×</strong>, tầng L7 lệch <strong>1.0×</strong></td>
+</tr>
+<tr>
+<td>Mở được port là sẵn sàng?</td>
+<td><strong>Không.</strong> Đo thật: TCP connect OK trong khi request thật trả <strong>500 CONFIG_NOT_LOADED</strong></td>
+</tr>
+<tr>
+<td>Crash khác graceful bao nhiêu?</td>
+<td>Đo thật: graceful <strong>30/30</strong> hoàn tất, crash <strong>0/30</strong></td>
+</tr>
+<tr>
+<td>LB có cứu request đang chạy dở không?</td>
+<td><strong>Không.</strong> Nó chỉ ngừng gửi request mới</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="tham-khảo">Tham khảo<a hidden class="anchor" aria-hidden="true" href="#tham-khảo">¶</a></h1>
+<ul>
+<li><a href="https://nginx.org/en/docs/stream/ngx_stream_core_module.html">nginx — <code>ngx_stream_core_module</code></a> (L4) · <a href="https://nginx.org/en/docs/http/ngx_http_upstream_module.html"><code>ngx_http_upstream_module</code></a> (L7)</li>
+<li><a href="https://docs.konghq.com/gateway/latest/key-concepts/upstreams/">Kong — Upstreams and Targets</a> — Gateway làm bước 3</li>
+<li><a href="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/">Kubernetes — Configure Liveness, Readiness and Startup Probes</a></li>
+<li><a href="https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html">AWS — Application Load Balancer authentication</a> — LB cloud có auth sẵn</li>
+<li><a href="https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/overview">Envoy — Load balancing</a></li>
+<li>Group Facebook <a href="https://www.facebook.com/groups/2512930739174619">Viet Tran Premium Lab &amp; Playground</a> — nguồn nội dung gốc</li>
+<li>Series: <a href="../../posts/system-design-p01-redis/">P01 — Redis không chỉ có GET/SET</a> · <a href="../../posts/system-design-p02-cache-stampede/">P02 — Cache Stampede</a> · <a href="../../posts/system-design-p03-pubsub-vs-streams/">P03 — Pub/Sub vs Streams</a> · <a href="../../posts/system-design-p04-streams-vs-kafka/">P04 — Streams vs Kafka</a> · <a href="../../posts/system-design-p05-queue/">P05 — Redis Queue hay RabbitMQ?</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+  </footer>
+    <div class="comments-separator"></div>
+</article>
+    </main>
+    
+<footer class="footer">
+  <span>&copy; 2026 <a href="https://blog.huydang.dev/">Huy Dang Blog</a></span><span style="display: inline-block; margin-left: 1em;">
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA</a>
+  </span>
+  <span style="display: inline-block; margin-left: 1em;">
+    Powered by
+    <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+    <a href="https://github.com/reorx/hugo-PaperModX/" rel="noopener" target="_blank">PaperModX</a>
+  </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+    <path d="M12 6H0l6-6z" />
+  </svg>
+</a><style>
+.zoomable-diagram{cursor:zoom-in;position:relative;}
+.zoomable-diagram:hover::after{content:"🔍 Click để phóng to";position:absolute;bottom:8px;right:8px;font-size:11px;color:#8A8272;background:rgba(255,253,247,0.85);padding:2px 8px;border-radius:6px;pointer-events:none;}
+.diagram-lightbox{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,18,14,0.92);align-items:center;justify-content:center;touch-action:none;}
+.diagram-lightbox.open{display:flex;}
+.diagram-lightbox-stage{overflow:hidden;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;}
+.diagram-lightbox-stage.grabbing{cursor:grabbing;}
+.diagram-lightbox-content{transition:transform 0.08s ease-out;max-width:92vw;max-height:82vh;}
+.diagram-lightbox-content svg{width:100%;height:auto;display:block;}
+.diagram-lightbox-toolbar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;background:#1F2937;border-radius:10px;padding:8px;box-shadow:0 4px 20px rgba(0,0,0,0.4);}
+.diagram-lightbox-toolbar button{width:40px;height:40px;border-radius:8px;border:none;background:#374151;color:#F9FAFB;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.diagram-lightbox-toolbar button:hover{background:#4B5563;}
+.diagram-lightbox-close{position:fixed;top:20px;right:24px;width:44px;height:44px;border-radius:50%;border:none;background:#1F2937;color:#F9FAFB;font-size:22px;line-height:1;cursor:pointer;}
+.diagram-lightbox-close:hover{background:#374151;}
+.diagram-lightbox-hint{position:fixed;top:24px;left:50%;transform:translateX(-50%);color:#D1D5DB;font-size:12.5px;background:rgba(31,41,55,0.7);padding:6px 14px;border-radius:20px;white-space:nowrap;}
+@media (max-width:640px){.diagram-lightbox-hint{display:none;}}
+</style>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true" aria-label="Xem phóng to sơ đồ">
+<div class="diagram-lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Esc để đóng</div>
+<button type="button" class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Đóng">×</button>
+<div class="diagram-lightbox-stage" id="diagram-lightbox-stage">
+<div class="diagram-lightbox-content" id="diagram-lightbox-content"></div>
+</div>
+<div class="diagram-lightbox-toolbar">
+<button type="button" id="diagram-lightbox-zoomout" aria-label="Thu nhỏ">−</button>
+<button type="button" id="diagram-lightbox-reset" aria-label="Đặt lại">⟲</button>
+<button type="button" id="diagram-lightbox-zoomin" aria-label="Phóng to">+</button>
+</div>
+</div>
+<script>
+(function(){
+var lightbox=document.getElementById('diagram-lightbox');
+var stage=document.getElementById('diagram-lightbox-stage');
+var content=document.getElementById('diagram-lightbox-content');
+var closeBtn=document.getElementById('diagram-lightbox-close');
+var zoomInBtn=document.getElementById('diagram-lightbox-zoomin');
+var zoomOutBtn=document.getElementById('diagram-lightbox-zoomout');
+var resetBtn=document.getElementById('diagram-lightbox-reset');
+var scale=1,tx=0,ty=0;
+var dragging=false,didDrag=false,startX=0,startY=0,startTx=0,startTy=0;
+function applyTransform(){content.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')';}
+function openLightbox(svg){content.innerHTML='';content.appendChild(svg.cloneNode(true));scale=1;tx=0;ty=0;applyTransform();lightbox.classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){lightbox.classList.remove('open');document.body.style.overflow='';}
+function zoomBy(factor){scale=Math.min(6,Math.max(0.5,scale*factor));applyTransform();}
+document.querySelectorAll('.zoomable-diagram').forEach(function(wrapper){
+var svg=wrapper.querySelector('svg');
+if(!svg)return;
+wrapper.addEventListener('click',function(){openLightbox(svg);});
+});
+closeBtn.addEventListener('click',closeLightbox);
+zoomInBtn.addEventListener('click',function(){zoomBy(1.25);});
+zoomOutBtn.addEventListener('click',function(){zoomBy(0.8);});
+resetBtn.addEventListener('click',function(){scale=1;tx=0;ty=0;applyTransform();});
+lightbox.addEventListener('click',function(e){
+if(didDrag){didDrag=false;return;}
+if(e.target===lightbox||e.target===stage)closeLightbox();
+});
+document.addEventListener('keydown',function(e){
+if(e.key==='Escape'&&lightbox.classList.contains('open'))closeLightbox();
+});
+stage.addEventListener('wheel',function(e){
+e.preventDefault();
+zoomBy(e.deltaY<0?1.1:0.9);
+},{passive:false});
+stage.addEventListener('pointerdown',function(e){
+dragging=true;didDrag=false;
+startX=e.clientX;startY=e.clientY;
+startTx=tx;startTy=ty;
+stage.classList.add('grabbing');
+stage.setPointerCapture(e.pointerId);
+});
+stage.addEventListener('pointermove',function(e){
+if(!dragging)return;
+var dx=e.clientX-startX,dy=e.clientY-startY;
+if(Math.abs(dx)>3||Math.abs(dy)>3)didDrag=true;
+tx=startTx+dx;ty=startTy+dy;
+applyTransform();
+});
+stage.addEventListener('pointerup',function(){dragging=false;stage.classList.remove('grabbing');});
+stage.addEventListener('pointercancel',function(){dragging=false;stage.classList.remove('grabbing');});
+})();
+</script>
+
+
+<script>
+  (function() {
+     
+    const disableThemeToggle = '' == '1';
+    if (disableThemeToggle) {
+      return;
+    }
+
+    let button = document.getElementById("theme-toggle")
+    
+    button.removeEventListener('click', toggleThemeListener)
+    
+    button.addEventListener('click', toggleThemeListener)
+  })();
+</script>
+
+<script>
+  (function () {
+    let menu = document.getElementById('menu')
+    if (menu) {
+      menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+      menu.onscroll = function () {
+        localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+      }
+    }
+
+    const disableSmoothScroll = '' == '1';
+    const enableInstantClick = '' == '1';
+    
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || disableSmoothScroll || enableInstantClick) {
+      return;
+    }
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        var id = this.getAttribute("href").substr(1);
+        document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+          behavior: "smooth"
+        });
+        if (id === "top") {
+          history.replaceState(null, null, " ");
+        } else {
+          history.pushState(null, null, `#${id}`);
+        }
+      });
+    });
+  })();
+</script>
+<script>
+  var mybutton = document.getElementById("top-link");
+  window.onscroll = function () {
+    if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+      mybutton.style.visibility = "visible";
+      mybutton.style.opacity = "1";
+    } else {
+      mybutton.style.visibility = "hidden";
+      mybutton.style.opacity = "0";
+    }
+  };
+</script>
+<script>
+  if (window.scrollListeners) {
+    
+    for (const listener of scrollListeners) {
+      window.removeEventListener('scroll', listener)
+    }
+  }
+  window.scrollListeners = []
+</script>
+
+
+
+<script src="../../js/medium-zoom.min.js" data-no-instant
+></script>
+<script>
+  document.querySelectorAll('pre > code').forEach((codeblock) => {
+    const container = codeblock.parentNode.parentNode;
+
+    const copybutton = document.createElement('button');
+    copybutton.classList.add('copy-code');
+    copybutton.innerText = 'copy';
+
+    function copyingDone() {
+      copybutton.innerText = 'copied!';
+      setTimeout(() => {
+        copybutton.innerText = 'copy';
+      }, 2000);
+    }
+
+    copybutton.addEventListener('click', (cb) => {
+      if ('clipboard' in navigator) {
+        navigator.clipboard.writeText(codeblock.textContent);
+        copyingDone();
+        return;
+      }
+
+      const range = document.createRange();
+      range.selectNodeContents(codeblock);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      try {
+        document.execCommand('copy');
+        copyingDone();
+      } catch (e) { };
+      selection.removeRange(range);
+    });
+
+    if (container.classList.contains("highlight")) {
+      container.appendChild(copybutton);
+    } else if (container.parentNode.firstChild == container) {
+      
+    } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+      
+      codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+    } else {
+      
+      codeblock.parentNode.appendChild(copybutton);
+    }
+  });
+</script>
+
+
+
+
+<script>
+  
+  
+  (function() {
+    const enableTocScroll = '1' == '1'
+    if (!enableTocScroll) {
+      return
+    }
+    if (!document.querySelector('.toc')) {
+      console.log('no toc found, ignore toc scroll')
+      return
+    }
+    
+
+    
+    const scrollListeners = window.scrollListeners
+    const headings = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id]');
+    const activeClass = 'active';
+
+    
+    let activeHeading = headings[0];
+    getLinkByHeading(activeHeading).classList.add(activeClass);
+
+    const onScroll = () => {
+      const passedHeadings = [];
+      for (const h of headings) {
+        
+        if (getOffsetTop(h) < 5) {
+          passedHeadings.push(h)
+        } else {
+          break;
+        }
+      }
+      if (passedHeadings.length > 0) {
+        newActiveHeading = passedHeadings[passedHeadings.length - 1];
+      } else {
+        newActiveHeading = headings[0];
+      }
+      if (activeHeading != newActiveHeading) {
+        getLinkByHeading(activeHeading).classList.remove(activeClass);
+        activeHeading = newActiveHeading;
+        getLinkByHeading(activeHeading).classList.add(activeClass);
+      }
+    }
+
+    let timer = null;
+    const scrollListener = () => {
+      if (timer !== null) {
+        clearTimeout(timer)
+      }
+      timer = setTimeout(onScroll, 50)
+    }
+    window.addEventListener('scroll', scrollListener, false);
+    scrollListeners.push(scrollListener)
+
+    function getLinkByHeading(heading) {
+      const id = encodeURI(heading.getAttribute('id')).toLowerCase();
+      return document.querySelector(`.toc ul li a[href="#${id}"]`);
+    }
+
+    function getOffsetTop(heading) {
+      if (!heading.getClientRects().length) {
+        return 0;
+      }
+      let rect = heading.getBoundingClientRect();
+      return rect.top
+    }
+  })();
+  </script>
+
+</body>
+
+</html>

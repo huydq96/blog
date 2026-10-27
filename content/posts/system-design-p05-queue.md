@@ -652,4 +652,4 @@ TEST
 - [Asynq](https://github.com/hibiken/asynq) (Go) · [BullMQ](https://docs.bullmq.io/) (Node) — thư viện queue trên Redis
 - [Brandur — Transactionally Staged Job Drains](https://brandur.org/job-drain) — vì sao nên tạo job trong cùng transaction với dữ liệu
 - Group Facebook [Viet Tran Premium Lab & Playground](https://www.facebook.com/groups/2512930739174619) — nguồn nội dung gốc
-- Series: [P01 — Redis không chỉ có GET/SET](/posts/system-design-p01-redis/) · [P02 — Cache Stampede](/posts/system-design-p02-cache-stampede/) · [P03 — Pub/Sub vs Streams](/posts/system-design-p03-pubsub-vs-streams/) · [P04 — Streams vs Kafka](/posts/system-design-p04-streams-vs-kafka/)
+- Series: [P01 — Redis không chỉ có GET/SET](/posts/system-design-p01-redis/) · [P02 — Cache Stampede](/posts/system-design-p02-cache-stampede/) · [P03 — Pub/Sub vs Streams](/posts/system-design-p03-pubsub-vs-streams/) · [P04 — Streams vs Kafka](/posts/system-design-p04-streams-vs-kafka/) · [P06 — API Gateway vs Load Balancer](/posts/system-design-p06-lb-vs-gateway/)

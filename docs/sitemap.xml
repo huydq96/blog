@@ -2,17 +2,38 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://blog.huydang.dev/tags/api-gateway/</loc>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
+  </url><url>
     <loc>https://blog.huydang.dev/categories/</loc>
-    <lastmod>2026-10-23T09:00:00+07:00</lastmod>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/golang/</loc>
-    <lastmod>2026-10-23T09:00:00+07:00</lastmod>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/</loc>
-    <lastmod>2026-10-23T09:00:00+07:00</lastmod>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/load-balancer/</loc>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/nginx/</loc>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/posts/</loc>
-    <lastmod>2026-10-23T09:00:00+07:00</lastmod>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/system-design/</loc>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/categories/system-design/</loc>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/posts/system-design-p06-lb-vs-gateway/</loc>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
+  </url><url>
+    <loc>https://blog.huydang.dev/tags/</loc>
+    <lastmod>2026-10-27T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/queue/</loc>
     <lastmod>2026-10-23T09:00:00+07:00</lastmod>
@@ -23,16 +44,7 @@
     <loc>https://blog.huydang.dev/tags/redis/</loc>
     <lastmod>2026-10-23T09:00:00+07:00</lastmod>
   </url><url>
-    <loc>https://blog.huydang.dev/tags/system-design/</loc>
-    <lastmod>2026-10-23T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/categories/system-design/</loc>
-    <lastmod>2026-10-23T09:00:00+07:00</lastmod>
-  </url><url>
     <loc>https://blog.huydang.dev/posts/system-design-p05-queue/</loc>
-    <lastmod>2026-10-23T09:00:00+07:00</lastmod>
-  </url><url>
-    <loc>https://blog.huydang.dev/tags/</loc>
     <lastmod>2026-10-23T09:00:00+07:00</lastmod>
   </url><url>
     <loc>https://blog.huydang.dev/tags/api/</loc>
