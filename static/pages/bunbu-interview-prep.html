@@ -1,0 +1,1029 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BUNBU Interview Prep</title>
+<style>
+:root{
+  --bg:#f7f6f2;--surface:#ffffff;--surface-2:#f0eee8;--text:#1d1d1b;--muted:#6b6a64;
+  --line:#e2dfd6;--accent:#b4302a;--accent-soft:#f6e3e1;--ok:#2f7d4f;--ok-soft:#e1f1e7;
+  --warn:#8a5a00;--warn-soft:#fbf0d9;--code-bg:#1f2329;--code-text:#e6e6e6;--chip:#ece9e1;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141413;--surface:#1d1d1b;--surface-2:#262624;--text:#ecebe6;--muted:#a3a19a;
+    --line:#34332f;--accent:#e5675f;--accent-soft:#3a2321;--ok:#6cc08f;--ok-soft:#1f3328;
+    --warn:#e5b45a;--warn-soft:#3a2f18;--code-bg:#0f1114;--code-text:#e6e6e6;--chip:#2c2b28;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141413;--surface:#1d1d1b;--surface-2:#262624;--text:#ecebe6;--muted:#a3a19a;
+  --line:#34332f;--accent:#e5675f;--accent-soft:#3a2321;--ok:#6cc08f;--ok-soft:#1f3328;
+  --warn:#e5b45a;--warn-soft:#3a2f18;--code-bg:#0f1114;--code-text:#e6e6e6;--chip:#2c2b28;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:15.5px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+a{color:var(--accent)}
+header.hero{padding:40px 16px 24px;max-width:1180px;margin:0 auto}
+.kicker{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1{font-size:clamp(26px,4vw,38px);line-height:1.15;margin:6px 0 10px;letter-spacing:-.01em}
+.sub{color:var(--muted);max-width:760px;margin:0}
+.toolbar{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.toolbar-in{max-width:1180px;margin:0 auto;padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.toolbar input[type=search]{flex:1 1 220px;min-width:0;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--text);padding:7px 11px;border-radius:8px;font:inherit;font-size:13.5px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--chip);color:var(--text);padding:4px 10px;border-radius:999px;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.progress{font-size:13px;color:var(--muted);white-space:nowrap}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 80px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:32px}
+nav.toc{position:sticky;top:70px;align-self:start;font-size:13.5px;max-height:calc(100vh - 90px);overflow:auto}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:5px 0 5px 10px;border-left:2px solid var(--line)}
+nav.toc a:hover{color:var(--text);border-left-color:var(--accent)}
+@media (max-width:860px){.wrap{grid-template-columns:1fr}nav.toc{display:none}}
+section{margin-bottom:36px}
+h2{font-size:21px;margin:0 0 4px;letter-spacing:-.005em}
+.sec-desc{color:var(--muted);margin:0 0 14px;font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.stat b{display:block;font-size:13px;color:var(--muted);font-weight:600}
+details.q{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+details.q[open]{border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
+details.q.done{border-left:4px solid var(--ok)}
+summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;gap:10px;align-items:flex-start}
+summary::-webkit-details-marker{display:none}
+.num{flex:0 0 auto;font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:2px 7px;margin-top:2px}
+.qt{flex:1;font-weight:600}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.tag{font-size:11px;font-weight:500;color:var(--muted);background:var(--chip);border-radius:4px;padding:1px 6px}
+.a{padding:2px 18px 16px;border-top:1px solid var(--line)}
+.intent{margin:12px 0 8px;font-size:13.5px;color:var(--warn);background:var(--warn-soft);padding:8px 12px;border-radius:8px}
+.intent::before{content:"Họ muốn kiểm tra: ";font-weight:700}
+.tip{margin:10px 0 0;font-size:13.5px;background:var(--ok-soft);color:var(--text);padding:8px 12px;border-radius:8px;border-left:3px solid var(--ok)}
+.tip::before{content:"Trade-off / lưu ý: ";font-weight:700;color:var(--ok)}
+mark.fill{background:var(--accent-soft);color:var(--accent);padding:0 4px;border-radius:4px;font-weight:600}
+.a h4{margin:14px 0 4px;font-size:14px}
+.a ul,.a ol{padding-left:20px;margin:6px 0}
+.a li{margin:3px 0}
+pre{background:var(--code-bg);color:var(--code-text);padding:12px 14px;border-radius:8px;overflow:auto;font-size:12.8px;line-height:1.5}
+code{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+:not(pre)>code{background:var(--chip);padding:1px 5px;border-radius:4px;font-size:.9em}
+table{border-collapse:collapse;width:100%;font-size:13.5px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;vertical-align:top}
+th{background:var(--surface-2)}
+.tbl{overflow-x:auto}
+.mark-done{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:13px;color:var(--muted);cursor:pointer}
+blockquote{margin:8px 0;padding:8px 14px;border-left:3px solid var(--accent);background:var(--surface-2);border-radius:0 8px 8px 0}
+.hidden{display:none!important}
+@media print{.toolbar,nav.toc,.mark-done{display:none}details.q{break-inside:avoid}.wrap{display:block}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="kicker">Interview prep · Senior Backend Developer</div>
+  <h1>BUNBU (Appirits Group) — bộ câu hỏi &amp; câu trả lời</h1>
+  <p class="sub">Bám theo JD và profile của bạn (Go / Laravel, fintech tại 9Pay). Các chỗ <mark class="fill">[tô đỏ]</mark> là nơi bạn cần điền số liệu/câu chuyện thật — interviewer Senior luôn hỏi sâu vào số liệu, đừng để câu trả lời chung chung.</p>
+</header>
+
+<div class="toolbar"><div class="toolbar-in">
+  <input type="search" id="q" placeholder="Tìm câu hỏi, keyword (vd: deadlock, outbox, BrSE)…">
+  <div class="chips" id="chips">
+    <button class="chip on" data-f="all">Tất cả</button>
+    <button class="chip" data-f="intro">Mở đầu</button>
+    <button class="chip" data-f="jd">Năng lực JD</button>
+    <button class="chip" data-f="db">Database</button>
+    <button class="chip" data-f="design">System design</button>
+    <button class="chip" data-f="infra">AWS/Docker</button>
+    <button class="chip" data-f="security">Bảo mật</button>
+    <button class="chip" data-f="ai">AI</button>
+    <button class="chip" data-f="stack">Stack/Code</button>
+    <button class="chip" data-f="japan">Dự án Nhật</button>
+  </div>
+  <button class="btn" id="expand">Mở tất cả</button>
+  <button class="btn" id="theme" title="Đổi giao diện">◐</button>
+  <span class="progress" id="prog"></span>
+</div></div>
+
+<div class="wrap">
+<nav class="toc">
+  <a href="#s0">0. Hiểu về BUNBU</a>
+  <a href="#s1">1. Mở đầu &amp; động lực</a>
+  <a href="#s2">2. Năng lực theo JD (STAR)</a>
+  <a href="#s3">3. Database</a>
+  <a href="#s4">4. System design</a>
+  <a href="#s5">5. AWS / Docker / Monitoring</a>
+  <a href="#s6">6. Bảo mật</a>
+  <a href="#s7">7. AI trong phát triển</a>
+  <a href="#s8">8. Stack &amp; coding</a>
+  <a href="#s9">9. Làm việc dự án Nhật</a>
+  <a href="#s10">10. Câu hỏi hỏi lại</a>
+  <a href="#s11">11. Checklist &amp; glossary</a>
+</nav>
+
+<main>
+
+<!-- ============ 0 ============ -->
+<section id="s0">
+<h2>0. Hiểu về BUNBU trước khi vào phòng</h2>
+<p class="sec-desc">Dùng các điểm này để cá nhân hóa câu trả lời — nhắc đúng sản phẩm của họ sẽ tạo khác biệt lớn.</p>
+<div class="grid2">
+  <div class="card stat"><b>Công ty</b>Thành lập 2017. Từ 09/2025 là công ty con 100% của Appirits (niêm yết TSE Standard). Khách hàng chủ yếu Nhật Bản, có đội BrSE.</div>
+  <div class="card stat"><b>Mô hình</b>Lab-type (đội dedicated, agile, dài hạn) · Contract development (trọn gói, đúng scope/budget) · AI Transformation (PoC → production → tối ưu).</div>
+  <div class="card stat"><b>Core stack công bố</b>Ruby, JavaScript, Python, PHP, Swift, Kotlin, Flutter, AWS, MySQL, DynamoDB. Website của họ chạy Ruby on Rails (ActiveStorage, authenticity_token).</div>
+  <div class="card stat"><b>Dự án tiêu biểu</b><b style="display:inline;color:var(--text)">fufu+</b> — online store dùng chung membership với chuỗi 157 salon · <b style="display:inline;color:var(--text)">BEAUTY POS</b> — cloud POS cho salon (BUNBU phát triển &amp; vận hành từ 04/2025) · <b style="display:inline;color:var(--text)">Zaimo.ai</b> — AI agent lập kế hoạch kinh doanh/ngân sách (từ 2023) · <b style="display:inline;color:var(--text)">Lily Hometel</b> — booking &amp; vận hành căn hộ dịch vụ Hà Nội (từ 2019).</div>
+</div>
+<div class="card">
+<b>Định vị bản thân:</b> Stack chính của bạn (Go, Laravel) lệch so với core Ruby của họ, nhưng JD chấp nhận PHP/Go và nhấn mạnh “linh hoạt tiếp cận stack mới”. Hãy bán <i>năng lực nền</i> mà mọi stack đều cần và họ đang thiếu ở level Senior: <b>thiết kế DB cho nghiệp vụ tiền/điểm/đặt chỗ, transaction &amp; consistency, tích hợp bên thứ 3 (ngân hàng), viết design doc, chịu trách nhiệm end-to-end</b>. Các sản phẩm của họ (POS, membership/point, booking, e-commerce) đều là bài toán transaction &amp; consistency — đúng thế mạnh fintech của bạn.
+</div>
+</section>
+
+<!-- ============ 1 ============ -->
+<section id="s1">
+<h2>1. Mở đầu &amp; động lực</h2>
+<p class="sec-desc">Phần này quyết định ấn tượng đầu. Tập nói thành tiếng, canh giờ.</p>
+
+<details class="q" data-t="intro"><summary><span class="num">01</span><span class="qt">Giới thiệu bản thân trong 2 phút.<div class="tags"><span class="tag">intro</span></div></span></summary><div class="a">
+<p class="intent">Bạn có tóm tắt được bản thân gắn với JD không; có chọn lọc thông tin không.</p>
+<p>Cấu trúc: <b>Hiện tại → Quá khứ nổi bật → Thế mạnh khớp JD → Vì sao ở đây</b>.</p>
+<blockquote>Em là Huy, Backend Developer hơn 5 năm, chuyên Golang và PHP/Laravel, đã làm qua các domain Cloud/Infra, Cyber Security, Social Media và hiện là Fintech.<br><br>
+Từ 07/2025 em làm tại 9Pay, phụ trách các luồng tích hợp ngân hàng, chuyển tiền và hóa đơn điện tử. Ví dụ gần nhất em phụ trách trọn module <mark class="fill">[tên module]</mark> từ đọc spec của ngân hàng, viết design doc, thiết kế DB, coding, test tới go-live; sau release hệ thống xử lý <mark class="fill">[x giao dịch/ngày]</mark>, tỷ lệ lỗi <mark class="fill">[y%]</mark>.<br><br>
+Thế mạnh của em là thiết kế database và transaction cho nghiệp vụ liên quan đến tiền — idempotency, chống trùng, đối soát — và xây hệ thống event-driven với Kafka, gRPC, Docker/CI-CD.<br><br>
+Em ứng tuyển BUNBU vì muốn làm với nhiều sản phẩm thực tế cho khách Nhật — nơi chất lượng và quy trình được đặt cao — và vì BUNBU chủ động đưa AI vào quy trình phát triển, đúng hướng em đang theo đuổi với Cursor trong công việc hằng ngày.</blockquote>
+<p class="tip">Đừng liệt kê hết tech stack — họ đã đọc CV. Mỗi câu nên có một “móc” để họ hỏi tiếp vào vùng bạn mạnh (idempotency, đối soát, Kafka).</p>
+</div></details>
+
+<details class="q" data-t="intro"><summary><span class="num">02</span><span class="qt">Bạn mới vào 9Pay hơn 1 năm, vì sao muốn chuyển?<div class="tags"><span class="tag">intro</span></div></span></summary><div class="a">
+<p class="intent">Rủi ro job-hopping; bạn có chạy trốn vấn đề không.</p>
+<p>Nói theo hướng <b>kéo</b> (điều BUNBU có) chứ không phải <b>đẩy</b> (chê công ty cũ):</p>
+<ul>
+<li>Ở fintech em học được kỷ luật về consistency và vận hành production; giờ em muốn mở rộng sang nhiều domain sản phẩm (retail, POS, SaaS, AI) để nâng tầm thiết kế hệ thống.</li>
+<li>Muốn trải nghiệm quy trình dự án Nhật: requirement → design → test có tài liệu chặt chẽ — điều em đánh giá là còn thiếu trong profile.</li>
+<li>Muốn vai trò có mentoring/dẫn dắt kỹ thuật rõ ràng hơn. <mark class="fill">[lý do thật, nếu có]</mark></li>
+</ul>
+<p class="tip">Ngắn, tích cực, không nói xấu. Nếu họ hỏi dồn, trả lời thật nhưng trung tính (“định hướng sản phẩm thay đổi”, “muốn phạm vi trách nhiệm rộng hơn”).</p>
+</div></details>
+
+<details class="q" data-t="intro japan"><summary><span class="num">03</span><span class="qt">Vì sao chọn BUNBU / dự án outsource cho Nhật thay vì product company?<div class="tags"><span class="tag">intro</span><span class="tag">japan</span></div></span></summary><div class="a">
+<p class="intent">Bạn có hiểu mô hình Lab/Contract không, có chịu được áp lực spec, chất lượng, tài liệu không.</p>
+<ul>
+<li>Lab-type với khách dài hạn (như BEAUTY POS, Zaimo.ai) cho phép ownership sản phẩm gần như product company, nhưng được tiếp xúc nhiều domain hơn.</li>
+<li>Khách Nhật đòi hỏi chất lượng và tài liệu cao — môi trường tốt để Senior rèn kỷ luật engineering.</li>
+<li>Là thành viên Appirits (niêm yết) → ổn định, dự án lâu dài, cơ hội làm việc với team Nhật.</li>
+<li>Mảng AI Transformation (Zaimo.ai) khớp với mong muốn làm backend cho sản phẩm có AI.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="intro"><summary><span class="num">04</span><span class="qt">Điểm yếu của bạn? / Điều bạn đang cải thiện?<div class="tags"><span class="tag">intro</span></div></span></summary><div class="a">
+<p class="intent">Tự nhận thức và có hành động cải thiện cụ thể.</p>
+<p>Chọn điểm yếu <b>thật nhưng không chí mạng</b>, kèm hành động:</p>
+<ul>
+<li><b>Chưa có kinh nghiệm dự án Nhật / tiếng Nhật</b> → đang học các khái niệm quy trình (要件定義, 詳細設計, テスト仕様書), học tiếng Nhật cơ bản <mark class="fill">[mức độ thật]</mark>, đã quen viết tài liệu kỹ thuật chi tiết vì fintech bắt buộc.</li>
+<li><b>Ruby/Rails chưa dùng production</b> → nêu kế hoạch 2 tuần (xem câu 44).</li>
+<li>Hoặc: “trước đây hay tự ôm việc khó thay vì delegate” → giờ chia task + pair với Middle.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="intro"><summary><span class="num">05</span><span class="qt">Mức lương mong muốn?<div class="tags"><span class="tag">intro</span></div></span></summary><div class="a">
+<p class="intent">Bạn có định giá bản thân hợp lý theo thị trường.</p>
+<ul>
+<li>Đưa <b>khoảng</b> (gross/net nói rõ), neo theo năng lực Senior + mặt bằng thị trường Hà Nội: <mark class="fill">[X – Y triệu net]</mark>.</li>
+<li>Câu mẫu: “Dựa trên phạm vi trách nhiệm Senior trong JD, em mong muốn khoảng X–Y. Em linh hoạt nếu tổng package (thưởng, review lương, đào tạo tiếng Nhật, onsite) phù hợp.”</li>
+<li>Hỏi lại: chu kỳ review lương, tháng 13, thưởng dự án, phụ cấp tiếng Nhật.</li>
+</ul>
+</div></details>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="s2">
+<h2>2. Năng lực theo JD — trả lời theo STAR</h2>
+<p class="sec-desc">Mỗi gạch đầu dòng trong “Yêu cầu” gần như chắc chắn thành một câu hỏi. Chuẩn bị 3–4 câu chuyện thật, tái sử dụng cho nhiều câu. STAR = Situation · Task · Action · Result.</p>
+
+<details class="q" data-t="jd"><summary><span class="num">06</span><span class="qt">Kể về một module bạn tự phụ trách trọn từ tiếp nhận yêu cầu đến bàn giao.<div class="tags"><span class="tag">jd</span><span class="tag">ownership</span></div></span></summary><div class="a">
+<p class="intent">Ownership end-to-end thật sự, không chỉ “code phần được giao”.</p>
+<p><b>Khung câu chuyện gợi ý (chuyển tiền / tích hợp ngân hàng tại 9Pay):</b></p>
+<ul>
+<li><b>S:</b> 9Pay cần tích hợp <mark class="fill">[ngân hàng / dịch vụ chi hộ X]</mark> cho luồng chuyển tiền, deadline <mark class="fill">[n tuần]</mark>.</li>
+<li><b>T:</b> Em là owner backend: đọc spec ngân hàng, thiết kế, code, test, phối hợp UAT với bank, go-live.</li>
+<li><b>A:</b>
+  <ol>
+  <li>Đọc spec, lập danh sách câu hỏi (mã lỗi mơ hồ, timeout behavior, cơ chế tra cứu trạng thái, chữ ký) gửi bank trước khi code.</li>
+  <li>Viết design doc: sequence diagram, state machine giao dịch (<code>INIT → PENDING → SUCCESS/FAILED/UNKNOWN</code>), schema, idempotency, retry, đối soát.</li>
+  <li>Xử lý case khó nhất: <b>timeout không rõ kết quả</b> → không retry mù; đánh dấu <code>UNKNOWN</code>, job inquiry định kỳ, cuối ngày đối soát file.</li>
+  <li>Test: unit + integration với sandbox bank + test case lỗi (timeout, duplicate callback, sai chữ ký).</li>
+  <li>Go-live có feature flag, theo dõi dashboard tỉ lệ thành công / latency.</li>
+  </ol></li>
+<li><b>R:</b> <mark class="fill">[đúng hạn? x giao dịch/ngày, tỷ lệ thành công, số incident, thời gian đối soát giảm…]</mark>. Bài học: <mark class="fill">[…]</mark></li>
+</ul>
+<p class="tip">Interviewer Senior sẽ đào sâu 2–3 tầng: “nếu callback đến trước khi response trả về thì sao?”, “đối soát lệch thì xử lý thế nào?”. Chuẩn bị sẵn.</p>
+</div></details>
+
+<details class="q" data-t="jd"><summary><span class="num">07</span><span class="qt">Tài liệu thiết kế chi tiết bạn viết gồm những gì?<div class="tags"><span class="tag">jd</span><span class="tag">design doc</span></div></span></summary><div class="a">
+<p class="intent">Bạn có thực sự viết 詳細設計 không, hay chỉ code rồi viết sau.</p>
+<p>Template bạn có thể nêu (tương đương 詳細設計書 của dự án Nhật):</p>
+<ol>
+<li><b>Overview &amp; scope</b>: mục tiêu, in-scope / out-of-scope, giả định, link requirement.</li>
+<li><b>Luồng xử lý</b>: sequence diagram, state machine, các nhánh lỗi.</li>
+<li><b>API spec</b>: endpoint, request/response, validation rule, mã lỗi, idempotency header.</li>
+<li><b>Data design</b>: ERD, DDL, index và lý do, ước lượng data volume, migration plan.</li>
+<li><b>Xử lý ngoại lệ</b>: timeout, retry, rollback/compensation, concurrency.</li>
+<li><b>Non-functional</b>: performance target, security (authz, PII), logging/metrics.</li>
+<li><b>Test viewpoints</b> (テスト観点): normal/abnormal/boundary, case concurrency.</li>
+<li><b>Release</b>: feature flag, rollout, rollback, data fix.</li>
+<li><b>Open questions</b> (QA表) &amp; lịch sử thay đổi.</li>
+</ol>
+<p class="tip">Nhấn mạnh: design doc được review <i>trước</i> khi code → phát hiện mâu thuẫn sớm, rẻ hơn sửa code. Với khách Nhật, tài liệu là deliverable chính thức, không phải phụ.</p>
+</div></details>
+
+<details class="q" data-t="jd japan"><summary><span class="num">08</span><span class="qt">Kể lần bạn phát hiện yêu cầu mơ hồ hoặc mâu thuẫn và xác nhận lại trước khi code.<div class="tags"><span class="tag">jd</span><span class="tag">requirement</span></div></span></summary><div class="a">
+<p class="intent">Thói quen “hỏi trước khi code” — cực kỳ quan trọng trong dự án Nhật qua BrSE.</p>
+<p><b>Ví dụ gợi ý (hóa đơn điện tử):</b> Spec nói “xuất hóa đơn khi giao dịch thành công”, nhưng không định nghĩa: giao dịch <code>PENDING</code> rồi thành công sau 2 ngày thì hóa đơn ghi ngày nào? Refund một phần thì điều chỉnh hay thay thế hóa đơn? Hai yêu cầu “xuất ngay” và “gộp hóa đơn theo ngày” mâu thuẫn nhau.</p>
+<ul>
+<li><b>Cách làm:</b> lập bảng Q&amp;A (câu hỏi · bối cảnh · phương án đề xuất A/B · ảnh hưởng nếu chọn sai) → gửi PM/BrSE → chốt bằng văn bản, cập nhật spec.</li>
+<li>Luôn kèm <b>phương án đề xuất</b> chứ không chỉ hỏi — giúp khách quyết nhanh.</li>
+<li><b>Kết quả:</b> <mark class="fill">[tránh được rework x ngày / bug nghiệp vụ]</mark>.</li>
+</ul>
+<p class="tip">Với dự án Nhật: câu hỏi cần ngắn, có số thứ tự, mỗi câu một ý, dễ dịch — BrSE sẽ đánh giá cao.</p>
+</div></details>
+
+<details class="q" data-t="jd"><summary><span class="num">09</span><span class="qt">Lần bạn tự chốt phương án thiết kế và chịu trách nhiệm kết quả. Nếu phương án sai?<div class="tags"><span class="tag">jd</span><span class="tag">decision</span></div></span></summary><div class="a">
+<p class="intent">Ra quyết định có căn cứ, nêu trade-off, và trưởng thành khi sai.</p>
+<p><b>Ví dụ:</b> Publish event sau khi tạo giao dịch — chọn giữa (A) publish Kafka trực tiếp sau commit, (B) Transactional Outbox, (C) CDC (Debezium).</p>
+<div class="tbl"><table>
+<tr><th>Phương án</th><th>Ưu</th><th>Nhược</th></tr>
+<tr><td>A. Publish trực tiếp</td><td>Đơn giản, latency thấp</td><td>Commit DB xong mà publish fail → mất event</td></tr>
+<tr><td>B. Outbox + relay</td><td>At-least-once, nằm trong cùng transaction</td><td>Thêm bảng, relay job, consumer phải idempotent</td></tr>
+<tr><td>C. CDC</td><td>Không đụng code ứng dụng</td><td>Thêm hạ tầng (Debezium, binlog), vận hành phức tạp</td></tr>
+</table></div>
+<p>Em chọn <b>B</b> vì team chưa có hạ tầng CDC, mức độ chấp nhận mất event = 0. Ghi quyết định vào ADR. <mark class="fill">[kết quả thực tế]</mark></p>
+<p><b>Nếu sai:</b> kể một lần quyết định chưa tối ưu → phát hiện qua monitoring → rollback/hotfix → postmortem → cập nhật checklist. Nhấn mạnh “em nhận trách nhiệm và sửa, không đổ lỗi”.</p>
+</div></details>
+
+<details class="q" data-t="jd"><summary><span class="num">10</span><span class="qt">Kể về chức năng trải nhiều module bạn chịu trách nhiệm từ phân tích đến sau release (cả timeline &amp; chất lượng).<div class="tags"><span class="tag">jd</span><span class="tag">cross-module</span></div></span></summary><div class="a">
+<p class="intent">Năng lực điều phối kỹ thuật cấp Senior / gần Tech Lead.</p>
+<ul>
+<li><b>Ví dụ:</b> luồng chuyển tiền chạm API gateway → transfer service → ledger → notification → reconciliation → e-invoice.</li>
+<li><b>Phân tích:</b> vẽ bản đồ ảnh hưởng (module nào đổi API/schema, ai owner), xác định dependency và critical path.</li>
+<li><b>Timeline:</b> chia milestone (design review → API contract chốt → dev song song bằng mock → integration → UAT → release), buffer cho phần phụ thuộc bên ngoài (bank).</li>
+<li><b>Chất lượng:</b> contract test giữa service, test E2E luồng chính, checklist release, feature flag, plan rollback.</li>
+<li><b>Sau release:</b> hypercare 1–2 tuần, dashboard riêng, đối soát hằng ngày, thu thập bug → retrospective.</li>
+<li><b>Kết quả:</b> <mark class="fill">[trễ/đúng hạn bao nhiêu, bug sau release, cải tiến]</mark>.</li>
+</ul>
+<p class="tip">Nếu từng trễ: nói thật, nhưng nêu bạn phát hiện rủi ro sớm thế nào và báo cáo (報連相) ra sao — đó là điều khách Nhật quan tâm hơn là “không bao giờ trễ”.</p>
+</div></details>
+
+<details class="q" data-t="jd japan"><summary><span class="num">11</span><span class="qt">Bạn estimate task thế nào? Khi thấy sắp trễ deadline bạn làm gì?<div class="tags"><span class="tag">jd</span><span class="tag">estimate</span></div></span></summary><div class="a">
+<p class="intent">Estimate có căn cứ và báo cáo sớm.</p>
+<ul>
+<li>Phân rã đến task ≤ 1 ngày, estimate cả design, review, test, tài liệu, fix bug (không chỉ coding).</li>
+<li>Cộng buffer cho unknown (tích hợp bên thứ 3, spec chưa chốt) và ghi rõ giả định.</li>
+<li>Theo dõi hằng ngày; ngay khi thấy rủi ro → báo PM/BrSE <b>kèm phương án</b>: cắt scope, tăng người, dời mốc, release từng phần.</li>
+<li>Không “im lặng tăng ca rồi vẫn trễ” — trong văn hóa Nhật, báo muộn tệ hơn trễ.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="jd"><summary><span class="num">12</span><span class="qt">Kể một sự cố production bạn xử lý.<div class="tags"><span class="tag">jd</span><span class="tag">incident</span></div></span></summary><div class="a">
+<p class="intent">Bình tĩnh, có quy trình, biết phân biệt “cầm máu” và “chữa gốc”.</p>
+<ol>
+<li><b>Phát hiện:</b> alert / khách báo — <mark class="fill">[sự cố thật, vd: giao dịch kẹt PENDING, Kafka consumer lag, deadlock]</mark>.</li>
+<li><b>Đánh giá phạm vi:</b> bao nhiêu user/giao dịch, có mất tiền/dữ liệu không.</li>
+<li><b>Cầm máu:</b> rollback / tắt feature flag / scale / chặn traffic.</li>
+<li><b>Thông báo</b> stakeholder theo khung giờ cố định.</li>
+<li><b>Root cause:</b> logs, metrics, trace; 5 Whys (なぜなぜ分析).</li>
+<li><b>Fix triệt để + phòng tái phát:</b> test case mới, alert mới, cập nhật checklist.</li>
+<li><b>Postmortem</b> không đổ lỗi.</li>
+</ol>
+</div></details>
+
+<details class="q" data-t="jd"><summary><span class="num">13</span><span class="qt">Bạn mentoring thành viên Middle thế nào?<div class="tags"><span class="tag">jd</span><span class="tag">mentoring</span></div></span></summary><div class="a">
+<p class="intent">Có phương pháp, nâng năng lực chứ không làm hộ.</p>
+<ul>
+<li>Giao task vừa sức + stretch nhẹ; giao <b>bài toán</b> chứ không giao lời giải.</li>
+<li>Yêu cầu viết design ngắn trước khi code → review sớm, tránh làm lại.</li>
+<li>Code review có giải thích “vì sao”, phân biệt <code>must</code> / <code>should</code> / <code>nit</code>.</li>
+<li>Pair programming cho phần khó (concurrency, transaction); 1-1 định kỳ.</li>
+<li>Đo tiến bộ: số vòng review giảm, tự xử lý được incident, tự viết design.</li>
+<li><mark class="fill">[ví dụ một bạn bạn từng kèm và kết quả]</mark></li>
+</ul>
+</div></details>
+
+<details class="q" data-t="jd"><summary><span class="num">14</span><span class="qt">Khi review code, bạn tập trung vào gì?<div class="tags"><span class="tag">jd</span><span class="tag">code review</span></div></span></summary><div class="a">
+<p class="intent">Ưu tiên đúng thứ tự, không chỉ soi style.</p>
+<ol>
+<li><b>Đúng nghiệp vụ</b> so với spec, đủ case lỗi / biên.</li>
+<li><b>Data &amp; concurrency:</b> transaction boundary, race condition, idempotency, N+1, index cho query mới, migration an toàn.</li>
+<li><b>Security:</b> authz (IDOR), validation, log lộ PII/secret.</li>
+<li><b>Observability:</b> log có context, error wrap đúng, metric.</li>
+<li><b>Test</b> phủ logic quan trọng.</li>
+<li><b>Maintainability:</b> naming, tách lớp, không over-engineer.</li>
+<li>Style → để linter/formatter lo (gofmt, golangci-lint, Pint/PHP-CS-Fixer, RuboCop).</li>
+</ol>
+<p class="tip">PR lớn &gt; 400 dòng → yêu cầu tách. AI review bot có thể làm vòng 1, nhưng người vẫn chịu trách nhiệm approve.</p>
+</div></details>
+
+<details class="q" data-t="jd japan"><summary><span class="num">15</span><span class="qt">Bạn bất đồng với BrSE/PM/khách về giải pháp kỹ thuật thì xử lý thế nào?<div class="tags"><span class="tag">jd</span><span class="tag">communication</span></div></span></summary><div class="a">
+<p class="intent">Thuyết phục bằng dữ liệu, tôn trọng quyết định cuối.</p>
+<ul>
+<li>Hiểu mục tiêu thật của họ (thời gian? chi phí? trải nghiệm?).</li>
+<li>Trình bày 2–3 phương án với trade-off định lượng: hiệu năng, bảo mật, chi phí triển khai, khả năng bảo trì (đúng 4 trục JD nêu).</li>
+<li>Nếu cần, làm PoC nhỏ để chứng minh.</li>
+<li>Khách quyết phương án mình không chọn → ghi nhận rủi ro bằng văn bản, rồi làm tốt nhất phương án đó (disagree &amp; commit).</li>
+</ul>
+</div></details>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="s3">
+<h2>3. Database — schema, transaction, tối ưu</h2>
+<p class="sec-desc">JD ghi rõ “thiết kế database thật: schema, transaction, tối ưu truy vấn”. BUNBU dùng MySQL + DynamoDB.</p>
+
+<details class="q" data-t="db design"><summary><span class="num">16</span><span class="qt">Thiết kế schema hệ thống điểm thành viên dùng chung giữa online store và chuỗi salon (kiểu fufu+).<div class="tags"><span class="tag">db</span><span class="tag">schema</span></div></span></summary><div class="a">
+<p class="intent">Khả năng mô hình hóa nghiệp vụ, audit được, chống sai lệch số dư.</p>
+<pre><code>members(id, member_no UNIQUE, name, phone_hash, email, status, created_at)
+member_channels(member_id, channel ENUM('store','salon','line'), external_id,
+                UNIQUE(channel, external_id))
+point_ledger(id, member_id, delta INT, reason, source_type, source_id,
+             expires_at, idem_key UNIQUE, created_at)   -- append-only
+point_balances(member_id PK, balance INT, version INT, updated_at)
+orders(id, member_id, channel, salon_id NULL, total DECIMAL(12,0), status, ...)</code></pre>
+<ul>
+<li><b>Ledger append-only</b> là nguồn sự thật; <code>point_balances</code> là bảng tổng hợp cập nhật trong cùng transaction → đọc nhanh, đối soát được (<code>SUM(delta) = balance</code>).</li>
+<li><code>idem_key</code> (vd <code>order:123:earn</code>) chặn cộng điểm 2 lần khi POS/webhook retry.</li>
+<li>Hết hạn điểm: FIFO theo lô (thêm bảng <code>point_lots</code>) nếu nghiệp vụ yêu cầu điểm hết hạn từng lần.</li>
+<li>Tiền Yên không có số lẻ → <code>DECIMAL(12,0)</code>; vẫn cẩn thận làm tròn thuế tiêu dùng (消費税) theo quy tắc khách quy định.</li>
+</ul>
+<p class="tip">Chỉ dùng cột balance (đơn giản) vs ledger + balance (audit, đối soát, phức tạp hơn). Với điểm/tiền: luôn chọn ledger.</p>
+</div></details>
+
+<details class="q" data-t="db"><summary><span class="num">17</span><span class="qt">Transaction isolation level trong MySQL InnoDB? Khi nào đổi?<div class="tags"><span class="tag">db</span><span class="tag">transaction</span></div></span></summary><div class="a">
+<p class="intent">Hiểu MVCC, locking read vs consistent read.</p>
+<ul>
+<li>Mặc định <b>REPEATABLE READ</b>: consistent read dùng snapshot tại lần đọc đầu; locking read (<code>FOR UPDATE</code>, UPDATE/DELETE) dùng next-key lock (record + gap) → chặn phantom cho locking read.</li>
+<li><b>READ COMMITTED</b>: snapshot mỗi câu lệnh, gần như không gap lock → ít deadlock hơn, throughput tốt hơn cho hệ thống ghi nhiều; đổi lại phải tự đảm bảo invariant bằng lock/constraint.</li>
+<li>Lỗi phổ biến: tưởng RR “tự chống race” — thực tế đọc thường (không lock) rồi update dựa trên giá trị cũ vẫn gây lost update.</li>
+</ul>
+<p class="tip">Đừng dựa vào isolation để giữ invariant nghiệp vụ; dùng conditional update / unique constraint / lock tường minh.</p>
+</div></details>
+
+<details class="q" data-t="db"><summary><span class="num">18</span><span class="qt">Chống trừ điểm / trừ tồn kho / trừ tiền 2 lần khi có request đồng thời?<div class="tags"><span class="tag">db</span><span class="tag">concurrency</span></div></span></summary><div class="a">
+<p class="intent">Câu hỏi kinh điển — trả lời có nhiều phương án + trade-off.</p>
+<h4>1. Atomic conditional update (ưu tiên)</h4>
+<pre><code>res, err := tx.ExecContext(ctx, `
+  UPDATE point_balances
+     SET balance = balance - ?, version = version + 1
+   WHERE member_id = ? AND balance &gt;= ?`, amt, memberID, amt)
+if err != nil { return err }
+if n, _ := res.RowsAffected(); n == 0 {
+    return ErrInsufficientPoints
+}</code></pre>
+<h4>2. Pessimistic lock</h4>
+<pre><code>// Laravel
+DB::transaction(function () use ($memberId, $amount) {
+    $bal = PointBalance::where('member_id', $memberId)-&gt;lockForUpdate()-&gt;firstOrFail();
+    if ($bal-&gt;balance &lt; $amount) throw new InsufficientPoints();
+    $bal-&gt;decrement('balance', $amount);
+    PointLedger::create([...]);
+}, 3); // retry khi deadlock</code></pre>
+<h4>3. Optimistic lock (version)</h4>
+<p><code>UPDATE ... SET version = version+1 WHERE id=? AND version=?</code> → 0 rows thì retry.</p>
+<div class="tbl"><table>
+<tr><th></th><th>Ưu</th><th>Nhược</th></tr>
+<tr><td>Conditional update</td><td>1 round-trip, không giữ lock lâu</td><td>Chỉ hợp khi điều kiện biểu diễn được trong WHERE</td></tr>
+<tr><td>FOR UPDATE</td><td>Logic phức tạp tùy ý</td><td>Giữ lock, nguy cơ deadlock, contention cao trên hot row</td></tr>
+<tr><td>Optimistic</td><td>Không lock, tốt khi ít xung đột</td><td>Xung đột cao → retry storm</td></tr>
+</table></div>
+<p class="tip">Hot row (flash sale) → cân nhắc chia bucket tồn kho, hoặc reserve qua Redis (Lua atomic) rồi ghi DB async — đổi lại phải đối soát.</p>
+</div></details>
+
+<details class="q" data-t="db"><summary><span class="num">19</span><span class="qt">Deadlock: nguyên nhân và cách xử lý?<div class="tags"><span class="tag">db</span><span class="tag">deadlock</span></div></span></summary><div class="a">
+<ul>
+<li><b>Nguyên nhân:</b> 2 transaction lock tài nguyên theo thứ tự ngược nhau; gap lock trong RR khi insert vào cùng khoảng; transaction dài; thiếu index → lock quét nhiều row.</li>
+<li><b>Chẩn đoán:</b> <code>SHOW ENGINE INNODB STATUS</code> (LATEST DETECTED DEADLOCK), <code>innodb_print_all_deadlocks=ON</code>, <code>performance_schema.data_locks</code>.</li>
+<li><b>Phòng tránh:</b> lock theo thứ tự cố định (vd sort theo id khi chuyển tiền A→B), transaction ngắn (không gọi API ngoài trong transaction), index đúng cho WHERE của UPDATE, cân nhắc READ COMMITTED.</li>
+<li><b>Xử lý:</b> ứng dụng retry khi gặp error 1213 với backoff — vì deadlock không thể loại bỏ hoàn toàn.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="db"><summary><span class="num">20</span><span class="qt">Một API chậm do query. Quy trình tối ưu của bạn?<div class="tags"><span class="tag">db</span><span class="tag">performance</span></div></span></summary><div class="a">
+<ol>
+<li>Đo trước: APM/trace xác định span chậm; slow query log; <code>pt-query-digest</code>.</li>
+<li><code>EXPLAIN</code> / <code>EXPLAIN ANALYZE</code> (8.0.18+): xem <code>type</code> (ALL/index/range/ref), <code>rows</code>, <code>Extra</code> (Using filesort, Using temporary, Using index).</li>
+<li>Index: composite theo leftmost prefix (equality trước, range sau, rồi ORDER BY), covering index để tránh lookup lại clustered index.</li>
+<li>Viết lại query: tránh hàm trên cột (<code>DATE(created_at)=?</code> → range), tránh <code>OR</code> phá index, <code>SELECT *</code>, implicit type conversion (so sánh VARCHAR với số).</li>
+<li>Tầng ứng dụng: N+1, phân trang keyset, cache, tách báo cáo sang read replica / bảng tổng hợp.</li>
+<li>Đo lại, so sánh trước/sau.</li>
+</ol>
+<p class="tip">Mỗi index thêm làm chậm write và tốn RAM buffer pool — với bảng ghi nhiều (ledger), cân nhắc kỹ.</p>
+</div></details>
+
+<details class="q" data-t="db"><summary><span class="num">21</span><span class="qt">Phân trang dữ liệu lớn: OFFSET vs keyset (cursor)?<div class="tags"><span class="tag">db</span></div></span></summary><div class="a">
+<pre><code>-- index (shop_id, created_at, id)
+SELECT id, created_at, total FROM orders
+ WHERE shop_id = ?
+   AND (created_at &lt; ? OR (created_at = ? AND id &lt; ?))
+ ORDER BY created_at DESC, id DESC
+ LIMIT 50;</code></pre>
+<ul>
+<li>OFFSET lớn → MySQL vẫn đọc rồi bỏ N row → càng về sau càng chậm; dữ liệu chèn thêm làm trùng/sót.</li>
+<li>Keyset: ổn định O(limit), nhưng không nhảy trang tùy ý, cần sort key unique (thêm <code>id</code>).</li>
+<li>Viết dạng <code>OR</code> như trên thay vì row constructor <code>(a,b) &lt; (?,?)</code> để chắc chắn dùng range scan trên mọi version MySQL.</li>
+</ul>
+<p class="tip">Màn hình admin cần “trang 1…N” → OFFSET + giới hạn số trang; API mobile/infinite scroll → keyset.</p>
+</div></details>
+
+<details class="q" data-t="db"><summary><span class="num">22</span><span class="qt">Thay đổi schema bảng lớn (hàng chục triệu row) không downtime?<div class="tags"><span class="tag">db</span><span class="tag">migration</span></div></span></summary><div class="a">
+<ul>
+<li>MySQL 8: <code>ALGORITHM=INSTANT</code> (thêm cột cuối…), <code>INPLACE, LOCK=NONE</code> cho nhiều thao tác index.</li>
+<li>Không hỗ trợ online → <b>gh-ost</b> / <b>pt-online-schema-change</b> (shadow table, copy dần, cut-over).</li>
+<li>Pattern <b>expand → migrate → contract</b>: thêm cột mới nullable → code ghi cả hai → backfill theo batch → đọc cột mới → xóa cột cũ ở release sau. Mỗi bước đều rollback được.</li>
+<li>Backfill theo batch nhỏ (theo PK range) + sleep, theo dõi replication lag.</li>
+</ul>
+<p class="tip">Trên AWS RDS/Aurora có thể dùng Blue/Green deployments cho thay đổi lớn — tốn chi phí nhân đôi tạm thời.</p>
+</div></details>
+
+<details class="q" data-t="db stack"><summary><span class="num">23</span><span class="qt">N+1 query trong ORM (Eloquent / ActiveRecord / GORM) — phát hiện và xử lý?<div class="tags"><span class="tag">db</span><span class="tag">orm</span></div></span></summary><div class="a">
+<ul>
+<li>Phát hiện: query log/APM thấy nhiều câu giống nhau; Laravel <code>Model::preventLazyLoading()</code>; Rails gem <code>bullet</code> hoặc <code>strict_loading</code>.</li>
+<li>Xử lý: eager loading — Laravel <code>with('items')</code>, Rails <code>includes(:items)</code> (<code>preload</code>/<code>eager_load</code>), GORM <code>Preload("Items")</code>.</li>
+<li>Chỉ cần count → <code>withCount</code> / <code>counter_cache</code>.</li>
+<li>Dữ liệu lớn → <code>chunkById</code> / <code>find_each</code> để không load toàn bộ vào RAM.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="db infra"><summary><span class="num">24</span><span class="qt">Khi nào dùng DynamoDB thay vì MySQL?<div class="tags"><span class="tag">db</span><span class="tag">aws</span></div></span></summary><div class="a">
+<p class="intent">BUNBU liệt kê DynamoDB trong stack — biết sơ bộ là điểm cộng.</p>
+<ul>
+<li><b>DynamoDB:</b> access pattern biết trước, key-value/lookup theo key, scale ghi lớn, latency ổn định, serverless (session, log sự kiện, giỏ hàng, trạng thái thiết bị POS, idempotency key có TTL).</li>
+<li><b>MySQL:</b> quan hệ phức tạp, query ad-hoc, báo cáo, transaction đa bảng (đơn hàng, thanh toán, ledger).</li>
+<li>DynamoDB design: thiết kế từ access pattern; partition key đủ phân tán (tránh hot partition), sort key cho range query; GSI cho pattern phụ; TTL tự xóa; có transaction (<code>TransactWriteItems</code>) nhưng giới hạn số item và tốn gấp đôi WCU.</li>
+</ul>
+<p class="tip">DynamoDB khó đổi access pattern về sau và khó làm báo cáo → thường stream sang S3/Athena hoặc OpenSearch cho analytics.</p>
+</div></details>
+
+<details class="q" data-t="db japan"><summary><span class="num">25</span><span class="qt">Lưu tiền và thời gian thế nào cho hệ thống phục vụ khách Nhật?<div class="tags"><span class="tag">db</span><span class="tag">japan</span></div></span></summary><div class="a">
+<ul>
+<li><b>Tiền:</b> không dùng FLOAT/DOUBLE. MySQL <code>DECIMAL</code> hoặc số nguyên đơn vị nhỏ nhất; Go dùng <code>int64</code> hoặc <code>shopspring/decimal</code>. Yên không có phần lẻ nhưng thuế tiêu dùng (10%, 8% giảm trừ) cần quy tắc làm tròn (切り捨て / 四捨五入 / 切り上げ) và làm tròn theo dòng hay theo hóa đơn — <b>phải hỏi khách</b>, đừng tự giả định.</li>
+<li><b>Thời gian:</b> lưu UTC (hoặc thống nhất một timezone), hiển thị JST (UTC+9). Cẩn thận “cut-off ngày” theo JST cho báo cáo doanh thu, batch chạy 0h JST = 22h giờ VN.</li>
+<li>Session MySQL <code>time_zone</code>, Go <code>time.LoadLocation("Asia/Tokyo")</code>, cột <code>DATETIME</code> vs <code>TIMESTAMP</code> (TIMESTAMP tự convert theo session TZ, giới hạn năm 2038).</li>
+</ul>
+</div></details>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="s4">
+<h2>4. System design &amp; hệ thống phân tán</h2>
+<p class="sec-desc">Luôn trả lời theo: làm rõ requirement → ước lượng tải → thiết kế lõi → điểm nghẽn → trade-off. Hỏi lại trước khi vẽ.</p>
+
+<details class="q" data-t="design"><summary><span class="num">26</span><span class="qt">Thiết kế API idempotent cho tạo đơn / thanh toán.<div class="tags"><span class="tag">design</span><span class="tag">idempotency</span></div></span></summary><div class="a">
+<pre><code>CREATE TABLE idempotency_keys (
+  client_id     BIGINT      NOT NULL,
+  idem_key      VARCHAR(64) NOT NULL,
+  request_hash  CHAR(64)    NOT NULL,
+  status        ENUM('processing','done') NOT NULL,
+  response_code INT NULL,
+  response_body JSON NULL,
+  created_at    DATETIME(3) NOT NULL,
+  PRIMARY KEY (client_id, idem_key)
+);</code></pre>
+<ol>
+<li>Client gửi header <code>Idempotency-Key</code>.</li>
+<li>INSERT với status <code>processing</code>; trùng PK → đọc bản ghi: <code>done</code> → trả response cũ; <code>processing</code> → 409/202; <code>request_hash</code> khác → 422 (dùng lại key cho request khác).</li>
+<li>Xử lý nghiệp vụ; lưu response + <code>done</code> (cùng transaction với nghiệp vụ nếu cùng DB).</li>
+<li>Dọn key sau 24–72h (hoặc DynamoDB TTL).</li>
+</ol>
+<p class="tip">Ngoài key ở API, nên có unique constraint nghiệp vụ (vd <code>UNIQUE(order_id, type)</code> ở bảng payment) — lớp phòng thủ cuối khi key bị bỏ sót.</p>
+</div></details>
+
+<details class="q" data-t="design"><summary><span class="num">27</span><span class="qt">Làm sao đảm bảo vừa ghi DB vừa publish event mà không mất/không lệch?<div class="tags"><span class="tag">design</span><span class="tag">outbox</span></div></span></summary><div class="a">
+<pre><code>err := db.Transaction(func(tx *gorm.DB) error {
+    if err := tx.Create(&amp;order).Error; err != nil {
+        return err
+    }
+    return tx.Create(&amp;Outbox{
+        AggregateID: order.ID, Topic: "order.created", Payload: payload,
+    }).Error
+})
+
+// Relay worker (chạy được nhiều instance):
+// SELECT * FROM outbox WHERE published_at IS NULL
+//  ORDER BY id LIMIT 100 FOR UPDATE SKIP LOCKED;
+// publish -&gt; UPDATE outbox SET published_at = NOW(3) WHERE id IN (...)</code></pre>
+<ul>
+<li>Đảm bảo <b>at-least-once</b> → consumer phải idempotent (bảng <code>processed_events(event_id PK)</code> hoặc upsert).</li>
+<li>Thứ tự: dùng key partition Kafka = aggregate_id; relay giữ thứ tự theo id.</li>
+<li>Thay thế: CDC (Debezium đọc binlog) — ít code hơn, thêm vận hành. Trên AWS có thể dùng SQS/SNS/EventBridge thay Kafka.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="design"><summary><span class="num">28</span><span class="qt">Transaction trải nhiều service (đặt chỗ + thanh toán + cộng điểm)?<div class="tags"><span class="tag">design</span><span class="tag">saga</span></div></span></summary><div class="a">
+<ul>
+<li><b>2PC/XA:</b> nhất quán mạnh nhưng blocking, coordinator là điểm lỗi, ít broker/DB hiện đại hỗ trợ tốt → hầu như tránh.</li>
+<li><b>Saga:</b> chuỗi local transaction + compensating action (hủy giữ chỗ, refund, trừ lại điểm).
+  <ul><li><i>Choreography</i> (event): ít coupling, khó theo dõi luồng khi nhiều bước.</li>
+  <li><i>Orchestration</i> (orchestrator lưu state machine): dễ quan sát, dễ timeout/retry, orchestrator là thành phần thêm.</li></ul></li>
+<li>Thiết kế bước có thể bù (reserve → confirm), bước không bù được (gửi email, chuyển tiền thật) đặt cuối.</li>
+<li>Mọi bước idempotent; có trạng thái <code>UNKNOWN</code> + job đối soát.</li>
+</ul>
+<p class="tip">Với quy mô khách hàng của BUNBU, nhiều khi <b>modular monolith + 1 DB transaction</b> là đáp án đúng — đừng ép microservice khi không cần (xem câu 33).</p>
+</div></details>
+
+<details class="q" data-t="design db"><summary><span class="num">29</span><span class="qt">Thiết kế hệ thống đặt phòng chống double-booking (kiểu Lily Hometel).<div class="tags"><span class="tag">design</span><span class="tag">booking</span></div></span></summary><div class="a">
+<pre><code>CREATE TABLE room_nights (
+  room_id    BIGINT NOT NULL,
+  night      DATE   NOT NULL,
+  booking_id BIGINT NOT NULL,
+  PRIMARY KEY (room_id, night)
+);
+-- Đặt 3 đêm = INSERT 3 dòng trong 1 transaction.
+-- Trùng PK (error 1062) =&gt; rollback, báo hết phòng.</code></pre>
+<ul>
+<li>Constraint ở DB là lớp đảm bảo cuối cùng — không phụ thuộc logic ứng dụng hay số instance.</li>
+<li><b>Hold tạm</b> khi khách đang thanh toán: booking status <code>HOLD</code> + <code>expires_at</code> (10–15 phút), job giải phóng; hoặc Redis <code>SET NX EX</code> cho UX, DB vẫn là nguồn sự thật.</li>
+<li>Đồng bộ OTA (Booking.com, Agoda…) → channel manager, xử lý xung đột + overbooking policy.</li>
+<li>Thuê theo giờ: bảng theo slot (vd 30 phút) hoặc range check với lock theo <code>room_id</code>.</li>
+</ul>
+<p class="tip">Range type + exclusion constraint chỉ có ở PostgreSQL; với MySQL dùng bảng slot/đêm như trên — tốn row hơn nhưng đơn giản và chắc chắn.</p>
+</div></details>
+
+<details class="q" data-t="design"><summary><span class="num">30</span><span class="qt">Chiến lược cache? Xử lý cache stampede và invalidation?<div class="tags"><span class="tag">design</span><span class="tag">cache</span></div></span></summary><div class="a">
+<pre><code>var sf singleflight.Group
+
+func (s *Svc) GetMember(ctx context.Context, id int64) (*Member, error) {
+    key := fmt.Sprintf("member:%d", id)
+    if m, ok := s.cache.Get(ctx, key); ok {
+        return m, nil
+    }
+    v, err, _ := sf.Do(key, func() (any, error) {
+        m, err := s.repo.Find(ctx, id)
+        if err != nil {
+            return nil, err
+        }
+        s.cache.Set(ctx, key, m, 5*time.Minute+jitter(30*time.Second))
+        return m, nil
+    })
+    if err != nil {
+        return nil, err
+    }
+    return v.(*Member), nil
+}</code></pre>
+<ul>
+<li>Cache-aside + <b>xóa</b> cache khi update (không set lại) để tránh race ghi đè giá trị cũ; delayed double-delete nếu có replica lag.</li>
+<li>Stampede: singleflight (trong process), lock Redis (giữa instance), TTL jitter, refresh-ahead cho key nóng.</li>
+<li>Không cache dữ liệu yêu cầu nhất quán mạnh (số dư, tồn kho khi thanh toán).</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="design"><summary><span class="num">31</span><span class="qt">Tích hợp API bên thứ 3 (payment, LINE, bank) không ổn định — thiết kế thế nào?<div class="tags"><span class="tag">design</span><span class="tag">integration</span></div></span></summary><div class="a">
+<ul>
+<li><b>Timeout</b> rõ ràng cho mọi call (<code>context.WithTimeout</code>, <code>http.Client{Timeout}</code>) — không bao giờ để default vô hạn.</li>
+<li><b>Retry</b> chỉ với lỗi tạm thời + exponential backoff + jitter; <b>chỉ retry khi idempotent</b> (gửi kèm idempotency key nếu bên kia hỗ trợ).</li>
+<li><b>Circuit breaker</b> (sony/gobreaker) tránh dồn tải lên dịch vụ đang chết.</li>
+<li>Tách call ra khỏi request đồng bộ khi được → queue + worker + DLQ.</li>
+<li>Webhook: verify chữ ký, trả 200 nhanh rồi xử lý async, xử lý callback trùng/đến sai thứ tự.</li>
+<li>Kết quả không rõ (timeout) → trạng thái <code>UNKNOWN</code> + inquiry + đối soát (đây là kinh nghiệm fintech của bạn — kể ví dụ thật).</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="design db"><summary><span class="num">32</span><span class="qt">Thiết kế multi-tenant cho SaaS (kiểu BEAUTY POS cho nhiều salon).<div class="tags"><span class="tag">design</span><span class="tag">multi-tenant</span></div></span></summary><div class="a">
+<div class="tbl"><table>
+<tr><th>Mô hình</th><th>Ưu</th><th>Nhược</th></tr>
+<tr><td>Shared schema + <code>tenant_id</code></td><td>Rẻ, dễ vận hành, migrate một lần</td><td>Rủi ro rò dữ liệu nếu quên filter; noisy neighbor</td></tr>
+<tr><td>Schema/DB per tenant</td><td>Cô lập tốt, backup/restore từng tenant</td><td>Migration N lần, tốn tài nguyên, connection pool</td></tr>
+<tr><td>Hybrid</td><td>Tenant lớn tách riêng, nhỏ dùng chung</td><td>Phức tạp routing</td></tr>
+</table></div>
+<ul>
+<li>Shared schema: <code>tenant_id</code> là cột đầu trong composite index; ép filter ở tầng repository (GORM scope, Laravel global scope, Rails <code>default_scope</code>/<code>acts_as_tenant</code>); test tự động kiểm tra truy cập chéo tenant.</li>
+<li>Rate limit &amp; quota theo tenant; báo cáo nặng chạy trên replica.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="design"><summary><span class="num">33</span><span class="qt">Monolith hay microservices cho dự án khách hàng?<div class="tags"><span class="tag">design</span><span class="tag">architecture</span></div></span></summary><div class="a">
+<p class="intent">Senior biết khi nào <i>không</i> dùng microservices — đặc biệt trong outsource, nơi chi phí vận hành là của khách.</p>
+<ul>
+<li>Team nhỏ, domain chưa ổn định, ngân sách giới hạn → <b>modular monolith</b>: tách module rõ ràng (package/bounded context), không gọi chéo DB của nhau, sau này tách được.</li>
+<li>Microservices khi: nhiều team độc lập, nhu cầu scale khác biệt rõ, yêu cầu deploy độc lập, có năng lực DevOps/observability.</li>
+<li>Chi phí ẩn của microservices: distributed transaction, tracing, versioning API, hạ tầng, debugging.</li>
+<li>Kinh nghiệm thực tế: <mark class="fill">[ở 9Pay/công ty cũ, ranh giới service nào hợp lý, chỗ nào tách sớm gây đau]</mark>.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="design"><summary><span class="num">34</span><span class="qt">Background job / batch (gửi mail, xuất báo cáo, đồng bộ dữ liệu salon) thiết kế thế nào?<div class="tags"><span class="tag">design</span><span class="tag">queue</span></div></span></summary><div class="a">
+<ul>
+<li>Queue: SQS / Kafka / Redis (Laravel Queue, Sidekiq, Asynq cho Go).</li>
+<li>Worker idempotent; retry có giới hạn + backoff; quá số lần → <b>DLQ</b> + alert + tool replay.</li>
+<li>Visibility timeout &gt; thời gian xử lý tối đa; job dài thì chia nhỏ / checkpoint.</li>
+<li>Batch định kỳ (cron theo JST!): lock để không chạy chồng (DB lock / Redis lock / ECS scheduled task 1 instance), xử lý theo chunk, log tiến độ, có thể chạy lại an toàn.</li>
+<li>File lớn: xuất ra S3, gửi link presigned thay vì attach.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="design ai"><summary><span class="num">35</span><span class="qt">Thiết kế backend cho tính năng AI (LLM) kiểu Zaimo.ai — điều gì cần lưu ý?<div class="tags"><span class="tag">design</span><span class="tag">ai</span></div></span></summary><div class="a">
+<ul>
+<li><b>Latency:</b> LLM chậm → streaming (SSE/WebSocket) cho chat; tác vụ dài (phân tích ngân sách) chạy async qua queue, trả job id.</li>
+<li><b>Chi phí:</b> đếm token theo tenant, quota, cache kết quả, chọn model theo độ khó, cắt context.</li>
+<li><b>Độ tin cậy:</b> timeout, retry, fallback model; structured output (JSON schema) + validate; số liệu tài chính tính bằng code/SQL, LLM chỉ diễn giải — không để LLM tự “làm toán”.</li>
+<li><b>Bảo mật:</b> prompt injection (dữ liệu người dùng đưa vào prompt), không lộ dữ liệu tenant khác trong RAG (filter theo tenant ở vector search), mask PII, chính sách lưu log prompt.</li>
+<li><b>Chất lượng:</b> bộ eval cố định, lưu prompt version, theo dõi feedback người dùng.</li>
+</ul>
+</div></details>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="s5">
+<h2>5. AWS, Docker, Monitoring</h2>
+<p class="sec-desc">Điểm cộng trong JD. Nếu kinh nghiệm AWS của bạn còn mỏng, nói thật và map sang thứ bạn đã làm (Docker, Nginx, CI/CD).</p>
+
+<details class="q" data-t="infra"><summary><span class="num">36</span><span class="qt">Mô tả kiến trúc deploy một web service điển hình trên AWS.<div class="tags"><span class="tag">infra</span><span class="tag">aws</span></div></span></summary><div class="a">
+<pre><code>Route 53 → CloudFront (+WAF) → ALB → ECS Fargate (API, worker)
+                                       ├─ RDS/Aurora MySQL (Multi-AZ, read replica)
+                                       ├─ ElastiCache Redis
+                                       ├─ SQS (+DLQ) / EventBridge
+                                       └─ S3 (file, export)
+Secrets Manager / SSM · CloudWatch logs+metrics+alarms · ECR · CodePipeline/GitHub Actions</code></pre>
+<ul>
+<li>ECS Fargate vs EKS: Fargate đơn giản, ít vận hành, hợp team nhỏ; EKS linh hoạt, chuẩn Kubernetes, tốn công vận hành.</li>
+<li>Lambda: hợp job theo sự kiện, tải không đều; cold start, giới hạn 15 phút, connection DB → dùng RDS Proxy.</li>
+<li>Private subnet cho app/DB, NAT Gateway (lưu ý chi phí), Security Group tối thiểu.</li>
+</ul>
+<p class="tip">Khách Nhật thường quan tâm chi phí AWS hằng tháng — đề xuất kiến trúc nên kèm ước lượng chi phí (AWS Pricing Calculator) và phương án tiết kiệm (Savings Plans, Graviton, tắt môi trường staging ngoài giờ).</p>
+</div></details>
+
+<details class="q" data-t="infra stack"><summary><span class="num">37</span><span class="qt">Viết Dockerfile production cho Go service — best practice?<div class="tags"><span class="tag">infra</span><span class="tag">docker</span></div></span></summary><div class="a">
+<pre><code>FROM golang:1.23-alpine AS build
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /app ./cmd/api
+
+FROM gcr.io/distroless/static-debian12:nonroot
+COPY --from=build /app /app
+USER nonroot:nonroot
+ENTRYPOINT ["/app"]</code></pre>
+<ul>
+<li>Multi-stage → image nhỏ (~10–20MB), ít bề mặt tấn công; copy <code>go.mod</code> trước để tận dụng layer cache.</li>
+<li>Non-root, không nhúng secret vào image, config qua env/Secrets Manager.</li>
+<li>Scan image (ECR scan / Trivy) trong CI; pin version base image.</li>
+<li>Distroless không có shell → debug khó hơn; cần thì dùng tag <code>:debug</code> hoặc ephemeral container.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="infra stack"><summary><span class="num">38</span><span class="qt">Graceful shutdown khi deploy rolling (ECS/K8s)?<div class="tags"><span class="tag">infra</span><span class="tag">go</span></div></span></summary><div class="a">
+<pre><code>srv := &amp;http.Server{Addr: ":8080", Handler: r}
+go func() {
+    if err := srv.ListenAndServe(); err != nil &amp;&amp; !errors.Is(err, http.ErrServerClosed) {
+        log.Fatal(err)
+    }
+}()
+
+ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+defer stop()
+&lt;-ctx.Done()
+
+shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+defer cancel()
+_ = srv.Shutdown(shutdownCtx) // ngừng nhận request mới, chờ request đang chạy
+// đóng consumer Kafka/SQS, flush log, đóng DB pool</code></pre>
+<ul>
+<li>Timeout shutdown &lt; <code>stopTimeout</code> của ECS (mặc định 30s) / <code>terminationGracePeriodSeconds</code>.</li>
+<li>Health check: fail readiness trước khi shutdown để ALB ngừng route (deregistration delay).</li>
+<li>Worker: ngừng nhận message mới, hoàn tất message đang xử lý; message dở sẽ quay lại queue → nhờ idempotent nên an toàn.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="infra"><summary><span class="num">39</span><span class="qt">Bạn thiết lập monitoring/alerting cho hệ thống thế nào?<div class="tags"><span class="tag">infra</span><span class="tag">observability</span></div></span></summary><div class="a">
+<ul>
+<li><b>Metrics:</b> RED cho service (Rate, Errors, Duration p95/p99), USE cho tài nguyên; metric nghiệp vụ (tỷ lệ thanh toán thành công, số job DLQ, consumer lag).</li>
+<li><b>Logs:</b> structured JSON (slog/zap), có <code>request_id</code>/<code>trace_id</code>, không log PII/secret.</li>
+<li><b>Tracing:</b> OpenTelemetry → X-Ray/Jaeger/Datadog; propagate context qua HTTP/gRPC/Kafka header.</li>
+<li><b>Alert:</b> theo triệu chứng ảnh hưởng người dùng (SLO, error rate) chứ không theo mọi CPU spike; có runbook cho từng alert; tránh alert fatigue.</li>
+<li>Stack từng dùng: <mark class="fill">[Prometheus/Grafana/ELK/CloudWatch…]</mark>.</li>
+</ul>
+</div></details>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="s6">
+<h2>6. Bảo mật</h2>
+<p class="sec-desc">JD nhấn mạnh bảo mật dữ liệu và source code của khách hàng.</p>
+
+<details class="q" data-t="security"><summary><span class="num">40</span><span class="qt">Những lỗ hổng backend bạn luôn kiểm tra?<div class="tags"><span class="tag">security</span></div></span></summary><div class="a">
+<ul>
+<li><b>Broken access control / IDOR:</b> luôn check resource thuộc user/tenant hiện tại (<code>WHERE id=? AND tenant_id=?</code>), không chỉ check “đã login”.</li>
+<li><b>Injection:</b> prepared statement / query builder; cẩn thận <code>ORDER BY</code> động (whitelist cột).</li>
+<li><b>Mass assignment:</b> Laravel <code>$fillable</code>, Rails strong params, Go bind vào DTO riêng.</li>
+<li><b>AuthN:</b> hash mật khẩu bcrypt/argon2, JWT ngắn hạn + refresh rotation, rate limit login.</li>
+<li><b>Secrets:</b> không commit; Secrets Manager/SSM; rotate.</li>
+<li><b>Dữ liệu:</b> mã hóa at rest/in transit, mask PII trong log (số điện thoại, email); Nhật có luật APPI về thông tin cá nhân.</li>
+<li><b>Webhook / callback:</b> verify chữ ký HMAC, chống replay bằng timestamp + nonce.</li>
+<li>Upload file: kiểm tra MIME thật, lưu S3 private, presigned URL.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="security ai"><summary><span class="num">41</span><span class="qt">Làm sao bảo vệ source code &amp; dữ liệu khách hàng khi dùng AI tool?<div class="tags"><span class="tag">security</span><span class="tag">ai</span></div></span></summary><div class="a">
+<p class="intent">JD ghi rõ — đây là câu hỏi gần như chắc chắn có.</p>
+<ul>
+<li>Chỉ dùng tool công ty/khách hàng <b>phê duyệt</b> (bản business/enterprise, cam kết không dùng dữ liệu để train, có data retention policy). Hỏi rõ chính sách từng dự án — mỗi khách Nhật có thể khác nhau.</li>
+<li>Không paste dữ liệu production, PII, secret, file <code>.env</code>, key vào prompt; dùng dữ liệu giả lập / đã mask.</li>
+<li>Cấu hình ignore file nhạy cảm (<code>.cursorignore</code>, <code>.aiexclude</code>…) cho repo.</li>
+<li>Không đưa code của khách vào tool cá nhân hay repo cá nhân.</li>
+<li>Code do AI sinh vẫn phải qua review + scan license/secret như code thường.</li>
+</ul>
+</div></details>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="s7">
+<h2>7. Sử dụng AI trong phát triển</h2>
+<p class="sec-desc">BUNBU có mảng AI Transformation và đưa “dùng AI có trách nhiệm” vào JD → họ muốn nghe quy trình cụ thể, không phải “em dùng ChatGPT hỏi bài”.</p>
+
+<details class="q" data-t="ai"><summary><span class="num">42</span><span class="qt">Bạn dùng AI thế nào trong công việc hằng ngày?<div class="tags"><span class="tag">ai</span></div></span></summary><div class="a">
+<p>Chia theo vòng đời phát triển (dùng Cursor là ví dụ thật của bạn):</p>
+<ul>
+<li><b>Phân tích yêu cầu:</b> tóm tắt spec dài, liệt kê case biên / câu hỏi còn mơ hồ để mang đi hỏi BrSE.</li>
+<li><b>Thiết kế:</b> brainstorm phương án và trade-off, phác thảo sequence diagram (Mermaid) — mình là người quyết.</li>
+<li><b>Coding:</b> boilerplate, mapping DTO, migration, test table-driven; refactor có test bảo vệ.</li>
+<li><b>Test:</b> sinh test case theo test viewpoint, dữ liệu test.</li>
+<li><b>Debug:</b> phân tích stack trace/log, gợi ý giả thuyết — rồi tự xác minh.</li>
+<li><b>Tài liệu:</b> nháp design doc, PR description, hỗ trợ dịch thuật ngữ Nhật.</li>
+</ul>
+<p><mark class="fill">[1 ví dụ cụ thể: AI giúp tiết kiệm bao nhiêu thời gian ở việc gì]</mark></p>
+</div></details>
+
+<details class="q" data-t="ai"><summary><span class="num">43</span><span class="qt">Làm sao bạn kiểm chứng output của AI? Kể lần AI sai.<div class="tags"><span class="tag">ai</span></div></span></summary><div class="a">
+<ul>
+<li>Coi output AI như PR của một junior: đọc hiểu từng dòng trước khi commit; không hiểu thì không merge.</li>
+<li>Xác minh bằng test (viết test trước hoặc yêu cầu AI viết test rồi tự soát test), chạy linter, race detector (<code>go test -race</code>), benchmark nếu liên quan hiệu năng.</li>
+<li>Đối chiếu tài liệu chính thức cho API/library (AI hay bịa hàm hoặc dùng API version cũ).</li>
+<li>Rủi ro đặc biệt: code concurrency, transaction, security, tiền — luôn review kỹ nhất.</li>
+<li><b>Ví dụ:</b> <mark class="fill">[vd: AI sinh code dùng sai isolation / quên rollback / gọi hàm library không tồn tại / query thiếu tenant filter → phát hiện nhờ test/review]</mark>.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="ai jd"><summary><span class="num">44</span><span class="qt">Nếu được giao chuẩn hóa quy trình phát triển có AI cho team, bạn làm gì?<div class="tags"><span class="tag">ai</span><span class="tag">process</span></div></span></summary><div class="a">
+<ol>
+<li><b>Guideline:</b> tool được phép, dữ liệu cấm đưa vào, trách nhiệm người commit.</li>
+<li><b>Project rules</b> dùng chung trong repo (<code>.cursor/rules</code>, <code>CLAUDE.md</code>, <code>AGENTS.md</code>): convention code, kiến trúc, cách viết test, cách xử lý lỗi → output AI nhất quán giữa các thành viên.</li>
+<li><b>Prompt template</b> cho việc lặp lại: sinh test viewpoint từ spec, nháp design doc theo template công ty, PR description, bug report.</li>
+<li><b>AI review vòng 1</b> trong CI (comment gợi ý), người review vòng cuối.</li>
+<li><b>Đo lường:</b> lead time, số vòng review, bug lọt sau release — để biết AI giúp thật hay chỉ tạo thêm code.</li>
+<li>Pilot với 1 dự án → retrospective → mở rộng.</li>
+</ol>
+</div></details>
+</section>
+
+<!-- ============ 8 ============ -->
+<section id="s8">
+<h2>8. Stack &amp; coding</h2>
+<p class="sec-desc">Có thể có live coding hoặc hỏi sâu Go/PHP. Đồng thời họ sẽ thử khả năng chuyển sang Ruby/Python.</p>
+
+<details class="q" data-t="stack"><summary><span class="num">45</span><span class="qt">Bạn mạnh Go/PHP, nhưng BUNBU nhiều dự án Ruby on Rails — bạn bắt kịp thế nào?<div class="tags"><span class="tag">stack</span><span class="tag">rails</span></div></span></summary><div class="a">
+<p class="intent">Câu hỏi gần như chắc chắn. Trả lời tự tin, có kế hoạch, cho thấy bạn đã tìm hiểu.</p>
+<p>Rails và Laravel cùng triết lý MVC + convention over configuration → chuyển đổi nhanh:</p>
+<div class="tbl"><table>
+<tr><th>Laravel</th><th>Rails</th></tr>
+<tr><td>Eloquent</td><td>ActiveRecord</td></tr>
+<tr><td>Migration / Seeder</td><td>Migration / <code>db/seeds.rb</code></td></tr>
+<tr><td>Form Request validation</td><td>Model validations + strong params</td></tr>
+<tr><td>Queue / Job (Horizon)</td><td>ActiveJob + Sidekiq</td></tr>
+<tr><td>Middleware</td><td>Rack middleware / <code>before_action</code></td></tr>
+<tr><td>Blade</td><td>ERB / ViewComponent, Hotwire</td></tr>
+<tr><td>PHPUnit / Pest</td><td>RSpec / Minitest, FactoryBot</td></tr>
+<tr><td>Composer</td><td>Bundler (Gemfile)</td></tr>
+</table></div>
+<p><b>Kế hoạch:</b> tuần 1 đọc Rails Guides + làm app CRUD nhỏ có job, test RSpec; tuần 2 đọc codebase dự án, nhận task nhỏ + được review kỹ. Phần khó nhất không phải cú pháp mà là kiến thức nền (DB, transaction, thiết kế) — phần đó em mang sang được ngay.</p>
+<p class="tip">Nên làm thật một app Rails nhỏ trước buổi phỏng vấn để có thể nói “em đã thử”.</p>
+</div></details>
+
+<details class="q" data-t="stack"><summary><span class="num">46</span><span class="qt">Go: xử lý song song có giới hạn và hủy khi lỗi; tránh goroutine leak?<div class="tags"><span class="tag">stack</span><span class="tag">go</span></div></span></summary><div class="a">
+<pre><code>func ProcessAll(ctx context.Context, ids []int64) error {
+    g, ctx := errgroup.WithContext(ctx)
+    g.SetLimit(10) // tối đa 10 goroutine đồng thời
+    for _, id := range ids { // Go 1.22+: biến vòng lặp không còn bị share
+        g.Go(func() error {
+            return process(ctx, id) // ctx bị cancel khi có lỗi đầu tiên
+        })
+    }
+    return g.Wait()
+}</code></pre>
+<ul>
+<li>Goroutine leak thường do: gửi/nhận channel không ai đọc/ghi, không lắng nghe <code>ctx.Done()</code>, ticker không <code>Stop()</code>.</li>
+<li>Phát hiện: <code>runtime.NumGoroutine()</code> metric, pprof goroutine profile, <code>goleak</code> trong test.</li>
+<li>Luôn truyền <code>context</code> xuống DB/HTTP call để hủy được.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="stack"><summary><span class="num">47</span><span class="qt">Go: thiết kế error handling cho service?<div class="tags"><span class="tag">stack</span><span class="tag">go</span></div></span></summary><div class="a">
+<pre><code>var ErrInsufficientPoints = errors.New("insufficient points")
+
+func (s *Svc) Redeem(ctx context.Context, in RedeemInput) error {
+    if err := s.repo.Deduct(ctx, in.MemberID, in.Points); err != nil {
+        return fmt.Errorf("redeem member=%d: %w", in.MemberID, err)
+    }
+    return nil
+}
+
+// handler: map domain error -&gt; HTTP status
+switch {
+case errors.Is(err, ErrInsufficientPoints):
+    c.JSON(http.StatusUnprocessableEntity, apiErr("POINT_INSUFFICIENT"))
+default:
+    log.ErrorContext(ctx, "redeem failed", "err", err)
+    c.JSON(http.StatusInternalServerError, apiErr("INTERNAL"))
+}</code></pre>
+<ul>
+<li>Wrap bằng <code>%w</code> kèm context; check bằng <code>errors.Is/As</code>.</li>
+<li>Sentinel / typed error cho domain; map sang mã lỗi API ổn định (khách hàng/BrSE cần bảng mã lỗi trong tài liệu).</li>
+<li>Log một lần ở biên (handler), không log ở mọi tầng.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="stack"><summary><span class="num">48</span><span class="qt">Chiến lược test của bạn (unit / integration)?<div class="tags"><span class="tag">stack</span><span class="tag">testing</span></div></span></summary><div class="a">
+<ul>
+<li><b>Unit:</b> table-driven test cho logic nghiệp vụ; mock qua interface ở biên (repo, client ngoài).</li>
+<li><b>Integration:</b> DB thật bằng testcontainers / docker-compose (MySQL, Redis) — bắt được lỗi SQL, index, transaction mà mock không thấy.</li>
+<li><b>Concurrency test:</b> bắn N goroutine cùng trừ điểm, assert số dư cuối và số ledger; chạy <code>-race</code>.</li>
+<li><b>Contract/E2E</b> cho luồng chính.</li>
+<li>Dự án Nhật thường yêu cầu <b>テスト仕様書</b> (test spec) và bằng chứng test (screenshot/log) — quen với việc lập test case trước và đánh dấu kết quả.</li>
+<li>Coverage là chỉ số tham khảo, ưu tiên phủ logic rủi ro cao.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="stack"><summary><span class="num">49</span><span class="qt">Bạn làm frontend được ở mức nào?<div class="tags"><span class="tag">stack</span><span class="tag">frontend</span></div></span></summary><div class="a">
+<p class="intent">JD yêu cầu “chủ động làm frontend khi cần” — trả lời trung thực + cho thấy sẵn sàng.</p>
+<ul>
+<li>Mức tự tin: <mark class="fill">[vd: sửa màn hình Blade/Vue/React, form, gọi API, xử lý state đơn giản]</mark>.</li>
+<li>Hiểu các điểm giao backend–frontend: API contract (OpenAPI), CORS, cookie/session vs token, CSRF, upload file, pagination, error format thống nhất.</li>
+<li>Với dự án Rails có thể là Hotwire (Turbo/Stimulus) — server-rendered, gần với kinh nghiệm Blade.</li>
+<li>Thái độ: không ngại nhận task frontend nhỏ để không làm tắc tiến độ team.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="stack"><summary><span class="num">50</span><span class="qt">Bài coding/thiết kế nhanh có thể gặp — chuẩn bị những gì?<div class="tags"><span class="tag">stack</span><span class="tag">live coding</span></div></span></summary><div class="a">
+<ul>
+<li>Viết REST API CRUD có validation + pagination + transaction (Go Gin hoặc Laravel) trong 30–45 phút.</li>
+<li>Rate limiter (token bucket / sliding window với Redis).</li>
+<li>Worker pool / pipeline với channel + context.</li>
+<li>Viết SQL: top N theo nhóm (window function <code>ROW_NUMBER()</code>), báo cáo doanh thu theo ngày JST, tìm bản ghi trùng.</li>
+<li>Đọc một đoạn code có bug (race, N+1, SQL injection, thiếu authz) và review.</li>
+</ul>
+<p class="tip">Khi live coding: nói to suy nghĩ, hỏi lại requirement trước, viết bản chạy được rồi mới tối ưu, chủ động nêu case biên &amp; test.</p>
+</div></details>
+</section>
+
+<!-- ============ 9 ============ -->
+<section id="s9">
+<h2>9. Làm việc trong dự án Nhật</h2>
+<p class="sec-desc">Điểm cộng lớn nếu bạn thể hiện hiểu văn hóa làm việc, dù chưa từng làm dự án Nhật.</p>
+
+<details class="q" data-t="japan"><summary><span class="num">51</span><span class="qt">Bạn hiểu vai trò BrSE thế nào? Phối hợp ra sao?<div class="tags"><span class="tag">japan</span></div></span></summary><div class="a">
+<ul>
+<li>BrSE là cầu nối ngôn ngữ + nghiệp vụ + kỹ thuật giữa khách Nhật và team; họ không thay dev hiểu yêu cầu.</li>
+<li>Hỗ trợ BrSE bằng cách: câu hỏi rõ ràng, đánh số, có ngữ cảnh + phương án đề xuất; tài liệu kỹ thuật dễ dịch (câu ngắn, bảng, sơ đồ); cập nhật tiến độ chủ động.</li>
+<li><b>報連相 (Hō-Ren-Sō):</b> Báo cáo (報告) – Liên lạc (連絡) – Thảo luận (相談). Báo cáo sớm, kể cả tin xấu.</li>
+<li>Tôn trọng quy trình khách: mọi thay đổi spec phải được xác nhận bằng văn bản trước khi làm.</li>
+</ul>
+</div></details>
+
+<details class="q" data-t="japan"><summary><span class="num">52</span><span class="qt">Khách đổi yêu cầu sát ngày release — bạn xử lý thế nào?<div class="tags"><span class="tag">japan</span><span class="tag">change</span></div></span></summary><div class="a">
+<ol>
+<li>Không đồng ý/từ chối ngay; ghi nhận và làm rõ thay đổi.</li>
+<li><b>Impact analysis:</b> module ảnh hưởng, effort, rủi ro chất lượng, test lại phần nào.</li>
+<li>Đưa phương án cho PM/BrSE: (a) đưa vào release này + dời mốc, (b) release như cũ, thay đổi ở bản kế tiếp, (c) làm phần tối thiểu bằng feature flag.</li>
+<li>Khách/PM quyết → cập nhật spec, test spec, lịch.</li>
+</ol>
+<p class="tip">Khách Nhật rất coi trọng chất lượng đã cam kết — ép thay đổi vào mà gây bug thường tệ hơn dời lịch có giải thích rõ.</p>
+</div></details>
+
+<details class="q" data-t="japan jd"><summary><span class="num">53</span><span class="qt">Bug bạn gây ra lọt lên production của khách Nhật — bạn báo cáo thế nào?<div class="tags"><span class="tag">japan</span><span class="tag">bug report</span></div></span></summary><div class="a">
+<p>Theo khung <b>不具合報告書</b> mà khách Nhật quen dùng:</p>
+<ol>
+<li><b>Hiện tượng</b> (事象): chuyện gì xảy ra, từ khi nào.</li>
+<li><b>Phạm vi ảnh hưởng</b> (影響範囲): bao nhiêu user/đơn/dữ liệu, có mất dữ liệu không.</li>
+<li><b>Nguyên nhân</b> (原因): nguyên nhân trực tiếp + nguyên nhân gốc (vì sao lọt qua review/test) — なぜなぜ分析.</li>
+<li><b>Đối ứng tạm thời</b> (暫定対応) và <b>đối ứng triệt để</b> (恒久対応).</li>
+<li><b>Phòng ngừa tái phát</b> (再発防止策): bổ sung test case, checklist review, alert.</li>
+</ol>
+<p class="tip">Thái độ: nhận trách nhiệm, sự thật đầy đủ, không biện minh. Khách đánh giá cao báo cáo minh bạch và biện pháp phòng ngừa cụ thể.</p>
+</div></details>
+</section>
+
+<!-- ============ 10 ============ -->
+<section id="s10">
+<h2>10. Câu hỏi bạn nên hỏi lại</h2>
+<p class="sec-desc">Chọn 3–5 câu. Câu hỏi tốt cho thấy bạn nghĩ như Senior.</p>
+<div class="card">
+<ol>
+<li>Vị trí này sẽ tham gia dự án nào trước — khách hàng, domain, giai đoạn (phát triển mới hay vận hành/bảo trì), quy mô team?</li>
+<li>Tỷ lệ các stack trong dự án hiện tại (Ruby/PHP/Python/Go)? Có dự án dùng Go không?</li>
+<li>Quy trình phát triển: theo waterfall Nhật (要件定義 → 設計 → 実装 → テスト) hay agile/Lab? Ai viết thiết kế chi tiết, ai review?</li>
+<li>Team đang dùng AI tool nào được duyệt? Chính sách với dữ liệu/source code khách hàng ra sao? Công ty kỳ vọng Senior đóng góp gì vào việc chuẩn hóa AI?</li>
+<li>Sau khi trở thành công ty con của Appirits, có thay đổi gì về dự án, quy trình, cơ hội làm việc với team Nhật hoặc onsite?</li>
+<li>Tiêu chí đánh giá Senior sau 3 tháng / 1 năm? Lộ trình lên Tech Lead?</li>
+<li>Yêu cầu tiếng Nhật và chính sách hỗ trợ học tiếng Nhật?</li>
+<li>Hạ tầng chủ yếu AWS? Team có on-call/vận hành sản phẩm sau release không?</li>
+</ol>
+</div>
+</section>
+
+<!-- ============ 11 ============ -->
+<section id="s11">
+<h2>11. Checklist &amp; glossary</h2>
+<div class="grid2">
+<div class="card">
+<b>Trước buổi phỏng vấn</b>
+<ul>
+<li>Điền đủ các chỗ <mark class="fill">[tô đỏ]</mark> bằng số liệu thật.</li>
+<li>Chốt 3–4 câu chuyện STAR: module end-to-end · yêu cầu mơ hồ · quyết định thiết kế · incident.</li>
+<li>Vẽ lại được (trên giấy/bảng) kiến trúc hệ thống bạn đang làm — ẩn thông tin bí mật.</li>
+<li>Làm thử app Rails nhỏ + đọc Rails Guides cơ bản.</li>
+<li>Ôn MySQL locking, isolation, EXPLAIN.</li>
+<li>Xem trang Works của BUNBU để nhắc tên dự án tự nhiên.</li>
+<li>Chuẩn bị một câu chào tiếng Nhật đơn giản (tùy chọn): <i>はじめまして、フイと申します。バックエンドエンジニアです。よろしくお願いいたします。</i></li>
+</ul>
+</div>
+<div class="card">
+<b>Glossary dự án Nhật</b>
+<div class="tbl"><table>
+<tr><td>要件定義</td><td>Định nghĩa yêu cầu</td></tr>
+<tr><td>基本設計 / 詳細設計</td><td>Thiết kế cơ bản / chi tiết</td></tr>
+<tr><td>単体テスト / 結合テスト</td><td>Unit test / Integration test</td></tr>
+<tr><td>総合テスト / 受入テスト</td><td>System test / UAT</td></tr>
+<tr><td>テスト仕様書 / テスト観点</td><td>Test spec / Test viewpoint</td></tr>
+<tr><td>QA表</td><td>Bảng hỏi đáp yêu cầu</td></tr>
+<tr><td>報連相</td><td>Báo cáo – Liên lạc – Thảo luận</td></tr>
+<tr><td>不具合 / 不具合報告書</td><td>Bug / Báo cáo sự cố</td></tr>
+<tr><td>なぜなぜ分析</td><td>Phân tích 5 Whys</td></tr>
+<tr><td>暫定対応 / 恒久対応</td><td>Xử lý tạm thời / triệt để</td></tr>
+<tr><td>再発防止策</td><td>Biện pháp phòng tái phát</td></tr>
+<tr><td>納品</td><td>Bàn giao</td></tr>
+</table></div>
+</div>
+</div>
+</section>
+
+</main>
+</div>
+
+<script>
+(function(){
+  var KEY='bunbu-prep-done';
+  var done={};
+  try{done=JSON.parse(localStorage.getItem(KEY)||'{}')||{};}catch(e){done={};}
+  var qs=[].slice.call(document.querySelectorAll('details.q'));
+  qs.forEach(function(d){
+    var id=d.querySelector('.num').textContent.trim();
+    var lab=document.createElement('label');lab.className='mark-done';
+    var cb=document.createElement('input');cb.type='checkbox';cb.checked=!!done[id];
+    lab.appendChild(cb);lab.appendChild(document.createTextNode('Đã luyện câu này'));
+    d.querySelector('.a').appendChild(lab);
+    if(done[id])d.classList.add('done');
+    cb.addEventListener('change',function(){
+      done[id]=cb.checked;d.classList.toggle('done',cb.checked);
+      try{localStorage.setItem(KEY,JSON.stringify(done));}catch(e){}
+      prog();
+    });
+  });
+  function prog(){
+    var n=qs.filter(function(d){return d.classList.contains('done');}).length;
+    document.getElementById('prog').textContent='Đã luyện '+n+'/'+qs.length;
+  }
+  prog();
+
+  var filter='all',term='';
+  function apply(){
+    qs.forEach(function(d){
+      var okT=filter==='all'||(' '+d.dataset.t+' ').indexOf(' '+filter+' ')>-1;
+      var okS=!term||d.textContent.toLowerCase().indexOf(term)>-1;
+      d.classList.toggle('hidden',!(okT&&okS));
+      if(term&&okT&&okS)d.open=true;
+    });
+    document.querySelectorAll('main section').forEach(function(s){
+      var has=s.querySelectorAll('details.q').length;
+      if(!has)return s.classList.toggle('hidden',filter!=='all'||!!term);
+      s.classList.toggle('hidden',!s.querySelector('details.q:not(.hidden)'));
+    });
+  }
+  document.getElementById('q').addEventListener('input',function(e){term=e.target.value.trim().toLowerCase();apply();});
+  document.getElementById('chips').addEventListener('click',function(e){
+    var b=e.target.closest('.chip');if(!b)return;
+    document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});
+    b.classList.add('on');filter=b.dataset.f;apply();
+  });
+  var ex=document.getElementById('expand'),open=false;
+  ex.addEventListener('click',function(){
+    open=!open;qs.forEach(function(d){if(!d.classList.contains('hidden'))d.open=open;});
+    ex.textContent=open?'Thu gọn tất cả':'Mở tất cả';
+  });
+  document.getElementById('theme').addEventListener('click',function(){
+    var r=document.documentElement;
+    var dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+    r.dataset.theme=dark?'light':'dark';
+  });
+})();
+</script>
+</body>
+</html>
