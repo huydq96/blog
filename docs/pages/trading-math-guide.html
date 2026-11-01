@@ -1,0 +1,1390 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trading Math Prep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#ffffff; --surface-2:#f0eee8; --text:#1d1d1b; --muted:#6b6a64;
+  --border:#e2dfd6; --accent:#0f6e5c; --accent-soft:#e1f1ec; --warn:#a1530b; --warn-soft:#fbeedd;
+  --danger:#a82a2a; --danger-soft:#f8e3e1; --info:#2a5ea8; --info-soft:#e4ecf8; --code-bg:#f2f0ea;
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121412; --surface:#1b1e1c; --surface-2:#232725; --text:#e8e7e2; --muted:#9a9a93;
+    --border:#2e3330; --accent:#4cc3a6; --accent-soft:#183a32; --warn:#e7a35b; --warn-soft:#3a2a18;
+    --danger:#ef7a7a; --danger-soft:#3d1f1f; --info:#7fb0f0; --info-soft:#1b2a3f; --code-bg:#252a27; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121412; --surface:#1b1e1c; --surface-2:#232725; --text:#e8e7e2; --muted:#9a9a93;
+  --border:#2e3330; --accent:#4cc3a6; --accent-soft:#183a32; --warn:#e7a35b; --warn-soft:#3a2a18;
+  --danger:#ef7a7a; --danger-soft:#3d1f1f; --info:#7fb0f0; --info-soft:#1b2a3f; --code-bg:#252a27; --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15.5px;line-height:1.7}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+code{font-size:.86em;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+pre{background:var(--code-bg);padding:12px 14px;border-radius:8px;overflow-x:auto;line-height:1.6;font-size:13.5px;margin:10px 0}
+pre code{background:none;padding:0}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:40px;max-width:1260px;margin:0 auto;padding:0 20px}
+.sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;padding:22px 18px 28px 0;border-right:1px solid var(--border);scrollbar-width:thin}
+.side-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}
+.side-title{font-size:13px;font-weight:700}
+.side-title span{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.side-tools{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.side-tools button{width:100%;text-align:left}
+.prog{font-size:12.5px;color:var(--muted);margin:6px 0 2px}
+.bar{height:6px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);width:0}
+.toc{display:flex;flex-direction:column;gap:1px;margin-top:10px}
+.toc a{display:flex;gap:10px;align-items:baseline;text-decoration:none;color:var(--text);font-size:13.5px;padding:5px 10px;border-radius:8px;line-height:1.4}
+.toc a span{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);min-width:18px}
+.toc a em{margin-left:auto;font-style:normal;font-size:11px;color:var(--muted)}
+.toc a:hover{background:var(--surface-2)}
+.toc a.active{background:var(--accent);color:#fff}
+.toc a.active span,.toc a.active em{color:#fff;opacity:.85}
+.toc-group{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;margin:12px 10px 3px}
+button{font:inherit;font-size:13px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:6px 11px;border-radius:8px}
+button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+#tocToggle{display:none}
+.content{padding:32px 0 100px;min-width:0;max-width:900px}
+
+/* Typography */
+header.hero h1{font-size:30px;line-height:1.25;margin:0 0 10px;letter-spacing:-.015em}
+header.hero p{color:var(--muted);margin:0 0 6px}
+section{padding-top:28px;margin-top:30px;border-top:1px solid var(--border);scroll-margin-top:12px}
+section h2{font-size:23px;margin:0 0 4px;letter-spacing:-.01em;display:flex;gap:12px;align-items:baseline}
+section h2 .n{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--accent);font-weight:500}
+section .lead{color:var(--muted);margin:0 0 14px}
+h3{font-size:17px;margin:24px 0 6px}
+p{margin:8px 0}
+ul,ol{padding-left:22px;margin:8px 0}
+li{margin:4px 0}
+strong{font-weight:600}
+
+/* Boxes */
+.callout{border-radius:10px;padding:12px 16px;margin:14px 0;border-left:4px solid}
+.callout .lbl{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:4px}
+.callout p{margin:4px 0}
+.think{background:var(--accent-soft);border-color:var(--accent)} .think .lbl{color:var(--accent)}
+.trap{background:var(--warn-soft);border-color:var(--warn)} .trap .lbl{color:var(--warn)}
+.note{background:var(--info-soft);border-color:var(--info)} .note .lbl{color:var(--info)}
+.f{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin:12px 0;box-shadow:var(--shadow)}
+.f .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--muted)}
+.f .eq{font-family:"JetBrains Mono",monospace;font-size:14.5px;margin:8px 0 4px;padding:10px 12px;background:var(--code-bg);border-radius:8px;overflow-x:auto;white-space:pre;line-height:1.75}
+.f .d{font-size:14px;color:var(--muted);margin-top:6px}
+.table-wrap{overflow-x:auto;margin:14px 0;border:1px solid var(--border);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{background:var(--surface-2);font-weight:600;font-size:13px}
+tr:last-child td{border-bottom:0}
+td.mono{font-size:13px}
+
+/* Problems */
+.probs-title{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;margin:26px 0 6px}
+.prob{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin:12px 0;box-shadow:var(--shadow)}
+.prob.done{opacity:.6}
+.ph{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pid{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--accent);font-weight:500}
+.ph h4{margin:0;font-size:15.5px;flex:1;min-width:200px}
+.tag{font-size:11.5px;padding:2px 8px;border-radius:6px;background:var(--surface-2);color:var(--muted)}
+.lv1{background:var(--accent-soft);color:var(--accent)}
+.lv2{background:var(--warn-soft);color:var(--warn)}
+.lv3{background:var(--danger-soft);color:var(--danger)}
+.stmt{margin-top:8px}
+.pact{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.pact button{font-size:12.5px;padding:5px 10px}
+.pact label{margin-left:auto;font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center;cursor:pointer}
+.panel{display:none;margin-top:12px;padding:12px 14px;border-radius:8px;background:var(--surface-2);border-left:3px solid var(--border)}
+.panel.open{display:block}
+.panel.hint{border-left-color:var(--warn)}
+.panel.sol{border-left-color:var(--accent)}
+.panel h5{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.panel pre{background:var(--surface)}
+.ans{margin-top:10px;padding:8px 12px;border-radius:8px;background:var(--accent-soft);color:var(--text);font-weight:500}
+.ans b{color:var(--accent)}
+.m{margin-top:12px;padding-top:10px;border-top:1px dashed var(--border)}
+.m:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.m h6{margin:0 0 4px;font-size:14px}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;font-size:13.5px}
+.pc div{padding:8px 10px;border-radius:8px;background:var(--surface)}
+.pc .pro b{color:var(--accent)} .pc .con b{color:var(--danger)}
+.ptrap{margin-top:10px;font-size:14px}
+.ptrap b{color:var(--warn)}
+
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;gap:0;padding:0 16px}
+  .sidebar{position:static;height:auto;overflow:visible;border-right:0;border-bottom:1px solid var(--border);padding:14px 0}
+  .side-head{margin-bottom:0}
+  #tocToggle{display:inline-block}
+  .sidebar.collapsed .side-body{display:none}
+  .sidebar:not(.collapsed) .side-head{margin-bottom:12px}
+  .content{padding-top:22px}
+  .pc{grid-template-columns:1fr}
+  header.hero h1{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar collapsed" id="sidebar">
+  <div class="side-head">
+    <div class="side-title">Trading Math Prep<span>Vòng 2 · Quant / Math</span></div>
+    <div style="display:flex;gap:6px">
+      <button id="tocToggle">Mục lục ▾</button>
+      <button id="theme" title="Đổi giao diện sáng/tối">Sáng/Tối</button>
+    </div>
+  </div>
+  <div class="side-body">
+    <div class="side-tools">
+      <button id="openHints">Mở tất cả gợi ý</button>
+      <button id="openSols">Mở tất cả lời giải</button>
+      <button id="hideDone" aria-pressed="false">Ẩn bài đã làm</button>
+      <div class="prog" id="progText">0/0 bài đã làm</div>
+      <div class="bar"><i id="progBar"></i></div>
+    </div>
+    <nav class="toc" id="toc">
+      <div class="toc-group">Bắt đầu</div>
+      <a href="#s0"><span>00</span>Chiến lược làm bài</a>
+      <div class="toc-group">Nền tảng</div>
+      <a href="#s1"><span>01</span>%, bps, return<em></em></a>
+      <a href="#s2"><span>02</span>Lãi suất, APR, APY<em></em></a>
+      <a href="#s3"><span>03</span>Xác suất &amp; thống kê<em></em></a>
+      <div class="toc-group">Thị trường</div>
+      <a href="#s4"><span>04</span>Order book &amp; khớp lệnh<em></em></a>
+      <a href="#s5"><span>05</span>AMM Uniswap V2<em></em></a>
+      <a href="#s6"><span>06</span>Uniswap V3<em></em></a>
+      <a href="#s7"><span>07</span>Perp &amp; funding<em></em></a>
+      <a href="#s8"><span>08</span>Lending<em></em></a>
+      <div class="toc-group">Tổng hợp</div>
+      <a href="#s9"><span>09</span>Arbitrage<em></em></a>
+      <a href="#s10"><span>10</span>Integer &amp; fixed-point<em></em></a>
+      <div class="toc-group">Công cụ</div>
+      <a href="#s11"><span>11</span>Tính nhẩm &amp; xấp xỉ</a>
+      <a href="#s12"><span>12</span>Bảng công thức</a>
+      <a href="#s13"><span>13</span>Checklist trước khi nộp</a>
+    </nav>
+  </div>
+</aside>
+
+<div class="content">
+
+<header class="hero">
+  <h1>Toán cho Trading: chuẩn bị vòng Quant / Math</h1>
+  <p>Theo JD, vòng này kiểm tra tư duy định lượng và các khái niệm trading, gồm <strong>toán AMM/Uniswap</strong>, <strong>tính lãi và funding</strong>, và <strong>logic arbitrage</strong>. Tài liệu bám sát ba trọng tâm đó, bổ sung các mảng liên quan hay xuất hiện: xác suất, order book, perp, lending, integer math.</p>
+  <p>Mỗi phần gồm: kiến thức và công thức, cách tư duy, các bẫy, và bài tập có lời giải. Lời giải được ẩn mặc định để bạn tự làm trước. Bài nào có nhiều cách giải thì có so sánh ưu và nhược điểm. Mọi đáp án số đã được kiểm tra lại bằng code.</p>
+</header>
+
+<!-- ================= 00 ================= -->
+<section id="s0">
+<h2><span class="n">00</span>Chiến lược làm bài</h2>
+<p class="lead">Bài test toán trong trading hiếm khi khó về toán thuần. Người ta trượt chủ yếu vì hiểu sai quy ước, nhầm đơn vị hoặc nhầm chiều.</p>
+
+<h3>Quy trình 5 bước cho mọi bài</h3>
+<ol>
+<li><strong>Đọc quy ước trước khi đọc số</strong>: phí tính trên input hay output? Funding dương thì ai trả? Lãi đơn hay lãi kép? Giá là base/quote hay quote/base? Đơn vị là %, bps hay số thập phân?</li>
+<li><strong>Viết công thức tổng quát bằng ký hiệu</strong> trước khi thay số. Dễ kiểm tra, dễ được điểm từng phần nếu bài chấm theo cách làm.</li>
+<li><strong>Ước lượng nhanh</strong> (phần 11) để biết đáp án khoảng bao nhiêu.</li>
+<li><strong>Tính chính xác</strong>, giữ đủ chữ số ở các bước trung gian, chỉ làm tròn ở kết quả cuối.</li>
+<li><strong>Kiểm tra</strong>: đơn vị, dấu (lời hay lỗ), độ lớn so với ước lượng, và trường hợp biên (fee = 0, size → 0 thì có ra kết quả quen thuộc không).</li>
+</ol>
+
+<h3>Phân bổ thời gian</h3>
+<ul>
+<li>Lướt toàn bộ đề trong 2–3 phút, làm bài chắc điểm trước.</li>
+<li>Bài kẹt quá khoảng 1.5 lần thời gian trung bình mỗi câu thì bỏ qua, quay lại sau.</li>
+<li>Dành 10% thời gian cuối để rà theo checklist ở phần 13.</li>
+</ul>
+
+<div class="callout note"><span class="lbl">Nên hỏi recruiter trước</span>
+<p>JD nói rõ vòng Coding được dùng Google, nhưng không nói về vòng Quant. Nên hỏi: được dùng máy tính, Excel/Python không? Format là trắc nghiệm, điền số hay tự luận? Thời lượng bao lâu? Nếu được dùng Python, chuẩn bị sẵn một file helper (getAmountOut, IL, APY…) để tính nhanh và tránh sai số tay.</p>
+</div>
+
+<h3>10 bẫy hay gặp nhất</h3>
+<div class="table-wrap"><table>
+<tr><th>#</th><th>Bẫy</th><th>Ví dụ</th></tr>
+<tr><td>1</td><td>% và percentage point</td><td>Funding từ 0.01% lên 0.03% là tăng 2 bps (0.02 điểm %), tức tăng 200%.</td></tr>
+<tr><td>2</td><td>Phí AMM tính trên input</td><td>Uniswap V2 trừ 0.3% trên lượng đưa vào, không phải lượng nhận ra.</td></tr>
+<tr><td>3</td><td>Lãi đơn và lãi kép</td><td>0.01%/8h quy năm: 10.95% (đơn) và 11.57% (kép).</td></tr>
+<tr><td>4</td><td>Funding tính trên notional theo mark price lúc thanh toán</td><td>Không phải theo giá vào lệnh.</td></tr>
+<tr><td>5</td><td>Bid và ask</td><td>Mua thì khớp ở ask, bán khớp ở bid.</td></tr>
+<tr><td>6</td><td>Chiều giá</td><td>ETH/USDC = 3000 thì USDC/ETH = 1/3000.</td></tr>
+<tr><td>7</td><td>Vốn làm mẫu số</td><td>Lợi nhuận chiến lược chia cho tổng vốn bị khóa (spot + margin), không chỉ notional.</td></tr>
+<tr><td>8</td><td>Decimals</td><td>USDC 6, WETH 18, WBTC 8.</td></tr>
+<tr><td>9</td><td>Hướng làm tròn</td><td>Contract làm tròn output xuống, input lên (có lợi cho pool).</td></tr>
+<tr><td>10</td><td>Quên chi phí</td><td>Arbitrage phải trừ phí cả hai chân, gas, slippage.</td></tr>
+</table></div>
+</section>
+
+<!-- ================= 01 ================= -->
+<section id="s1">
+<h2><span class="n">01</span>Phần trăm, bps và return</h2>
+<p class="lead">Nền móng cho mọi phép tính khác. Sai ở đây sẽ sai dây chuyền.</p>
+
+<div class="f"><span class="lbl">Công thức</span>
+<div class="eq">% thay đổi     = (P₁ − P₀) / P₀
+1 bps          = 0.01% = 0.0001
+log return     = ln(P₁ / P₀)
+Gộp return     : (1 + r₁)(1 + r₂)…(1 + rₙ) − 1
+Hồi vốn sau lỗ : r_cần = 1 / (1 − loss) − 1
+Giá vốn TB     = Σ(qᵢ × pᵢ) / Σqᵢ</div>
+<div class="d">Log return cộng được theo thời gian và đối xứng (+x rồi −x quay về đúng giá cũ). Return thường thì không.</div>
+</div>
+
+<div class="callout think"><span class="lbl">Cách tư duy</span>
+<p>Luôn hỏi: phần trăm của <em>cái gì</em>? Mẫu số là giá cũ, giá mới, notional hay vốn? Phần lớn lỗi % là do chọn sai mẫu số.</p>
+</div>
+
+<div class="probs-title">Bài tập</div>
+
+<article class="prob" id="p1-1"><div class="ph"><span class="pid">1.1</span><h4>Tăng rồi giảm cùng một khoảng giá</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">ETH tăng từ 2,500 lên 2,600 rồi giảm về 2,500. Tính % tăng, % giảm và log return của chiều tăng.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Hai chiều có mẫu số khác nhau.</div>
+<div class="panel sol">
+<pre>Tăng : 100 / 2,500 = 4.00%
+Giảm : −100 / 2,600 = −3.846%
+Log  : ln(2600/2500) = 3.922%  (chiều giảm: −3.922%, đối xứng)</pre>
+<div class="ans">Đáp án: <b>+4.00%</b>, <b>−3.85%</b>, log return <b>3.92%</b></div>
+</div></article>
+
+<article class="prob" id="p1-2"><div class="ph"><span class="pid">1.2</span><h4>+10% rồi −10%</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Danh mục tăng 10% rồi giảm 10%. Tổng return bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Return nhân với nhau, không cộng.</div>
+<div class="panel sol">
+<pre>1.10 × 0.90 − 1 = −1%</pre>
+<div class="ans">Đáp án: <b>−1%</b></div>
+<p class="ptrap"><b>Bẫy:</b> trả lời 0%. Đây cũng là lý do biến động cao làm giảm lợi nhuận kép (volatility drag ≈ σ²/2).</p>
+</div></article>
+
+<article class="prob" id="p1-3"><div class="ph"><span class="pid">1.3</span><h4>Giá vốn trung bình và PnL đã chốt</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Mua 2 ETH giá 3,000 và 3 ETH giá 2,800. Sau đó bán 4 ETH giá 2,950. Tính giá vốn trung bình và realized PnL (bỏ qua phí). Còn bao nhiêu ETH và giá vốn của phần còn lại?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Bình quân gia quyền theo khối lượng. Phương pháp giá vốn bình quân: bán ra không làm đổi giá vốn của phần còn lại.</div>
+<div class="panel sol">
+<pre>Giá vốn TB = (2×3000 + 3×2800) / 5 = 14,400 / 5 = 2,880
+Realized PnL = 4 × (2,950 − 2,880) = 280 USDT
+Còn lại 1 ETH, giá vốn vẫn 2,880</pre>
+<div class="ans">Đáp án: giá vốn <b>2,880</b>, realized PnL <b>+280</b>, còn <b>1 ETH @ 2,880</b></div>
+<p class="ptrap"><b>Lưu ý:</b> nếu đề yêu cầu FIFO thì khác: bán 2 ETH giá 3,000 trước rồi 2 ETH giá 2,800, PnL = 2×(−50) + 2×150 = 200, phần còn lại có giá vốn 2,800. Luôn đọc phương pháp tính giá vốn trong đề.</p>
+</div></article>
+
+<article class="prob" id="p1-4"><div class="ph"><span class="pid">1.4</span><h4>Hồi vốn sau khi lỗ</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Lỗ 20% thì cần lãi bao nhiêu % để về lại vốn? Lỗ 50% thì sao?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Mẫu số sau khi lỗ đã nhỏ hơn.</div>
+<div class="panel sol">
+<pre>1/0.8 − 1 = 25%
+1/0.5 − 1 = 100%</pre>
+<div class="ans">Đáp án: <b>25%</b> và <b>100%</b></div>
+</div></article>
+
+<article class="prob" id="p1-5"><div class="ph"><span class="pid">1.5</span><h4>% và percentage point</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Funding rate tăng từ 0.01% lên 0.03% mỗi kỳ. Diễn đạt mức thay đổi theo bps và theo %.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Thay đổi tuyệt đối khác thay đổi tương đối.</div>
+<div class="panel sol">
+<pre>Tuyệt đối: 0.03% − 0.01% = 0.02 điểm % = 2 bps
+Tương đối: 0.02 / 0.01 = +200%</pre>
+<div class="ans">Đáp án: tăng <b>2 bps</b>, tức <b>+200%</b> tương đối</div>
+</div></article>
+</section>
+
+<!-- ================= 02 ================= -->
+<section id="s2">
+<h2><span class="n">02</span>Lãi suất, APR, APY</h2>
+<p class="lead">Trọng tâm "interest calculations" của đề. Cần thuần thục chuyển đổi giữa các kỳ hạn và giữa lãi đơn với lãi kép.</p>
+
+<div class="f"><span class="lbl">Công thức</span>
+<div class="eq">Lãi đơn         : FV = P × (1 + r × t)
+Lãi kép n kỳ/năm: FV = P × (1 + r/n)^(n×t)
+Lãi kép liên tục: FV = P × e^(r×t)
+APR → APY       : APY = (1 + APR/n)^n − 1
+APY → APR       : APR = n × ((1 + APY)^(1/n) − 1)
+Rate mỗi giây   : r_s = APR / 31,536,000      (365 × 24 × 3600)
+Giá trị hiện tại: PV = FV / (1 + r)^t
+Thời gian ×2    : t = ln2 / ln(1 + r) ≈ 72 / r(%)</div>
+</div>
+
+<div class="callout think"><span class="lbl">Cách tư duy</span>
+<p>Mọi bài lãi suất quy về câu hỏi: <strong>lãi được trả bao nhiêu lần một năm, và có được nhập vào gốc không?</strong> Xác định n và loại lãi trước, thay số sau.</p>
+<p>APY luôn lớn hơn hoặc bằng APR. Khi n tăng, APY tiến dần tới e^APR − 1 và không tăng mãi. Với APR nhỏ: APY ≈ APR + APR²/2.</p>
+</div>
+
+<div class="probs-title">Bài tập</div>
+
+<article class="prob" id="p2-1"><div class="ph"><span class="pid">2.1</span><h4>APR sang APY</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">APR 10%. Tính APY nếu compound hằng ngày và compound liên tục.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">n = 365; liên tục là e^r − 1.</div>
+<div class="panel sol">
+<pre>(1 + 0.10/365)^365 − 1 = 10.5156%
+e^0.10 − 1             = 10.5171%</pre>
+<div class="ans">Đáp án: <b>10.516%</b> và <b>10.517%</b></div>
+<p class="ptrap"><b>Kiểm tra nhanh:</b> APR + APR²/2 = 10% + 0.5% = 10.5%. Khớp.</p>
+</div></article>
+
+<article class="prob" id="p2-2"><div class="ph"><span class="pid">2.2</span><h4>So sánh hai sản phẩm</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Sản phẩm A: 8% APR compound hằng tháng. Sản phẩm B: 7.9% APR compound hằng ngày. Chọn cái nào?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Quy cả hai về APY rồi so sánh.</div>
+<div class="panel sol">
+<pre>A: (1 + 0.08/12)^12 − 1   = 8.300%
+B: (1 + 0.079/365)^365 − 1 = 8.220%</pre>
+<div class="ans">Đáp án: chọn <b>A</b> (8.30% so với 8.22%)</div>
+<p class="ptrap">Tần suất compound chỉ thêm khoảng APR²/2 so với lãi đơn. Chênh lệch 0.1% APR lớn hơn lợi ích từ compound nhiều hơn.</p>
+</div></article>
+
+<article class="prob" id="p2-3"><div class="ph"><span class="pid">2.3</span><h4>Lãi theo giây (kiểu lending protocol)</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Protocol tính lãi mỗi giây với APR 5%. Lãi suất mỗi giây là bao nhiêu và APY thực tế là bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">1 năm = 31,536,000 giây. Khi n rất lớn, APY ≈ e^APR − 1.</div>
+<div class="panel sol">
+<pre>r_s = 0.05 / 31,536,000 = 1.5855 × 10⁻⁹
+APY = (1 + r_s)^31,536,000 − 1 ≈ e^0.05 − 1 = 5.127%</pre>
+<div class="ans">Đáp án: <b>1.5855e-9</b>/giây, APY <b>5.127%</b></div>
+<div class="callout note" style="margin-bottom:0"><span class="lbl">Thực tế on-chain</span><p>Aave lưu rate dạng RAY (10²⁷) và tính lũy thừa bằng khai triển Taylor bậc 3 để tiết kiệm gas. Kết quả vì vậy hơi thấp hơn giá trị chính xác một chút.</p></div>
+</div></article>
+
+<article class="prob" id="p2-4"><div class="ph"><span class="pid">2.4</span><h4>Tần suất compound tối ưu khi có phí gas</h4><span class="tag lv3">Khó</span></div>
+<div class="stmt">Vốn 10,000 USD, APR 20% trong 1 năm. Mỗi lần compound tốn 5 USD gas. Compound bao nhiêu lần/năm là tối ưu? So sánh với compound mỗi tháng và mỗi ngày.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Hàm mục tiêu: V(n) = P(1 + r/n)^n − n·c. Compound nhiều thì lãi kép tăng nhưng phí cũng tăng.</div>
+<div class="panel sol">
+<div class="m"><h6>Cách 1: Thử các giá trị n (brute force)</h6>
+<pre>n = 1   : 12,000.00 − 5   = 11,995.00
+n = 7   : 12,179.83 − 35  = 12,144.83   ← tối ưu
+n = 12  : 12,193.91 − 60  = 12,133.91
+n = 22  : 12,202.99 − 110 = 12,092.99
+n = 365 : 12,213.36 − 1825 = 10,388.36</pre>
+<div class="pc"><div class="pro"><b>Ưu:</b> chắc chắn đúng, không cần đạo hàm.</div><div class="con"><b>Nhược:</b> cần máy tính, tốn thời gian nếu tính tay.</div></div></div>
+<div class="m"><h6>Cách 2: Xấp xỉ giải tích</h6>
+<p>Dùng (1 + r/n)^n ≈ e^r(1 − r²/(2n)):</p>
+<pre>V(n) ≈ P·e^r − P·e^r·r²/(2n) − n·c
+dV/dn = P·e^r·r²/(2n²) − c = 0
+n* = r × √(P·e^r / (2c)) = 0.2 × √(10,000 × 1.2214 / 10) ≈ 6.99</pre>
+<div class="pc"><div class="pro"><b>Ưu:</b> có công thức tổng quát, hiểu được n* tỷ lệ với √P (vốn lớn thì compound nhiều hơn).</div><div class="con"><b>Nhược:</b> chỉ là xấp xỉ, kém chính xác khi r lớn.</div></div></div>
+<div class="ans">Đáp án: khoảng <b>7 lần/năm</b> (12,144.83 USD). Mỗi tháng: 12,133.91. Mỗi ngày: chỉ 10,388.36 vì phí gas vượt xa phần lãi kép.</div>
+</div></article>
+
+<article class="prob" id="p2-5"><div class="ph"><span class="pid">2.5</span><h4>Thời gian nhân đôi và giá trị hiện tại</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">(a) Lãi 8%/năm compound hằng năm thì bao lâu vốn gấp đôi? (b) Nhận 1,000 USDC sau 1 năm, lãi chiết khấu 8%, giá trị hôm nay là bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Quy tắc 72. PV = FV/(1 + r).</div>
+<div class="panel sol">
+<pre>(a) Quy tắc 72: 72/8 = 9 năm;  chính xác: ln2/ln1.08 = 9.006 năm
+(b) 1000 / 1.08 = 925.93</pre>
+<div class="ans">Đáp án: <b>≈ 9 năm</b>; PV = <b>925.93 USDC</b></div>
+</div></article>
+</section>
+
+<!-- ================= 03 ================= -->
+<section id="s3">
+<h2><span class="n">03</span>Xác suất và thống kê</h2>
+<p class="lead">Phần "quantitative reasoning". Thường là kỳ vọng, phương sai, Bayes, scale biến động theo thời gian và các chỉ số rủi ro.</p>
+
+<div class="f"><span class="lbl">Công thức</span>
+<div class="eq">Kỳ vọng       : E[X] = Σ pᵢ·xᵢ          E[aX + bY] = aE[X] + bE[Y] (luôn đúng)
+Phương sai    : Var(X) = E[X²] − E[X]²
+Tổng hai biến : Var(X+Y) = Var X + Var Y + 2ρσₓσᵧ
+Bayes         : P(A|B) = P(B|A)·P(A) / P(B)
+Scale vol     : σ_T = σ_1 × √T        (giả định return độc lập)
+Sharpe năm    : (μ_ngày / σ_ngày) × √365     (crypto 365, chứng khoán 252)
+Beta / hedge  : β = ρ × σ_A / σ_B = Cov(A,B) / Var(B)
+VaR (normal)  : VaR = z × σ × V         z₉₅ = 1.645, z₉₉ = 2.326
+Max drawdown  : min_t (V_t / max_{s≤t} V_s − 1)
+Kelly         : f* = (b·p − q) / b      (b: tỷ lệ thắng/thua, q = 1 − p)</div>
+</div>
+
+<div class="callout think"><span class="lbl">Cách tư duy</span>
+<p>Với bài kỳ vọng phức tạp, liệt kê các <strong>trạng thái</strong> rồi lập phương trình cho kỳ vọng của từng trạng thái (Markov). Với bài "ít nhất một lần", dùng phần bù: 1 − P(không lần nào).</p>
+</div>
+
+<div class="probs-title">Bài tập</div>
+
+<article class="prob" id="p3-1"><div class="ph"><span class="pid">3.1</span><h4>Kỳ vọng của một lần arbitrage có leg risk</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Một lần arbitrage lời 50 USD nếu cả hai chân thành công. Có 5% khả năng chân thứ hai thất bại, khi đó lỗ 200 USD. Có nên chạy chiến lược này không?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">EV = Σ xác suất × kết quả.</div>
+<div class="panel sol">
+<pre>EV = 0.95 × 50 − 0.05 × 200 = 47.5 − 10 = 37.5 USD/lần
+Tỷ lệ thất bại hòa vốn: 50(1−p) = 200p → p = 20%</pre>
+<div class="ans">Đáp án: EV = <b>+37.5 USD</b> nên có lợi. Chiến lược còn có lời khi tỷ lệ thất bại dưới <b>20%</b>.</div>
+<p class="ptrap"><b>Bàn thêm:</b> EV dương chưa đủ. Cần xét phương sai và chuỗi lỗ liên tiếp có làm cạn vốn không (xem 3.2, 3.9).</p>
+</div></article>
+
+<article class="prob" id="p3-2"><div class="ph"><span class="pid">3.2</span><h4>Chuỗi thua liên tiếp</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Win rate 60%, các lệnh độc lập. Xác suất thua 5 lệnh liên tiếp (ngay 5 lệnh tới) là bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Nhân xác suất các sự kiện độc lập.</div>
+<div class="panel sol">
+<pre>0.4^5 = 0.01024</pre>
+<div class="ans">Đáp án: <b>1.024%</b></div>
+<p class="ptrap"><b>Bẫy:</b> xác suất <em>có ít nhất một</em> chuỗi 5 thua trong 1,000 lệnh thì gần như chắc chắn xảy ra. Đề hỏi "5 lệnh tới" khác với "trong 1,000 lệnh".</p>
+</div></article>
+
+<article class="prob" id="p3-3"><div class="ph"><span class="pid">3.3</span><h4>Bayes: tín hiệu arbitrage có thật không?</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">30% tín hiệu từ market data là cơ hội thật. Bộ lọc báo "thật" đúng 90% khi cơ hội thật, nhưng báo nhầm "thật" 20% khi cơ hội giả. Bộ lọc vừa báo "thật", xác suất đó là cơ hội thật?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Tính P(báo thật) theo hai nhánh, rồi lấy tỷ lệ nhánh đúng.</div>
+<div class="panel sol">
+<div class="m"><h6>Cách 1: Công thức Bayes</h6>
+<pre>P(báo thật) = 0.3 × 0.9 + 0.7 × 0.2 = 0.27 + 0.14 = 0.41
+P(thật | báo thật) = 0.27 / 0.41 = 65.85%</pre></div>
+<div class="m"><h6>Cách 2: Đếm tần suất (giả sử 1,000 tín hiệu)</h6>
+<pre>300 thật → 270 được báo thật
+700 giả  → 140 bị báo nhầm thật
+270 / (270 + 140) = 65.85%</pre>
+<div class="pc"><div class="pro"><b>Ưu:</b> trực quan, khó nhầm, nhanh khi tính nhẩm.</div><div class="con"><b>Nhược:</b> cần chọn số tổng sao cho chia tròn.</div></div></div>
+<div class="ans">Đáp án: <b>≈ 65.9%</b></div>
+</div></article>
+
+<article class="prob" id="p3-4"><div class="ph"><span class="pid">3.4</span><h4>Scale biến động theo thời gian</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">(a) Biến động ngày của ETH là 3%. Biến động năm là bao nhiêu? (b) Biến động năm là 60%. Biến động mỗi giờ là bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Phương sai cộng theo thời gian, nên độ lệch chuẩn nhân với √T. Crypto giao dịch 365 ngày × 24 giờ.</div>
+<div class="panel sol">
+<pre>(a) 3% × √365 = 3% × 19.105 = 57.3%
+(b) 60% / √(365 × 24) = 60% / 93.59 = 0.641%</pre>
+<div class="ans">Đáp án: <b>57.3%/năm</b>; <b>0.64%/giờ</b></div>
+<p class="ptrap"><b>Bẫy:</b> nhân thẳng 3% × 365. Volatility scale theo √T, còn return trung bình mới scale theo T.</p>
+</div></article>
+
+<article class="prob" id="p3-5"><div class="ph"><span class="pid">3.5</span><h4>Sharpe ratio</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Strategy có return trung bình 0.1%/ngày, độ lệch chuẩn 1%/ngày, risk-free bằng 0. Tính Sharpe năm.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Mean scale theo T, std theo √T, nên Sharpe scale theo √T.</div>
+<div class="panel sol">
+<pre>Sharpe = (0.1% / 1%) × √365 = 0.1 × 19.105 = 1.91</pre>
+<div class="ans">Đáp án: <b>≈ 1.91</b> (dùng 252 ngày thì ra 1.59, nên nêu rõ giả định)</div>
+</div></article>
+
+<article class="prob" id="p3-6"><div class="ph"><span class="pid">3.6</span><h4>Max drawdown</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Giá trị danh mục theo thời gian: 100, 120, 90, 110, 80, 130, 125. Tính max drawdown.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Theo dõi đỉnh cao nhất tính đến từng thời điểm.</div>
+<div class="panel sol">
+<pre>Đỉnh 120 → đáy 80: 80/120 − 1 = −33.3%
+(Đỉnh 100 → 90 chỉ là −10% nếu tính từ đầu, nhưng đỉnh 120 đã xuất hiện trước 90)</pre>
+<div class="ans">Đáp án: <b>−33.3%</b></div>
+<p class="ptrap"><b>Bẫy:</b> lấy (max − min)/max = (130 − 80)/130. Sai, vì 130 xuất hiện <em>sau</em> 80.</p>
+</div></article>
+
+<article class="prob" id="p3-7"><div class="ph"><span class="pid">3.7</span><h4>Hedge ratio và biến động danh mục</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Token A có biến động năm 60%, ETH 50%, tương quan 0.8. (a) Muốn hedge 1 USD vị thế A bằng short ETH thì cần short bao nhiêu? (b) Danh mục 50% A, 50% token B (biến động 80%, tương quan A–B 0.3) có biến động bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">β = ρσ_A/σ_B. Var danh mục = w₁²σ₁² + w₂²σ₂² + 2w₁w₂ρσ₁σ₂.</div>
+<div class="panel sol">
+<pre>(a) β = 0.8 × 0.6 / 0.5 = 0.96  → short 0.96 USD ETH cho mỗi 1 USD A
+(b) Var = 0.25×0.36 + 0.25×0.64 + 2×0.25×0.3×0.6×0.8 = 0.322
+    σ = √0.322 = 56.7%</pre>
+<div class="ans">Đáp án: <b>0.96</b>; <b>56.7%</b> (thấp hơn trung bình cộng 70% nhờ đa dạng hóa)</div>
+</div></article>
+
+<article class="prob" id="p3-8"><div class="ph"><span class="pid">3.8</span><h4>Kelly criterion</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">(a) Cược 1 ăn 1, xác suất thắng 55%. (b) Cược 1 ăn 2, xác suất thắng 40%. Mỗi trường hợp nên đặt bao nhiêu % vốn theo Kelly?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">f* = (bp − q)/b.</div>
+<div class="panel sol">
+<pre>(a) b = 1: f* = 0.55 − 0.45 = 10%
+(b) b = 2: f* = (2×0.4 − 0.6)/2 = 0.2/2 = 10%</pre>
+<div class="ans">Đáp án: cả hai đều <b>10%</b></div>
+<p class="ptrap">Thực tế thường dùng half-Kelly vì ước lượng p có sai số, và full-Kelly có drawdown rất lớn.</p>
+</div></article>
+
+<article class="prob" id="p3-9"><div class="ph"><span class="pid">3.9</span><h4>Value at Risk</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Vị thế 1,000,000 USD, biến động ngày 3%, giả định phân phối chuẩn. Tính VaR 95% cho 1 ngày và 10 ngày.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">z₉₅ = 1.645. Scale theo √T.</div>
+<div class="panel sol">
+<pre>1 ngày : 1.645 × 3% × 1,000,000 = 49,350
+10 ngày: 49,350 × √10 = 156,058</pre>
+<div class="ans">Đáp án: <b>49,350 USD</b> và <b>≈ 156,058 USD</b></div>
+<p class="ptrap">Crypto có "đuôi dày" (fat tails), nên VaR theo phân phối chuẩn thường đánh giá thấp rủi ro thực tế.</p>
+</div></article>
+
+<article class="prob" id="p3-10"><div class="ph"><span class="pid">3.10</span><h4>Số lần tung đồng xu để có HH</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Tung đồng xu cân bằng đến khi xuất hiện hai mặt ngửa liên tiếp (HH). Kỳ vọng số lần tung? Còn với chuỗi HT thì sao?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Đặt trạng thái: chưa có gì (E₀), vừa có H (E₁).</div>
+<div class="panel sol">
+<div class="m"><h6>Cách 1: Phương trình trạng thái (Markov)</h6>
+<pre>HH: E₀ = 1 + ½E₁ + ½E₀
+    E₁ = 1 + ½·0 + ½E₀
+    → E₀ = 6
+HT: E₀ = 1 + ½E₁ + ½E₀
+    E₁ = 1 + ½·0 + ½E₁   (đang có H, ra H vẫn giữ trạng thái H)
+    → E₁ = 2, E₀ = 4</pre>
+<div class="pc"><div class="pro"><b>Ưu:</b> tổng quát cho mọi chuỗi, chặt chẽ.</div><div class="con"><b>Nhược:</b> phải xác định đúng trạng thái sau mỗi lần thất bại.</div></div></div>
+<div class="m"><h6>Cách 2: Mô phỏng Monte Carlo</h6>
+<p>Viết vài dòng code chạy 10⁶ lần và lấy trung bình.</p>
+<div class="pc"><div class="pro"><b>Ưu:</b> dùng được cho bài quá phức tạp để giải tay, dùng để kiểm tra đáp án.</div><div class="con"><b>Nhược:</b> chỉ cho số xấp xỉ, cần máy, không giải thích được vì sao.</div></div></div>
+<div class="ans">Đáp án: HH = <b>6</b>, HT = <b>4</b></div>
+<p class="ptrap">Trực giác cho rằng hai chuỗi bằng nhau là sai: với HH, một lần thất bại (HT) đưa bạn về điểm xuất phát; với HT, chữ H thừa vẫn giữ được tiến độ.</p>
+</div></article>
+
+<article class="prob" id="p3-11"><div class="ph"><span class="pid">3.11</span><h4>Kỳ vọng giá trị lớn nhất của hai xúc xắc</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Tung hai xúc xắc 6 mặt. Tính E[max].</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">P(max ≤ k) = (k/6)². Suy ra P(max = k) = (2k − 1)/36.</div>
+<div class="panel sol">
+<pre>E = Σ k(2k−1)/36 = (1 + 6 + 15 + 28 + 45 + 66)/36 = 161/36</pre>
+<div class="ans">Đáp án: <b>161/36 ≈ 4.472</b></div>
+</div></article>
+</section>
+
+<!-- ================= 04 ================= -->
+<section id="s4">
+<h2><span class="n">04</span>Order book và khớp lệnh</h2>
+<p class="lead">Nền tảng cho chân CEX trong mọi bài arbitrage.</p>
+
+<div class="f"><span class="lbl">Công thức</span>
+<div class="eq">mid          = (bid + ask) / 2
+spread (bps) = (ask − bid) / mid × 10,000
+VWAP khớp    = Σ(giá_i × khối_lượng_i) / Σ khối_lượng_i      (đi dọc các mức giá)
+slippage     = (giá TB khớp − giá tham chiếu) / giá tham chiếu
+Hòa vốn      : P_bán = P_mua × (1 + fee_mua) / (1 − fee_bán)</div>
+</div>
+
+<div class="callout think"><span class="lbl">Cách tư duy</span>
+<p>Mua là ăn vào phía <strong>ask</strong>, đi từ giá thấp lên cao. Bán là ăn vào phía <strong>bid</strong>, đi từ giá cao xuống thấp. Lệnh lớn hơn mức giá đầu tiên thì phải "đi dọc book" (walk the book).</p>
+</div>
+
+<div class="probs-title">Bài tập</div>
+
+<article class="prob" id="p4-1"><div class="ph"><span class="pid">4.1</span><h4>Market buy đi dọc order book</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Best bid 2,999. Phía ask: 2 ETH @ 3,000; 3 ETH @ 3,001; 5 ETH @ 3,003. Market buy 6 ETH. Tính giá trung bình khớp, slippage so với best ask và so với mid (đơn vị bps).</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Lấy hết mức 1 và 2, phần còn lại lấy ở mức 3.</div>
+<div class="panel sol">
+<pre>2 × 3,000 + 3 × 3,001 + 1 × 3,003 = 6,000 + 9,003 + 3,003 = 18,006
+VWAP = 18,006 / 6 = 3,001.00
+So với best ask: (3,001/3,000 − 1) × 10⁴ = 3.33 bps
+mid = 2,999.5 → (3,001/2,999.5 − 1) × 10⁴ = 5.00 bps</pre>
+<div class="ans">Đáp án: VWAP <b>3,001.00</b>; slippage <b>3.33 bps</b> (so với ask), <b>5.00 bps</b> (so với mid)</div>
+</div></article>
+
+<article class="prob" id="p4-2"><div class="ph"><span class="pid">4.2</span><h4>Giá hòa vốn sau phí</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Mua ETH giá 3,000, phí taker 0.1%. Bán cũng chịu phí 0.1%. Giá bán tối thiểu để không lỗ?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Tiền thu về sau phí phải lớn hơn hoặc bằng tiền bỏ ra kể cả phí.</div>
+<div class="panel sol">
+<pre>P × 0.999 ≥ 3,000 × 1.001 → P ≥ 3,006.006</pre>
+<div class="ans">Đáp án: <b>3,006.01</b> (≈ +0.2%, gần bằng tổng hai phí)</div>
+</div></article>
+
+<article class="prob" id="p4-3"><div class="ph"><span class="pid">4.3</span><h4>Lợi nhuận market making một vòng</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Đặt bid 2,999 và ask 3,001, mỗi bên 1 ETH, cả hai đều khớp. Phí maker 0.02%. Lợi nhuận ròng?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Lãi gộp là spread, trừ phí của cả hai bên.</div>
+<div class="panel sol">
+<pre>Gộp: 3,001 − 2,999 = 2
+Phí: (2,999 + 3,001) × 0.0002 = 1.2
+Ròng: 0.8 USDT</pre>
+<div class="ans">Đáp án: <b>0.8 USDT</b></div>
+<p class="ptrap">Rủi ro thật của market making là chỉ một bên khớp, rồi giá đi ngược lại (adverse selection và inventory risk).</p>
+</div></article>
+</section>
+
+<!-- ================= 05 ================= -->
+<section id="s5">
+<h2><span class="n">05</span>AMM Uniswap V2</h2>
+<p class="lead">Trọng tâm số 1 của đề. Nắm chắc cách suy ra công thức, đừng chỉ học thuộc.</p>
+
+<h3>Thiết lập và suy luận</h3>
+<p>Pool có x token X và y token Y. Bất biến <code>x·y = k</code>. Phí f (V2: 0.3%), đặt γ = 1 − f = 0.997. Phí bị trừ trên <strong>input</strong>, nhưng toàn bộ input (kể cả phần phí) được cộng vào reserve. Vì vậy k tăng sau mỗi swap, đó là cách LP nhận phí.</p>
+
+<div class="f"><span class="lbl">Swap: suy từ (x + γΔx)(y − Δy) = xy</span>
+<div class="eq">Giá spot X theo Y   : P = y / x
+Nhận ra (exact in) : Δy = y·γ·Δx / (x + γ·Δx)
+Cần đưa vào (exact out): Δx = x·Δy / (γ·(y − Δy))
+Reserve từ L, P    : L = √(x·y),  x = L / √P,  y = L·√P
+Giá TB thực hiện (không phí) = √(P_trước × P_sau)   (trung bình nhân)</div>
+<div class="d">Trong contract: amountOut = (Δx·997·y) / (x·1000 + Δx·997), làm tròn xuống. amountIn = (x·Δy·1000) / ((y − Δy)·997) + 1, làm tròn lên.</div>
+</div>
+
+<div class="f"><span class="lbl">Price impact (xấp xỉ khi lệnh nhỏ so với pool)</span>
+<div class="eq">Giá thực hiện lệch khỏi spot ≈ Δin / reserve_in   (+ phí)
+Giá spot sau swap lệch       ≈ 2 × Δin / reserve_in</div>
+<div class="d">Ví dụ: đưa vào 1% reserve thì giá khớp kém hơn spot khoảng 1% + phí, còn spot dịch đi khoảng 2%. Phần spot dịch thêm là cơ hội cho bot backrun.</div>
+</div>
+
+<div class="f"><span class="lbl">Đẩy giá pool đến giá mục tiêu P₁ (dùng cho arbitrage)</span>
+<div class="eq">Không phí: x₁ = L/√P₁,  y₁ = L·√P₁
+Lợi nhuận arb tối đa (bán ra ở P₁, không phí) = L·(√P₁ − √P₀)² / √P₀
+Có phí, khi MUA X từ pool: dừng khi y/x = γ·P₁   (giá biên = P_pool/γ)
+Có phí, khi BÁN X vào pool: dừng khi y/x = P₁/γ</div>
+</div>
+
+<div class="f"><span class="lbl">Liquidity provider</span>
+<div class="eq">LP đầu tiên      : liquidity = √(Δx·Δy) − 1000   (MINIMUM_LIQUIDITY bị khóa)
+LP tiếp theo     : liquidity = min(Δx·T/x, Δy·T/y)    (T: tổng LP token)
+Impermanent loss : IL(r) = 2√r / (1 + r) − 1          (r = P_mới / P_cũ)</div>
+</div>
+
+<div class="table-wrap"><table>
+<tr><th>Giá thay đổi (r)</th><th>×1.21</th><th>×1.5</th><th>×2</th><th>×4</th><th>×0.5</th><th>×0.25</th></tr>
+<tr><td>IL</td><td>−0.45%</td><td>−2.02%</td><td>−5.72%</td><td>−20.0%</td><td>−5.72%</td><td>−20.0%</td></tr>
+</table></div>
+
+<div class="callout think"><span class="lbl">Cách tư duy</span>
+<p>Mọi bài AMM đều quy về: <strong>bất biến trước = bất biến sau</strong> (sau khi tính phí đúng chỗ). Nếu quên công thức, viết lại phương trình bất biến và giải.</p>
+<p>Kiểm tra nhanh: kết quả luôn nhỏ hơn Δx × giá spot (vì có impact và phí). Nếu lớn hơn, chắc chắn đã sai.</p>
+</div>
+
+<div class="probs-title">Bài tập (pool mẫu: 1,000 ETH và 3,000,000 USDC, phí 0.3%)</div>
+
+<article class="prob" id="p5-1"><div class="ph"><span class="pid">5.1</span><h4>Swap exact input</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Mua ETH bằng 30,000 USDC. Nhận được bao nhiêu ETH? Giá thực hiện, giá spot sau swap?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Input là USDC: x = 3,000,000 (reserve USDC), y = 1,000 (reserve ETH).</div>
+<div class="panel sol">
+<pre>γΔx = 30,000 × 0.997 = 29,910
+Δy  = 1,000 × 29,910 / (3,000,000 + 29,910) = 9.87158 ETH
+Giá thực hiện = 30,000 / 9.87158 = 3,039.03
+Pool sau: 3,030,000 USDC và 990.128 ETH → spot = 3,060.21</pre>
+<div class="ans">Đáp án: <b>9.8716 ETH</b>, giá thực hiện <b>3,039.03</b>, spot sau <b>3,060.21</b></div>
+<p class="ptrap"><b>Kiểm tra nhanh:</b> input = 1% reserve, nên giá khớp ≈ 3,000 × (1 + 1% + 0.3%) = 3,039. Khớp.</p>
+</div></article>
+
+<article class="prob" id="p5-2"><div class="ph"><span class="pid">5.2</span><h4>Swap exact output</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Muốn nhận đúng 10 ETH. Cần đưa vào bao nhiêu USDC? So với trường hợp không có phí.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Δx = x·Δy / (γ(y − Δy)).</div>
+<div class="panel sol">
+<pre>Có phí  : 3,000,000 × 10 / (0.997 × 990) = 30,394.21 USDC
+Không phí: 3,000,000 × 10 / 990          = 30,303.03 USDC</pre>
+<div class="ans">Đáp án: <b>30,394.21 USDC</b> (không phí: 30,303.03)</div>
+<p class="ptrap"><b>Bẫy:</b> lấy 10 × 3,000 = 30,000, quên price impact. Contract cộng thêm 1 đơn vị nhỏ nhất để làm tròn lên.</p>
+</div></article>
+
+<article class="prob" id="p5-3"><div class="ph"><span class="pid">5.3</span><h4>Arbitrage đẩy giá pool về giá CEX</h4><span class="tag lv3">Khó</span></div>
+<div class="stmt">Giá ETH trên CEX là 3,100 (thanh khoản sâu, bỏ qua phí CEX). Pool đang ở 3,000. (a) Không có phí pool: cần mua bao nhiêu ETH từ pool, trả bao nhiêu USDC, lợi nhuận tối đa? (b) Có phí 0.3%: kết quả thế nào?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Mua ETH rẻ từ pool đến khi giá biên của pool bằng giá CEX. Dùng L = √k để có reserve mới.</div>
+<div class="panel sol">
+<div class="m"><h6>Cách 1: Closed form theo √P</h6>
+<pre>k = 3×10⁹, L = √k = 54,772.26
+(a) x₁ = L/√3100 = 983.739 ETH → mua 16.261 ETH
+    y₁ = L·√3100 = 3,049,590.14 → trả 49,590.14 USDC
+    Giá TB = 3,049.59 = √(3000×3100)
+    Lợi nhuận = 16.261 × 3,100 − 49,590.14 = 819.73
+    Kiểm tra: L(√3100 − √3000)²/√3000 = 819.73 ✓
+(b) Dừng khi y/x = 0.997 × 3,100:
+    x₁ = √(k/(0.997×3100)) → mua 14.782 ETH
+    USDC thực vào pool = √(k×0.997×3100) − 3,000,000, chia 0.997 ra lượng gửi: 45,147.76
+    Lợi nhuận = 14.782 × 3,100 − 45,147.76 = 677.40</pre>
+<div class="pc"><div class="pro"><b>Ưu:</b> nhanh, chính xác, chỉ cần căn bậc hai.</div><div class="con"><b>Nhược:</b> phải nhớ điều kiện biên có γ đúng chiều (nhân hay chia γ).</div></div></div>
+<div class="m"><h6>Cách 2: Tối ưu số (ternary search hoặc golden section)</h6>
+<p>Hàm lợi nhuận π(a) = getAmountOut(a) × 3,100 − a là hàm lõm theo a, nên ternary search trên [0, a_max] hội tụ về a* = 45,147.76.</p>
+<div class="pc"><div class="pro"><b>Ưu:</b> tổng quát cho V3, multi-hop, có phí CEX, có gas. Không cần suy luận công thức.</div><div class="con"><b>Nhược:</b> cần code, không cho insight về cấu trúc bài toán.</div></div></div>
+<div class="m"><h6>Cách 3: Đạo hàm bằng 0</h6>
+<p>π'(a) = 0 ⇔ d(out)/da = 1/3,100, tức giá biên của pool = giá CEX. Giải ra cùng kết quả với cách 1.</p>
+<div class="pc"><div class="pro"><b>Ưu:</b> giải thích được vì sao điểm tối ưu là giá biên bằng nhau.</div><div class="con"><b>Nhược:</b> đại số dài, dễ sai khi làm tay.</div></div></div>
+<div class="ans">Đáp án: (a) mua <b>16.26 ETH</b>, trả <b>49,590.14 USDC</b>, lời <b>819.73</b>; (b) mua <b>14.78 ETH</b>, trả <b>45,147.76 USDC</b>, lời <b>677.40</b></div>
+</div></article>
+
+<article class="prob" id="p5-4"><div class="ph"><span class="pid">5.4</span><h4>Mint LP token</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Pool có 100 ETH và 300,000 USDC, tổng 5,000 LP token. (a) Gửi 2 ETH + 6,000 USDC được bao nhiêu LP? (b) Gửi 2 ETH + 7,000 USDC thì sao?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">liquidity = min(Δx·T/x, Δy·T/y).</div>
+<div class="panel sol">
+<pre>(a) min(2×5000/100, 6000×5000/300000) = min(100, 100) = 100 LP
+(b) min(100, 116.67) = 100 LP → 1,000 USDC thừa bị "tặng" cho pool</pre>
+<div class="ans">Đáp án: cả hai đều <b>100 LP</b>. Trường hợp (b) mất trắng 1,000 USDC phần thừa.</div>
+<p class="ptrap">Router của Uniswap tự tính lượng tối ưu để tránh điều này. Gọi thẳng vào pair contract thì không có bảo vệ đó.</p>
+</div></article>
+
+<article class="prob" id="p5-5"><div class="ph"><span class="pid">5.5</span><h4>APR từ phí của LP</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Pool có TVL 20M USD, volume 10M USD/ngày, phí 0.3%. Bạn sở hữu 1% pool. Thu nhập phí mỗi ngày và APR (chưa tính IL)?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">APR phí = volume × fee × 365 / TVL.</div>
+<div class="panel sol">
+<pre>Phí toàn pool: 10M × 0.3% = 30,000/ngày → phần bạn: 300/ngày
+Vị thế: 1% × 20M = 200,000
+APR = 300 × 365 / 200,000 = 54.75%</pre>
+<div class="ans">Đáp án: <b>300 USD/ngày</b>, APR <b>54.75%</b></div>
+</div></article>
+
+<article class="prob" id="p5-6"><div class="ph"><span class="pid">5.6</span><h4>Impermanent loss và điểm hòa vốn</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Gửi 1 ETH + 3,000 USDC khi ETH = 3,000. ETH tăng lên 6,000. (a) Giá trị vị thế LP và giá trị nếu chỉ giữ? (b) Với APR phí 54.75% như bài 5.5, cần bao lâu để phí bù được IL?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">L = √(1 × 3000), reserve mới x = L/√6000, y = L·√6000.</div>
+<div class="panel sol">
+<div class="m"><h6>Cách 1: Tính trực tiếp reserve</h6>
+<pre>L = √3000 = 54.772
+x = 54.772/√6000 = 0.7071 ETH, y = 54.772×√6000 = 4,242.64 USDC
+LP  = 0.7071×6000 + 4,242.64 = 8,485.28
+HODL= 6,000 + 3,000          = 9,000.00
+IL  = 8,485.28/9,000 − 1 = −5.72%  (−514.72 USD)</pre></div>
+<div class="m"><h6>Cách 2: Dùng công thức IL</h6>
+<pre>IL(2) = 2√2/3 − 1 = −5.72%</pre>
+<div class="pc"><div class="pro"><b>Ưu:</b> một dòng, nhanh.</div><div class="con"><b>Nhược:</b> chỉ đúng cho pool 50/50 constant product, không cho biết thành phần token.</div></div></div>
+<pre>(b) Phí tính trên vốn ban đầu 6,000: cần 514.72 / (6,000 × 54.75%) ≈ 0.157 năm ≈ 57 ngày
+    (xấp xỉ: bỏ qua việc phí được tái đầu tư và giá thay đổi dần)</pre>
+<div class="ans">Đáp án: LP <b>8,485.28</b>, HODL <b>9,000</b>, IL <b>−5.72%</b>; phí bù IL sau khoảng <b>57 ngày</b></div>
+</div></article>
+
+<article class="prob" id="p5-7"><div class="ph"><span class="pid">5.7</span><h4>Swap nhiều hop</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Bán 10 ETH qua đường ETH → USDC (pool mẫu) → DAI (pool 3M USDC / 3M DAI, phí 0.3%). Nhận được bao nhiêu DAI?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Output hop 1 là input hop 2. Phí bị tính ở cả hai hop.</div>
+<div class="panel sol">
+<pre>Hop 1: 3,000,000 × 9.97 / (1,000 + 9.97) = 29,614.74 USDC
+Hop 2: 3,000,000 × 29,614.74×0.997 / (3,000,000 + 29,614.74×0.997) = 29,238.14 DAI</pre>
+<div class="ans">Đáp án: <b>29,238.14 DAI</b> (mất khoảng 2.5% so với 30,000: hai lần phí cộng impact)</div>
+</div></article>
+
+<article class="prob" id="p5-8"><div class="ph"><span class="pid">5.8</span><h4>Kích thước tối ưu cho arbitrage giữa hai pool</h4><span class="tag lv3">Khó</span></div>
+<div class="stmt">Pool 1: 3,000,000 USDC / 1,000 ETH (giá 3,000). Pool 2: 1,000 ETH / 3,100,000 USDC (giá 3,100). Cả hai phí 0.3%. Mua ETH ở pool 1, bán ở pool 2 trong một tx. Lượng USDC tối ưu và lợi nhuận?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Gộp hai pool thành một "virtual pool" (Ea, Eb), rồi tối đa hóa Eb·γΔ/(Ea + γΔ) − Δ.</div>
+<div class="panel sol">
+<div class="m"><h6>Cách 1: Virtual pool, closed form</h6>
+<pre>a₁ = 3,000,000 (USDC), b₁ = 1,000 (ETH) | b₂ = 1,000 (ETH), a₂ = 3,100,000 (USDC)
+Ea = a₁·b₂ / (b₂ + γ·b₁)       = 1,502,253.38
+Eb = γ·a₂·b₁ / (b₂ + γ·b₁)     = 1,547,671.51
+Δ* = (√(γ·Ea·Eb) − Ea) / γ     = 20,312.00 USDC
+Lợi nhuận = 273.81 USDC (ETH trung gian: 6.705)</pre>
+<div class="pc"><div class="pro"><b>Ưu:</b> O(1), chính xác, gộp được nhiều pool V2 nối tiếp.</div><div class="con"><b>Nhược:</b> chỉ cho V2, khó nhớ công thức trong phòng thi.</div></div></div>
+<div class="m"><h6>Cách 2: Thử lưới rồi tinh chỉnh</h6>
+<pre>Δ = 10,000 → 203.71 | 20,000 → 273.75 | 30,000 → 212.74 | 40,000 → 23.22 | 60,000 → −731.52</pre>
+<div class="pc"><div class="pro"><b>Ưu:</b> dễ, thấy rõ hình dạng hàm lõm, phát hiện "size lớn là lỗ".</div><div class="con"><b>Nhược:</b> chỉ xấp xỉ, cần nhiều phép tính.</div></div></div>
+<div class="m"><h6>Cách 3: Giá biên bằng nhau</h6>
+<p>Ở điểm tối ưu, giá biên mua ở pool 1 (gồm phí) bằng giá biên bán ở pool 2 (sau phí). Đây là cách lập luận đúng khi phỏng vấn.</p></div>
+<div class="ans">Đáp án: <b>≈ 20,312 USDC</b>, lợi nhuận <b>≈ 273.81 USDC</b> (trước gas)</div>
+<p class="ptrap"><b>Điều kiện có lời:</b> γ·Eb/Ea &gt; 1, tương đương chênh giá phải lớn hơn khoảng 2 lần phí (≈ 0.6%). Ở đây chênh 3.33%.</p>
+</div></article>
+
+<article class="prob" id="p5-9"><div class="ph"><span class="pid">5.9</span><h4>Slippage tolerance</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Bài 5.1 dự kiến nhận 9.87158 ETH. Đặt slippage tolerance 0.5% thì <code>amountOutMin</code> bằng bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Tolerance áp lên output dự kiến (đã gồm impact), không phải lên giá spot.</div>
+<div class="panel sol">
+<pre>9.87158 × (1 − 0.005) = 9.82222 ETH</pre>
+<div class="ans">Đáp án: <b>9.8222 ETH</b></div>
+<p class="ptrap">Tolerance càng rộng, kẻ sandwich càng lấy được nhiều. amountOutMin là mức lỗ tối đa bạn chấp nhận bị lấy.</p>
+</div></article>
+</section>
+
+<!-- ================= 06 ================= -->
+<section id="s6">
+<h2><span class="n">06</span>Uniswap V3</h2>
+<p class="lead">Concentrated liquidity: trong mỗi khoảng tick, công thức giống V2 nhưng với "reserve ảo".</p>
+
+<div class="f"><span class="lbl">Công thức</span>
+<div class="eq">Giá theo tick       : P = 1.0001^tick,   √P = 1.0001^(tick/2)
+sqrtPriceX96        : √P_raw × 2⁹⁶
+Giá raw             : token1 / token0 (theo đơn vị nhỏ nhất)
+Giá người dùng      : P_raw × 10^(dec0 − dec1)
+Swap trong range    : Δy = L·Δ√P,   Δx = L·Δ(1/√P)
+Vị thế [Pa, Pb], giá P:
+  P ≤ Pa      : x = L(1/√Pa − 1/√Pb),  y = 0
+  Pa < P < Pb : x = L(1/√P − 1/√Pb),   y = L(√P − √Pa)
+  P ≥ Pb      : x = 0,                 y = L(√Pb − √Pa)
+Hiệu quả vốn so với V2 (range quanh giá, P = √(Pa·Pb)): 1 / (1 − (Pa/Pb)^(1/4))</div>
+</div>
+
+<div class="callout think"><span class="lbl">Cách tư duy</span>
+<p>Làm việc với √P thay vì P: các công thức trở thành tuyến tính. Luôn kiểm tra giá sau swap còn nằm trong range không. Nếu vượt qua tick có liquidity khác, phải tách thành nhiều đoạn.</p>
+<p>Quy ước token0/token1 theo thứ tự địa chỉ, không theo "base/quote" thông thường. Đọc kỹ đề xem token0 là gì.</p>
+</div>
+
+<div class="probs-title">Bài tập</div>
+
+<article class="prob" id="p6-1"><div class="ph"><span class="pid">6.1</span><h4>Đọc giá từ sqrtPriceX96</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Pool WETH/USDC, token0 = WETH (18 decimals), token1 = USDC (6 decimals). <code>sqrtPriceX96 = 4339505179874779662909440</code>. Giá ETH theo USDC? Tick tương ứng?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">P_raw = (sqrtPriceX96 / 2⁹⁶)², sau đó nhân 10^(18 − 6).</div>
+<div class="panel sol">
+<pre>sqrtPriceX96 / 2⁹⁶ = 5.4772 × 10⁻⁵
+P_raw = 3.0 × 10⁻⁹    (micro-USDC trên mỗi wei)
+P = 3.0 × 10⁻⁹ × 10¹² = 3,000 USDC/ETH
+tick = ln(3×10⁻⁹)/ln(1.0001) = −196,256.35 → tick hiện tại = floor = −196,257</pre>
+<div class="ans">Đáp án: <b>3,000 USDC/ETH</b>, tick <b>−196,257</b></div>
+<p class="ptrap"><b>Bẫy:</b> quên điều chỉnh decimals (ra 3×10⁻⁹) hoặc điều chỉnh ngược chiều (ra 3×10⁻²¹). Nếu token0 là USDC thì giá raw là ETH/USDC, phải lấy nghịch đảo.</p>
+</div></article>
+
+<article class="prob" id="p6-2"><div class="ph"><span class="pid">6.2</span><h4>Lượng token cần cho một vị thế V3</h4><span class="tag lv3">Khó</span></div>
+<div class="stmt">ETH = 3,000. Cung cấp 1 ETH vào range [2,500, 3,600]. Cần bao nhiêu USDC? Làm lại với range [2,800, 4,000] và [2,000, 3,600].</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Từ lượng ETH tính L = x / (1/√P − 1/√Pb), sau đó y = L(√P − √Pa).</div>
+<div class="panel sol">
+<pre>[2500, 3600]: L = 1/(1/54.772 − 1/60) = 628.63;  y = 628.63×(54.772 − 50)    = 3,000.00 USDC
+[2800, 4000]: L = 408.83;                      y = 408.83×(54.772 − 52.915) =   759.28 USDC
+[2000, 3600]: L = 628.63;                      y = 628.63×(54.772 − 44.721) = 6,318.33 USDC</pre>
+<div class="ans">Đáp án: <b>3,000</b>; <b>759.28</b>; <b>6,318.33</b> USDC</div>
+<p class="ptrap"><b>Insight:</b> với [2,500, 3,600] giá hiện tại đúng bằng trung bình nhân √(2500×3600) = 3,000, nên giá trị chia đúng 50/50. Range lệch lên trên thì cần ít USDC hơn và ngược lại.</p>
+</div></article>
+
+<article class="prob" id="p6-3"><div class="ph"><span class="pid">6.3</span><h4>Hiệu quả vốn so với V2</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">So với V2, vị thế V3 cần ít vốn hơn bao nhiêu lần để có cùng độ sâu quanh giá 3,000, nếu range là [2,700, 3,333.33]? [2,000, 4,500]? [2,900, 3,103.45]?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">1/(1 − (Pa/Pb)^(1/4)).</div>
+<div class="panel sol">
+<pre>[2700, 3333.33]: (0.81)^0.25 = 0.9487 → 19.5×
+[2000, 4500]   : (0.444)^0.25 = 0.8165 → 5.4×
+[2900, 3103.45]: → 59.5×</pre>
+<div class="ans">Đáp án: <b>≈ 19.5×</b>, <b>≈ 5.4×</b>, <b>≈ 59.5×</b></div>
+<p class="ptrap">Đánh đổi: range càng hẹp thì phí thu được và IL càng bị khuếch đại, và dễ bị out-of-range (không còn thu phí).</p>
+</div></article>
+
+<article class="prob" id="p6-4"><div class="ph"><span class="pid">6.4</span><h4>Swap trong một range</h4><span class="tag lv3">Khó</span></div>
+<div class="stmt">Range hiện tại có L = 100,000 (đơn vị theo giá người dùng: √(ETH·USDC)), giá 3,000, không vượt tick. Mua ETH bằng 10,000 USDC (bỏ qua phí). Nhận bao nhiêu ETH, giá sau swap?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">USDC là token1: Δ√P = Δy/L. ETH ra: L(1/√P₀ − 1/√P₁).</div>
+<div class="panel sol">
+<pre>√P₀ = 54.7723, Δ√P = 10,000/100,000 = 0.1 → √P₁ = 54.8723
+P₁ = 3,010.96
+ETH = 100,000 × (1/54.7723 − 1/54.8723) = 3.3273
+Giá TB = 10,000 / 3.3273 = 3,005.48 = √(3000 × 3010.96) ✓</pre>
+<div class="ans">Đáp án: <b>3.3273 ETH</b>, giá sau <b>3,010.96</b></div>
+<p class="ptrap">Phải kiểm tra 3,010.96 còn nằm trong range. Nếu vượt ra ngoài, tính đến biên range, cập nhật L theo tick mới, rồi tính tiếp phần còn lại.</p>
+</div></article>
+</section>
+
+<!-- ================= 07 ================= -->
+<section id="s7">
+<h2><span class="n">07</span>Perpetual và funding</h2>
+<p class="lead">Trọng tâm "funding calculations" của đề.</p>
+
+<div class="f"><span class="lbl">Công thức</span>
+<div class="eq">Notional            = size × mark price
+Funding payment     = size × mark × F     (F &gt; 0: long trả short; F &lt; 0: short trả long)
+Quy năm (đơn)       = F × (24/h) × 365    (h: chu kỳ giờ)
+Quy năm (kép)       = (1 + F)^((24/h)×365) − 1
+Linear PnL (long)   = Q × (P_exit − P_entry)          (đơn vị USDT)
+Inverse PnL (long)  = N_usd × (1/P_entry − 1/P_exit)   (đơn vị BTC)
+Thanh lý long (iso) = P_entry × (1 − 1/L) / (1 − MMR)
+Thanh lý short(iso) = P_entry × (1 + 1/L) / (1 + MMR)
+Basis quy năm       = (F_fut − S)/S × 365/ngày_đến_hạn
+Funding (kiểu Binance) F = P + clamp(I − P, −0.05%, +0.05%)
+   I: interest component (thường 0.01%/8h), P: premium index</div>
+<div class="d">Công thức funding và thanh lý khác nhau giữa các sàn. Nếu đề cho công thức riêng thì dùng công thức trong đề.</div>
+</div>
+
+<div class="callout think"><span class="lbl">Cách tư duy</span>
+<p>Funding được tính trên <strong>notional tại thời điểm thanh toán</strong> (mark price lúc đó), không phải lúc vào lệnh, và chỉ trả nếu bạn đang giữ vị thế tại mốc thanh toán.</p>
+<p>Đòn bẩy không thay đổi số tiền funding phải trả. Funding phụ thuộc notional, không phụ thuộc margin. Nhưng tính theo % trên margin thì đòn bẩy nhân lên.</p>
+</div>
+
+<div class="probs-title">Bài tập</div>
+
+<article class="prob" id="p7-1"><div class="ph"><span class="pid">7.1</span><h4>Funding cơ bản</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">(a) Long 5 BTC, mark 60,000, funding +0.015%. (b) Short 10 ETH, mark 3,000, funding −0.02%. Mỗi trường hợp ai trả, bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Dấu của F quyết định chiều trả tiền.</div>
+<div class="panel sol">
+<pre>(a) 5 × 60,000 × 0.015% = 45 USDT; F dương nên long TRẢ 45
+(b) 10 × 3,000 × 0.02% = 6 USDT; F âm nên short TRẢ 6</pre>
+<div class="ans">Đáp án: (a) bạn <b>trả 45 USDT</b>; (b) bạn <b>trả 6 USDT</b></div>
+</div></article>
+
+<article class="prob" id="p7-2"><div class="ph"><span class="pid">7.2</span><h4>Funding khi giá đã thay đổi</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Long 10 ETH, vào lệnh giá 3,000. Tại mốc funding, mark price là 3,300, F = 0.01%. Trả bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Dùng mark price tại thời điểm thanh toán.</div>
+<div class="panel sol">
+<pre>10 × 3,300 × 0.01% = 3.30 USDT  (không phải 3.00)</pre>
+<div class="ans">Đáp án: <b>3.30 USDT</b></div>
+</div></article>
+
+<article class="prob" id="p7-3"><div class="ph"><span class="pid">7.3</span><h4>Quy funding ra năm</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Funding 0.01% mỗi 8 giờ. Quy ra năm theo lãi đơn và lãi kép. Nếu sàn chuyển sang chu kỳ 4 giờ với rate 0.005%/kỳ thì sao?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">8h có 3 kỳ/ngày, tức 1,095 kỳ/năm.</div>
+<div class="panel sol">
+<pre>Đơn: 0.01% × 1,095 = 10.95%
+Kép: 1.0001^1095 − 1 = 11.57%
+4h với 0.005%: 0.005% × 2,190 = 10.95% (đơn) — cùng mức, chỉ chia nhỏ hơn</pre>
+<div class="ans">Đáp án: <b>10.95%</b> (đơn), <b>11.57%</b> (kép)</div>
+<p class="ptrap">Funding thường không tự compound vào vị thế, nên con số lãi đơn sát với thực tế hơn, trừ khi bạn chủ động tăng size theo lợi nhuận.</p>
+</div></article>
+
+<article class="prob" id="p7-4"><div class="ph"><span class="pid">7.4</span><h4>Tính funding rate theo công thức sàn</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Theo F = P + clamp(I − P, −0.05%, 0.05%) với I = 0.01%. Tính F khi premium index P bằng: (a) 0.03%; (b) 0.2%; (c) −0.04%.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Khi |I − P| ≤ 0.05% thì F = I. Tính clamp trước.</div>
+<div class="panel sol">
+<pre>(a) I − P = −0.02% (trong khoảng) → F = 0.03% − 0.02% = 0.01%
+(b) I − P = −0.19% → clamp = −0.05% → F = 0.2% − 0.05% = 0.15%
+(c) I − P = +0.05% → clamp = +0.05% → F = −0.04% + 0.05% = 0.01%</pre>
+<div class="ans">Đáp án: <b>0.01%</b>, <b>0.15%</b>, <b>0.01%</b></div>
+<p class="ptrap"><b>Insight:</b> premium dao động trong ±0.05% quanh I thì funding "dính" ở mức 0.01%. Đó là lý do funding mặc định thường thấy là 0.01%.</p>
+</div></article>
+
+<article class="prob" id="p7-5"><div class="ph"><span class="pid">7.5</span><h4>Cash-and-carry: lợi nhuận ròng thực tế</h4><span class="tag lv3">Khó</span></div>
+<div class="stmt">Long spot 100,000 USDT ETH và short perp cùng notional (đòn bẩy 5x, margin 20,000). Funding trung bình 0.01%/8h, giữ 30 ngày. Phí: spot taker 0.1% mỗi lần vào/ra, perp taker 0.05% mỗi lần vào/ra. Bỏ qua thay đổi basis. Tính lợi nhuận ròng và lợi suất năm.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Tổng vốn bị khóa là spot + margin perp.</div>
+<div class="panel sol">
+<pre>Funding thu: 100,000 × 0.01% × 3 × 30 = 900
+Phí: 100,000 × (0.1%×2 + 0.05%×2) = 300
+Ròng: 600 USDT
+Trên notional 100k : 600/100k × 365/30 = 7.30%/năm
+Trên vốn thật 120k : 600/120k × 365/30 = 6.08%/năm</pre>
+<div class="ans">Đáp án: lời ròng <b>600 USDT</b>, lợi suất thực trên vốn <b>≈ 6.08%/năm</b></div>
+<div class="callout trap" style="margin-bottom:0"><span class="lbl">Rủi ro thường bị bỏ qua</span>
+<p>Funding đổi chiều sang âm; basis lúc ra lệnh khác lúc vào; ETH tăng mạnh làm short perp bị thanh lý nếu margin mỏng (ở 5x, giá tăng khoảng 20% là nguy hiểm); tài sản spot nằm ở sàn hoặc ví khác nên không dùng làm margin được ngay.</p></div>
+</div></article>
+
+<article class="prob" id="p7-6"><div class="ph"><span class="pid">7.6</span><h4>Funding arbitrage giữa hai sàn</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Funding của ETH-PERP ở sàn A là +0.03%/8h, ở sàn B là −0.01%/8h. Notional 100,000. Vị thế nào thu được funding ở cả hai sàn và thu bao nhiêu mỗi kỳ, mỗi ngày?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">F dương thì short nhận, F âm thì long nhận.</div>
+<div class="panel sol">
+<pre>Short A (nhận 0.03%) + Long B (nhận 0.01%) = 0.04%/kỳ, delta-neutral
+100,000 × 0.04% = 40/kỳ → 120/ngày</pre>
+<div class="ans">Đáp án: <b>short A, long B</b>; <b>40 USDT/kỳ</b>, <b>120 USDT/ngày</b></div>
+<p class="ptrap">Rủi ro: giá hai perp lệch nhau, hai sàn có mốc funding khác giờ, phải giữ margin ở cả hai sàn (một bên lời thì bên kia lỗ, có thể bị thanh lý ở bên lỗ).</p>
+</div></article>
+
+<article class="prob" id="p7-7"><div class="ph"><span class="pid">7.7</span><h4>Giá thanh lý</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Isolated margin, MMR 0.5%. Tính giá thanh lý cho: (a) long ETH 3,000 đòn bẩy 10x; (b) short ETH 3,000 10x; (c) long ETH 3,000 20x; (d) long BTC 60,000 5x với MMR 0.4%.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Thanh lý khi equity = MMR × notional tại giá thanh lý.</div>
+<div class="panel sol">
+<div class="m"><h6>Cách 1: Công thức</h6>
+<pre>(a) 3000 × 0.9 / 0.995   = 2,713.57
+(b) 3000 × 1.1 / 1.005   = 3,283.58
+(c) 3000 × 0.95 / 0.995  = 2,864.32
+(d) 60000 × 0.8 / 0.996  = 48,192.77</pre></div>
+<div class="m"><h6>Cách 2: Lập phương trình từ equity</h6>
+<pre>Long: margin + Q(P − E) = MMR × Q × P, với Q = margin×L/E
+→ P = E(1 − 1/L)/(1 − MMR)</pre>
+<div class="pc"><div class="pro"><b>Ưu:</b> tự suy ra được khi đề có thêm phí, funding tích lũy hoặc MMR theo bậc.</div><div class="con"><b>Nhược:</b> chậm hơn dùng công thức.</div></div></div>
+<div class="ans">Đáp án: <b>2,713.57</b>; <b>3,283.58</b>; <b>2,864.32</b>; <b>48,192.77</b></div>
+<p class="ptrap"><b>Xấp xỉ nhanh:</b> khoảng cách tới thanh lý ≈ 1/L − MMR. Với 10x: ≈ 9.5%.</p>
+</div></article>
+
+<article class="prob" id="p7-8"><div class="ph"><span class="pid">7.8</span><h4>Đòn bẩy thực tế thay đổi theo giá</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Margin 1,000, long 10x ETH tại 3,000. Giá giảm về 2,850. Equity, notional và đòn bẩy thực tế lúc này?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Đòn bẩy thực tế = notional hiện tại / equity hiện tại.</div>
+<div class="panel sol">
+<pre>Q = 10,000/3,000 = 3.333 ETH
+Equity = 1,000 + 3.333 × (2,850 − 3,000) = 500
+Notional = 3.333 × 2,850 = 9,500
+Đòn bẩy thực tế = 9,500 / 500 = 19×</pre>
+<div class="ans">Đáp án: equity <b>500</b>, notional <b>9,500</b>, đòn bẩy <b>19×</b></div>
+<p class="ptrap">Khi đang lỗ, đòn bẩy thực tế tăng nhanh. Đây là lý do chỉ cần thêm một nhịp giảm nhỏ là bị thanh lý.</p>
+</div></article>
+
+<article class="prob" id="p7-9"><div class="ph"><span class="pid">7.9</span><h4>Inverse contract (coin-margined)</h4><span class="tag lv3">Khó</span></div>
+<div class="stmt">Long hợp đồng inverse trị giá 30,000 USD, entry 60,000. (a) Giá lên 66,000: PnL tính bằng BTC và USD? (b) Giá xuống 54,000? So sánh với hợp đồng linear 0.5 BTC.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">PnL_BTC = N × (1/E − 1/X).</div>
+<div class="panel sol">
+<pre>(a) 30,000 × (1/60,000 − 1/66,000) = +0.04545 BTC ≈ +3,000 USD (tại 66,000)
+(b) 30,000 × (1/60,000 − 1/54,000) = −0.05556 BTC ≈ −3,000 USD (tại 54,000)
+Linear 0.5 BTC: ±0.5 × 6,000 = ±3,000 USDT</pre>
+<div class="ans">Đáp án: (a) <b>+0.04545 BTC</b>; (b) <b>−0.05556 BTC</b>. Tính bằng USD tại giá đóng thì bằng linear (±3,000).</div>
+<p class="ptrap"><b>Insight:</b> với inverse, PnL bằng BTC không đối xứng (lời ít BTC hơn khi tăng, lỗ nhiều BTC hơn khi giảm). Nếu margin cũng bằng BTC thì long inverse có rủi ro gấp đôi khi giá giảm. Short inverse với margin BTC tạo ra vị thế "USD tổng hợp".</p>
+</div></article>
+
+<article class="prob" id="p7-10"><div class="ph"><span class="pid">7.10</span><h4>Basis của futures có kỳ hạn</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Spot 3,000, futures đáo hạn sau 90 ngày giá 3,060. Lợi suất năm của chiến lược mua spot + bán futures (giữ đến đáo hạn, bỏ qua phí)?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Lợi nhuận đã khóa là basis.</div>
+<div class="panel sol">
+<pre>basis = 60/3,000 = 2% → quy năm 2% × 365/90 = 8.11%</pre>
+<div class="ans">Đáp án: <b>≈ 8.11%/năm</b> (khóa cứng, khác với funding biến động)</div>
+</div></article>
+</section>
+
+<!-- ================= 08 ================= -->
+<section id="s8">
+<h2><span class="n">08</span>Lending (Aave, Compound)</h2>
+<p class="lead">Liên quan đến "interest calculations" và bài thanh lý.</p>
+
+<div class="f"><span class="lbl">Công thức</span>
+<div class="eq">Health factor   HF = Σ(collateral × liquidation_threshold) / debt     (HF &lt; 1: bị thanh lý)
+Giá thanh lý (1 tài sản thế chấp): P_liq = debt / (qty × threshold)
+Utilization     U = tổng vay / tổng gửi
+Lãi vay (kinked): U ≤ U*: R = R₀ + s₁·U/U*
+                  U > U*: R = R₀ + s₁ + s₂·(U − U*)/(1 − U*)
+Lãi gửi         = R_vay × U × (1 − reserve_factor)
+Looping tối đa  = 1 / (1 − LTV)  (lần vốn gốc)</div>
+</div>
+
+<div class="probs-title">Bài tập</div>
+
+<article class="prob" id="p8-1"><div class="ph"><span class="pid">8.1</span><h4>Health factor và giá thanh lý</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Gửi 10 ETH (giá 3,000), liquidation threshold 80%, vay 15,000 USDC. HF bằng bao nhiêu? ETH giảm đến đâu thì bị thanh lý?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Cho HF = 1 rồi giải P.</div>
+<div class="panel sol">
+<pre>HF = 30,000 × 0.8 / 15,000 = 1.6
+10 × P × 0.8 = 15,000 → P = 1,875 (giảm 37.5%)</pre>
+<div class="ans">Đáp án: HF <b>1.6</b>, thanh lý ở <b>1,875</b></div>
+</div></article>
+
+<article class="prob" id="p8-2"><div class="ph"><span class="pid">8.2</span><h4>Mô hình lãi suất có điểm gãy</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">R₀ = 0, s₁ = 4%, U* = 80%, s₂ = 75%, reserve factor 10%. Tính lãi vay và lãi gửi tại U = 50%, 80%, 90%, 95%.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Trên U* thì dùng slope 2.</div>
+<div class="panel sol">
+<pre>U = 50%: vay 4%×0.5/0.8 = 2.50%           gửi 2.5%×0.5×0.9  = 1.13%
+U = 80%: vay 4.00%                          gửi 4%×0.8×0.9    = 2.88%
+U = 90%: vay 4% + 75%×0.1/0.2 = 41.50%      gửi 41.5%×0.9×0.9 = 33.62%
+U = 95%: vay 4% + 75%×0.15/0.2 = 60.25%     gửi                = 51.51%</pre>
+<div class="ans">Đáp án: vay <b>2.5% / 4% / 41.5% / 60.25%</b>; gửi <b>1.13% / 2.88% / 33.62% / 51.51%</b></div>
+<p class="ptrap">Điểm gãy được thiết kế để khi U cao, lãi tăng vọt, buộc người vay trả nợ và thu hút người gửi, đảm bảo luôn có thanh khoản để rút.</p>
+</div></article>
+
+<article class="prob" id="p8-3"><div class="ph"><span class="pid">8.3</span><h4>Lợi nhuận của liquidator</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Một khoản vay bị thanh lý khi ETH = 2,000. Liquidator trả 5,000 USDC nợ (close factor cho phép), bonus 5%. Nhận được bao nhiêu ETH? Lợi nhuận gộp?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Collateral nhận = nợ trả × (1 + bonus) / giá.</div>
+<div class="panel sol">
+<pre>5,000 × 1.05 / 2,000 = 2.625 ETH (= 5,250 USD) → lời gộp 250 USD trước gas và slippage khi bán</pre>
+<div class="ans">Đáp án: <b>2.625 ETH</b>, lời gộp <b>250 USD</b></div>
+</div></article>
+
+<article class="prob" id="p8-4"><div class="ph"><span class="pid">8.4</span><h4>Leverage looping</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Có 10 stETH, LTV 75%. Lặp gửi → vay ETH → đổi stETH → gửi tiếp (bỏ qua phí, giá stETH = ETH). Vị thế tối đa? Nếu lãi gửi stETH 3% và lãi vay ETH 2.5% thì lợi suất ròng trên vốn gốc là bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Chuỗi hình học 10(1 + 0.75 + 0.75² + …).</div>
+<div class="panel sol">
+<pre>Tổng gửi = 10 / (1 − 0.75) = 40 stETH; nợ = 30 ETH
+Lợi suất = (40 × 3% − 30 × 2.5%) / 10 = (1.2 − 0.75)/10 = 4.5%</pre>
+<div class="ans">Đáp án: <b>40 stETH</b> (4×), lợi suất ròng <b>4.5%</b></div>
+<p class="ptrap">Ở mức tối đa, HF tiến về sát 1 nên chỉ cần stETH lệch giá nhẹ so với ETH là bị thanh lý. Thực tế phải dừng sớm hơn mức tối đa nhiều.</p>
+</div></article>
+</section>
+
+<!-- ================= 09 ================= -->
+<section id="s9">
+<h2><span class="n">09</span>Arbitrage</h2>
+<p class="lead">Trọng tâm "arbitrage logic". Phần này tổng hợp kiến thức từ các phần 04–08.</p>
+
+<div class="f"><span class="lbl">Khung tổng quát</span>
+<div class="eq">Lợi nhuận = doanh thu bán − chi phí mua − phí (cả hai chân) − gas − slippage/impact
+Điều kiện có lời (bỏ qua impact): P_bán × (1 − f_bán) &gt; P_mua × (1 + f_mua)
+Kích thước tối ưu: giá biên mua (gồm phí) = giá biên bán (sau phí)
+Chi phí cố định (gas): KHÔNG đổi size tối ưu, chỉ quyết định có làm hay không
+Triangular: tích các tỷ giá (sau phí) &gt; 1  ⇔  Σ −ln(rate) &lt; 0</div>
+</div>
+
+<div class="callout think"><span class="lbl">Cách tư duy cho mọi bài arbitrage</span>
+<ol style="margin:4px 0">
+<li>Xác định nơi rẻ và nơi đắt, chiều đi của tài sản.</li>
+<li>Mỗi chân: khớp ở bid hay ask? Phí bao nhiêu, trên input hay output?</li>
+<li>Có price impact không (AMM, book mỏng)? Nếu có thì phải tìm size tối ưu.</li>
+<li>Chi phí cố định: gas, phí rút/nạp.</li>
+<li>Rủi ro: leg risk, độ trễ, inventory, cơ hội bị người khác lấy trước.</li>
+</ol>
+</div>
+
+<div class="probs-title">Bài tập</div>
+
+<article class="prob" id="p9-1"><div class="ph"><span class="pid">9.1</span><h4>CEX – CEX</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Sàn A: ask 3,000. Sàn B: bid 3,006. Phí taker 0.1% ở cả hai sàn. Mua 1 ETH ở A, bán ở B có lời không? Bid ở B phải tối thiểu bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">So sánh 3,006 × 0.999 với 3,000 × 1.001.</div>
+<div class="panel sol">
+<pre>Thu: 3,006 × 0.999 = 3,002.994
+Chi: 3,000 × 1.001 = 3,003.000
+Ròng: −0.006 → không có lời
+Hòa vốn: 3,000 × 1.001 / 0.999 = 3,006.006</pre>
+<div class="ans">Đáp án: <b>Không</b> (lỗ 0.006). Bid cần &gt; <b>3,006.01</b>.</div>
+<p class="ptrap">Chênh 0.2% trông như cơ hội nhưng bị hai lần phí ăn hết. Ngoài ra còn cần sẵn ETH ở B và USDT ở A, nếu không thì phải chuyển tiền giữa sàn (chậm, có phí).</p>
+</div></article>
+
+<article class="prob" id="p9-2"><div class="ph"><span class="pid">9.2</span><h4>Triangular arbitrage</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Một sàn: BTC/USDT ask 60,000, bid 59,990. ETH/BTC ask 0.0495, bid 0.0494. ETH/USDT ask 3,000.5, bid 3,000. Phí 0.1% mỗi lệnh. Vốn 10,000 USDT. Có cơ hội không, theo chiều nào?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Thử cả hai chiều: USDT→BTC→ETH→USDT và USDT→ETH→BTC→USDT. Mua dùng ask, bán dùng bid.</div>
+<div class="panel sol">
+<pre>Chiều 1: USDT → BTC (mua @ 60,000) → ETH (mua bằng BTC @ 0.0495) → USDT (bán @ 3,000)
+  Tích = (1/60,000) × (1/0.0495) × 3,000 = 1.0101
+  Không phí: 10,101.01 | Có phí: 10,101.01 × 0.999³ = 10,070.74 → lời 70.74
+Chiều 2: USDT → ETH (@ 3,000.5) → BTC (bán @ 0.0494) → USDT (bán @ 59,990)
+  10,000/3,000.5 × 0.0494 × 59,990 = 9,876.71 (trước phí) → lỗ</pre>
+<div class="ans">Đáp án: <b>Có</b>, theo chiều USDT→BTC→ETH→USDT, lời <b>≈ 70.74 USDT</b> sau phí</div>
+<p class="ptrap">Giá ETH/BTC ngụ ý = 3,000/60,000 = 0.05, trong khi ask chỉ 0.0495, nên mua ETH bằng BTC đang rẻ. Thực tế còn phải kiểm tra độ sâu từng mức, min notional và step size.</p>
+</div></article>
+
+<article class="prob" id="p9-3"><div class="ph"><span class="pid">9.3</span><h4>CEX – DEX với size tối ưu</h4><span class="tag lv3">Khó</span></div>
+<div class="stmt">Pool mẫu (1,000 ETH / 3,000,000 USDC, phí 0.3%). CEX bid 3,050 (rất sâu), phí taker 0.05%. Gas 10 USD. Mua ETH từ pool, bán trên CEX. Size tối ưu và lợi nhuận?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Giá bán hiệu dụng trên CEX = 3,050 × (1 − 0.05%). Dừng khi y/x = γ × giá đó. Gas không ảnh hưởng size.</div>
+<div class="panel sol">
+<div class="m"><h6>Cách 1: Closed form</h6>
+<pre>P_eff = 3,050 × 0.9995 = 3,048.475
+x₁ = √(k / (0.997 × 3,048.475)) → mua 6.4912 ETH
+USDC gửi vào = (√(k × 0.997 × 3,048.475) − 3,000,000) / 0.997 = 19,659.74
+Doanh thu CEX = 6.4912 × 3,048.475 = 19,788.18
+Lợi nhuận = 19,788.18 − 19,659.74 − 10 = 118.45</pre></div>
+<div class="m"><h6>Cách 2: Tìm kiếm số trên π(a) = out(a)·P_eff − a − gas</h6>
+<p>Ternary search cho cùng kết quả a* ≈ 19,659.74.</p>
+<div class="pc"><div class="pro"><b>Ưu:</b> thêm được ràng buộc thực tế (book CEX mỏng, nhiều pool, V3) mà không cần suy lại công thức.</div><div class="con"><b>Nhược:</b> cần chạy code, không làm tay được.</div></div></div>
+<div class="ans">Đáp án: mua <b>≈ 6.49 ETH</b> bằng <b>≈ 19,659.74 USDC</b>, lợi nhuận <b>≈ 118.45 USD</b></div>
+<p class="ptrap"><b>Leg risk:</b> tx on-chain có thể revert hoặc khớp ở giá khác. Hedge CEX trước thì rủi ro chân DEX thất bại; hedge sau thì rủi ro giá CEX chạy mất.</p>
+</div></article>
+
+<article class="prob" id="p9-4"><div class="ph"><span class="pid">9.4</span><h4>Gas làm mất cơ hội</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Ở bài 5.8, lợi nhuận tối đa trước gas là 273.81 USDC. Swap 2 hop tốn 250,000 gas, giá gas 400 gwei, ETH 3,000. Có nên thực hiện không?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Phí = gas × giá gas.</div>
+<div class="panel sol">
+<pre>250,000 × 400 gwei = 0.1 ETH = 300 USD &gt; 273.81 → không</pre>
+<div class="ans">Đáp án: <b>Không</b> (lỗ khoảng 26 USD). Với gas 20 gwei (15 USD) thì nên làm.</div>
+</div></article>
+
+<article class="prob" id="p9-5"><div class="ph"><span class="pid">9.5</span><h4>Phát hiện arbitrage bằng đồ thị</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Có N đồng tiền và bảng tỷ giá rate[i][j] (đã trừ phí). Làm sao phát hiện có chu trình sinh lời? Giải thích vì sao dùng −ln(rate).</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Biến tích thành tổng bằng log, biến "tích lớn hơn 1" thành "tổng âm".</div>
+<div class="panel sol">
+<pre>Chu trình có lời ⇔ Π rate &gt; 1 ⇔ Σ ln(rate) &gt; 0 ⇔ Σ (−ln rate) &lt; 0
+Đặt trọng số cạnh w = −ln(rate) → bài toán tìm chu trình âm → Bellman-Ford O(N³) với đồ thị đầy đủ</pre>
+<div class="m"><h6>So sánh cách làm</h6>
+<div class="pc"><div class="pro"><b>Bellman-Ford:</b> tìm được mọi chu trình âm, độ dài bất kỳ. Nhược: O(V·E), chậm khi N lớn và cập nhật liên tục.</div><div class="con"><b>Liệt kê chu trình 3 cạnh:</b> O(N³) đơn giản, đủ cho triangular. Nhược: bỏ sót chu trình dài hơn.</div></div></div>
+<div class="ans">Đáp án: dùng trọng số <b>−ln(rate)</b> và tìm <b>chu trình âm</b> (Bellman-Ford)</div>
+<p class="ptrap">Mô hình này không tính price impact theo size. Khi có impact, phải mô phỏng chính xác từng chu trình ứng viên.</p>
+</div></article>
+</section>
+
+<!-- ================= 10 ================= -->
+<section id="s10">
+<h2><span class="n">10</span>Integer và fixed-point math</h2>
+<p class="lead">Smart contract không có số thập phân. Phần này hay được hỏi kèm câu "kết quả trên chain là bao nhiêu".</p>
+
+<div class="f"><span class="lbl">Nguyên tắc</span>
+<div class="eq">1. Nhân trước, chia sau       : (a × c) / b  chứ không phải (a / b) × c
+2. Làm tròn có lợi cho protocol: output xuống, input lên (+1)
+3. Kiểm tra overflow            : int64 max ≈ 9.22 × 10¹⁸, uint256 max ≈ 1.16 × 10⁷⁷
+4. mulDiv(a, b, c)              : tính a×b/c với trung gian 512-bit, không overflow
+5. Raw = human × 10^decimals    : USDC 6, USDT 6 (trên Ethereum), WETH 18, WBTC 8</div>
+</div>
+
+<div class="probs-title">Bài tập</div>
+
+<article class="prob" id="p10-1"><div class="ph"><span class="pid">10.1</span><h4>getAmountOut bằng số nguyên</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Làm lại bài 5.1 với đơn vị raw: reserveIn = 3,000,000 USDC (6 dec), reserveOut = 1,000 WETH (18 dec), amountIn = 30,000 USDC. Kết quả raw bằng bao nhiêu?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">amountOut = (in × 997 × rOut) / (rIn × 1000 + in × 997), chia lấy phần nguyên.</div>
+<div class="panel sol">
+<pre>in   = 30,000 × 10⁶   = 3 × 10¹⁰
+rIn  = 3 × 10⁶ × 10⁶  = 3 × 10¹²
+rOut = 1,000 × 10¹⁸   = 10²¹
+amountOut = floor(3×10¹⁰ × 997 × 10²¹ / (3×10¹⁵ + 2.991×10¹³))
+          = 9,871,580,343,970,612,988 wei ≈ 9.871580 ETH</pre>
+<div class="ans">Đáp án: <b>9871580343970612988</b> wei</div>
+<p class="ptrap">Tử số ≈ 3 × 10³⁴, vượt xa giới hạn int64 (≈ 9.2 × 10¹⁸). Trên chain, uint256 chứa thoải mái; trong Go phải dùng <code>big.Int</code> hoặc <code>holiman/uint256</code>.</p>
+</div></article>
+
+<article class="prob" id="p10-2"><div class="ph"><span class="pid">10.2</span><h4>Thứ tự phép tính</h4><span class="tag lv1">Dễ</span></div>
+<div class="stmt">Tính 5 × 3 / 2 bằng số nguyên theo hai thứ tự. Áp dụng: tính phí 0.3% trên 1,234 đơn vị.</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">Chia trước sẽ mất phần dư sớm.</div>
+<div class="panel sol">
+<pre>(5 / 2) × 3 = 2 × 3 = 6       ← sai
+(5 × 3) / 2 = 15 / 2 = 7      ← đúng hơn
+Phí: (1,234 / 1000) × 3 = 3   |   (1,234 × 3) / 1000 = 3 (3.702 làm tròn xuống)</pre>
+<div class="ans">Đáp án: <b>7</b> (nhân trước) so với <b>6</b> (chia trước)</div>
+</div></article>
+
+<article class="prob" id="p10-3"><div class="ph"><span class="pid">10.3</span><h4>Overflow với fixed-point int64</h4><span class="tag lv2">Trung bình</span></div>
+<div class="stmt">Giá và số lượng đều lưu bằng int64 với scale 10⁸. Tính notional của 100 ETH giá 3,000. Có overflow không? Cách xử lý?</div>
+<div class="pact"><button data-t="hint">Gợi ý</button><button data-t="sol">Lời giải</button><label><input type="checkbox" data-done> Đã làm</label></div>
+<div class="panel hint">So tích với 9.22 × 10¹⁸.</div>
+<div class="panel sol">
+<pre>3,000 × 10⁸ × 100 × 10⁸ = 3 × 10²¹ &gt; 9.22 × 10¹⁸ → overflow</pre>
+<div class="m"><h6>Các cách xử lý</h6>
+<div class="pc"><div class="pro"><b>Nhân 128-bit</b> (<code>bits.Mul64</code>) rồi chia lại scale: nhanh, không allocate. Nhược: code phức tạp hơn.</div><div class="con"><b>big.Int / decimal:</b> đơn giản, an toàn. Nhược: allocate, chậm trên hot path.</div></div>
+<p>Cách thứ ba: chọn scale nhỏ hơn theo tick size và step size thực tế của từng symbol.</p></div>
+<div class="ans">Đáp án: <b>Có overflow</b> (3 × 10²¹)</div>
+</div></article>
+</section>
+
+<!-- ================= 11 ================= -->
+<section id="s11">
+<h2><span class="n">11</span>Tính nhẩm và xấp xỉ</h2>
+<p class="lead">Dùng để ước lượng và kiểm tra đáp án. Nếu bài thi không cho máy tính, phần này càng quan trọng.</p>
+
+<div class="table-wrap"><table>
+<tr><th>Xấp xỉ</th><th>Điều kiện</th><th>Ví dụ</th></tr>
+<tr><td class="mono">ln(1 + x) ≈ x − x²/2</td><td>x nhỏ</td><td>ln 1.01 ≈ 0.00995</td></tr>
+<tr><td class="mono">(1 + x)^n ≈ e^(nx) ≈ 1 + nx</td><td>nx nhỏ</td><td>1.01^100 ≈ e ≈ 2.718 (thực: 2.705)</td></tr>
+<tr><td class="mono">√(1 + x) ≈ 1 + x/2</td><td>x nhỏ</td><td>√1.0333 ≈ 1.0167</td></tr>
+<tr><td class="mono">1/(1 − x) ≈ 1 + x + x²</td><td>x nhỏ</td><td>1/0.999 ≈ 1.001</td></tr>
+<tr><td class="mono">APY ≈ APR + APR²/2</td><td>APR nhỏ</td><td>10% → 10.5%</td></tr>
+<tr><td class="mono">Thời gian ×2 ≈ 72 / r%</td><td>r 4–15%</td><td>8% → 9 năm</td></tr>
+<tr><td class="mono">Impact AMM ≈ Δin / reserve_in</td><td>Δ nhỏ</td><td>1% reserve → 1% impact</td></tr>
+<tr><td class="mono">IL(1 + ε) ≈ −ε²/8</td><td>ε nhỏ</td><td>giá +10% → −0.125% (thực −0.11%)</td></tr>
+<tr><td class="mono">Khoảng cách thanh lý ≈ 1/L − MMR</td><td>isolated</td><td>10× → ≈ 9.5%</td></tr>
+</table></div>
+
+<div class="table-wrap"><table>
+<tr><th>Hằng số hay dùng</th><th>Giá trị</th></tr>
+<tr><td>√365 / √252 / √24 / √(365×24)</td><td class="mono">19.105 / 15.875 / 4.899 / 93.59</td></tr>
+<tr><td>e / ln 2 / ln 10</td><td class="mono">2.71828 / 0.6931 / 2.3026</td></tr>
+<tr><td>√2 / √3 / √5 / √10</td><td class="mono">1.4142 / 1.7321 / 2.2361 / 3.1623</td></tr>
+<tr><td>√3000 / √3100 / √2500 / √3600</td><td class="mono">54.772 / 55.678 / 50 / 60</td></tr>
+<tr><td>z (phân phối chuẩn) 90% / 95% / 97.5% / 99%</td><td class="mono">1.282 / 1.645 / 1.960 / 2.326</td></tr>
+<tr><td>Số giây / năm</td><td class="mono">31,536,000</td></tr>
+<tr><td>Số kỳ funding / năm (8h)</td><td class="mono">1,095</td></tr>
+<tr><td>2⁹⁶</td><td class="mono">≈ 7.9228 × 10²⁸</td></tr>
+</table></div>
+</section>
+
+<!-- ================= 12 ================= -->
+<section id="s12">
+<h2><span class="n">12</span>Bảng công thức tổng hợp</h2>
+<div class="table-wrap"><table>
+<tr><th>Chủ đề</th><th>Công thức</th></tr>
+<tr><td>Return</td><td class="mono">(P₁ − P₀)/P₀;  log: ln(P₁/P₀)</td></tr>
+<tr><td>Hồi vốn</td><td class="mono">1/(1 − loss) − 1</td></tr>
+<tr><td>APR → APY</td><td class="mono">(1 + APR/n)^n − 1;  liên tục: e^APR − 1</td></tr>
+<tr><td>PV</td><td class="mono">FV / (1 + r)^t</td></tr>
+<tr><td>Vol scale</td><td class="mono">σ_T = σ₁√T</td></tr>
+<tr><td>Sharpe năm</td><td class="mono">(μ/σ)_ngày × √365</td></tr>
+<tr><td>Beta</td><td class="mono">ρ σ_A / σ_B</td></tr>
+<tr><td>Kelly</td><td class="mono">(bp − q)/b</td></tr>
+<tr><td>VaR</td><td class="mono">z σ V √T</td></tr>
+<tr><td>Spread</td><td class="mono">(ask − bid)/mid × 10⁴ bps</td></tr>
+<tr><td>Hòa vốn phí</td><td class="mono">P_mua (1 + f₁)/(1 − f₂)</td></tr>
+<tr><td>V2 swap</td><td class="mono">Δy = yγΔx/(x + γΔx)</td></tr>
+<tr><td>V2 exact out</td><td class="mono">Δx = xΔy/(γ(y − Δy))</td></tr>
+<tr><td>V2 reserve</td><td class="mono">x = L/√P, y = L√P, L = √(xy)</td></tr>
+<tr><td>V2 đến giá P₁ (có phí)</td><td class="mono">mua X: y/x = γP₁;  bán X: y/x = P₁/γ</td></tr>
+<tr><td>V2 arb 2 pool</td><td class="mono">Ea = a₁b₂/(b₂ + γb₁), Eb = γa₂b₁/(b₂ + γb₁), Δ* = (√(γEaEb) − Ea)/γ</td></tr>
+<tr><td>LP mint</td><td class="mono">min(Δx·T/x, Δy·T/y)</td></tr>
+<tr><td>IL</td><td class="mono">2√r/(1 + r) − 1</td></tr>
+<tr><td>V3 giá</td><td class="mono">1.0001^tick;  (sqrtPX96/2⁹⁶)² × 10^(dec0 − dec1)</td></tr>
+<tr><td>V3 swap trong range</td><td class="mono">Δy = LΔ√P;  Δx = LΔ(1/√P)</td></tr>
+<tr><td>V3 vị thế</td><td class="mono">x = L(1/√P − 1/√Pb), y = L(√P − √Pa)</td></tr>
+<tr><td>V3 hiệu quả vốn</td><td class="mono">1/(1 − (Pa/Pb)^¼)</td></tr>
+<tr><td>Funding</td><td class="mono">size × mark × F</td></tr>
+<tr><td>Funding sàn</td><td class="mono">P + clamp(I − P, ±0.05%)</td></tr>
+<tr><td>Thanh lý long / short</td><td class="mono">E(1 − 1/L)/(1 − m)  /  E(1 + 1/L)/(1 + m)</td></tr>
+<tr><td>Inverse PnL</td><td class="mono">N(1/E − 1/X) BTC</td></tr>
+<tr><td>Basis năm</td><td class="mono">(F − S)/S × 365/ngày</td></tr>
+<tr><td>Health factor</td><td class="mono">Σ(col × thr)/debt</td></tr>
+<tr><td>Lãi gửi</td><td class="mono">R_vay × U × (1 − RF)</td></tr>
+<tr><td>Looping</td><td class="mono">1/(1 − LTV)</td></tr>
+<tr><td>Arbitrage</td><td class="mono">bán − mua − phí − gas − impact;  triangular: Π rate &gt; 1</td></tr>
+</table></div>
+</section>
+
+<!-- ================= 13 ================= -->
+<section id="s13">
+<h2><span class="n">13</span>Checklist trước khi nộp</h2>
+<div class="callout think"><span class="lbl">Rà từng đáp án</span>
+<ol style="margin:4px 0">
+<li><strong>Đơn vị</strong>: USD hay token? % hay bps? Theo kỳ hay theo năm?</li>
+<li><strong>Dấu</strong>: lời hay lỗ, ai trả ai.</li>
+<li><strong>Độ lớn</strong>: khớp với ước lượng nhanh không?</li>
+<li><strong>Phí</strong>: đã tính đủ ở mọi chân? Đúng chỗ (input/output)?</li>
+<li><strong>Bid/ask</strong>: mua ở ask, bán ở bid.</li>
+<li><strong>Mẫu số</strong>: vốn thực tế bị khóa, giá trước hay sau.</li>
+<li><strong>Đơn/kép</strong>: đề yêu cầu cái nào?</li>
+<li><strong>Decimals và chiều giá</strong>: token0/token1, base/quote.</li>
+<li><strong>Trường hợp biên</strong>: cho phí = 0 hoặc size rất nhỏ thì có ra kết quả quen thuộc không?</li>
+<li><strong>Giả định</strong>: ghi rõ những gì đề không nói (365 hay 252 ngày, bỏ qua gas…).</li>
+</ol>
+</div>
+<div class="callout note"><span class="lbl">Khi không chắc đáp án</span>
+<p>Ghi công thức tổng quát, các giả định và cách kiểm tra. Bài thi trading thường chấm cả tư duy, và người phỏng vấn ở vòng 3 có thể hỏi lại cách bạn làm.</p>
+</div>
+</section>
+
+</div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* Problem toggles + progress */
+const probs = $$(".prob");
+let done = new Set(store.get("tm_done", []));
+let hideDone = false;
+
+function updateProgress(){
+  const n = probs.filter(p => done.has(p.id)).length;
+  $("#progText").textContent = `${n}/${probs.length} bài đã làm`;
+  $("#progBar").style.width = (n / probs.length * 100) + "%";
+  $$("section[id]").forEach(sec => {
+    const ps = [...sec.querySelectorAll(".prob")];
+    const link = document.querySelector(`.toc a[href="#${sec.id}"] em`);
+    if(link && ps.length) link.textContent = `${ps.filter(p => done.has(p.id)).length}/${ps.length}`;
+  });
+}
+probs.forEach(p => {
+  p.querySelectorAll("[data-t]").forEach(b => b.onclick = () => p.querySelector(".panel." + b.dataset.t).classList.toggle("open"));
+  const cb = p.querySelector("[data-done]");
+  cb.checked = done.has(p.id);
+  p.classList.toggle("done", cb.checked);
+  cb.onchange = () => {
+    cb.checked ? done.add(p.id) : done.delete(p.id);
+    store.set("tm_done", [...done]);
+    p.classList.toggle("done", cb.checked);
+    if(hideDone) p.style.display = cb.checked ? "none" : "";
+    updateProgress();
+  };
+});
+updateProgress();
+
+function toggleAll(cls, btn, openLabel, closeLabel){
+  const panels = $$(".panel." + cls);
+  const anyClosed = panels.some(x => !x.classList.contains("open"));
+  panels.forEach(x => x.classList.toggle("open", anyClosed));
+  btn.textContent = anyClosed ? closeLabel : openLabel;
+}
+$("#openHints").onclick = e => toggleAll("hint", e.target, "Mở tất cả gợi ý", "Đóng tất cả gợi ý");
+$("#openSols").onclick = e => toggleAll("sol", e.target, "Mở tất cả lời giải", "Đóng tất cả lời giải");
+$("#hideDone").onclick = e => {
+  hideDone = !hideDone;
+  e.target.setAttribute("aria-pressed", hideDone);
+  probs.forEach(p => p.style.display = hideDone && done.has(p.id) ? "none" : "");
+};
+
+/* TOC scrollspy */
+const links = $$(".toc a");
+const byId = Object.fromEntries(links.map(a => [a.getAttribute("href").slice(1), a]));
+if("IntersectionObserver" in window){
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if(en.isIntersecting){ links.forEach(a => a.classList.remove("active")); byId[en.target.id]?.classList.add("active"); }
+    });
+  }, {rootMargin: "-10% 0px -80% 0px"});
+  $$("section[id]").forEach(s => obs.observe(s));
+}
+$("#tocToggle").onclick = e => {
+  const c = $("#sidebar").classList.toggle("collapsed");
+  e.target.textContent = c ? "Mục lục ▾" : "Mục lục ▴";
+};
+links.forEach(a => a.addEventListener("click", () => {
+  if(innerWidth <= 900){ $("#sidebar").classList.add("collapsed"); $("#tocToggle").textContent = "Mục lục ▾"; }
+}));
+
+/* Theme */
+const savedTheme = store.get("tm_theme", null);
+if(savedTheme) document.documentElement.dataset.theme = savedTheme;
+$("#theme").onclick = () => {
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark";
+  store.set("tm_theme", r.dataset.theme);
+};
+</script>
+</body>
+</html>
