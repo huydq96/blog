@@ -62,7 +62,423 @@ white (chưa xét) → grey (đã thấy, chưa quét con) → black (đã quét
 Sau khi hết grey: white còn lại = rác → sweep thu hồi
 ```
 
+### Từng bước trên một đồ thị object cụ thể
+
+Dưới đây là đúng đồ thị mà đoạn code ở phần sau tạo ra: `globalCache → A → B`, `C` được giữ bởi biến local của `main`, `E` được giữ bởi một goroutine đang block, và `D` không có ai tham chiếu.
+
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="gc-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#78716C"/></marker>
+<marker id="gc-arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="gc-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="600" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Tri-color mark-and-sweep — chạy trên đồ thị object thật</text>
+<circle cx="316" cy="44" r="9" fill="#FFFFFF" stroke="#A8A29E" stroke-width="2"/>
+<text x="332" y="48" font-size="11" fill="#57534E">white: chưa thấy</text>
+<circle cx="452" cy="44" r="9" fill="#D6D3D1" stroke="#78716C" stroke-width="2"/>
+<text x="468" y="48" font-size="11" fill="#57534E">grey: đã thấy, chưa quét con</text>
+<circle cx="668" cy="44" r="9" fill="#374151"/>
+<text x="684" y="48" font-size="11" fill="#57534E">black: quét xong, chắc chắn sống</text>
+<rect x="20" y="62" width="420" height="218" rx="11" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2" filter="url(#gc-sh)"/>
+<text x="230" y="84" text-anchor="middle" font-size="12" font-weight="800" fill="#374151">① Quét ROOT — mọi object khác là white</text>
+<rect x="32" y="96" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="32" y="138" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="32" y="180" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<text x="78" y="112" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT global</text>
+<text x="78" y="154" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack main</text>
+<text x="78" y="196" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack goroutine</text>
+<line x1="128" y1="108" x2="166" y2="108" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="128" y1="150" x2="166" y2="150" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="128" y1="192" x2="166" y2="192" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="208" y1="108" x2="264" y2="108" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<circle cx="188" cy="108" r="19" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="286" cy="108" r="19" fill="#FFFFFF" stroke="#A8A29E" stroke-width="2"/>
+<circle cx="188" cy="150" r="19" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="188" cy="192" r="19" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="368" cy="170" r="19" fill="#FFFFFF" stroke="#A8A29E" stroke-width="2"/>
+<text x="188" y="113" text-anchor="middle" font-size="13" font-weight="800" fill="#1C1917">A</text>
+<text x="286" y="113" text-anchor="middle" font-size="13" font-weight="800" fill="#57534E">B</text>
+<text x="188" y="155" text-anchor="middle" font-size="13" font-weight="800" fill="#1C1917">C</text>
+<text x="188" y="197" text-anchor="middle" font-size="13" font-weight="800" fill="#1C1917">E</text>
+<text x="368" y="175" text-anchor="middle" font-size="13" font-weight="800" fill="#57534E">D</text>
+<text x="368" y="204" text-anchor="middle" font-size="9" fill="#A8A29E">không ai trỏ tới</text>
+<text x="230" y="250" text-anchor="middle" font-size="10.5" fill="#57534E">Root trỏ thẳng tới A, C, E → ba object này thành grey.</text>
+<text x="230" y="266" text-anchor="middle" font-size="10.5" fill="#57534E">B và D vẫn white vì GC chưa &quot;nhìn thấy&quot; chúng.</text>
+<rect x="460" y="62" width="420" height="218" rx="11" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2" filter="url(#gc-sh)"/>
+<text x="670" y="84" text-anchor="middle" font-size="12" font-weight="800" fill="#374151">② MARK — lấy từng grey, quét con của nó</text>
+<rect x="472" y="96" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="472" y="138" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="472" y="180" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<text x="518" y="112" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT global</text>
+<text x="518" y="154" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack main</text>
+<text x="518" y="196" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack goroutine</text>
+<line x1="568" y1="108" x2="606" y2="108" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="568" y1="150" x2="606" y2="150" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="568" y1="192" x2="606" y2="192" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="648" y1="108" x2="704" y2="108" stroke="#0D9488" stroke-width="2.5" marker-end="url(#gc-arg)"/>
+<circle cx="628" cy="108" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="726" cy="108" r="19" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="628" cy="150" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="628" cy="192" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="808" cy="170" r="19" fill="#FFFFFF" stroke="#A8A29E" stroke-width="2"/>
+<text x="628" y="113" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">A</text>
+<text x="726" y="113" text-anchor="middle" font-size="13" font-weight="800" fill="#1C1917">B</text>
+<text x="628" y="155" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">C</text>
+<text x="628" y="197" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">E</text>
+<text x="808" y="175" text-anchor="middle" font-size="13" font-weight="800" fill="#57534E">D</text>
+<text x="686" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#0D9488">đi theo con trỏ</text>
+<text x="670" y="250" text-anchor="middle" font-size="10.5" fill="#57534E">Quét A → thấy B, tô B grey, A chuyển black. C và E không có</text>
+<text x="670" y="266" text-anchor="middle" font-size="10.5" fill="#57534E">con trỏ ra ngoài nên quét xong là black luôn. D không ai chạm tới.</text>
+<rect x="20" y="296" width="420" height="218" rx="11" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2" filter="url(#gc-sh)"/>
+<text x="230" y="318" text-anchor="middle" font-size="12" font-weight="800" fill="#374151">③ Hết grey — white còn lại chính là rác</text>
+<rect x="32" y="330" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="32" y="372" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="32" y="414" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<text x="78" y="346" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT global</text>
+<text x="78" y="388" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack main</text>
+<text x="78" y="430" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack goroutine</text>
+<line x1="128" y1="342" x2="166" y2="342" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="128" y1="384" x2="166" y2="384" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="128" y1="426" x2="166" y2="426" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="208" y1="342" x2="264" y2="342" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<circle cx="188" cy="342" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="286" cy="342" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="188" cy="384" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="188" cy="426" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="368" cy="404" r="19" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="4 3"/>
+<text x="188" y="347" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">A</text>
+<text x="286" y="347" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">B</text>
+<text x="188" y="389" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">C</text>
+<text x="188" y="431" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">E</text>
+<text x="368" y="409" text-anchor="middle" font-size="13" font-weight="800" fill="#DC2626">D</text>
+<text x="368" y="438" text-anchor="middle" font-size="9" font-weight="700" fill="#DC2626">RÁC</text>
+<text x="230" y="484" text-anchor="middle" font-size="10.5" fill="#57534E">Không còn object grey nào → mark kết thúc. A, B, C, E đều black.</text>
+<text x="230" y="500" text-anchor="middle" font-size="10.5" fill="#57534E">D vẫn white: không có đường đi nào từ root tới nó.</text>
+<rect x="460" y="296" width="420" height="218" rx="11" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#gc-sh)"/>
+<text x="670" y="318" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">④ SWEEP — thu hồi vùng nhớ của object white</text>
+<rect x="472" y="330" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="472" y="372" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="472" y="414" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<text x="518" y="346" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT global</text>
+<text x="518" y="388" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack main</text>
+<text x="518" y="430" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack goroutine</text>
+<line x1="568" y1="342" x2="606" y2="342" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="568" y1="384" x2="606" y2="384" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="568" y1="426" x2="606" y2="426" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="648" y1="342" x2="704" y2="342" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<circle cx="628" cy="342" r="19" fill="#0D9488" stroke="#0F766E" stroke-width="2.5"/>
+<circle cx="726" cy="342" r="19" fill="#0D9488" stroke="#0F766E" stroke-width="2.5"/>
+<circle cx="628" cy="384" r="19" fill="#0D9488" stroke="#0F766E" stroke-width="2.5"/>
+<circle cx="628" cy="426" r="19" fill="#0D9488" stroke="#0F766E" stroke-width="2.5"/>
+<text x="628" y="347" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">A</text>
+<text x="726" y="347" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">B</text>
+<text x="628" y="389" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">C</text>
+<text x="628" y="431" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">E</text>
+<text x="808" y="409" text-anchor="middle" font-size="22" font-weight="800" fill="#DC2626">✕</text>
+<text x="808" y="434" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">D đã thu hồi</text>
+<text x="670" y="484" text-anchor="middle" font-size="10.5" fill="#0F766E">1MB của D trả về free list. Heap giảm đúng 1MB — xem số đo ở dưới.</text>
+<text x="670" y="500" text-anchor="middle" font-size="10.5" fill="#0F766E">Chu kỳ sau, A B C E được đặt lại thành white và quét lại từ đầu.</text>
+<rect x="20" y="528" width="860" height="58" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="40" y="552" font-size="12" font-weight="800" fill="#7C4A03">Điểm mấu chốt: GC không hỏi &quot;object này còn được dùng không&quot;</text>
+<text x="40" y="572" font-size="11" fill="#92400E">Nó chỉ hỏi <tspan font-weight="700">&quot;có đường đi nào từ root tới object này không&quot;</tspan>. D chết không phải vì không ai dùng, mà vì không ai <tspan font-style="italic">trỏ tới</tspan>.</text>
+</svg>
+</div>
+
+### Ví dụ bằng code — chạy thật và đo từng bước
+
+Chương trình dưới đây dựng đúng đồ thị trên, rồi lần lượt cắt từng cạnh và gọi `runtime.GC()` để thấy heap tụt đúng 1MB mỗi lần:
+
+```go
+package main
+
+import (
+	"fmt"
+	"runtime"
+	"runtime/debug"
+)
+
+// ╔═══════════════════════════════════════════════════════════════╗
+// ║ DATA / BSS SEGMENT — cấp phát 1 lần lúc khởi động,            ║
+// ║ sống suốt đời chương trình => LUÔN là GC root.                ║
+// ╚═══════════════════════════════════════════════════════════════╝
+var globalCache *Node // BSS (chưa khởi tạo → zero value nil)
+
+// Node sẽ nằm trên HEAP. Mỗi Node nặng đúng 1MB để nhìn rõ số liệu.
+type Node struct {
+	name string
+	next *Node        // con trỏ → GC phải đi theo cạnh này khi mark
+	data [1 << 20]byte // payload 1MB
+}
+
+func newNode(name string) *Node {
+	// n là biến LOCAL, nhưng ta trả về con trỏ → escape analysis đẩy lên HEAP.
+	// Kiểm chứng: go build -gcflags="-m"  →  "&Node{...} escapes to heap"
+	n := &Node{name: name}
+	return n
+}
+
+// ╔═══════════════════════════════════════════════════════════════╗
+// ║ STACK — x không escape, nằm trên stack của goroutine gọi hàm. ║
+// ║ GC KHÔNG tốn một chút chi phí nào cho x.                      ║
+// ╚═══════════════════════════════════════════════════════════════╝
+func sumOnStack(a, b int) int {
+	x := a + b // stack: thu hồi tự động khi hàm return
+	return x   // chỉ copy giá trị ra ngoài, không con trỏ nào thoát
+}
+
+func heapMB() float64 {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	return float64(m.HeapAlloc) / (1 << 20)
+}
+
+func main() {
+	// Tắt GC tự động: mọi lần GC dưới đây đều do ta CHỦ ĐỘNG gọi,
+	// để số liệu phản ánh đúng từng bước, không lẫn chu kỳ bất chợt.
+	debug.SetGCPercent(-1)
+	fmt.Printf("heap ban đầu                            : %.1f MB\n\n", heapMB())
+
+	// ─── Dựng đồ thị object trên heap ───
+	// globalCache ──► A ──► B      (reachable từ root GLOBAL)
+	a := newNode("A")
+	a.next = newNode("B")
+	globalCache = a
+
+	// C: chỉ được giữ bởi biến local của main → root STACK của goroutine main
+	c := newNode("C")
+
+	// D: tạo xong bỏ luôn, không ai tham chiếu → WHITE → bị sweep
+	_ = newNode("D")
+
+	// E: bị giữ bởi một goroutine block vĩnh viễn.
+	// MỖI GOROUTINE ĐANG SỐNG LÀ 1 GC ROOT → E không bao giờ được thu hồi,
+	// dù logic chương trình không còn cần nó. Đây chính là goroutine leak.
+	ready := make(chan struct{})
+	go func() {
+		e := newNode("E")
+		close(ready)          // báo đã cấp phát xong rồi mới block
+		<-make(chan struct{}) // block mãi mãi → goroutine sống mãi → e sống mãi
+		runtime.KeepAlive(e)
+	}()
+	<-ready
+
+	fmt.Printf("tạo xong A,B,C,D,E (5 × 1MB)            : %.1f MB\n", heapMB())
+
+	// ─── GC #1 ───
+	// Mark: A,B (từ global) · C (từ stack main) · E (từ stack goroutine) → BLACK
+	// D không có đường nào từ root → WHITE → sweep thu hồi
+	runtime.GC()
+	fmt.Printf("GC #1 — D là rác, bị thu hồi            : %.1f MB   (A,B,C,E sống)\n", heapMB())
+	fmt.Printf("        C vẫn sống vì main còn dùng: %q\n", c.name) // chính dòng này giữ C reachable
+
+	// ─── GC #2: buông tham chiếu tới C ───
+	c = nil
+	runtime.GC()
+	fmt.Printf("GC #2 — c = nil, C thành rác            : %.1f MB   (A,B,E sống)\n", heapMB())
+
+	// ─── GC #3: cắt cạnh A ──► B ───
+	// B mất đường đi duy nhất từ root. A vẫn sống vì global còn giữ.
+	globalCache.next = nil
+	runtime.GC()
+	fmt.Printf("GC #3 — A.next = nil, B thành rác       : %.1f MB   (A,E sống)\n", heapMB())
+
+	// ─── GC #4: buông cả biến global ───
+	globalCache = nil
+	runtime.GC()
+	fmt.Printf("GC #4 — globalCache = nil, A thành rác  : %.1f MB   (chỉ còn E)\n", heapMB())
+
+	// E vẫn nằm đó. GC làm đúng việc của nó — E thật sự còn reachable.
+	fmt.Printf("\ngoroutine đang sống: %d → E (1MB) vẫn reachable từ stack của nó.\n",
+		runtime.NumGoroutine())
+	fmt.Println("GC không thu hồi thứ \"không dùng nữa\", nó thu hồi thứ KHÔNG CÒN REACHABLE.")
+	fmt.Printf("\nstack không tốn chi phí GC: sumOnStack(2,3) = %d\n", sumOnStack(2, 3))
+}
+```
+
+Kết quả chạy thật (Go 1.24.4, linux/amd64):
+
+```
+heap ban đầu                            : 0.2 MB
+
+tạo xong A,B,C,D,E (5 × 1MB)            : 5.2 MB
+GC #1 — D là rác, bị thu hồi            : 4.2 MB   (A,B,C,E sống)
+        C vẫn sống vì main còn dùng: "C"
+GC #2 — c = nil, C thành rác            : 3.2 MB   (A,B,E sống)
+GC #3 — A.next = nil, B thành rác       : 2.2 MB   (A,E sống)
+GC #4 — globalCache = nil, A thành rác  : 1.2 MB   (chỉ còn E)
+
+goroutine đang sống: 2 → E (1MB) vẫn reachable từ stack của nó.
+GC không thu hồi thứ "không dùng nữa", nó thu hồi thứ KHÔNG CÒN REACHABLE.
+
+stack không tốn chi phí GC: sumOnStack(2,3) = 5
+```
+
+| Thao tác | Object trở thành rác | Vì sao | Heap |
+|---|---|---|---:|
+| — | — | vừa cấp phát 5 object | **5.2 MB** |
+| `runtime.GC()` | **D** | không một root nào trỏ tới | **4.2 MB** |
+| `c = nil` | **C** | mất root `stack main` — đường duy nhất | **3.2 MB** |
+| `globalCache.next = nil` | **B** | cạnh `A → B` bị cắt, hết đường từ root | **2.2 MB** |
+| `globalCache = nil` | **A** | mất root `global` | **1.2 MB** |
+| *(kết thúc)* | **không bao giờ là E** | goroutine đang block vẫn là root | **1.2 MB** |
+
+Ba điều đọc được từ bảng này:
+
+- **Heap giảm đúng 1MB mỗi bước** — tương ứng chính xác một object bị cắt khỏi đồ thị. GC không "đoán", nó đi theo con trỏ.
+- **Cắt cạnh giữa hai object cũng đủ giết object con** (`A.next = nil` làm B chết), không nhất thiết phải buông biến gốc.
+- **1MB cuối không bao giờ về 0.2MB.** Goroutine kia chỉ đang `block`, nhưng với GC nó là root hợp lệ — đây chính là goroutine leak, và GC hoàn toàn "làm đúng".
+
+### Bốn pha của một chu kỳ GC và hai điểm Stop-The-World
+
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="ph-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="ph-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="400" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Một chu kỳ GC — chương trình chỉ bị dừng ở hai vạch đỏ hẹp</text>
+<text x="450" y="46" text-anchor="middle" font-size="11" fill="#78716C">Số liệu lấy từ GODEBUG=gctrace=1 của chính chương trình ở trên</text>
+<text x="24" y="92" font-size="11" font-weight="700" fill="#57534E">GC</text>
+<rect x="60" y="74" width="26" height="34" rx="4" fill="#DC2626"/>
+<rect x="90" y="74" width="330" height="34" rx="4" fill="#0D9488"/>
+<rect x="424" y="74" width="20" height="34" rx="4" fill="#DC2626"/>
+<rect x="448" y="74" width="412" height="34" rx="4" fill="#14B8A6"/>
+<text x="73" y="96" text-anchor="middle" font-size="9" font-weight="800" fill="#FFFFFF">STW</text>
+<text x="255" y="96" text-anchor="middle" font-size="12" font-weight="800" fill="#FFFFFF">CONCURRENT MARK</text>
+<text x="434" y="96" text-anchor="middle" font-size="9" font-weight="800" fill="#FFFFFF">STW</text>
+<text x="654" y="96" text-anchor="middle" font-size="12" font-weight="800" fill="#FFFFFF">CONCURRENT SWEEP</text>
+<text x="24" y="152" font-size="11" font-weight="700" fill="#57534E">App</text>
+<rect x="60" y="134" width="26" height="34" rx="4" fill="#E7E5E4" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="3 2"/>
+<rect x="90" y="134" width="330" height="34" rx="4" fill="#374151"/>
+<rect x="424" y="134" width="20" height="34" rx="4" fill="#E7E5E4" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="3 2"/>
+<rect x="448" y="134" width="412" height="34" rx="4" fill="#374151"/>
+<text x="73" y="156" text-anchor="middle" font-size="9" font-weight="800" fill="#DC2626">■</text>
+<text x="255" y="156" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">mutator chạy bình thường</text>
+<text x="434" y="156" text-anchor="middle" font-size="9" font-weight="800" fill="#DC2626">■</text>
+<text x="654" y="156" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">mutator chạy bình thường</text>
+<rect x="60" y="184" width="384" height="22" rx="5" fill="#FFF3DB" stroke="#F5A623" stroke-width="1.8"/>
+<text x="252" y="199" text-anchor="middle" font-size="10.5" font-weight="800" fill="#7C4A03">WRITE BARRIER BẬT trong suốt khoảng này</text>
+<line x1="73" y1="112" x2="73" y2="130" stroke="#DC2626" stroke-width="1.5"/>
+<line x1="434" y1="112" x2="434" y2="130" stroke="#DC2626" stroke-width="1.5"/>
+<rect x="24" y="222" width="190" height="62" rx="8" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="119" y="242" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">① Sweep Termination</text>
+<text x="119" y="258" text-anchor="middle" font-size="10" fill="#BE123C">STW · bật write barrier,</text>
+<text x="119" y="272" text-anchor="middle" font-size="10" fill="#BE123C">quét root ban đầu</text>
+<rect x="226" y="222" width="190" height="62" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="321" y="242" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">② Mark</text>
+<text x="321" y="258" text-anchor="middle" font-size="10" fill="#0F766E">chạy SONG SONG với app,</text>
+<text x="321" y="272" text-anchor="middle" font-size="10" fill="#0F766E">tô màu theo tri-color</text>
+<rect x="428" y="222" width="190" height="62" rx="8" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="523" y="242" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">③ Mark Termination</text>
+<text x="523" y="258" text-anchor="middle" font-size="10" fill="#BE123C">STW · chốt kết quả mark,</text>
+<text x="523" y="272" text-anchor="middle" font-size="10" fill="#BE123C">tắt write barrier</text>
+<rect x="630" y="222" width="190" height="62" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="725" y="242" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">④ Sweep</text>
+<text x="725" y="258" text-anchor="middle" font-size="10" fill="#0F766E">trả vùng nhớ white về free</text>
+<text x="725" y="272" text-anchor="middle" font-size="10" fill="#0F766E">list, cũng chạy song song</text>
+<rect x="24" y="298" width="852" height="86" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="44" y="320" font-size="12" font-weight="800" fill="#374151">Đọc thẳng từ dòng gctrace đo được</text>
+<rect x="44" y="330" width="812" height="20" rx="4" fill="#F5F5F4"/>
+<text x="52" y="344" font-size="10" font-family="monospace" fill="#1C1917">gc 1 @0.002s 2%: 0.051+0.11+0.003 ms clock, 5-&gt;5-&gt;4 MB, 12 P (forced)</text>
+<text x="44" y="366" font-size="10.5" fill="#57534E"><tspan font-weight="700" fill="#DC2626">0.051</tspan> ms STW đầu  +  <tspan font-weight="700" fill="#0D9488">0.11</tspan> ms mark chạy song song  +  <tspan font-weight="700" fill="#DC2626">0.003</tspan> ms STW cuối</text>
+<text x="44" y="380" font-size="10.5" fill="#57534E">Tổng thời gian app bị dừng: <tspan font-weight="700">0.054 ms</tspan> — dưới 1/18 của một mili-giây. Và <tspan font-family="monospace">5-&gt;5-&gt;4 MB</tspan> chính là D bị thu hồi.</text>
+</svg>
+</div>
+
+Bật `gctrace` để tự nhìn số của chương trình mình:
+
+```bash
+GODEBUG=gctrace=1 ./myapp
+```
+
+```
+gc 1 @0.002s 2%: 0.051+0.11+0.003 ms clock, ... 5->5->4 MB, ... 12 P (forced)
+gc 2 @0.002s 2%: 0.006+0.072+0.003 ms clock, ... 4->4->3 MB, ... 12 P (forced)
+gc 3 @0.003s 3%: 0.031+0.12+0.009 ms clock,  ... 3->3->2 MB, ... 12 P (forced)
+gc 4 @0.003s 4%: 0.012+0.086+0.012 ms clock, ... 2->2->1 MB, ... 12 P (forced)
+```
+
+Cách đọc một dòng:
+
+| Phần | Ý nghĩa |
+|---|---|
+| `gc 1` | chu kỳ GC thứ mấy kể từ lúc chương trình chạy |
+| `@0.002s` | thời điểm chu kỳ này bắt đầu, tính từ lúc khởi động |
+| `2%` | **tổng %** CPU mà GC đã dùng từ đầu chương trình tới giờ |
+| `0.051+0.11+0.003 ms` | STW đầu **+** mark concurrent **+** STW cuối — hai số ngoài cùng là phần app thật sự bị dừng |
+| `5->5->4 MB` | heap lúc bắt đầu → lúc kết thúc mark → **heap còn sống sau sweep** |
+| `12 P` | số processor runtime đang dùng |
+| `(forced)` | chu kỳ này do `runtime.GC()` gọi tay, không phải do `GOGC` kích hoạt |
+
+> ★ Số thứ ba trong `5->5->4 MB` là con số đáng quan tâm nhất: đó là **heap thực sự còn sống**, và cũng là mốc để `GOGC` tính chu kỳ tiếp theo. `GOGC=100` nghĩa là GC sẽ chạy lại khi heap chạm `4 × 2 = 8 MB`.
+
+
 **Write barrier**: vì mark chạy *đồng thời* với chương trình, nếu mutator đổi con trỏ giữa lúc GC đang quét (ví dụ gán 1 object black trỏ tới 1 object white), GC có thể bỏ sót và thu hồi nhầm object đang sống. Go dùng **hybrid write barrier** (từ Go 1.8) để chặn đúng tình huống này mà không cần dừng hẳn chương trình.
+
+Tình huống cụ thể mà write barrier chặn — cần **đồng thời hai thao tác** của mutator thì object sống mới bị bỏ sót:
+
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="wb-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#78716C"/></marker>
+<marker id="wb-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<filter id="wb-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="400" fill="#FFFDF7" rx="16"/>
+<text x="440" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Vì sao cần write barrier — kịch bản object sống bị bỏ sót</text>
+<text x="440" y="46" text-anchor="middle" font-size="11" fill="#78716C">Mutator ghi con trỏ ngay giữa lúc GC đang mark</text>
+<rect x="16" y="60" width="278" height="212" rx="11" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2" filter="url(#wb-sh)"/>
+<text x="155" y="82" text-anchor="middle" font-size="12" font-weight="800" fill="#374151">① Đang mark dở</text>
+<circle cx="76" cy="122" r="21" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="76" cy="200" r="21" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="216" cy="200" r="21" fill="#FFFFFF" stroke="#A8A29E" stroke-width="2"/>
+<text x="76" y="127" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">A</text>
+<text x="76" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#1C1917">C</text>
+<text x="216" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#57534E">B</text>
+<text x="76" y="156" text-anchor="middle" font-size="9" font-weight="700" fill="#374151">black: quét xong</text>
+<text x="76" y="234" text-anchor="middle" font-size="9" font-weight="700" fill="#78716C">grey: chưa quét con</text>
+<text x="216" y="234" text-anchor="middle" font-size="9" font-weight="700" fill="#A8A29E">white</text>
+<line x1="99" y1="200" x2="191" y2="200" stroke="#78716C" stroke-width="2" marker-end="url(#wb-ar)"/>
+<text x="155" y="192" text-anchor="middle" font-size="9" fill="#57534E">đường sống duy nhất của B</text>
+<text x="155" y="258" text-anchor="middle" font-size="10" fill="#57534E">B còn sống nhờ cạnh C → B.</text>
+<rect x="302" y="60" width="278" height="212" rx="11" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#wb-sh)"/>
+<text x="441" y="82" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">② KHÔNG có barrier → mất object</text>
+<circle cx="362" cy="122" r="21" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="362" cy="200" r="21" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="502" cy="200" r="21" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="4 3"/>
+<text x="362" y="127" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">A</text>
+<text x="362" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#1C1917">C</text>
+<text x="502" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#DC2626">B</text>
+<path d="M383,133 C430,150 470,172 486,186" stroke="#DC2626" stroke-width="2.5" fill="none" marker-end="url(#wb-arr)"/>
+<text x="452" y="146" text-anchor="middle" font-size="9" font-weight="800" fill="#DC2626">A.next = B</text>
+<line x1="385" y1="200" x2="477" y2="200" stroke="#D6D3D1" stroke-width="2" stroke-dasharray="4 3"/>
+<line x1="412" y1="188" x2="450" y2="212" stroke="#DC2626" stroke-width="2.5"/>
+<line x1="450" y1="188" x2="412" y2="212" stroke="#DC2626" stroke-width="2.5"/>
+<text x="431" y="232" text-anchor="middle" font-size="9" font-weight="800" fill="#DC2626">C.next = nil</text>
+<text x="441" y="258" text-anchor="middle" font-size="10" fill="#BE123C">A đã black nên không quét lại. C quét thì B đã mất cạnh.</text>
+<rect x="588" y="60" width="278" height="212" rx="11" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#wb-sh)"/>
+<text x="727" y="82" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">③ CÓ write barrier → B được cứu</text>
+<circle cx="648" cy="122" r="21" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="648" cy="200" r="21" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="788" cy="200" r="21" fill="#D6D3D1" stroke="#0D9488" stroke-width="3"/>
+<text x="648" y="127" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">A</text>
+<text x="648" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#1C1917">C</text>
+<text x="788" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#1C1917">B</text>
+<path d="M669,133 C716,150 756,172 772,186" stroke="#0D9488" stroke-width="2.5" fill="none" marker-end="url(#wb-ar)"/>
+<text x="738" y="146" text-anchor="middle" font-size="9" font-weight="800" fill="#0F766E">A.next = B</text>
+<text x="788" y="236" text-anchor="middle" font-size="9" font-weight="800" fill="#0D9488">bị tô GREY ngay</text>
+<text x="727" y="258" text-anchor="middle" font-size="10" fill="#0F766E">Barrier chen vào lúc ghi con trỏ, đẩy B vào hàng đợi mark.</text>
+<rect x="16" y="286" width="850" height="98" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="36" y="310" font-size="12" font-weight="800" fill="#7C4A03">Bất biến mà GC phải giữ: KHÔNG được tồn tại một object black trỏ thẳng tới một object white</text>
+<text x="36" y="332" font-size="11" fill="#92400E">Nếu bất biến này vỡ, GC sẽ sweep nhầm một object đang được dùng → chương trình đọc phải vùng nhớ đã thu hồi.</text>
+<text x="36" y="352" font-size="11" fill="#92400E">Go dùng <tspan font-weight="700">hybrid write barrier</tspan> (từ Go 1.8): tô màu cả giá trị cũ bị ghi đè lẫn giá trị mới được ghi vào.</text>
+<text x="36" y="372" font-size="11" fill="#92400E">Cái giá: mỗi lệnh ghi con trỏ trong lúc mark tốn thêm vài nhịp CPU. Đổi lại, <tspan font-weight="700">không phải dừng chương trình để quét lại stack</tspan>.</text>
+</svg>
+</div>
+
 
 **Stop-The-World (STW)**: GC của Go chỉ dừng chương trình ở 2 thời điểm rất ngắn (thường dưới 1ms): lúc bắt đầu (bật write barrier) và lúc kết thúc mark phase (mark termination). Phần lớn thời gian mark + sweep chạy concurrent.
 

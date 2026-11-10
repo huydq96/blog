@@ -56,7 +56,7 @@
   "keywords": [
     "golang", "interview"
   ],
-  "wordCount" : "2874",
+  "wordCount" : "4925",
   "inLanguage": "en",
   "datePublished": "2026-09-04T10:00:00+07:00",
   "dateModified": "2026-09-04T10:00:00+07:00",
@@ -217,7 +217,7 @@ function toggleThemeListener() {
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
   <span class="post-tags"><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/interview/">Interview</a></span></span><span class="meta-item">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
-  <span>14 min</span></span>
+  <span>24 min</span></span>
 
       
       
@@ -247,7 +247,15 @@ function toggleThemeListener() {
                 <li>
                     <a href="#gc-l%c3%a0-g%c3%ac" aria-label="GC là gì?">GC là gì?</a></li>
                 <li>
-                    <a href="#c%c3%a1ch-ho%e1%ba%a1t-%c4%91%e1%bb%99ng--tri-color-mark-and-sweep" aria-label="Cách hoạt động — Tri-color mark-and-sweep">Cách hoạt động — Tri-color mark-and-sweep</a></li>
+                    <a href="#c%c3%a1ch-ho%e1%ba%a1t-%c4%91%e1%bb%99ng--tri-color-mark-and-sweep" aria-label="Cách hoạt động — Tri-color mark-and-sweep">Cách hoạt động — Tri-color mark-and-sweep</a><ul>
+                        
+                <li>
+                    <a href="#t%e1%bb%abng-b%c6%b0%e1%bb%9bc-tr%c3%aan-m%e1%bb%99t-%c4%91%e1%bb%93-th%e1%bb%8b-object-c%e1%bb%a5-th%e1%bb%83" aria-label="Từng bước trên một đồ thị object cụ thể">Từng bước trên một đồ thị object cụ thể</a></li>
+                <li>
+                    <a href="#v%c3%ad-d%e1%bb%a5-b%e1%ba%b1ng-code--ch%e1%ba%a1y-th%e1%ba%adt-v%c3%a0-%c4%91o-t%e1%bb%abng-b%c6%b0%e1%bb%9bc" aria-label="Ví dụ bằng code — chạy thật và đo từng bước">Ví dụ bằng code — chạy thật và đo từng bước</a></li>
+                <li>
+                    <a href="#b%e1%bb%91n-pha-c%e1%bb%a7a-m%e1%bb%99t-chu-k%e1%bb%b3-gc-v%c3%a0-hai-%c4%91i%e1%bb%83m-stop-the-world" aria-label="Bốn pha của một chu kỳ GC và hai điểm Stop-The-World">Bốn pha của một chu kỳ GC và hai điểm Stop-The-World</a></li></ul>
+                </li>
                 <li>
                     <a href="#stack-vs-heap--escape-analysis" aria-label="Stack vs Heap — Escape Analysis">Stack vs Heap — Escape Analysis</a></li>
                 <li>
@@ -398,7 +406,611 @@ function toggleThemeListener() {
 </span></span><span class="line"><span class="cl">Sau khi hết grey: white còn lại = rác → sweep thu hồi
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p><strong>Write barrier</strong>: vì mark chạy <em>đồng thời</em> với chương trình, nếu mutator đổi con trỏ giữa lúc GC đang quét (ví dụ gán 1 object black trỏ tới 1 object white), GC có thể bỏ sót và thu hồi nhầm object đang sống. Go dùng <strong>hybrid write barrier</strong> (từ Go 1.8) để chặn đúng tình huống này mà không cần dừng hẳn chương trình.</p>
+</div><h3 id="từng-bước-trên-một-đồ-thị-object-cụ-thể">Từng bước trên một đồ thị object cụ thể<a hidden class="anchor" aria-hidden="true" href="#từng-bước-trên-một-đồ-thị-object-cụ-thể">¶</a></h3>
+<p>Dưới đây là đúng đồ thị mà đoạn code ở phần sau tạo ra: <code>globalCache → A → B</code>, <code>C</code> được giữ bởi biến local của <code>main</code>, <code>E</code> được giữ bởi một goroutine đang block, và <code>D</code> không có ai tham chiếu.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="gc-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#78716C"/></marker>
+<marker id="gc-arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="gc-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="600" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Tri-color mark-and-sweep — chạy trên đồ thị object thật</text>
+<circle cx="316" cy="44" r="9" fill="#FFFFFF" stroke="#A8A29E" stroke-width="2"/>
+<text x="332" y="48" font-size="11" fill="#57534E">white: chưa thấy</text>
+<circle cx="452" cy="44" r="9" fill="#D6D3D1" stroke="#78716C" stroke-width="2"/>
+<text x="468" y="48" font-size="11" fill="#57534E">grey: đã thấy, chưa quét con</text>
+<circle cx="668" cy="44" r="9" fill="#374151"/>
+<text x="684" y="48" font-size="11" fill="#57534E">black: quét xong, chắc chắn sống</text>
+<rect x="20" y="62" width="420" height="218" rx="11" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2" filter="url(#gc-sh)"/>
+<text x="230" y="84" text-anchor="middle" font-size="12" font-weight="800" fill="#374151">① Quét ROOT — mọi object khác là white</text>
+<rect x="32" y="96" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="32" y="138" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="32" y="180" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<text x="78" y="112" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT global</text>
+<text x="78" y="154" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack main</text>
+<text x="78" y="196" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack goroutine</text>
+<line x1="128" y1="108" x2="166" y2="108" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="128" y1="150" x2="166" y2="150" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="128" y1="192" x2="166" y2="192" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="208" y1="108" x2="264" y2="108" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<circle cx="188" cy="108" r="19" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="286" cy="108" r="19" fill="#FFFFFF" stroke="#A8A29E" stroke-width="2"/>
+<circle cx="188" cy="150" r="19" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="188" cy="192" r="19" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="368" cy="170" r="19" fill="#FFFFFF" stroke="#A8A29E" stroke-width="2"/>
+<text x="188" y="113" text-anchor="middle" font-size="13" font-weight="800" fill="#1C1917">A</text>
+<text x="286" y="113" text-anchor="middle" font-size="13" font-weight="800" fill="#57534E">B</text>
+<text x="188" y="155" text-anchor="middle" font-size="13" font-weight="800" fill="#1C1917">C</text>
+<text x="188" y="197" text-anchor="middle" font-size="13" font-weight="800" fill="#1C1917">E</text>
+<text x="368" y="175" text-anchor="middle" font-size="13" font-weight="800" fill="#57534E">D</text>
+<text x="368" y="204" text-anchor="middle" font-size="9" fill="#A8A29E">không ai trỏ tới</text>
+<text x="230" y="250" text-anchor="middle" font-size="10.5" fill="#57534E">Root trỏ thẳng tới A, C, E → ba object này thành grey.</text>
+<text x="230" y="266" text-anchor="middle" font-size="10.5" fill="#57534E">B và D vẫn white vì GC chưa &quot;nhìn thấy&quot; chúng.</text>
+<rect x="460" y="62" width="420" height="218" rx="11" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2" filter="url(#gc-sh)"/>
+<text x="670" y="84" text-anchor="middle" font-size="12" font-weight="800" fill="#374151">② MARK — lấy từng grey, quét con của nó</text>
+<rect x="472" y="96" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="472" y="138" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="472" y="180" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<text x="518" y="112" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT global</text>
+<text x="518" y="154" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack main</text>
+<text x="518" y="196" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack goroutine</text>
+<line x1="568" y1="108" x2="606" y2="108" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="568" y1="150" x2="606" y2="150" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="568" y1="192" x2="606" y2="192" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="648" y1="108" x2="704" y2="108" stroke="#0D9488" stroke-width="2.5" marker-end="url(#gc-arg)"/>
+<circle cx="628" cy="108" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="726" cy="108" r="19" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="628" cy="150" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="628" cy="192" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="808" cy="170" r="19" fill="#FFFFFF" stroke="#A8A29E" stroke-width="2"/>
+<text x="628" y="113" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">A</text>
+<text x="726" y="113" text-anchor="middle" font-size="13" font-weight="800" fill="#1C1917">B</text>
+<text x="628" y="155" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">C</text>
+<text x="628" y="197" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">E</text>
+<text x="808" y="175" text-anchor="middle" font-size="13" font-weight="800" fill="#57534E">D</text>
+<text x="686" y="142" text-anchor="middle" font-size="9" font-weight="700" fill="#0D9488">đi theo con trỏ</text>
+<text x="670" y="250" text-anchor="middle" font-size="10.5" fill="#57534E">Quét A → thấy B, tô B grey, A chuyển black. C và E không có</text>
+<text x="670" y="266" text-anchor="middle" font-size="10.5" fill="#57534E">con trỏ ra ngoài nên quét xong là black luôn. D không ai chạm tới.</text>
+<rect x="20" y="296" width="420" height="218" rx="11" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2" filter="url(#gc-sh)"/>
+<text x="230" y="318" text-anchor="middle" font-size="12" font-weight="800" fill="#374151">③ Hết grey — white còn lại chính là rác</text>
+<rect x="32" y="330" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="32" y="372" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="32" y="414" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<text x="78" y="346" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT global</text>
+<text x="78" y="388" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack main</text>
+<text x="78" y="430" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack goroutine</text>
+<line x1="128" y1="342" x2="166" y2="342" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="128" y1="384" x2="166" y2="384" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="128" y1="426" x2="166" y2="426" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="208" y1="342" x2="264" y2="342" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<circle cx="188" cy="342" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="286" cy="342" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="188" cy="384" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="188" cy="426" r="19" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="368" cy="404" r="19" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="4 3"/>
+<text x="188" y="347" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">A</text>
+<text x="286" y="347" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">B</text>
+<text x="188" y="389" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">C</text>
+<text x="188" y="431" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">E</text>
+<text x="368" y="409" text-anchor="middle" font-size="13" font-weight="800" fill="#DC2626">D</text>
+<text x="368" y="438" text-anchor="middle" font-size="9" font-weight="700" fill="#DC2626">RÁC</text>
+<text x="230" y="484" text-anchor="middle" font-size="10.5" fill="#57534E">Không còn object grey nào → mark kết thúc. A, B, C, E đều black.</text>
+<text x="230" y="500" text-anchor="middle" font-size="10.5" fill="#57534E">D vẫn white: không có đường đi nào từ root tới nó.</text>
+<rect x="460" y="296" width="420" height="218" rx="11" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#gc-sh)"/>
+<text x="670" y="318" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">④ SWEEP — thu hồi vùng nhớ của object white</text>
+<rect x="472" y="330" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="472" y="372" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<rect x="472" y="414" width="92" height="24" rx="5" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.6"/>
+<text x="518" y="346" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT global</text>
+<text x="518" y="388" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack main</text>
+<text x="518" y="430" text-anchor="middle" font-size="8" font-weight="700" fill="#3730A3">ROOT stack goroutine</text>
+<line x1="568" y1="342" x2="606" y2="342" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="568" y1="384" x2="606" y2="384" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="568" y1="426" x2="606" y2="426" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<line x1="648" y1="342" x2="704" y2="342" stroke="#78716C" stroke-width="1.8" marker-end="url(#gc-ar)"/>
+<circle cx="628" cy="342" r="19" fill="#0D9488" stroke="#0F766E" stroke-width="2.5"/>
+<circle cx="726" cy="342" r="19" fill="#0D9488" stroke="#0F766E" stroke-width="2.5"/>
+<circle cx="628" cy="384" r="19" fill="#0D9488" stroke="#0F766E" stroke-width="2.5"/>
+<circle cx="628" cy="426" r="19" fill="#0D9488" stroke="#0F766E" stroke-width="2.5"/>
+<text x="628" y="347" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">A</text>
+<text x="726" y="347" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">B</text>
+<text x="628" y="389" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">C</text>
+<text x="628" y="431" text-anchor="middle" font-size="13" font-weight="800" fill="#FFFFFF">E</text>
+<text x="808" y="409" text-anchor="middle" font-size="22" font-weight="800" fill="#DC2626">✕</text>
+<text x="808" y="434" text-anchor="middle" font-size="10" font-weight="700" fill="#DC2626">D đã thu hồi</text>
+<text x="670" y="484" text-anchor="middle" font-size="10.5" fill="#0F766E">1MB của D trả về free list. Heap giảm đúng 1MB — xem số đo ở dưới.</text>
+<text x="670" y="500" text-anchor="middle" font-size="10.5" fill="#0F766E">Chu kỳ sau, A B C E được đặt lại thành white và quét lại từ đầu.</text>
+<rect x="20" y="528" width="860" height="58" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="40" y="552" font-size="12" font-weight="800" fill="#7C4A03">Điểm mấu chốt: GC không hỏi &quot;object này còn được dùng không&quot;</text>
+<text x="40" y="572" font-size="11" fill="#92400E">Nó chỉ hỏi <tspan font-weight="700">&quot;có đường đi nào từ root tới object này không&quot;</tspan>. D chết không phải vì không ai dùng, mà vì không ai <tspan font-style="italic">trỏ tới</tspan>.</text>
+</svg>
+</div>
+<h3 id="ví-dụ-bằng-code--chạy-thật-và-đo-từng-bước">Ví dụ bằng code — chạy thật và đo từng bước<a hidden class="anchor" aria-hidden="true" href="#ví-dụ-bằng-code--chạy-thật-và-đo-từng-bước">¶</a></h3>
+<p>Chương trình dưới đây dựng đúng đồ thị trên, rồi lần lượt cắt từng cạnh và gọi <code>runtime.GC()</code> để thấy heap tụt đúng 1MB mỗi lần:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">  1
+</span><span class="lnt">  2
+</span><span class="lnt">  3
+</span><span class="lnt">  4
+</span><span class="lnt">  5
+</span><span class="lnt">  6
+</span><span class="lnt">  7
+</span><span class="lnt">  8
+</span><span class="lnt">  9
+</span><span class="lnt"> 10
+</span><span class="lnt"> 11
+</span><span class="lnt"> 12
+</span><span class="lnt"> 13
+</span><span class="lnt"> 14
+</span><span class="lnt"> 15
+</span><span class="lnt"> 16
+</span><span class="lnt"> 17
+</span><span class="lnt"> 18
+</span><span class="lnt"> 19
+</span><span class="lnt"> 20
+</span><span class="lnt"> 21
+</span><span class="lnt"> 22
+</span><span class="lnt"> 23
+</span><span class="lnt"> 24
+</span><span class="lnt"> 25
+</span><span class="lnt"> 26
+</span><span class="lnt"> 27
+</span><span class="lnt"> 28
+</span><span class="lnt"> 29
+</span><span class="lnt"> 30
+</span><span class="lnt"> 31
+</span><span class="lnt"> 32
+</span><span class="lnt"> 33
+</span><span class="lnt"> 34
+</span><span class="lnt"> 35
+</span><span class="lnt"> 36
+</span><span class="lnt"> 37
+</span><span class="lnt"> 38
+</span><span class="lnt"> 39
+</span><span class="lnt"> 40
+</span><span class="lnt"> 41
+</span><span class="lnt"> 42
+</span><span class="lnt"> 43
+</span><span class="lnt"> 44
+</span><span class="lnt"> 45
+</span><span class="lnt"> 46
+</span><span class="lnt"> 47
+</span><span class="lnt"> 48
+</span><span class="lnt"> 49
+</span><span class="lnt"> 50
+</span><span class="lnt"> 51
+</span><span class="lnt"> 52
+</span><span class="lnt"> 53
+</span><span class="lnt"> 54
+</span><span class="lnt"> 55
+</span><span class="lnt"> 56
+</span><span class="lnt"> 57
+</span><span class="lnt"> 58
+</span><span class="lnt"> 59
+</span><span class="lnt"> 60
+</span><span class="lnt"> 61
+</span><span class="lnt"> 62
+</span><span class="lnt"> 63
+</span><span class="lnt"> 64
+</span><span class="lnt"> 65
+</span><span class="lnt"> 66
+</span><span class="lnt"> 67
+</span><span class="lnt"> 68
+</span><span class="lnt"> 69
+</span><span class="lnt"> 70
+</span><span class="lnt"> 71
+</span><span class="lnt"> 72
+</span><span class="lnt"> 73
+</span><span class="lnt"> 74
+</span><span class="lnt"> 75
+</span><span class="lnt"> 76
+</span><span class="lnt"> 77
+</span><span class="lnt"> 78
+</span><span class="lnt"> 79
+</span><span class="lnt"> 80
+</span><span class="lnt"> 81
+</span><span class="lnt"> 82
+</span><span class="lnt"> 83
+</span><span class="lnt"> 84
+</span><span class="lnt"> 85
+</span><span class="lnt"> 86
+</span><span class="lnt"> 87
+</span><span class="lnt"> 88
+</span><span class="lnt"> 89
+</span><span class="lnt"> 90
+</span><span class="lnt"> 91
+</span><span class="lnt"> 92
+</span><span class="lnt"> 93
+</span><span class="lnt"> 94
+</span><span class="lnt"> 95
+</span><span class="lnt"> 96
+</span><span class="lnt"> 97
+</span><span class="lnt"> 98
+</span><span class="lnt"> 99
+</span><span class="lnt">100
+</span><span class="lnt">101
+</span><span class="lnt">102
+</span><span class="lnt">103
+</span><span class="lnt">104
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">package</span> <span class="nx">main</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kn">import</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;fmt&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;runtime&#34;</span>
+</span></span><span class="line"><span class="cl">	<span class="s">&#34;runtime/debug&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ╔═══════════════════════════════════════════════════════════════╗
+</span></span></span><span class="line"><span class="cl"><span class="c1">// ║ DATA / BSS SEGMENT — cấp phát 1 lần lúc khởi động,            ║
+</span></span></span><span class="line"><span class="cl"><span class="c1">// ║ sống suốt đời chương trình =&gt; LUÔN là GC root.                ║
+</span></span></span><span class="line"><span class="cl"><span class="c1">// ╚═══════════════════════════════════════════════════════════════╝
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">globalCache</span> <span class="o">*</span><span class="nx">Node</span> <span class="c1">// BSS (chưa khởi tạo → zero value nil)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// Node sẽ nằm trên HEAP. Mỗi Node nặng đúng 1MB để nhìn rõ số liệu.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Node</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">name</span> <span class="kt">string</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">next</span> <span class="o">*</span><span class="nx">Node</span>        <span class="c1">// con trỏ → GC phải đi theo cạnh này khi mark
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">data</span> <span class="p">[</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">]</span><span class="kt">byte</span> <span class="c1">// payload 1MB
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">newNode</span><span class="p">(</span><span class="nx">name</span> <span class="kt">string</span><span class="p">)</span> <span class="o">*</span><span class="nx">Node</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// n là biến LOCAL, nhưng ta trả về con trỏ → escape analysis đẩy lên HEAP.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// Kiểm chứng: go build -gcflags=&#34;-m&#34;  →  &#34;&amp;Node{...} escapes to heap&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">n</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">Node</span><span class="p">{</span><span class="nx">name</span><span class="p">:</span> <span class="nx">name</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">n</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ╔═══════════════════════════════════════════════════════════════╗
+</span></span></span><span class="line"><span class="cl"><span class="c1">// ║ STACK — x không escape, nằm trên stack của goroutine gọi hàm. ║
+</span></span></span><span class="line"><span class="cl"><span class="c1">// ║ GC KHÔNG tốn một chút chi phí nào cho x.                      ║
+</span></span></span><span class="line"><span class="cl"><span class="c1">// ╚═══════════════════════════════════════════════════════════════╝
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">sumOnStack</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">int</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">x</span> <span class="o">:=</span> <span class="nx">a</span> <span class="o">+</span> <span class="nx">b</span> <span class="c1">// stack: thu hồi tự động khi hàm return
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">return</span> <span class="nx">x</span>   <span class="c1">// chỉ copy giá trị ra ngoài, không con trỏ nào thoát
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">heapMB</span><span class="p">()</span> <span class="kt">float64</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="nx">m</span> <span class="nx">runtime</span><span class="p">.</span><span class="nx">MemStats</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">runtime</span><span class="p">.</span><span class="nf">ReadMemStats</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">m</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nb">float64</span><span class="p">(</span><span class="nx">m</span><span class="p">.</span><span class="nx">HeapAlloc</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// Tắt GC tự động: mọi lần GC dưới đây đều do ta CHỦ ĐỘNG gọi,
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// để số liệu phản ánh đúng từng bước, không lẫn chu kỳ bất chợt.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">debug</span><span class="p">.</span><span class="nf">SetGCPercent</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;heap ban đầu                            : %.1f MB\n\n&#34;</span><span class="p">,</span> <span class="nf">heapMB</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// ─── Dựng đồ thị object trên heap ───
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// globalCache ──► A ──► B      (reachable từ root GLOBAL)
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">a</span> <span class="o">:=</span> <span class="nf">newNode</span><span class="p">(</span><span class="s">&#34;A&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">a</span><span class="p">.</span><span class="nx">next</span> <span class="p">=</span> <span class="nf">newNode</span><span class="p">(</span><span class="s">&#34;B&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">globalCache</span> <span class="p">=</span> <span class="nx">a</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// C: chỉ được giữ bởi biến local của main → root STACK của goroutine main
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">c</span> <span class="o">:=</span> <span class="nf">newNode</span><span class="p">(</span><span class="s">&#34;C&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// D: tạo xong bỏ luôn, không ai tham chiếu → WHITE → bị sweep
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">_</span> <span class="p">=</span> <span class="nf">newNode</span><span class="p">(</span><span class="s">&#34;D&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// E: bị giữ bởi một goroutine block vĩnh viễn.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// MỖI GOROUTINE ĐANG SỐNG LÀ 1 GC ROOT → E không bao giờ được thu hồi,
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// dù logic chương trình không còn cần nó. Đây chính là goroutine leak.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">ready</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{})</span>
+</span></span><span class="line"><span class="cl">	<span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">e</span> <span class="o">:=</span> <span class="nf">newNode</span><span class="p">(</span><span class="s">&#34;E&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="nb">close</span><span class="p">(</span><span class="nx">ready</span><span class="p">)</span>          <span class="c1">// báo đã cấp phát xong rồi mới block
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="o">&lt;-</span><span class="nb">make</span><span class="p">(</span><span class="kd">chan</span> <span class="kd">struct</span><span class="p">{})</span> <span class="c1">// block mãi mãi → goroutine sống mãi → e sống mãi
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">runtime</span><span class="p">.</span><span class="nf">KeepAlive</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}()</span>
+</span></span><span class="line"><span class="cl">	<span class="o">&lt;-</span><span class="nx">ready</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;tạo xong A,B,C,D,E (5 × 1MB)            : %.1f MB\n&#34;</span><span class="p">,</span> <span class="nf">heapMB</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// ─── GC #1 ───
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// Mark: A,B (từ global) · C (từ stack main) · E (từ stack goroutine) → BLACK
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// D không có đường nào từ root → WHITE → sweep thu hồi
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">runtime</span><span class="p">.</span><span class="nf">GC</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;GC #1 — D là rác, bị thu hồi            : %.1f MB   (A,B,C,E sống)\n&#34;</span><span class="p">,</span> <span class="nf">heapMB</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;        C vẫn sống vì main còn dùng: %q\n&#34;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">name</span><span class="p">)</span> <span class="c1">// chính dòng này giữ C reachable
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// ─── GC #2: buông tham chiếu tới C ───
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">c</span> <span class="p">=</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">runtime</span><span class="p">.</span><span class="nf">GC</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;GC #2 — c = nil, C thành rác            : %.1f MB   (A,B,E sống)\n&#34;</span><span class="p">,</span> <span class="nf">heapMB</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// ─── GC #3: cắt cạnh A ──► B ───
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// B mất đường đi duy nhất từ root. A vẫn sống vì global còn giữ.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">globalCache</span><span class="p">.</span><span class="nx">next</span> <span class="p">=</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">runtime</span><span class="p">.</span><span class="nf">GC</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;GC #3 — A.next = nil, B thành rác       : %.1f MB   (A,E sống)\n&#34;</span><span class="p">,</span> <span class="nf">heapMB</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// ─── GC #4: buông cả biến global ───
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">globalCache</span> <span class="p">=</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">runtime</span><span class="p">.</span><span class="nf">GC</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;GC #4 — globalCache = nil, A thành rác  : %.1f MB   (chỉ còn E)\n&#34;</span><span class="p">,</span> <span class="nf">heapMB</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="c1">// E vẫn nằm đó. GC làm đúng việc của nó — E thật sự còn reachable.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;\ngoroutine đang sống: %d → E (1MB) vẫn reachable từ stack của nó.\n&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">runtime</span><span class="p">.</span><span class="nf">NumGoroutine</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="s">&#34;GC không thu hồi thứ \&#34;không dùng nữa\&#34;, nó thu hồi thứ KHÔNG CÒN REACHABLE.&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;\nstack không tốn chi phí GC: sumOnStack(2,3) = %d\n&#34;</span><span class="p">,</span> <span class="nf">sumOnStack</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Kết quả chạy thật (Go 1.24.4, linux/amd64):</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">heap ban đầu                            : 0.2 MB
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">tạo xong A,B,C,D,E (5 × 1MB)            : 5.2 MB
+</span></span><span class="line"><span class="cl">GC #1 — D là rác, bị thu hồi            : 4.2 MB   (A,B,C,E sống)
+</span></span><span class="line"><span class="cl">        C vẫn sống vì main còn dùng: &#34;C&#34;
+</span></span><span class="line"><span class="cl">GC #2 — c = nil, C thành rác            : 3.2 MB   (A,B,E sống)
+</span></span><span class="line"><span class="cl">GC #3 — A.next = nil, B thành rác       : 2.2 MB   (A,E sống)
+</span></span><span class="line"><span class="cl">GC #4 — globalCache = nil, A thành rác  : 1.2 MB   (chỉ còn E)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">goroutine đang sống: 2 → E (1MB) vẫn reachable từ stack của nó.
+</span></span><span class="line"><span class="cl">GC không thu hồi thứ &#34;không dùng nữa&#34;, nó thu hồi thứ KHÔNG CÒN REACHABLE.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">stack không tốn chi phí GC: sumOnStack(2,3) = 5
+</span></span></code></pre></td></tr></table>
+</div>
+</div><table>
+<thead>
+<tr>
+<th>Thao tác</th>
+<th>Object trở thành rác</th>
+<th>Vì sao</th>
+<th style="text-align:right">Heap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>—</td>
+<td>—</td>
+<td>vừa cấp phát 5 object</td>
+<td style="text-align:right"><strong>5.2 MB</strong></td>
+</tr>
+<tr>
+<td><code>runtime.GC()</code></td>
+<td><strong>D</strong></td>
+<td>không một root nào trỏ tới</td>
+<td style="text-align:right"><strong>4.2 MB</strong></td>
+</tr>
+<tr>
+<td><code>c = nil</code></td>
+<td><strong>C</strong></td>
+<td>mất root <code>stack main</code> — đường duy nhất</td>
+<td style="text-align:right"><strong>3.2 MB</strong></td>
+</tr>
+<tr>
+<td><code>globalCache.next = nil</code></td>
+<td><strong>B</strong></td>
+<td>cạnh <code>A → B</code> bị cắt, hết đường từ root</td>
+<td style="text-align:right"><strong>2.2 MB</strong></td>
+</tr>
+<tr>
+<td><code>globalCache = nil</code></td>
+<td><strong>A</strong></td>
+<td>mất root <code>global</code></td>
+<td style="text-align:right"><strong>1.2 MB</strong></td>
+</tr>
+<tr>
+<td><em>(kết thúc)</em></td>
+<td><strong>không bao giờ là E</strong></td>
+<td>goroutine đang block vẫn là root</td>
+<td style="text-align:right"><strong>1.2 MB</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Ba điều đọc được từ bảng này:</p>
+<ul>
+<li><strong>Heap giảm đúng 1MB mỗi bước</strong> — tương ứng chính xác một object bị cắt khỏi đồ thị. GC không &ldquo;đoán&rdquo;, nó đi theo con trỏ.</li>
+<li><strong>Cắt cạnh giữa hai object cũng đủ giết object con</strong> (<code>A.next = nil</code> làm B chết), không nhất thiết phải buông biến gốc.</li>
+<li><strong>1MB cuối không bao giờ về 0.2MB.</strong> Goroutine kia chỉ đang <code>block</code>, nhưng với GC nó là root hợp lệ — đây chính là goroutine leak, và GC hoàn toàn &ldquo;làm đúng&rdquo;.</li>
+</ul>
+<h3 id="bốn-pha-của-một-chu-kỳ-gc-và-hai-điểm-stop-the-world">Bốn pha của một chu kỳ GC và hai điểm Stop-The-World<a hidden class="anchor" aria-hidden="true" href="#bốn-pha-của-một-chu-kỳ-gc-và-hai-điểm-stop-the-world">¶</a></h3>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="ph-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="ph-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="400" fill="#FFFDF7" rx="16"/>
+<text x="450" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Một chu kỳ GC — chương trình chỉ bị dừng ở hai vạch đỏ hẹp</text>
+<text x="450" y="46" text-anchor="middle" font-size="11" fill="#78716C">Số liệu lấy từ GODEBUG=gctrace=1 của chính chương trình ở trên</text>
+<text x="24" y="92" font-size="11" font-weight="700" fill="#57534E">GC</text>
+<rect x="60" y="74" width="26" height="34" rx="4" fill="#DC2626"/>
+<rect x="90" y="74" width="330" height="34" rx="4" fill="#0D9488"/>
+<rect x="424" y="74" width="20" height="34" rx="4" fill="#DC2626"/>
+<rect x="448" y="74" width="412" height="34" rx="4" fill="#14B8A6"/>
+<text x="73" y="96" text-anchor="middle" font-size="9" font-weight="800" fill="#FFFFFF">STW</text>
+<text x="255" y="96" text-anchor="middle" font-size="12" font-weight="800" fill="#FFFFFF">CONCURRENT MARK</text>
+<text x="434" y="96" text-anchor="middle" font-size="9" font-weight="800" fill="#FFFFFF">STW</text>
+<text x="654" y="96" text-anchor="middle" font-size="12" font-weight="800" fill="#FFFFFF">CONCURRENT SWEEP</text>
+<text x="24" y="152" font-size="11" font-weight="700" fill="#57534E">App</text>
+<rect x="60" y="134" width="26" height="34" rx="4" fill="#E7E5E4" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="3 2"/>
+<rect x="90" y="134" width="330" height="34" rx="4" fill="#374151"/>
+<rect x="424" y="134" width="20" height="34" rx="4" fill="#E7E5E4" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="3 2"/>
+<rect x="448" y="134" width="412" height="34" rx="4" fill="#374151"/>
+<text x="73" y="156" text-anchor="middle" font-size="9" font-weight="800" fill="#DC2626">■</text>
+<text x="255" y="156" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">mutator chạy bình thường</text>
+<text x="434" y="156" text-anchor="middle" font-size="9" font-weight="800" fill="#DC2626">■</text>
+<text x="654" y="156" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF">mutator chạy bình thường</text>
+<rect x="60" y="184" width="384" height="22" rx="5" fill="#FFF3DB" stroke="#F5A623" stroke-width="1.8"/>
+<text x="252" y="199" text-anchor="middle" font-size="10.5" font-weight="800" fill="#7C4A03">WRITE BARRIER BẬT trong suốt khoảng này</text>
+<line x1="73" y1="112" x2="73" y2="130" stroke="#DC2626" stroke-width="1.5"/>
+<line x1="434" y1="112" x2="434" y2="130" stroke="#DC2626" stroke-width="1.5"/>
+<rect x="24" y="222" width="190" height="62" rx="8" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="119" y="242" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">① Sweep Termination</text>
+<text x="119" y="258" text-anchor="middle" font-size="10" fill="#BE123C">STW · bật write barrier,</text>
+<text x="119" y="272" text-anchor="middle" font-size="10" fill="#BE123C">quét root ban đầu</text>
+<rect x="226" y="222" width="190" height="62" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="321" y="242" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">② Mark</text>
+<text x="321" y="258" text-anchor="middle" font-size="10" fill="#0F766E">chạy SONG SONG với app,</text>
+<text x="321" y="272" text-anchor="middle" font-size="10" fill="#0F766E">tô màu theo tri-color</text>
+<rect x="428" y="222" width="190" height="62" rx="8" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="523" y="242" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">③ Mark Termination</text>
+<text x="523" y="258" text-anchor="middle" font-size="10" fill="#BE123C">STW · chốt kết quả mark,</text>
+<text x="523" y="272" text-anchor="middle" font-size="10" fill="#BE123C">tắt write barrier</text>
+<rect x="630" y="222" width="190" height="62" rx="8" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="725" y="242" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">④ Sweep</text>
+<text x="725" y="258" text-anchor="middle" font-size="10" fill="#0F766E">trả vùng nhớ white về free</text>
+<text x="725" y="272" text-anchor="middle" font-size="10" fill="#0F766E">list, cũng chạy song song</text>
+<rect x="24" y="298" width="852" height="86" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="44" y="320" font-size="12" font-weight="800" fill="#374151">Đọc thẳng từ dòng gctrace đo được</text>
+<rect x="44" y="330" width="812" height="20" rx="4" fill="#F5F5F4"/>
+<text x="52" y="344" font-size="10" font-family="monospace" fill="#1C1917">gc 1 @0.002s 2%: 0.051+0.11+0.003 ms clock, 5-&gt;5-&gt;4 MB, 12 P (forced)</text>
+<text x="44" y="366" font-size="10.5" fill="#57534E"><tspan font-weight="700" fill="#DC2626">0.051</tspan> ms STW đầu  +  <tspan font-weight="700" fill="#0D9488">0.11</tspan> ms mark chạy song song  +  <tspan font-weight="700" fill="#DC2626">0.003</tspan> ms STW cuối</text>
+<text x="44" y="380" font-size="10.5" fill="#57534E">Tổng thời gian app bị dừng: <tspan font-weight="700">0.054 ms</tspan> — dưới 1/18 của một mili-giây. Và <tspan font-family="monospace">5-&gt;5-&gt;4 MB</tspan> chính là D bị thu hồi.</text>
+</svg>
+</div>
+<p>Bật <code>gctrace</code> để tự nhìn số của chương trình mình:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="nv">GODEBUG</span><span class="o">=</span><span class="nv">gctrace</span><span class="o">=</span><span class="m">1</span> ./myapp
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">gc 1 @0.002s 2%: 0.051+0.11+0.003 ms clock, ... 5-&gt;5-&gt;4 MB, ... 12 P (forced)
+</span></span><span class="line"><span class="cl">gc 2 @0.002s 2%: 0.006+0.072+0.003 ms clock, ... 4-&gt;4-&gt;3 MB, ... 12 P (forced)
+</span></span><span class="line"><span class="cl">gc 3 @0.003s 3%: 0.031+0.12+0.009 ms clock,  ... 3-&gt;3-&gt;2 MB, ... 12 P (forced)
+</span></span><span class="line"><span class="cl">gc 4 @0.003s 4%: 0.012+0.086+0.012 ms clock, ... 2-&gt;2-&gt;1 MB, ... 12 P (forced)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Cách đọc một dòng:</p>
+<table>
+<thead>
+<tr>
+<th>Phần</th>
+<th>Ý nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gc 1</code></td>
+<td>chu kỳ GC thứ mấy kể từ lúc chương trình chạy</td>
+</tr>
+<tr>
+<td><code>@0.002s</code></td>
+<td>thời điểm chu kỳ này bắt đầu, tính từ lúc khởi động</td>
+</tr>
+<tr>
+<td><code>2%</code></td>
+<td><strong>tổng %</strong> CPU mà GC đã dùng từ đầu chương trình tới giờ</td>
+</tr>
+<tr>
+<td><code>0.051+0.11+0.003 ms</code></td>
+<td>STW đầu <strong>+</strong> mark concurrent <strong>+</strong> STW cuối — hai số ngoài cùng là phần app thật sự bị dừng</td>
+</tr>
+<tr>
+<td><code>5-&gt;5-&gt;4 MB</code></td>
+<td>heap lúc bắt đầu → lúc kết thúc mark → <strong>heap còn sống sau sweep</strong></td>
+</tr>
+<tr>
+<td><code>12 P</code></td>
+<td>số processor runtime đang dùng</td>
+</tr>
+<tr>
+<td><code>(forced)</code></td>
+<td>chu kỳ này do <code>runtime.GC()</code> gọi tay, không phải do <code>GOGC</code> kích hoạt</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>★ Số thứ ba trong <code>5-&gt;5-&gt;4 MB</code> là con số đáng quan tâm nhất: đó là <strong>heap thực sự còn sống</strong>, và cũng là mốc để <code>GOGC</code> tính chu kỳ tiếp theo. <code>GOGC=100</code> nghĩa là GC sẽ chạy lại khi heap chạm <code>4 × 2 = 8 MB</code>.</p>
+</blockquote>
+<p><strong>Write barrier</strong>: vì mark chạy <em>đồng thời</em> với chương trình, nếu mutator đổi con trỏ giữa lúc GC đang quét (ví dụ gán 1 object black trỏ tới 1 object white), GC có thể bỏ sót và thu hồi nhầm object đang sống. Go dùng <strong>hybrid write barrier</strong> (từ Go 1.8) để chặn đúng tình huống này mà không cần dừng hẳn chương trình.</p>
+<p>Tình huống cụ thể mà write barrier chặn — cần <strong>đồng thời hai thao tác</strong> của mutator thì object sống mới bị bỏ sót:</p>
+<div class="zoomable-diagram" style="max-width:880px;margin:2rem auto;">
+<svg viewBox="0 0 880 400" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="wb-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#78716C"/></marker>
+<marker id="wb-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<filter id="wb-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="880" height="400" fill="#FFFDF7" rx="16"/>
+<text x="440" y="26" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Vì sao cần write barrier — kịch bản object sống bị bỏ sót</text>
+<text x="440" y="46" text-anchor="middle" font-size="11" fill="#78716C">Mutator ghi con trỏ ngay giữa lúc GC đang mark</text>
+<rect x="16" y="60" width="278" height="212" rx="11" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2" filter="url(#wb-sh)"/>
+<text x="155" y="82" text-anchor="middle" font-size="12" font-weight="800" fill="#374151">① Đang mark dở</text>
+<circle cx="76" cy="122" r="21" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="76" cy="200" r="21" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="216" cy="200" r="21" fill="#FFFFFF" stroke="#A8A29E" stroke-width="2"/>
+<text x="76" y="127" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">A</text>
+<text x="76" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#1C1917">C</text>
+<text x="216" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#57534E">B</text>
+<text x="76" y="156" text-anchor="middle" font-size="9" font-weight="700" fill="#374151">black: quét xong</text>
+<text x="76" y="234" text-anchor="middle" font-size="9" font-weight="700" fill="#78716C">grey: chưa quét con</text>
+<text x="216" y="234" text-anchor="middle" font-size="9" font-weight="700" fill="#A8A29E">white</text>
+<line x1="99" y1="200" x2="191" y2="200" stroke="#78716C" stroke-width="2" marker-end="url(#wb-ar)"/>
+<text x="155" y="192" text-anchor="middle" font-size="9" fill="#57534E">đường sống duy nhất của B</text>
+<text x="155" y="258" text-anchor="middle" font-size="10" fill="#57534E">B còn sống nhờ cạnh C → B.</text>
+<rect x="302" y="60" width="278" height="212" rx="11" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#wb-sh)"/>
+<text x="441" y="82" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">② KHÔNG có barrier → mất object</text>
+<circle cx="362" cy="122" r="21" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="362" cy="200" r="21" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="502" cy="200" r="21" fill="#FFFFFF" stroke="#DC2626" stroke-width="2.5" stroke-dasharray="4 3"/>
+<text x="362" y="127" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">A</text>
+<text x="362" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#1C1917">C</text>
+<text x="502" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#DC2626">B</text>
+<path d="M383,133 C430,150 470,172 486,186" stroke="#DC2626" stroke-width="2.5" fill="none" marker-end="url(#wb-arr)"/>
+<text x="452" y="146" text-anchor="middle" font-size="9" font-weight="800" fill="#DC2626">A.next = B</text>
+<line x1="385" y1="200" x2="477" y2="200" stroke="#D6D3D1" stroke-width="2" stroke-dasharray="4 3"/>
+<line x1="412" y1="188" x2="450" y2="212" stroke="#DC2626" stroke-width="2.5"/>
+<line x1="450" y1="188" x2="412" y2="212" stroke="#DC2626" stroke-width="2.5"/>
+<text x="431" y="232" text-anchor="middle" font-size="9" font-weight="800" fill="#DC2626">C.next = nil</text>
+<text x="441" y="258" text-anchor="middle" font-size="10" fill="#BE123C">A đã black nên không quét lại. C quét thì B đã mất cạnh.</text>
+<rect x="588" y="60" width="278" height="212" rx="11" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#wb-sh)"/>
+<text x="727" y="82" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">③ CÓ write barrier → B được cứu</text>
+<circle cx="648" cy="122" r="21" fill="#374151" stroke="#1F2937" stroke-width="2.5"/>
+<circle cx="648" cy="200" r="21" fill="#D6D3D1" stroke="#78716C" stroke-width="2.5"/>
+<circle cx="788" cy="200" r="21" fill="#D6D3D1" stroke="#0D9488" stroke-width="3"/>
+<text x="648" y="127" text-anchor="middle" font-size="14" font-weight="800" fill="#FFFFFF">A</text>
+<text x="648" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#1C1917">C</text>
+<text x="788" y="205" text-anchor="middle" font-size="14" font-weight="800" fill="#1C1917">B</text>
+<path d="M669,133 C716,150 756,172 772,186" stroke="#0D9488" stroke-width="2.5" fill="none" marker-end="url(#wb-ar)"/>
+<text x="738" y="146" text-anchor="middle" font-size="9" font-weight="800" fill="#0F766E">A.next = B</text>
+<text x="788" y="236" text-anchor="middle" font-size="9" font-weight="800" fill="#0D9488">bị tô GREY ngay</text>
+<text x="727" y="258" text-anchor="middle" font-size="10" fill="#0F766E">Barrier chen vào lúc ghi con trỏ, đẩy B vào hàng đợi mark.</text>
+<rect x="16" y="286" width="850" height="98" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="36" y="310" font-size="12" font-weight="800" fill="#7C4A03">Bất biến mà GC phải giữ: KHÔNG được tồn tại một object black trỏ thẳng tới một object white</text>
+<text x="36" y="332" font-size="11" fill="#92400E">Nếu bất biến này vỡ, GC sẽ sweep nhầm một object đang được dùng → chương trình đọc phải vùng nhớ đã thu hồi.</text>
+<text x="36" y="352" font-size="11" fill="#92400E">Go dùng <tspan font-weight="700">hybrid write barrier</tspan> (từ Go 1.8): tô màu cả giá trị cũ bị ghi đè lẫn giá trị mới được ghi vào.</text>
+<text x="36" y="372" font-size="11" fill="#92400E">Cái giá: mỗi lệnh ghi con trỏ trong lúc mark tốn thêm vài nhịp CPU. Đổi lại, <tspan font-weight="700">không phải dừng chương trình để quét lại stack</tspan>.</text>
+</svg>
+</div>
 <p><strong>Stop-The-World (STW)</strong>: GC của Go chỉ dừng chương trình ở 2 thời điểm rất ngắn (thường dưới 1ms): lúc bắt đầu (bật write barrier) và lúc kết thúc mark phase (mark termination). Phần lớn thời gian mark + sweep chạy concurrent.</p>
 <p><strong>GOGC</strong> (mặc định <code>100</code>): GC chu kỳ tiếp theo được kích hoạt khi heap tăng thêm 100% so với heap còn sống sau lần GC trước (tức tăng gấp đôi). Giảm <code>GOGC</code> → GC chạy thường xuyên hơn, tốn CPU hơn nhưng RAM đỉnh thấp hơn. Từ Go 1.19 có thêm <strong><code>GOMEMLIMIT</code></strong> — đặt giới hạn cứng cho tổng bộ nhớ, hữu ích khi chạy trong container có memory limit (tránh bị OOM-killed).</p>
 <h2 id="stack-vs-heap--escape-analysis">Stack vs Heap — Escape Analysis<a hidden class="anchor" aria-hidden="true" href="#stack-vs-heap--escape-analysis">¶</a></h2>
