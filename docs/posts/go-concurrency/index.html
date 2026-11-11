@@ -56,7 +56,7 @@
   "keywords": [
     "golang", "coding", "concurrency"
   ],
-  "wordCount" : "2385",
+  "wordCount" : "7714",
   "inLanguage": "en",
   "datePublished": "2025-05-18T13:39:54+07:00",
   "dateModified": "2025-05-18T13:39:54+07:00",
@@ -217,7 +217,7 @@ function toggleThemeListener() {
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon" style="user-select: text;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" style="user-select: text;"></path><line x1="7" y1="7" x2="7" y2="7" style="user-select: text;"></line></svg>
   <span class="post-tags"><a href="https://blog.huydang.dev/tags/golang/">Golang</a><a href="https://blog.huydang.dev/tags/coding/">Coding</a><a href="https://blog.huydang.dev/tags/concurrency/">Concurrency</a></span></span><span class="meta-item">
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
-  <span>12 min</span></span>
+  <span>37 min</span></span>
 
       
       
@@ -328,6 +328,58 @@ function toggleThemeListener() {
                 <li>
                     <a href="#c%c3%b4ng-c%e1%bb%a5-h%e1%bb%97-tr%e1%bb%a3" aria-label="Công cụ hỗ trợ">Công cụ hỗ trợ</a></li></ul>
                 </li></ul>
+                </li>
+                <li>
+                    <a href="#h%e1%bb%99p-c%c3%b4ng-c%e1%bb%a5-%c4%91%e1%bb%93ng-b%e1%bb%99-sync-syncatomic-errgroup" aria-label="Hộp công cụ đồng bộ: sync, sync/atomic, errgroup">Hộp công cụ đồng bộ: <code>sync</code>, <code>sync/atomic</code>, <code>errgroup</code></a><ul>
+                        
+                <li>
+                    <a href="#sync--b%e1%ba%a3o-v%e1%bb%87-m%e1%bb%99t-v%c3%b9ng-code" aria-label="sync — bảo vệ một vùng code"><code>sync</code> — bảo vệ một vùng code</a></li>
+                <li>
+                    <a href="#syncmap--v%c3%a0-chuy%e1%bb%87n-n%c3%b3-%c4%91%c3%a3-%c4%91%e1%bb%95i-trong-go-124" aria-label="sync.Map — và chuyện nó đã đổi trong Go 1.24"><code>sync.Map</code> — và chuyện nó đã đổi trong Go 1.24</a></li>
+                <li>
+                    <a href="#syncatomic--b%e1%ba%a3o-v%e1%bb%87-%c4%91%c3%bang-m%e1%bb%99t-bi%e1%ba%bfn" aria-label="sync/atomic — bảo vệ đúng một biến"><code>sync/atomic</code> — bảo vệ đúng một biến</a></li>
+                <li>
+                    <a href="#errgroup--qu%e1%ba%a3n-l%c3%bd-v%c3%b2ng-%c4%91%e1%bb%9di-c%e1%ba%a3-nh%c3%b3m-goroutine" aria-label="errgroup — quản lý vòng đời cả nhóm goroutine"><code>errgroup</code> — quản lý vòng đời cả nhóm goroutine</a></li></ul>
+                </li>
+                <li>
+                    <a href="#thi%e1%ba%bft-k%e1%ba%bf-m%e1%bb%99t-goroutine-ghi-li%c3%aan-t%e1%bb%a5c-nhi%e1%bb%81u-goroutine-%c4%91%e1%bb%8dc" aria-label="Thiết kế: một goroutine ghi liên tục, nhiều goroutine đọc">Thiết kế: một goroutine ghi liên tục, nhiều goroutine đọc</a><ul>
+                        
+                <li>
+                    <a href="#ba-c%c3%a1ch-l%c3%a0m" aria-label="Ba cách làm">Ba cách làm</a></li>
+                <li>
+                    <a href="#s%e1%bb%91-%c4%91o" aria-label="Số đo">Số đo</a></li>
+                <li>
+                    <a href="#khi-n%c3%a0o-d%c3%b9ng-c%c3%a1ch-n%c3%a0o" aria-label="Khi nào dùng cách nào">Khi nào dùng cách nào</a></li></ul>
+                </li>
+                <li>
+                    <a href="#cache-line-v%c3%a0-false-sharing" aria-label="Cache line và false sharing">Cache line và false sharing</a><ul>
+                        
+                <li>
+                    <a href="#cache-line-l%c3%a0-g%c3%ac" aria-label="Cache line là gì">Cache line là gì</a></li>
+                <li>
+                    <a href="#false-sharing" aria-label="False sharing">False sharing</a></li>
+                <li>
+                    <a href="#t%c3%a1i-hi%e1%bb%87n-b%e1%ba%b1ng-code" aria-label="Tái hiện bằng code">Tái hiện bằng code</a></li>
+                <li>
+                    <a href="#khi-n%c3%a0o-th%e1%ba%adt-s%e1%bb%b1-c%e1%ba%a7n-quan-t%c3%a2m" aria-label="Khi nào thật sự cần quan tâm">Khi nào thật sự cần quan tâm</a></li></ul>
+                </li>
+                <li>
+                    <a href="#circular-wait-deadlock-d%c3%b9-m%e1%bb%97i-t%c3%a0i-nguy%c3%aan-%c4%91%c3%a3-c%c3%b3-mutex-ri%c3%aang" aria-label="Circular wait: deadlock dù mỗi tài nguyên đã có mutex riêng">Circular wait: deadlock dù mỗi tài nguyên đã có mutex riêng</a><ul>
+                        
+                <li>
+                    <a href="#code-g%c3%a2y-deadlock" aria-label="Code gây deadlock">Code gây deadlock</a></li>
+                <li>
+                    <a href="#go-n%c3%b3i-g%c3%ac-khi-g%e1%ba%b7p-deadlock" aria-label="Go nói gì khi gặp deadlock">Go nói gì khi gặp deadlock</a></li>
+                <li>
+                    <a href="#c%c3%a1ch-s%e1%bb%ada-1-th%e1%bb%a9-t%e1%bb%b1-kho%c3%a1-to%c3%a0n-c%e1%bb%a5c-khuy%e1%ba%bfn-ngh%e1%bb%8b" aria-label="Cách sửa 1: thứ tự khoá toàn cục (khuyến nghị)">Cách sửa 1: thứ tự khoá toàn cục (khuyến nghị)</a></li>
+                <li>
+                    <a href="#c%c3%a1ch-s%e1%bb%ada-2-m%e1%bb%99t-kho%c3%a1-duy-nh%e1%ba%a5t-cho-c%e1%ba%a3-nh%c3%b3m" aria-label="Cách sửa 2: một khoá duy nhất cho cả nhóm">Cách sửa 2: một khoá duy nhất cho cả nhóm</a></li>
+                <li>
+                    <a href="#c%c3%a1ch-s%e1%bb%ada-3-trylock--r%c3%bat-lui-v%c3%a0-th%e1%bb%ad-l%e1%ba%a1i" aria-label="Cách sửa 3: TryLock &#43; rút lui và thử lại">Cách sửa 3: <code>TryLock</code> + rút lui và thử lại</a></li>
+                <li>
+                    <a href="#so-s%c3%a1nh-ba-c%c3%a1ch" aria-label="So sánh ba cách">So sánh ba cách</a></li>
+                <li>
+                    <a href="#checklist-ch%e1%bb%91ng-deadlock" aria-label="Checklist chống deadlock">Checklist chống deadlock</a></li></ul>
                 </li>
                 <li>
                     <a href="#go-scheduler" aria-label="Go Scheduler">Go Scheduler</a>
@@ -1088,7 +1140,1366 @@ function toggleThemeListener() {
 </span></span><span class="line"><span class="cl">go <span class="nb">test</span> -race ./...   <span class="c1"># Kiểm tra test cases</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><h1 id="go-scheduler">Go Scheduler<a hidden class="anchor" aria-hidden="true" href="#go-scheduler">¶</a></h1>
+</div><h1 id="hộp-công-cụ-đồng-bộ-sync-syncatomic-errgroup">Hộp công cụ đồng bộ: <code>sync</code>, <code>sync/atomic</code>, <code>errgroup</code><a hidden class="anchor" aria-hidden="true" href="#hộp-công-cụ-đồng-bộ-sync-syncatomic-errgroup">¶</a></h1>
+<p>Ba package này giải quyết ba lớp vấn đề khác nhau. Chọn sai lớp là nguồn gốc của phần lớn code đồng bộ vừa chậm vừa khó đọc.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 430" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<filter id="tb-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="430" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Chọn công cụ theo HÌNH DẠNG bài toán, không theo thói quen</text>
+<rect x="20" y="48" width="276" height="196" rx="11" fill="#EEF2FF" stroke="#6366F1" stroke-width="2.5" filter="url(#tb-sh)"/>
+<text x="158" y="72" text-anchor="middle" font-size="13" font-weight="800" fill="#3730A3">sync</text>
+<text x="158" y="90" text-anchor="middle" font-size="10" fill="#4338CA">Bảo vệ một VÙNG CODE</text>
+<rect x="34" y="100" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="34" y="126" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="34" y="152" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="34" y="178" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="34" y="204" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<text x="44" y="115" font-size="10" fill="#1C1917"><tspan font-weight="700">Mutex</tspan> — một người vào mỗi lúc</text>
+<text x="44" y="141" font-size="10" fill="#1C1917"><tspan font-weight="700">RWMutex</tspan> — nhiều đọc / một ghi</text>
+<text x="44" y="167" font-size="10" fill="#1C1917"><tspan font-weight="700">Once</tspan> — khởi tạo đúng một lần</text>
+<text x="44" y="193" font-size="10" fill="#1C1917"><tspan font-weight="700">Map</tspan> — map an toàn, không cần khoá tay</text>
+<text x="44" y="219" font-size="10" fill="#1C1917"><tspan font-weight="700">Pool</tspan> — tái dùng object, giảm GC</text>
+<rect x="312" y="48" width="276" height="196" rx="11" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5" filter="url(#tb-sh)"/>
+<text x="450" y="72" text-anchor="middle" font-size="13" font-weight="800" fill="#134E4A">sync/atomic</text>
+<text x="450" y="90" text-anchor="middle" font-size="10" fill="#0F766E">Bảo vệ một BIẾN duy nhất</text>
+<rect x="326" y="100" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="326" y="126" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="326" y="152" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="326" y="178" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="326" y="204" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<text x="336" y="115" font-size="10" fill="#1C1917"><tspan font-weight="700">Int32/Int64</tspan> — bộ đếm</text>
+<text x="336" y="141" font-size="10" fill="#1C1917"><tspan font-weight="700">Bool</tspan> — cờ bật/tắt</text>
+<text x="336" y="167" font-size="10" fill="#1C1917"><tspan font-weight="700">Pointer[T]</tspan> — đổi nguyên cả snapshot</text>
+<text x="336" y="193" font-size="10" fill="#1C1917"><tspan font-weight="700">Value</tspan> — như Pointer, thời trước generic</text>
+<text x="336" y="219" font-size="10" fill="#1C1917"><tspan font-weight="700">CompareAndSwap</tspan> — cập nhật có điều kiện</text>
+<rect x="604" y="48" width="276" height="196" rx="11" fill="#FFF3DB" stroke="#F5A623" stroke-width="2.5" filter="url(#tb-sh)"/>
+<text x="742" y="72" text-anchor="middle" font-size="13" font-weight="800" fill="#7C4A03">errgroup</text>
+<text x="742" y="90" text-anchor="middle" font-size="10" fill="#92400E">Quản lý VÒNG ĐỜI một nhóm goroutine</text>
+<rect x="618" y="100" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="618" y="126" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="618" y="152" width="248" height="22" rx="4" fill="#FFFFFF"/>
+<rect x="618" y="178" width="248" height="48" rx="4" fill="#FFFFFF"/>
+<text x="628" y="115" font-size="10" fill="#1C1917"><tspan font-weight="700">Go</tspan> — chạy một task trong nhóm</text>
+<text x="628" y="141" font-size="10" fill="#1C1917"><tspan font-weight="700">Wait</tspan> — chờ hết, trả lỗi ĐẦU TIÊN</text>
+<text x="628" y="167" font-size="10" fill="#1C1917"><tspan font-weight="700">WithContext</tspan> — lỗi một cái, huỷ cả nhóm</text>
+<text x="628" y="193" font-size="10" fill="#1C1917"><tspan font-weight="700">SetLimit</tspan> — chặn trần số goroutine</text>
+<text x="628" y="211" font-size="10" fill="#57534E">chạy đồng thời</text>
+<rect x="20" y="258" width="860" height="68" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="40" y="282" font-size="12" font-weight="800" fill="#374151">Thứ tự cân nhắc khi gặp dữ liệu dùng chung</text>
+<text x="40" y="304" font-size="11" fill="#57534E">① Có thể <tspan font-weight="700">không chia sẻ</tspan> không (mỗi goroutine giữ bản riêng, gộp lại ở cuối)?  →  ② Chỉ là <tspan font-weight="700">một biến</tspan>? dùng atomic</text>
+<text x="40" y="320" font-size="11" fill="#57534E">③ Cần giữ <tspan font-weight="700">nhiều biến nhất quán</tspan> với nhau? dùng Mutex  →  ④ Cần <tspan font-weight="700">truyền quyền sở hữu</tspan> dữ liệu? dùng channel</text>
+<rect x="20" y="340" width="860" height="72" rx="10" fill="#FFE9EC" stroke="#DC2626" stroke-width="2"/>
+<text x="40" y="364" font-size="12" font-weight="800" fill="#9F1239">Nhầm lẫn hay gặp nhất: dùng atomic cho NHIỀU biến</text>
+<text x="40" y="386" font-size="11" fill="#BE123C">Mỗi thao tác atomic chỉ nguyên tử <tspan font-style="italic">một mình nó</tspan>. Hai lệnh atomic cạnh nhau KHÔNG tạo thành một thao tác nguyên tử:</text>
+<text x="40" y="404" font-size="11" fill="#BE123C">goroutine khác vẫn chen được vào giữa và thấy trạng thái dở dang. Cần hai biến nhất quán → <tspan font-weight="700">phải dùng Mutex</tspan>.</text>
+</svg>
+</div>
+<h2 id="sync--bảo-vệ-một-vùng-code"><code>sync</code> — bảo vệ một vùng code<a hidden class="anchor" aria-hidden="true" href="#sync--bảo-vệ-một-vùng-code">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ── Mutex: đúng một goroutine được vào critical section ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Counter</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">mu</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">n</span>  <span class="kt">int</span>
+</span></span><span class="line"><span class="cl">	<span class="c1">// Quy ước đặt mu NGAY TRÊN các field mà nó bảo vệ,
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="c1">// để người đọc biết chính xác lock này che những gì.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Counter</span><span class="p">)</span> <span class="nf">Inc</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span> <span class="c1">// defer để panic giữa chừng vẫn nhả khoá
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">c</span><span class="p">.</span><span class="nx">n</span><span class="o">++</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ── RWMutex: nhiều reader song song, writer độc quyền ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Cache</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">mu</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">RWMutex</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">m</span>  <span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="kt">string</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Cache</span><span class="p">)</span> <span class="nf">Get</span><span class="p">(</span><span class="nx">k</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="kt">string</span><span class="p">,</span> <span class="kt">bool</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">RLock</span><span class="p">()</span>         <span class="c1">// nhiều goroutine RLock cùng lúc được
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">defer</span> <span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">RUnlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">v</span><span class="p">,</span> <span class="nx">ok</span> <span class="o">:=</span> <span class="nx">c</span><span class="p">.</span><span class="nx">m</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">v</span><span class="p">,</span> <span class="nx">ok</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Cache</span><span class="p">)</span> <span class="nf">Set</span><span class="p">(</span><span class="nx">k</span><span class="p">,</span> <span class="nx">v</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>          <span class="c1">// Lock chặn TẤT CẢ reader lẫn writer khác
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">defer</span> <span class="nx">c</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">c</span><span class="p">.</span><span class="nx">m</span><span class="p">[</span><span class="nx">k</span><span class="p">]</span> <span class="p">=</span> <span class="nx">v</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Ba cái bẫy của <code>RWMutex</code> ít người để ý:</p>
+<ul>
+<li><strong><code>RLock</code> không tái nhập được.</strong> Gọi <code>RLock</code> lồng nhau trên cùng một mutex có thể deadlock nếu có một <code>Lock</code> đang xếp hàng ở giữa — Go cố tình chặn writer bị bỏ đói.</li>
+<li><strong>Không nâng cấp được từ <code>RLock</code> lên <code>Lock</code>.</strong> Phải <code>RUnlock</code> rồi <code>Lock</code> lại, và giữa hai lời gọi đó dữ liệu có thể đã đổi — phải kiểm tra lại.</li>
+<li><strong><code>RLock</code> vẫn là một thao tác GHI vào bộ nhớ dùng chung</strong> (bộ đếm reader). Đây là lý do nó không hề miễn phí, và cũng là lý do nó không scale — phần dưới có số đo cụ thể.</li>
+</ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ── Once: khởi tạo đúng một lần, kể cả khi 100 goroutine cùng gọi ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">once</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">Once</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">conn</span> <span class="o">*</span><span class="nx">Conn</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">getConn</span><span class="p">()</span> <span class="o">*</span><span class="nx">Conn</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">once</span><span class="p">.</span><span class="nf">Do</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="p">{</span> <span class="nx">conn</span> <span class="p">=</span> <span class="nf">mustConnect</span><span class="p">()</span> <span class="p">})</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">conn</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ── Pool: tái dùng object tạm, giảm số lần cấp phát ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">bufPool</span> <span class="p">=</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">Pool</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">New</span><span class="p">:</span> <span class="kd">func</span><span class="p">()</span> <span class="nx">any</span> <span class="p">{</span> <span class="k">return</span> <span class="nb">new</span><span class="p">([</span><span class="mi">4096</span><span class="p">]</span><span class="kt">byte</span><span class="p">)</span> <span class="p">},</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">handle</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">b</span> <span class="o">:=</span> <span class="nx">bufPool</span><span class="p">.</span><span class="nf">Get</span><span class="p">().(</span><span class="o">*</span><span class="p">[</span><span class="mi">4096</span><span class="p">]</span><span class="kt">byte</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nx">bufPool</span><span class="p">.</span><span class="nf">Put</span><span class="p">(</span><span class="nx">b</span><span class="p">)</span> <span class="c1">// trả lại pool, KHÔNG free
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">_</span> <span class="p">=</span> <span class="nx">b</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>⚠️ <code>sync.Pool</code> <strong>không phải</strong> connection pool. Nội dung trong pool có thể bị GC dọn sạch bất cứ lúc nào, nên chỉ dùng cho object <em>tạm thời có thể tạo lại</em>, không dùng cho tài nguyên cần đóng/mở tường minh. Và luôn <strong>reset</strong> object trước khi <code>Put</code> — dữ liệu cũ sẽ theo nó sang request của người khác.</p>
+</blockquote>
+<p>Chạy thử bốn thứ trên:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[sync.Once]  100 goroutine gọi getConn() → khởi tạo 1 lần, conn.id=42
+</span></span><span class="line"><span class="cl">[atomic.Bool] 50 goroutine cùng đóng → số goroutine thắng CAS: 1
+</span></span><span class="line"><span class="cl">[CAS]        200 goroutine ghi max đồng thời → max=200 (đúng kỳ vọng 200)
+</span></span><span class="line"><span class="cl">[sync.Pool]  10000 lần Get/Put → chỉ cấp phát mới 10 buffer
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>10.000 lần <code>Get</code>/<code>Put</code> chỉ sinh <strong>10 buffer mới</strong> — đúng bằng số <code>P</code> mà runtime đang dùng, vì <code>sync.Pool</code> giữ một kho cục bộ cho mỗi <code>P</code> để khỏi phải tranh khoá.</p>
+<h2 id="syncmap--và-chuyện-nó-đã-đổi-trong-go-124"><code>sync.Map</code> — và chuyện nó đã đổi trong Go 1.24<a hidden class="anchor" aria-hidden="true" href="#syncmap--và-chuyện-nó-đã-đổi-trong-go-124">¶</a></h2>
+<p><code>sync.Map</code> <strong>không phải</strong> bản thay thế tổng quát cho <code>map</code> + <code>RWMutex</code>. Nhưng lời khuyên cũ &ldquo;chỉ dùng khi read-mostly, còn lại thì chậm hơn&rdquo; đã lỗi thời: Go 1.24 thay ruột <code>sync.Map</code> bằng một cấu trúc mới (HashTrieMap). Đo lại trên Go 1.24.4, 8 goroutine, mỗi kịch bản 1.5 giây:</p>
+<table>
+<thead>
+<tr>
+<th>Kịch bản</th>
+<th style="text-align:right"><code>map</code> + <code>RWMutex</code></th>
+<th style="text-align:right"><code>sync.Map</code></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>99% đọc / 1% ghi, key dùng chung</td>
+<td style="text-align:right">27.3 M op/s</td>
+<td style="text-align:right"><strong>208.4 M op/s</strong></td>
+<td>nhanh hơn <strong>7.6×</strong></td>
+</tr>
+<tr>
+<td>50% ghi / 50% đọc, key riêng mỗi goroutine</td>
+<td style="text-align:right">29.5 M op/s</td>
+<td style="text-align:right"><strong>50.7 M op/s</strong></td>
+<td>nhanh hơn <strong>1.7×</strong></td>
+</tr>
+<tr>
+<td>Ghi liên tục <strong>key mới</strong></td>
+<td style="text-align:right">4.7 M op/s</td>
+<td style="text-align:right"><strong>5.8 M op/s</strong></td>
+<td>nhanh hơn <strong>1.2×</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Kịch bản thứ ba vốn là điểm yếu kinh điển của <code>sync.Map</code> cũ, giờ cũng không còn thua. Vậy khi nào vẫn nên chọn <code>map</code> + <code>RWMutex</code>?</p>
+<ul>
+<li><strong>Cần type safety.</strong> <code>sync.Map</code> làm việc với <code>any</code>, mỗi lần <code>Load</code> phải ép kiểu — sai kiểu là panic lúc chạy, không phải lỗi lúc compile.</li>
+<li><strong>Cần nhiều thao tác nhất quán với nhau.</strong> Ví dụ &ldquo;đọc, tính toán, rồi ghi lại, không ai chen vào giữa&rdquo; — <code>sync.Map</code> không có cách giữ khoá xuyên suốt nhiều lời gọi.</li>
+<li><strong>Cần <code>len()</code>.</strong> <code>sync.Map</code> không có; muốn đếm phải <code>Range</code> qua toàn bộ.</li>
+</ul>
+<h2 id="syncatomic--bảo-vệ-đúng-một-biến"><code>sync/atomic</code> — bảo vệ đúng một biến<a hidden class="anchor" aria-hidden="true" href="#syncatomic--bảo-vệ-đúng-một-biến">¶</a></h2>
+<p>Từ Go 1.19 nên dùng <strong>kiểu</strong> <code>atomic.Int64</code> thay cho <strong>hàm</strong> <code>atomic.AddInt64(&amp;x, 1)</code>: kiểu tự bảo đảm căn chỉnh bộ nhớ, và quan trọng hơn, nó khiến người đọc không thể vô tình truy cập biến đó theo kiểu thường.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ❌ Kiểu cũ: dễ lỡ tay đọc thẳng `counter` ở chỗ khác mà quên atomic
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">counter</span> <span class="kt">int64</span>
+</span></span><span class="line"><span class="cl"><span class="nx">atomic</span><span class="p">.</span><span class="nf">AddInt64</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">counter</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ✅ Kiểu mới: mọi truy cập BẮT BUỘC đi qua method
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">counter</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">Int64</span>
+</span></span><span class="line"><span class="cl"><span class="nx">counter</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">n</span> <span class="o">:=</span> <span class="nx">counter</span><span class="p">.</span><span class="nf">Load</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ── atomic.Bool: cờ một chiều, ai bật được là người duy nhất ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">closed</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">Bool</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">Close</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="p">!</span><span class="nx">closed</span><span class="p">.</span><span class="nf">CompareAndSwap</span><span class="p">(</span><span class="kc">false</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="c1">// đã có goroutine khác đóng rồi → thoát, không đóng hai lần
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">cleanup</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ── atomic.Pointer[T]: thay NGUYÊN CẢ snapshot, không sửa tại chỗ ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">cfg</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">Pointer</span><span class="p">[</span><span class="nx">Config</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">Reload</span><span class="p">(</span><span class="nx">newCfg</span> <span class="o">*</span><span class="nx">Config</span><span class="p">)</span> <span class="p">{</span> <span class="nx">cfg</span><span class="p">.</span><span class="nf">Store</span><span class="p">(</span><span class="nx">newCfg</span><span class="p">)</span> <span class="p">}</span> <span class="c1">// writer
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">Current</span><span class="p">()</span> <span class="o">*</span><span class="nx">Config</span>      <span class="p">{</span> <span class="k">return</span> <span class="nx">cfg</span><span class="p">.</span><span class="nf">Load</span><span class="p">()</span> <span class="p">}</span> <span class="c1">// reader, không khoá gì cả
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="c1">// ── CompareAndSwap: cập nhật có điều kiện, luôn đi kèm vòng retry ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">recordMax</span><span class="p">(</span><span class="nx">m</span> <span class="o">*</span><span class="nx">atomic</span><span class="p">.</span><span class="nx">Int64</span><span class="p">,</span> <span class="nx">v</span> <span class="kt">int64</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">old</span> <span class="o">:=</span> <span class="nx">m</span><span class="p">.</span><span class="nf">Load</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="nx">v</span> <span class="o">&lt;=</span> <span class="nx">old</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="c1">// đã có giá trị lớn hơn, không cần ghi
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="nx">m</span><span class="p">.</span><span class="nf">CompareAndSwap</span><span class="p">(</span><span class="nx">old</span><span class="p">,</span> <span class="nx">v</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="c1">// ghi thành công
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="c1">// CAS trượt = có goroutine khác vừa ghi xen vào → đọc lại và thử lại
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>★ Quy tắc đáng nhớ: <strong>atomic nguyên tử ở mức một lệnh, không phải một đoạn code.</strong> <code>if counter.Load() == 0 { counter.Store(1) }</code> hoàn toàn <strong>không</strong> an toàn — hai goroutine có thể cùng đọc được <code>0</code>. Muốn &ldquo;kiểm tra rồi ghi&rdquo; là một thao tác không thể chia cắt thì phải dùng <code>CompareAndSwap</code>, hoặc dùng Mutex.</p>
+</blockquote>
+<h2 id="errgroup--quản-lý-vòng-đời-cả-nhóm-goroutine"><code>errgroup</code> — quản lý vòng đời cả nhóm goroutine<a hidden class="anchor" aria-hidden="true" href="#errgroup--quản-lý-vòng-đời-cả-nhóm-goroutine">¶</a></h2>
+<p><code>WaitGroup</code> chỉ biết <em>chờ</em>; nó không mang lỗi về, cũng không biết dừng sớm. <code>errgroup</code> bù đúng hai chỗ đó.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">import</span> <span class="s">&#34;golang.org/x/sync/errgroup&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ── 1. Wait: chờ tất cả, trả về lỗi ĐẦU TIÊN gặp phải ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">var</span> <span class="nx">g</span> <span class="nx">errgroup</span><span class="p">.</span><span class="nx">Group</span>
+</span></span><span class="line"><span class="cl"><span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">url</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">urls</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">g</span><span class="p">.</span><span class="nf">Go</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span> <span class="k">return</span> <span class="nf">fetch</span><span class="p">(</span><span class="nx">url</span><span class="p">)</span> <span class="p">})</span> <span class="c1">// Go 1.22+ không cần copy biến vòng lặp
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nx">err</span> <span class="o">:=</span> <span class="nx">g</span><span class="p">.</span><span class="nf">Wait</span><span class="p">();</span> <span class="nx">err</span> <span class="o">!=</span> <span class="kc">nil</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">err</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ── 2. WithContext: một task lỗi → ctx bị huỷ → các task khác dừng theo ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">g</span><span class="p">,</span> <span class="nx">ctx</span> <span class="o">:=</span> <span class="nx">errgroup</span><span class="p">.</span><span class="nf">WithContext</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nf">Background</span><span class="p">())</span>
+</span></span><span class="line"><span class="cl"><span class="nx">g</span><span class="p">.</span><span class="nf">Go</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span> <span class="k">return</span> <span class="nf">fetchUser</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span> <span class="p">})</span>
+</span></span><span class="line"><span class="cl"><span class="nx">g</span><span class="p">.</span><span class="nf">Go</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span> <span class="k">return</span> <span class="nf">fetchOrder</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span> <span class="p">})</span>   <span class="c1">// nếu cái này lỗi...
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">g</span><span class="p">.</span><span class="nf">Go</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span> <span class="k">return</span> <span class="nf">fetchReport</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span> <span class="p">})</span>  <span class="c1">// ...cái này nhận ctx.Done() và thoát sớm
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">err</span> <span class="o">:=</span> <span class="nx">g</span><span class="p">.</span><span class="nf">Wait</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ── 3. SetLimit: chặn trần số goroutine chạy đồng thời ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">g</span> <span class="o">:=</span> <span class="nb">new</span><span class="p">(</span><span class="nx">errgroup</span><span class="p">.</span><span class="nx">Group</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="nx">g</span><span class="p">.</span><span class="nf">SetLimit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>           <span class="c1">// 10.000 task nhưng tối đa 10 chạy một lúc
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="k">for</span> <span class="nx">_</span><span class="p">,</span> <span class="nx">item</span> <span class="o">:=</span> <span class="k">range</span> <span class="nx">tenThousandItems</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">g</span><span class="p">.</span><span class="nf">Go</span><span class="p">(</span><span class="kd">func</span><span class="p">()</span> <span class="kt">error</span> <span class="p">{</span> <span class="k">return</span> <span class="nf">process</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span> <span class="p">})</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">err</span> <span class="o">:=</span> <span class="nx">g</span><span class="p">.</span><span class="nf">Wait</span><span class="p">()</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Kết quả chạy thật — chú ý thời gian ở mục [2]:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">[1] errgroup.Group + Wait — tất cả thành công
+</span></span><span class="line"><span class="cl">    payment  xong sau 50ms
+</span></span><span class="line"><span class="cl">    order    xong sau 50ms
+</span></span><span class="line"><span class="cl">    user     xong sau 50ms
+</span></span><span class="line"><span class="cl">  Wait() → &lt;nil&gt;
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">[2] errgroup.WithContext — &#39;order&#39; lỗi ở 50ms, &#39;report&#39; đang chạy 2s
+</span></span><span class="line"><span class="cl">    user     xong sau 20ms
+</span></span><span class="line"><span class="cl">    report   bị huỷ giữa chừng (context canceled)
+</span></span><span class="line"><span class="cl">  Wait() → order: dịch vụ trả 500  (chỉ mất 50ms, KHÔNG phải 2s)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">[3] SetLimit(2) — 6 task nhưng tối đa 2 chạy cùng lúc
+</span></span><span class="line"><span class="cl">  số goroutine chạy đồng thời cao nhất đo được: 2
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">[4] Wait() chỉ trả 1 lỗi — lỗi xảy ra ĐẦU TIÊN
+</span></span><span class="line"><span class="cl">  Wait() → &#34;lỗi SỚM (10ms)&#34;
+</span></span><span class="line"><span class="cl">  ctx bị huỷ chưa? true → lỗi SỚM (10ms)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Ba điều cần nhớ:</p>
+<ul>
+<li><strong><code>Wait()</code> chỉ trả về <em>một</em> lỗi</strong> — lỗi xảy ra sớm nhất. Muốn gom hết thì tự thu lỗi vào slice có khoá, hoặc dùng <code>errors.Join</code>.</li>
+<li><strong><code>WithContext</code> chỉ huỷ ngữ cảnh, không giết được goroutine.</strong> Nếu task của bạn không bao giờ <code>select</code> trên <code>ctx.Done()</code> thì nó vẫn chạy tới hết — huỷ chỉ là một <em>tín hiệu</em>.</li>
+<li><strong>Không gọi <code>g.Go</code> sau khi đã <code>g.Wait</code>.</strong> Nhóm đã đóng; hành vi không xác định.</li>
+</ul>
+<h1 id="thiết-kế-một-goroutine-ghi-liên-tục-nhiều-goroutine-đọc">Thiết kế: một goroutine ghi liên tục, nhiều goroutine đọc<a hidden class="anchor" aria-hidden="true" href="#thiết-kế-một-goroutine-ghi-liên-tục-nhiều-goroutine-đọc">¶</a></h1>
+<p>Đây là hình dạng rất hay gặp: một goroutine nền cập nhật config / bảng tỉ giá / routing table / snapshot giá, còn hàng chục goroutine xử lý request chỉ đọc nó. Trực giác thông thường là &ldquo;read-heavy thì dùng <code>RWMutex</code>&rdquo;. <strong>Số đo nói ngược lại.</strong></p>
+<h2 id="ba-cách-làm">Ba cách làm<a hidden class="anchor" aria-hidden="true" href="#ba-cách-làm">¶</a></h2>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 470" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="rw-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#78716C"/></marker>
+<marker id="rw-arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="rw-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="470" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Cùng một bài toán — ba cách, ba kết cục khác hẳn nhau</text>
+<rect x="20" y="44" width="276" height="250" rx="11" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#rw-sh)"/>
+<text x="158" y="68" text-anchor="middle" font-size="12.5" font-weight="800" fill="#9F1239">① Mutex</text>
+<text x="158" y="86" text-anchor="middle" font-size="10" fill="#BE123C">Reader xếp hàng từng người một</text>
+<rect x="36" y="98" width="68" height="26" rx="5" fill="#374151"/>
+<text x="70" y="115" text-anchor="middle" font-size="9.5" font-weight="700" fill="#FFFFFF">writer</text>
+<rect x="36" y="144" width="68" height="22" rx="5" fill="#A8A29E"/>
+<rect x="36" y="172" width="68" height="22" rx="5" fill="#A8A29E"/>
+<rect x="36" y="200" width="68" height="22" rx="5" fill="#A8A29E"/>
+<text x="70" y="159" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF">reader 1</text>
+<text x="70" y="187" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF">reader 2</text>
+<text x="70" y="215" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF">reader 3</text>
+<rect x="188" y="130" width="84" height="100" rx="7" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5"/>
+<text x="230" y="172" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">CỬA</text>
+<text x="230" y="188" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">HẸP</text>
+<text x="230" y="206" text-anchor="middle" font-size="9" fill="#BE123C">1 người/lượt</text>
+<line x1="108" y1="111" x2="184" y2="140" stroke="#DC2626" stroke-width="2" marker-end="url(#rw-ar)"/>
+<line x1="108" y1="155" x2="184" y2="165" stroke="#DC2626" stroke-width="1.6" marker-end="url(#rw-ar)"/>
+<line x1="108" y1="183" x2="184" y2="183" stroke="#DC2626" stroke-width="1.6" marker-end="url(#rw-ar)"/>
+<line x1="108" y1="211" x2="184" y2="201" stroke="#DC2626" stroke-width="1.6" marker-end="url(#rw-ar)"/>
+<rect x="36" y="244" width="236" height="38" rx="6" fill="#FFE9EC"/>
+<text x="154" y="260" text-anchor="middle" font-size="10" font-weight="700" fill="#9F1239">Thêm reader = CHẬM đi</text>
+<text x="154" y="275" text-anchor="middle" font-size="10" fill="#BE123C">8 reader chỉ còn 0.18× so với 1 reader</text>
+<rect x="312" y="44" width="276" height="250" rx="11" fill="#FFFBEB" stroke="#F5A623" stroke-width="2.5" filter="url(#rw-sh)"/>
+<text x="450" y="68" text-anchor="middle" font-size="12.5" font-weight="800" fill="#7C4A03">② RWMutex</text>
+<text x="450" y="86" text-anchor="middle" font-size="10" fill="#92400E">Reader vào cùng lúc — nhưng vẫn phải GHI</text>
+<rect x="328" y="98" width="68" height="26" rx="5" fill="#374151"/>
+<text x="362" y="115" text-anchor="middle" font-size="9.5" font-weight="700" fill="#FFFFFF">writer</text>
+<rect x="328" y="144" width="68" height="22" rx="5" fill="#A8A29E"/>
+<rect x="328" y="172" width="68" height="22" rx="5" fill="#A8A29E"/>
+<rect x="328" y="200" width="68" height="22" rx="5" fill="#A8A29E"/>
+<text x="362" y="159" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF">reader 1</text>
+<text x="362" y="187" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF">reader 2</text>
+<text x="362" y="215" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF">reader 3</text>
+<rect x="470" y="140" width="106" height="82" rx="7" fill="#FFF3DB" stroke="#F5A623" stroke-width="2.5"/>
+<text x="523" y="166" text-anchor="middle" font-size="10.5" font-weight="800" fill="#7C4A03">bộ đếm reader</text>
+<text x="523" y="184" text-anchor="middle" font-size="9.5" fill="#92400E">RLock = +1 vào một</text>
+<text x="523" y="198" text-anchor="middle" font-size="9.5" fill="#92400E">ô nhớ DÙNG CHUNG</text>
+<text x="523" y="214" text-anchor="middle" font-size="8.5" font-weight="700" fill="#B45309">→ cache line bật qua lại</text>
+<line x1="400" y1="155" x2="466" y2="168" stroke="#F5A623" stroke-width="1.8" marker-end="url(#rw-ar)"/>
+<line x1="400" y1="183" x2="466" y2="183" stroke="#F5A623" stroke-width="1.8" marker-end="url(#rw-ar)"/>
+<line x1="400" y1="211" x2="466" y2="198" stroke="#F5A623" stroke-width="1.8" marker-end="url(#rw-ar)"/>
+<rect x="328" y="244" width="236" height="38" rx="6" fill="#FFF3DB"/>
+<text x="446" y="260" text-anchor="middle" font-size="10" font-weight="700" fill="#7C4A03">Thêm reader VẪN chậm đi</text>
+<text x="446" y="275" text-anchor="middle" font-size="10" fill="#92400E">8 reader chỉ còn 0.22× — gần như Mutex</text>
+<rect x="604" y="44" width="276" height="250" rx="11" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#rw-sh)"/>
+<text x="742" y="68" text-anchor="middle" font-size="12.5" font-weight="800" fill="#134E4A">③ atomic.Pointer (copy-on-write)</text>
+<text x="742" y="86" text-anchor="middle" font-size="10" fill="#0F766E">Reader chỉ ĐỌC, không ghi gì cả</text>
+<rect x="620" y="98" width="68" height="26" rx="5" fill="#374151"/>
+<text x="654" y="115" text-anchor="middle" font-size="9.5" font-weight="700" fill="#FFFFFF">writer</text>
+<rect x="620" y="144" width="68" height="22" rx="5" fill="#A8A29E"/>
+<rect x="620" y="172" width="68" height="22" rx="5" fill="#A8A29E"/>
+<rect x="620" y="200" width="68" height="22" rx="5" fill="#A8A29E"/>
+<text x="654" y="159" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF">reader 1</text>
+<text x="654" y="187" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF">reader 2</text>
+<text x="654" y="215" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF">reader 3</text>
+<rect x="762" y="140" width="106" height="82" rx="7" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<text x="815" y="162" text-anchor="middle" font-size="10.5" font-weight="800" fill="#134E4A">con trỏ snapshot</text>
+<text x="815" y="180" text-anchor="middle" font-size="9.5" fill="#0F766E">writer tạo bản MỚI</text>
+<text x="815" y="194" text-anchor="middle" font-size="9.5" fill="#0F766E">rồi đổi con trỏ</text>
+<text x="815" y="212" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0D9488">reader chỉ đọc</text>
+<line x1="692" y1="111" x2="758" y2="146" stroke="#0D9488" stroke-width="2.5" marker-end="url(#rw-arg)"/>
+<line x1="692" y1="155" x2="758" y2="170" stroke="#0D9488" stroke-width="1.6" marker-end="url(#rw-arg)"/>
+<line x1="692" y1="183" x2="758" y2="183" stroke="#0D9488" stroke-width="1.6" marker-end="url(#rw-arg)"/>
+<line x1="692" y1="211" x2="758" y2="196" stroke="#0D9488" stroke-width="1.6" marker-end="url(#rw-arg)"/>
+<rect x="620" y="244" width="236" height="38" rx="6" fill="#CCFBF1"/>
+<text x="738" y="260" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">Thêm reader = NHANH lên</text>
+<text x="738" y="275" text-anchor="middle" font-size="10" fill="#0F766E">8 reader đạt 5.00× so với 1 reader</text>
+<rect x="20" y="308" width="860" height="70" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="40" y="332" font-size="12" font-weight="800" fill="#374151">Vì sao RWMutex không scale dù chỉ đọc</text>
+<text x="40" y="354" font-size="11" fill="#57534E">Vì <tspan font-weight="700">RLock bản thân nó là một lệnh GHI</tspan>: nó tăng bộ đếm reader nằm trong mutex. Tám core cùng ghi vào một ô nhớ</text>
+<text x="40" y="370" font-size="11" fill="#57534E">khiến cache line chứa ô đó liên tục bị giành qua lại giữa các core — chính là hiện tượng ở phần sau của bài.</text>
+<rect x="20" y="390" width="860" height="64" rx="10" fill="#CCFBF1" stroke="#0D9488" stroke-width="2"/>
+<text x="40" y="414" font-size="12" font-weight="800" fill="#134E4A">Ý tưởng của copy-on-write: biến dữ liệu dùng chung thành dữ liệu CHỈ ĐỌC</text>
+<text x="40" y="436" font-size="11" fill="#0F766E">Snapshot cũ không bao giờ bị sửa — writer dựng bản mới rồi đổi con trỏ. Reader đang cầm bản cũ cứ đọc tiếp an toàn,</text>
+<text x="40" y="450" font-size="11" fill="#0F766E">GC thu hồi bản cũ khi không còn ai cầm. Không khoá, không chờ, không ghi vào bộ nhớ chung.</text>
+</svg>
+</div>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Config</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">Version</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">Hosts</span>   <span class="p">[]</span><span class="kt">string</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ── ① Mutex ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">mutexStore</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">mu</span>  <span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">cfg</span> <span class="o">*</span><span class="nx">Config</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">mutexStore</span><span class="p">)</span> <span class="nf">Load</span><span class="p">()</span> <span class="o">*</span><span class="nx">Config</span>   <span class="p">{</span> <span class="nx">s</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">();</span> <span class="nx">c</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">cfg</span><span class="p">;</span> <span class="nx">s</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">();</span> <span class="k">return</span> <span class="nx">c</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">mutexStore</span><span class="p">)</span> <span class="nf">Store</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Config</span><span class="p">)</span> <span class="p">{</span> <span class="nx">s</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">();</span> <span class="nx">s</span><span class="p">.</span><span class="nx">cfg</span> <span class="p">=</span> <span class="nx">c</span><span class="p">;</span> <span class="nx">s</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ── ② RWMutex ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">rwStore</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">mu</span>  <span class="nx">sync</span><span class="p">.</span><span class="nx">RWMutex</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">cfg</span> <span class="o">*</span><span class="nx">Config</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">rwStore</span><span class="p">)</span> <span class="nf">Load</span><span class="p">()</span> <span class="o">*</span><span class="nx">Config</span>   <span class="p">{</span> <span class="nx">s</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">RLock</span><span class="p">();</span> <span class="nx">c</span> <span class="o">:=</span> <span class="nx">s</span><span class="p">.</span><span class="nx">cfg</span><span class="p">;</span> <span class="nx">s</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">RUnlock</span><span class="p">();</span> <span class="k">return</span> <span class="nx">c</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">rwStore</span><span class="p">)</span> <span class="nf">Store</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Config</span><span class="p">)</span> <span class="p">{</span> <span class="nx">s</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">();</span> <span class="nx">s</span><span class="p">.</span><span class="nx">cfg</span> <span class="p">=</span> <span class="nx">c</span><span class="p">;</span> <span class="nx">s</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span> <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ── ③ atomic.Pointer — copy-on-write ──
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">atomicStore</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">cfg</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">Pointer</span><span class="p">[</span><span class="nx">Config</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">atomicStore</span><span class="p">)</span> <span class="nf">Load</span><span class="p">()</span> <span class="o">*</span><span class="nx">Config</span>   <span class="p">{</span> <span class="k">return</span> <span class="nx">s</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nf">Load</span><span class="p">()</span> <span class="p">}</span>  <span class="c1">// KHÔNG khoá gì cả
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="p">(</span><span class="nx">s</span> <span class="o">*</span><span class="nx">atomicStore</span><span class="p">)</span> <span class="nf">Store</span><span class="p">(</span><span class="nx">c</span> <span class="o">*</span><span class="nx">Config</span><span class="p">)</span> <span class="p">{</span> <span class="nx">s</span><span class="p">.</span><span class="nx">cfg</span><span class="p">.</span><span class="nf">Store</span><span class="p">(</span><span class="nx">c</span><span class="p">)</span> <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="số-đo">Số đo<a hidden class="anchor" aria-hidden="true" href="#số-đo">¶</a></h2>
+<p>Một goroutine ghi 1000 lần/giây, N goroutine đọc liên tục, đo 2 giây mỗi phương án, máy 12 core:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:right">1 reader</th>
+<th style="text-align:right">4 readers</th>
+<th style="text-align:right">8 readers</th>
+<th>Scale 1→8</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sync.Mutex</code></td>
+<td style="text-align:right">90.8 M/s</td>
+<td style="text-align:right">36.7 M/s</td>
+<td style="text-align:right">16.6 M/s</td>
+<td><strong>0.18×</strong> ⬇</td>
+</tr>
+<tr>
+<td><code>sync.RWMutex</code></td>
+<td style="text-align:right">89.8 M/s</td>
+<td style="text-align:right">22.7 M/s</td>
+<td style="text-align:right">19.7 M/s</td>
+<td><strong>0.22×</strong> ⬇</td>
+</tr>
+<tr>
+<td><code>atomic.Pointer</code></td>
+<td style="text-align:right">564.9 M/s</td>
+<td style="text-align:right">1684.9 M/s</td>
+<td style="text-align:right">2825.5 M/s</td>
+<td><strong>5.00×</strong> ⬆</td>
+</tr>
+</tbody>
+</table>
+<p>Hai điều đáng chú ý, và cả hai đều trái với trực giác:</p>
+<ol>
+<li><strong><code>RWMutex</code> gần như không khá hơn <code>Mutex</code></strong> trong bài toán này (0.22× so với 0.18×). Nó chỉ thắng rõ rệt khi mỗi lần đọc <em>giữ khoá đủ lâu</em> — đọc xong một cấu trúc lớn, duyệt một map vài nghìn phần tử. Nếu critical section chỉ là vài nanosecond thì chi phí vào/ra khoá đã lớn hơn chính công việc cần làm.</li>
+<li><strong>Thêm reader làm cả hai loại mutex chậm đi</strong>, chứ không phải nhanh lên. Reader không hề &ldquo;đọc song song&rdquo; — chúng đang tranh nhau quyền ghi vào bộ đếm bên trong mutex.</li>
+</ol>
+<h2 id="khi-nào-dùng-cách-nào">Khi nào dùng cách nào<a hidden class="anchor" aria-hidden="true" href="#khi-nào-dùng-cách-nào">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tình huống</th>
+<th>Chọn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Snapshot bất biến, ghi hiếm (config, routing table, feature flag)</td>
+<td><strong><code>atomic.Pointer[T]</code> copy-on-write</strong></td>
+</tr>
+<tr>
+<td>Reader cần giữ dữ liệu ổn định xuyên suốt một thao tác dài</td>
+<td><strong><code>RWMutex</code></strong></td>
+</tr>
+<tr>
+<td>Ghi nhiều ngang đọc, hoặc cần sửa tại chỗ nhiều field</td>
+<td><strong><code>Mutex</code></strong></td>
+</tr>
+<tr>
+<td>Dữ liệu dạng key-value, mỗi key độc lập nhau</td>
+<td><strong><code>sync.Map</code></strong></td>
+</tr>
+<tr>
+<td>Writer cần biết reader đã xử lý xong chưa</td>
+<td><strong>channel</strong> (atomic/mutex không làm được việc này)</td>
+</tr>
+</tbody>
+</table>
+<p>Hai điều kiện bắt buộc khi dùng copy-on-write — vi phạm là có race ngay:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ❌ SAI: sửa tại chỗ trên snapshot đang có reader đọc
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">cfg</span> <span class="o">:=</span> <span class="nx">store</span><span class="p">.</span><span class="nf">Load</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="nx">cfg</span><span class="p">.</span><span class="nx">Hosts</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">cfg</span><span class="p">.</span><span class="nx">Hosts</span><span class="p">,</span> <span class="s">&#34;new-host&#34;</span><span class="p">)</span> <span class="c1">// reader khác đang đọc chính slice này!
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">store</span><span class="p">.</span><span class="nf">Store</span><span class="p">(</span><span class="nx">cfg</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ✅ ĐÚNG: dựng bản MỚI hoàn toàn, rồi mới đổi con trỏ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">old</span> <span class="o">:=</span> <span class="nx">store</span><span class="p">.</span><span class="nf">Load</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="nx">newCfg</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">Config</span><span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">Version</span><span class="p">:</span> <span class="nx">old</span><span class="p">.</span><span class="nx">Version</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">Hosts</span><span class="p">:</span>   <span class="nb">append</span><span class="p">(</span><span class="nb">append</span><span class="p">([]</span><span class="kt">string</span><span class="p">{},</span> <span class="nx">old</span><span class="p">.</span><span class="nx">Hosts</span><span class="o">...</span><span class="p">),</span> <span class="s">&#34;new-host&#34;</span><span class="p">),</span> <span class="c1">// copy slice
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">store</span><span class="p">.</span><span class="nf">Store</span><span class="p">(</span><span class="nx">newCfg</span><span class="p">)</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
+<li><strong>Snapshot phải bất biến sau khi <code>Store</code>.</strong> Không ai được sửa nó nữa, kể cả writer.</li>
+<li><strong>Phải copy sâu những gì dùng chung.</strong> <code>append</code> lên slice cũ có thể ghi đè vào mảng nền mà reader đang đọc.</li>
+</ul>
+<blockquote>
+<p>★ Còn một điểm nữa thường bị bỏ qua: với copy-on-write, hai lần <code>Load()</code> liên tiếp <strong>có thể trả về hai snapshot khác nhau</strong>. Nếu một thao tác cần dữ liệu nhất quán thì <code>Load()</code> <strong>một lần</strong> vào biến local rồi dùng xuyên suốt, đừng gọi <code>Load()</code> nhiều lần.</p>
+</blockquote>
+<h1 id="cache-line-và-false-sharing">Cache line và false sharing<a hidden class="anchor" aria-hidden="true" href="#cache-line-và-false-sharing">¶</a></h1>
+<p>Phần trên kết luận &ldquo;RWMutex không scale vì cache line bị giành qua lại&rdquo;. Đây là phần giải thích câu đó, và nó là một trong số ít chỗ mà kiến thức phần cứng ảnh hưởng trực tiếp tới cách bạn khai báo một struct trong Go.</p>
+<h2 id="cache-line-là-gì">Cache line là gì<a hidden class="anchor" aria-hidden="true" href="#cache-line-là-gì">¶</a></h2>
+<p>CPU <strong>không bao giờ</strong> đọc bộ nhớ theo từng byte. Đơn vị nhỏ nhất nó chuyển giữa RAM và cache là một <strong>cache line</strong> — trên hầu hết CPU x86-64 và ARM hiện đại là <strong>64 byte</strong>.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># Kiểm tra trên máy Linux</span>
+</span></span><span class="line"><span class="cl">getconf LEVEL1_DCACHE_LINESIZE   <span class="c1"># → 64</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Hệ quả: đọc 1 byte hay đọc 64 byte liền nhau đều tốn <strong>đúng một lần</strong> nạp. Và quan trọng hơn — <strong>cache line cũng là đơn vị của giao thức đồng bộ cache giữa các core</strong>. Khi một core ghi vào bất kỳ byte nào trong một line, mọi core khác đang giữ bản sao của line đó phải <strong>vứt bỏ bản sao của mình</strong> và nạp lại.</p>
+<h2 id="false-sharing">False sharing<a hidden class="anchor" aria-hidden="true" href="#false-sharing">¶</a></h2>
+<p><strong>False sharing</strong> xảy ra khi hai core ghi vào <strong>hai biến khác nhau nhưng nằm chung một cache line</strong>. Về mặt logic chúng hoàn toàn độc lập — không có dữ liệu nào thật sự dùng chung. Nhưng phần cứng chỉ nhìn ở mức cache line, nên nó xử lý y như thể hai core đang tranh cùng một biến.</p>
+<p>Gọi là <em>false</em> vì đó là tranh chấp <strong>giả</strong> — do cách bố trí bộ nhớ, không phải do logic chương trình.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 470" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="fs-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<marker id="fs-arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<filter id="fs-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="470" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Hai biến độc lập, một cache line — phần cứng không phân biệt được</text>
+<rect x="20" y="46" width="420" height="212" rx="11" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#fs-sh)"/>
+<text x="230" y="70" text-anchor="middle" font-size="12.5" font-weight="800" fill="#9F1239">KHÔNG padding — chung 1 cache line</text>
+<rect x="40" y="84" width="76" height="30" rx="5" fill="#374151"/>
+<rect x="344" y="84" width="76" height="30" rx="5" fill="#374151"/>
+<text x="78" y="104" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">Core 0</text>
+<text x="382" y="104" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">Core 1</text>
+<rect x="110" y="150" width="240" height="40" rx="5" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5"/>
+<rect x="118" y="158" width="112" height="24" rx="3" fill="#FCA5A5"/>
+<rect x="234" y="158" width="108" height="24" rx="3" fill="#FCA5A5"/>
+<text x="174" y="174" text-anchor="middle" font-size="10" font-weight="700" fill="#7F1D1D">counters[0]</text>
+<text x="288" y="174" text-anchor="middle" font-size="10" font-weight="700" fill="#7F1D1D">counters[1]</text>
+<text x="230" y="206" text-anchor="middle" font-size="10" font-weight="700" fill="#9F1239">CACHE LINE — 64 byte</text>
+<path d="M78,118 C78,140 110,152 150,156" stroke="#DC2626" stroke-width="2.5" fill="none" marker-end="url(#fs-ar)"/>
+<path d="M382,118 C382,140 350,152 312,156" stroke="#DC2626" stroke-width="2.5" fill="none" marker-end="url(#fs-ar)"/>
+<text x="230" y="134" text-anchor="middle" font-size="10.5" font-weight="800" fill="#DC2626">mỗi lần ghi → line bị giành lại</text>
+<rect x="40" y="218" width="380" height="28" rx="6" fill="#FFE9EC"/>
+<text x="230" y="236" text-anchor="middle" font-size="10.5" font-weight="700" fill="#9F1239">Core 1 phải vứt bản sao và nạp lại, dù nó KHÔNG đụng counters[0]</text>
+<rect x="460" y="46" width="420" height="212" rx="11" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#fs-sh)"/>
+<text x="670" y="70" text-anchor="middle" font-size="12.5" font-weight="800" fill="#134E4A">CÓ padding — mỗi biến một cache line</text>
+<rect x="480" y="84" width="76" height="30" rx="5" fill="#374151"/>
+<rect x="784" y="84" width="76" height="30" rx="5" fill="#374151"/>
+<text x="518" y="104" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">Core 0</text>
+<text x="822" y="104" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF">Core 1</text>
+<rect x="476" y="150" width="184" height="40" rx="5" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<rect x="680" y="150" width="184" height="40" rx="5" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<rect x="484" y="158" width="76" height="24" rx="3" fill="#5EEAD4"/>
+<rect x="688" y="158" width="76" height="24" rx="3" fill="#5EEAD4"/>
+<rect x="566" y="158" width="86" height="24" rx="3" fill="#E7E5E4"/>
+<rect x="770" y="158" width="86" height="24" rx="3" fill="#E7E5E4"/>
+<text x="522" y="174" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">counters[0]</text>
+<text x="726" y="174" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">counters[1]</text>
+<text x="609" y="174" text-anchor="middle" font-size="9" fill="#78716C">padding 56B</text>
+<text x="813" y="174" text-anchor="middle" font-size="9" fill="#78716C">padding 56B</text>
+<text x="568" y="206" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">CACHE LINE 1</text>
+<text x="772" y="206" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">CACHE LINE 2</text>
+<path d="M518,118 C518,134 518,142 518,146" stroke="#0D9488" stroke-width="2.5" fill="none" marker-end="url(#fs-arg)"/>
+<path d="M822,118 C822,134 822,142 822,146" stroke="#0D9488" stroke-width="2.5" fill="none" marker-end="url(#fs-arg)"/>
+<text x="670" y="134" text-anchor="middle" font-size="10.5" font-weight="800" fill="#0D9488">hai core không đụng nhau nữa</text>
+<rect x="480" y="218" width="380" height="28" rx="6" fill="#CCFBF1"/>
+<text x="670" y="236" text-anchor="middle" font-size="10.5" font-weight="700" fill="#134E4A">Đổi lại: tốn 512 byte thay vì 64 byte cho cùng 8 bộ đếm</text>
+<rect x="20" y="272" width="860" height="94" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="40" y="296" font-size="12" font-weight="800" fill="#374151">Số đo thật — 50 triệu lần Add, máy 12 core, cache line 64 byte</text>
+<rect x="40" y="306" width="200" height="20" rx="4" fill="#F5F5F4"/>
+<rect x="244" y="306" width="196" height="20" rx="4" fill="#FFE9EC"/>
+<rect x="444" y="306" width="196" height="20" rx="4" fill="#CCFBF1"/>
+<rect x="644" y="306" width="196" height="20" rx="4" fill="#F5F5F4"/>
+<text x="140" y="320" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">số goroutine</text>
+<text x="342" y="320" text-anchor="middle" font-size="10" font-weight="700" fill="#9F1239">không padding</text>
+<text x="542" y="320" text-anchor="middle" font-size="10" font-weight="700" fill="#134E4A">có padding</text>
+<text x="742" y="320" text-anchor="middle" font-size="10" font-weight="700" fill="#374151">chậm hơn bao nhiêu</text>
+<text x="140" y="342" text-anchor="middle" font-size="11" fill="#57534E">1</text>
+<text x="342" y="342" text-anchor="middle" font-size="11" fill="#57534E">243 ms</text>
+<text x="542" y="342" text-anchor="middle" font-size="11" fill="#57534E">250 ms</text>
+<text x="742" y="342" text-anchor="middle" font-size="11" font-weight="700" fill="#57534E">0.97× — không khác gì</text>
+<text x="140" y="360" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">8</text>
+<text x="342" y="360" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">861 ms</text>
+<text x="542" y="360" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">62 ms</text>
+<text x="742" y="360" text-anchor="middle" font-size="11" font-weight="800" fill="#DC2626">13.94× CHẬM HƠN</text>
+<rect x="20" y="378" width="860" height="76" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="40" y="402" font-size="12" font-weight="800" fill="#7C4A03">Dấu hiệu nhận biết false sharing trong hệ thống thật</text>
+<text x="40" y="424" font-size="11" fill="#92400E">Thêm core / thêm goroutine mà thông lượng <tspan font-weight="700">đứng yên hoặc tụt</tspan>, trong khi mỗi goroutine rõ ràng làm việc trên dữ liệu riêng.</text>
+<text x="40" y="442" font-size="11" fill="#92400E">Với 1 goroutine thì không có dấu hiệu gì — đây là lớp lỗi <tspan font-weight="700">chỉ lộ ra khi chạy song song</tspan>, và profiler CPU thường chỉ nói "tốn ở lệnh Add".</text>
+</svg>
+</div>
+<h2 id="tái-hiện-bằng-code">Tái hiện bằng code<a hidden class="anchor" aria-hidden="true" href="#tái-hiện-bằng-code">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">const</span> <span class="nx">iters</span> <span class="p">=</span> <span class="mi">50_000_000</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ❌ 8 bộ đếm × 8 byte = 64 byte = ĐÚNG một cache line
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">packed</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">counters</span> <span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="nx">atomic</span><span class="p">.</span><span class="nx">Int64</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ✅ Mỗi bộ đếm chiếm trọn một cache line riêng
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">paddedCounter</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">v</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">Int64</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">_</span> <span class="p">[</span><span class="mi">64</span> <span class="o">-</span> <span class="nx">unsafe</span><span class="p">.</span><span class="nf">Sizeof</span><span class="p">(</span><span class="nx">atomic</span><span class="p">.</span><span class="nx">Int64</span><span class="p">{})]</span><span class="kt">byte</span> <span class="c1">// chèn 56 byte rác cho đủ 64
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">padded</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">counters</span> <span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="nx">paddedCounter</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Mỗi goroutine chỉ đụng ĐÚNG MỘT phần tử của riêng nó —
+</span></span></span><span class="line"><span class="cl"><span class="c1">// về mặt logic không có dữ liệu nào dùng chung cả.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">run</span><span class="p">(</span><span class="nx">n</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="nx">p</span> <span class="nx">packed</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="nx">wg</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">WaitGroup</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="nx">i</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="p">&lt;</span> <span class="nx">n</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">wg</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">		<span class="k">go</span> <span class="kd">func</span><span class="p">(</span><span class="nx">id</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">			<span class="k">defer</span> <span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">			<span class="k">for</span> <span class="nx">j</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">j</span> <span class="p">&lt;</span> <span class="nx">iters</span><span class="o">/</span><span class="nx">n</span><span class="p">;</span> <span class="nx">j</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">				<span class="nx">p</span><span class="p">.</span><span class="nx">counters</span><span class="p">[</span><span class="nx">id</span><span class="p">].</span><span class="nf">Add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">			<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}(</span><span class="nx">i</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">wg</span><span class="p">.</span><span class="nf">Wait</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Kết quả, máy 12 core:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">sizeof(packed)=64 byte  sizeof(padded)=512 byte
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">goroutine   KHÔNG padding     CÓ padding   chậm hơn
+</span></span><span class="line"><span class="cl">1                   243ms          250ms      0.97x
+</span></span><span class="line"><span class="cl">2                   633ms          156ms      4.05x
+</span></span><span class="line"><span class="cl">4                   759ms          113ms      6.69x
+</span></span><span class="line"><span class="cl">8                   861ms           62ms     13.94x
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Đọc kỹ hai cột giữa, vì chúng đi <strong>ngược chiều nhau</strong>:</p>
+<ul>
+<li>Bản <strong>có padding</strong> hành xử đúng như mong đợi: 1 → 8 goroutine, thời gian giảm từ 250ms xuống 62ms (nhanh hơn <strong>4×</strong>).</li>
+<li>Bản <strong>không padding</strong> thì càng thêm goroutine càng <strong>chậm</strong>: 243ms → 861ms. Tám core làm việc trên tám biến riêng biệt, vậy mà tổng thời gian tăng gấp 3,5 lần so với một core làm hết.</li>
+<li>Với <strong>1 goroutine, hai bản như nhau</strong> (0.97×). Đây là lý do false sharing không bao giờ lộ ra trong unit test chạy tuần tự.</li>
+</ul>
+<h2 id="khi-nào-thật-sự-cần-quan-tâm">Khi nào thật sự cần quan tâm<a hidden class="anchor" aria-hidden="true" href="#khi-nào-thật-sự-cần-quan-tâm">¶</a></h2>
+<p>Đừng đi padding mọi struct — bạn sẽ phình bộ nhớ lên 8 lần để đổi lấy không gì cả. Chỉ cân nhắc khi <strong>cả ba</strong> điều sau cùng đúng:</p>
+<ol>
+<li>Nhiều goroutine <strong>ghi</strong> (không phải chỉ đọc — nhiều core cùng <em>đọc</em> một cache line hoàn toàn không sao).</li>
+<li>Ghi vào các biến <strong>nằm gần nhau trong bộ nhớ</strong> — các phần tử của một mảng, các field liền kề của một struct.</li>
+<li>Tần suất ghi <strong>rất cao</strong>, nằm trong hot path.</li>
+</ol>
+<p>Trong Go, hình dạng hay dính nhất là <strong>mảng số liệu per-worker</strong>:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ❌ stats[i] của worker i nằm sát stats[i+1] của worker i+1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">stats</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="nx">atomic</span><span class="p">.</span><span class="nx">Int64</span><span class="p">,</span> <span class="nx">numWorkers</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ✅ Cách 1: padding
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">stat</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">v</span> <span class="nx">atomic</span><span class="p">.</span><span class="nx">Int64</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">_</span> <span class="p">[</span><span class="mi">56</span><span class="p">]</span><span class="kt">byte</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="nx">stats</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="nx">stat</span><span class="p">,</span> <span class="nx">numWorkers</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ✅ Cách 2 (thường tốt hơn): đừng chia sẻ ngay từ đầu.
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Mỗi worker đếm vào biến LOCAL trên stack, chỉ gộp MỘT LẦN lúc kết thúc.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">worker</span><span class="p">(</span><span class="nx">id</span> <span class="kt">int</span><span class="p">,</span> <span class="nx">out</span> <span class="kd">chan</span><span class="o">&lt;-</span> <span class="kt">int64</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="nx">local</span> <span class="kt">int64</span> <span class="c1">// không ai khác chạm tới → không cache line nào bị giành
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">for</span> <span class="k">range</span> <span class="nx">work</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">local</span><span class="o">++</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">out</span> <span class="o">&lt;-</span> <span class="nx">local</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>★ Cách 2 gần như luôn thắng cách 1: nó vừa bỏ được false sharing, vừa bỏ luôn chi phí của chính lệnh atomic. Padding là giải pháp cho trường hợp <strong>bắt buộc</strong> phải có bộ đếm dùng chung đọc được theo thời gian thực.</p>
+</blockquote>
+<p>Và quay lại chuyện <code>RWMutex</code> ở phần trước — giờ thì rõ: <code>RLock</code> làm tăng một bộ đếm nằm trong struct mutex. Tám goroutine <code>RLock</code> cùng lúc là tám core cùng ghi vào <strong>cùng một cache line</strong>. Đó là <strong>true sharing</strong> (tranh chấp thật, không phải giả), nhưng cơ chế gây chậm thì giống hệt — và vì thế <code>atomic.Pointer</code>, vốn chỉ <em>đọc</em>, thắng tuyệt đối.</p>
+<h1 id="circular-wait-deadlock-dù-mỗi-tài-nguyên-đã-có-mutex-riêng">Circular wait: deadlock dù mỗi tài nguyên đã có mutex riêng<a hidden class="anchor" aria-hidden="true" href="#circular-wait-deadlock-dù-mỗi-tài-nguyên-đã-có-mutex-riêng">¶</a></h1>
+<p>Bài toán kinh điển của fintech: hai tài khoản chuyển tiền cho nhau. Mỗi account có mutex riêng — nghe đã đủ an toàn. Nhưng chính việc <em>mỗi cái một khoá</em> lại tạo ra khả năng chờ vòng tròn.</p>
+<h2 id="code-gây-deadlock">Code gây deadlock<a hidden class="anchor" aria-hidden="true" href="#code-gây-deadlock">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kd">type</span> <span class="nx">Account</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">id</span>      <span class="kt">int</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">mu</span>      <span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">balance</span> <span class="kt">int</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// ❌ SAI: thứ tự khoá phụ thuộc vào THỨ TỰ THAM SỐ truyền vào
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">transfer</span><span class="p">(</span><span class="nx">from</span><span class="p">,</span> <span class="nx">to</span> <span class="o">*</span><span class="nx">Account</span><span class="p">,</span> <span class="nx">amount</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">from</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nx">from</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">time</span><span class="p">.</span><span class="nf">Sleep</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Millisecond</span><span class="p">)</span> <span class="c1">// nới cửa sổ cho lỗi hiện ra chắc chắn
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">	<span class="nx">to</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nx">to</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">from</span><span class="p">.</span><span class="nx">balance</span> <span class="o">-=</span> <span class="nx">amount</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">to</span><span class="p">.</span><span class="nx">balance</span> <span class="o">+=</span> <span class="nx">amount</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">a</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">Account</span><span class="p">{</span><span class="nx">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nx">balance</span><span class="p">:</span> <span class="mi">1000</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">b</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="nx">Account</span><span class="p">{</span><span class="nx">id</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="nx">balance</span><span class="p">:</span> <span class="mi">1000</span><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="kd">var</span> <span class="nx">wg</span> <span class="nx">sync</span><span class="p">.</span><span class="nx">WaitGroup</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">wg</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span> <span class="k">defer</span> <span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">();</span> <span class="nf">transfer</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> <span class="p">}()</span> <span class="c1">// khoá a, rồi chờ b
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="k">go</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span> <span class="k">defer</span> <span class="nx">wg</span><span class="p">.</span><span class="nf">Done</span><span class="p">();</span> <span class="nf">transfer</span><span class="p">(</span><span class="nx">b</span><span class="p">,</span> <span class="nx">a</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span> <span class="p">}()</span> <span class="c1">// khoá b, rồi chờ a
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="nx">wg</span><span class="p">.</span><span class="nf">Wait</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Code này <strong>không có race condition</strong> — mọi truy cập đều có khoá bảo vệ, <code>go run -race</code> hoàn toàn sạch. Nó chỉ đơn giản là treo vĩnh viễn.</p>
+<div class="zoomable-diagram" style="max-width:900px;margin:2rem auto;">
+<svg viewBox="0 0 900 480" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+<defs>
+<marker id="dl-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#DC2626"/></marker>
+<marker id="dl-arg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0D9488"/></marker>
+<marker id="dl-arh" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#57534E"/></marker>
+<filter id="dl-sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000022"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="480" fill="#FFFDF7" rx="16"/>
+<text x="450" y="28" text-anchor="middle" font-size="16" font-weight="800" fill="#374151">Chu trình chờ — và cách bẻ gãy nó</text>
+<rect x="20" y="46" width="420" height="250" rx="11" fill="#FFF7F7" stroke="#DC2626" stroke-width="2.5" filter="url(#dl-sh)"/>
+<text x="230" y="70" text-anchor="middle" font-size="12.5" font-weight="800" fill="#9F1239">❌ Khoá theo thứ tự tham số</text>
+<rect x="44" y="86" width="150" height="34" rx="6" fill="#374151"/>
+<rect x="266" y="86" width="150" height="34" rx="6" fill="#374151"/>
+<text x="119" y="107" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFFFFF">goroutine 1: A → B</text>
+<text x="341" y="107" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFFFFF">goroutine 2: B → A</text>
+<rect x="60" y="164" width="118" height="54" rx="7" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5"/>
+<rect x="282" y="164" width="118" height="54" rx="7" fill="#FFE9EC" stroke="#DC2626" stroke-width="2.5"/>
+<text x="119" y="186" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">mutex A</text>
+<text x="119" y="206" text-anchor="middle" font-size="9.5" fill="#BE123C">g1 đang GIỮ</text>
+<text x="341" y="186" text-anchor="middle" font-size="12" font-weight="800" fill="#9F1239">mutex B</text>
+<text x="341" y="206" text-anchor="middle" font-size="9.5" fill="#BE123C">g2 đang GIỮ</text>
+<line x1="100" y1="124" x2="100" y2="158" stroke="#57534E" stroke-width="2" marker-end="url(#dl-arh)"/>
+<line x1="360" y1="124" x2="360" y2="158" stroke="#57534E" stroke-width="2" marker-end="url(#dl-arh)"/>
+<text x="76" y="144" text-anchor="middle" font-size="9" fill="#57534E">giữ</text>
+<text x="384" y="144" text-anchor="middle" font-size="9" fill="#57534E">giữ</text>
+<path d="M182,178 C224,170 244,172 278,176" stroke="#DC2626" stroke-width="2.8" fill="none" marker-end="url(#dl-ar)"/>
+<path d="M278,206 C244,212 224,214 182,206" stroke="#DC2626" stroke-width="2.8" fill="none" marker-end="url(#dl-ar)"/>
+<text x="230" y="164" text-anchor="middle" font-size="9.5" font-weight="800" fill="#DC2626">g1 CHỜ B</text>
+<text x="230" y="232" text-anchor="middle" font-size="9.5" font-weight="800" fill="#DC2626">g2 CHỜ A</text>
+<rect x="44" y="246" width="372" height="36" rx="6" fill="#FFE9EC"/>
+<text x="230" y="262" text-anchor="middle" font-size="11" font-weight="800" fill="#9F1239">Vòng tròn khép kín → không ai nhả, không ai đi tiếp</text>
+<text x="230" y="276" text-anchor="middle" font-size="10" fill="#BE123C">Treo vĩnh viễn. Không có race, go run -race hoàn toàn sạch.</text>
+<rect x="460" y="46" width="420" height="250" rx="11" fill="#F2FCFB" stroke="#0D9488" stroke-width="2.5" filter="url(#dl-sh)"/>
+<text x="670" y="70" text-anchor="middle" font-size="12.5" font-weight="800" fill="#134E4A">✅ Khoá theo thứ tự id tăng dần</text>
+<rect x="484" y="86" width="150" height="34" rx="6" fill="#374151"/>
+<rect x="706" y="86" width="150" height="34" rx="6" fill="#374151"/>
+<text x="559" y="107" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFFFFF">goroutine 1: A → B</text>
+<text x="781" y="107" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFFFFF">goroutine 2: B → A</text>
+<rect x="500" y="164" width="118" height="54" rx="7" fill="#CCFBF1" stroke="#0D9488" stroke-width="2.5"/>
+<rect x="722" y="164" width="118" height="54" rx="7" fill="#F5F5F4" stroke="#A8A29E" stroke-width="2"/>
+<text x="559" y="186" text-anchor="middle" font-size="12" font-weight="800" fill="#134E4A">mutex A (id=1)</text>
+<text x="559" y="206" text-anchor="middle" font-size="9.5" fill="#0F766E">CẢ HAI đều xin TRƯỚC</text>
+<text x="781" y="186" text-anchor="middle" font-size="12" font-weight="800" fill="#57534E">mutex B (id=2)</text>
+<text x="781" y="206" text-anchor="middle" font-size="9.5" fill="#78716C">chỉ xin SAU khi đã có A</text>
+<path d="M540,124 C530,140 528,150 538,158" stroke="#0D9488" stroke-width="2.5" fill="none" marker-end="url(#dl-arg)"/>
+<path d="M760,124 C700,136 640,150 616,166" stroke="#0D9488" stroke-width="2.5" fill="none" marker-end="url(#dl-arg)"/>
+<path d="M622,196 C660,210 690,208 718,200" stroke="#0D9488" stroke-width="2" fill="none" marker-end="url(#dl-arg)"/>
+<text x="670" y="230" text-anchor="middle" font-size="9.5" font-weight="700" fill="#0D9488">g2 chuyển B → A nhưng VẪN xin mutex A trước</text>
+<text x="670" y="244" text-anchor="middle" font-size="9.5" fill="#0F766E">ai thắng A thì đi tiếp xin B, người kia chờ rồi tới lượt</text>
+<rect x="484" y="252" width="372" height="36" rx="6" fill="#CCFBF1"/>
+<text x="670" y="268" text-anchor="middle" font-size="11" font-weight="800" fill="#134E4A">Không thể có vòng tròn — mũi tên chờ luôn đi một chiều</text>
+<text x="670" y="282" text-anchor="middle" font-size="10" fill="#0F766E">từ id nhỏ sang id lớn, mà một chiều thì không khép kín được.</text>
+<rect x="20" y="310" width="860" height="78" rx="10" fill="#FFFFFF" stroke="#D6D3D1" stroke-width="2"/>
+<text x="40" y="334" font-size="12" font-weight="800" fill="#374151">Bốn điều kiện Coffman — deadlock cần ĐỦ CẢ BỐN, phá một cái là đủ</text>
+<text x="40" y="356" font-size="11" fill="#57534E">① <tspan font-weight="700">Loại trừ lẫn nhau</tspan> (mutex vốn thế)  ② <tspan font-weight="700">Giữ và chờ</tspan> (ôm A rồi mới xin B)</text>
+<text x="40" y="376" font-size="11" fill="#57534E">③ <tspan font-weight="700">Không giành được</tspan> (không ai cướp khoá của ai)  ④ <tspan font-weight="700" fill="#DC2626">Chờ vòng tròn</tspan> ← đây là cái dễ phá nhất trong code ứng dụng</text>
+<rect x="20" y="400" width="860" height="64" rx="10" fill="#FFF3DB" stroke="#F5A623" stroke-width="2"/>
+<text x="40" y="424" font-size="12" font-weight="800" fill="#7C4A03">Quy tắc tổng quát: áp một THỨ TỰ TOÀN CỤC lên mọi khoá</text>
+<text x="40" y="446" font-size="11" fill="#92400E">Mọi goroutine phải xin khoá theo cùng một thứ tự (id, địa chỉ bộ nhớ, tên tài nguyên — miễn là nhất quán).</text>
+<text x="40" y="460" font-size="11" fill="#92400E">Khi đó đồ thị chờ trở thành một chiều, và <tspan font-weight="700">một đồ thị một chiều thì không thể có chu trình</tspan>.</text>
+</svg>
+</div>
+<h2 id="go-nói-gì-khi-gặp-deadlock">Go nói gì khi gặp deadlock<a hidden class="anchor" aria-hidden="true" href="#go-nói-gì-khi-gặp-deadlock">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">fatal error: all goroutines are asleep - deadlock!
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">goroutine 1 [sync.WaitGroup.Wait]:
+</span></span><span class="line"><span class="cl">main.main()
+</span></span><span class="line"><span class="cl">	/.../main.go:31 +0x13c
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">goroutine 33 [sync.Mutex.Lock]:
+</span></span><span class="line"><span class="cl">internal/sync.(*Mutex).lockSlow(0xc000198020)      ← đang chờ mutex của B
+</span></span><span class="line"><span class="cl">main.transfer(0xc000198000, 0xc000198018, 0x64)    ← transfer(a, b, 100)
+</span></span><span class="line"><span class="cl">	/.../main.go:18 +0xa6
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">goroutine 34 [sync.Mutex.Lock]:
+</span></span><span class="line"><span class="cl">internal/sync.(*Mutex).lockSlow(0xc000198008)      ← đang chờ mutex của A
+</span></span><span class="line"><span class="cl">main.transfer(0xc000198018, 0xc000198000, 0xc8)    ← transfer(b, a, 200)
+</span></span><span class="line"><span class="cl">	/.../main.go:18 +0xa6
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Chu trình nằm ngay trong các địa chỉ, chỉ cần đọc kỹ:</p>
+<ul>
+<li><code>a</code> ở <code>0xc000198000</code>, mutex của nó ở offset 8 → <code>0xc000198008</code></li>
+<li><code>b</code> ở <code>0xc000198018</code>, mutex của nó → <code>0xc000198020</code></li>
+<li>goroutine 33 nhận tham số <code>(0xc000198000, 0xc000198018)</code> = <code>(a, b)</code>, đang chờ <code>0xc000198020</code> = <strong>mutex của b</strong></li>
+<li>goroutine 34 nhận <code>(b, a)</code>, đang chờ <code>0xc000198008</code> = <strong>mutex của a</strong></li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>Đừng trông cậy vào bộ phát hiện deadlock của Go.</strong> Nó chỉ bắn khi <strong>tuyệt đối mọi goroutine</strong> đều đang ngủ. Trong một service thật luôn có goroutine khác đang chạy — HTTP server, ticker, health check — nên runtime <strong>không coi đó là deadlock</strong>. Hệ quả: hai request bị treo im lặng, không log, không panic, goroutine cứ dồn lên tới khi tràn bộ nhớ. Đây chính là lý do kiểu lỗi này rất khó truy.</p>
+</blockquote>
+<h2 id="cách-sửa-1-thứ-tự-khoá-toàn-cục-khuyến-nghị">Cách sửa 1: thứ tự khoá toàn cục (khuyến nghị)<a hidden class="anchor" aria-hidden="true" href="#cách-sửa-1-thứ-tự-khoá-toàn-cục-khuyến-nghị">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// ✅ Luôn khoá account có id nhỏ trước — bất kể hướng chuyển tiền
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">transfer</span><span class="p">(</span><span class="nx">from</span><span class="p">,</span> <span class="nx">to</span> <span class="o">*</span><span class="nx">Account</span><span class="p">,</span> <span class="nx">amount</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">from</span><span class="p">.</span><span class="nx">id</span> <span class="o">==</span> <span class="nx">to</span><span class="p">.</span><span class="nx">id</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="s">&#34;không thể chuyển cho chính mình&#34;</span><span class="p">)</span> <span class="c1">// tự khoá chính mình = deadlock
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">first</span><span class="p">,</span> <span class="nx">second</span> <span class="o">:=</span> <span class="nx">from</span><span class="p">,</span> <span class="nx">to</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">first</span><span class="p">.</span><span class="nx">id</span> <span class="p">&gt;</span> <span class="nx">second</span><span class="p">.</span><span class="nx">id</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">first</span><span class="p">,</span> <span class="nx">second</span> <span class="p">=</span> <span class="nx">second</span><span class="p">,</span> <span class="nx">first</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="nx">first</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nx">first</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">second</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nx">second</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">from</span><span class="p">.</span><span class="nx">balance</span> <span class="p">&lt;</span> <span class="nx">amount</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="s">&#34;số dư không đủ&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">from</span><span class="p">.</span><span class="nx">balance</span> <span class="o">-=</span> <span class="nx">amount</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">to</span><span class="p">.</span><span class="nx">balance</span> <span class="o">+=</span> <span class="nx">amount</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Kết quả chạy hai phiên bản cạnh nhau, cùng kịch bản A→B 100đ và B→A 200đ chạy đồng thời:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">A chuyển 100 cho B, CÙNG LÚC B chuyển 200 cho A (mỗi account 1 mutex riêng)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  transferBad    ❌ DEADLOCK — treo quá 2s, không lệnh nào hoàn tất
+</span></span><span class="line"><span class="cl">  transferGood   ✅ xong sau khi cả 2 lệnh chạy — A=1100 B=900
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Số dư cuối đúng như kỳ vọng: <code>A = 1000 - 100 + 200 = 1100</code>, <code>B = 1000 + 100 - 200 = 900</code>, tổng vẫn là 2000.</p>
+<blockquote>
+<p>⚠️ Nhớ chặn trường hợp <code>from.id == to.id</code>. <code>sync.Mutex</code> <strong>không tái nhập được</strong> — khoá hai lần cùng một mutex trong một goroutine là tự treo chính mình, và đây là lỗi rất dễ lọt vì &ldquo;chuyển cho chính mình&rdquo; nghe như một no-op vô hại.</p>
+</blockquote>
+<p>Nếu không có id ổn định, dùng địa chỉ con trỏ làm thứ tự:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="kn">import</span> <span class="s">&#34;unsafe&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="nb">uintptr</span><span class="p">(</span><span class="nx">unsafe</span><span class="p">.</span><span class="nf">Pointer</span><span class="p">(</span><span class="nx">first</span><span class="p">))</span> <span class="p">&gt;</span> <span class="nb">uintptr</span><span class="p">(</span><span class="nx">unsafe</span><span class="p">.</span><span class="nf">Pointer</span><span class="p">(</span><span class="nx">second</span><span class="p">))</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">first</span><span class="p">,</span> <span class="nx">second</span> <span class="p">=</span> <span class="nx">second</span><span class="p">,</span> <span class="nx">first</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="cách-sửa-2-một-khoá-duy-nhất-cho-cả-nhóm">Cách sửa 2: một khoá duy nhất cho cả nhóm<a hidden class="anchor" aria-hidden="true" href="#cách-sửa-2-một-khoá-duy-nhất-cho-cả-nhóm">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Đơn giản nhất, và thường là đủ: một mutex cho toàn bộ sổ cái.
+</span></span></span><span class="line"><span class="cl"><span class="c1">// Không thể có chu trình khi chỉ có một khoá.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">type</span> <span class="nx">Ledger</span> <span class="kd">struct</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">mu</span>       <span class="nx">sync</span><span class="p">.</span><span class="nx">Mutex</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">balances</span> <span class="kd">map</span><span class="p">[</span><span class="kt">int</span><span class="p">]</span><span class="kt">int</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="kd">func</span> <span class="p">(</span><span class="nx">l</span> <span class="o">*</span><span class="nx">Ledger</span><span class="p">)</span> <span class="nf">Transfer</span><span class="p">(</span><span class="nx">from</span><span class="p">,</span> <span class="nx">to</span><span class="p">,</span> <span class="nx">amount</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">l</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="k">defer</span> <span class="nx">l</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">	<span class="k">if</span> <span class="nx">l</span><span class="p">.</span><span class="nx">balances</span><span class="p">[</span><span class="nx">from</span><span class="p">]</span> <span class="p">&lt;</span> <span class="nx">amount</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="s">&#34;số dư không đủ&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">l</span><span class="p">.</span><span class="nx">balances</span><span class="p">[</span><span class="nx">from</span><span class="p">]</span> <span class="o">-=</span> <span class="nx">amount</span>
+</span></span><span class="line"><span class="cl">	<span class="nx">l</span><span class="p">.</span><span class="nx">balances</span><span class="p">[</span><span class="nx">to</span><span class="p">]</span> <span class="o">+=</span> <span class="nx">amount</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Đánh đổi: mọi giao dịch nối đuôi nhau qua một khoá. Nhưng hãy ước lượng trước khi chê — một critical section vài trăm nanosecond vẫn cho hàng triệu giao dịch mỗi giây, thừa sức cho phần lớn hệ thống. <strong>Chỉ chia nhỏ khoá khi đã đo được rằng khoá chung là nút thắt thật.</strong></p>
+<h2 id="cách-sửa-3-trylock--rút-lui-và-thử-lại">Cách sửa 3: <code>TryLock</code> + rút lui và thử lại<a hidden class="anchor" aria-hidden="true" href="#cách-sửa-3-trylock--rút-lui-và-thử-lại">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-go" data-lang="go"><span class="line"><span class="cl"><span class="c1">// Dùng khi KHÔNG thể áp thứ tự toàn cục (ví dụ khoá nằm ở nhiều hệ thống khác nhau).
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kd">func</span> <span class="nf">transferTry</span><span class="p">(</span><span class="nx">from</span><span class="p">,</span> <span class="nx">to</span> <span class="o">*</span><span class="nx">Account</span><span class="p">,</span> <span class="nx">amount</span> <span class="kt">int</span><span class="p">)</span> <span class="kt">error</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">	<span class="k">for</span> <span class="nx">attempt</span> <span class="o">:=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">attempt</span> <span class="p">&lt;</span> <span class="mi">50</span><span class="p">;</span> <span class="nx">attempt</span><span class="o">++</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">from</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Lock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">		<span class="k">if</span> <span class="nx">to</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">TryLock</span><span class="p">()</span> <span class="p">{</span> <span class="c1">// không lấy được thì KHÔNG chờ
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>			<span class="nx">from</span><span class="p">.</span><span class="nx">balance</span> <span class="o">-=</span> <span class="nx">amount</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">to</span><span class="p">.</span><span class="nx">balance</span> <span class="o">+=</span> <span class="nx">amount</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">to</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">			<span class="nx">from</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl">			<span class="k">return</span> <span class="kc">nil</span>
+</span></span><span class="line"><span class="cl">		<span class="p">}</span>
+</span></span><span class="line"><span class="cl">		<span class="nx">from</span><span class="p">.</span><span class="nx">mu</span><span class="p">.</span><span class="nf">Unlock</span><span class="p">()</span> <span class="c1">// nhả khoá đang giữ → phá điều kiện &#34;giữ và chờ&#34;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="c1">// Lùi ngẫu nhiên, tránh hai goroutine cứ va nhau mãi theo cùng nhịp
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>		<span class="nx">time</span><span class="p">.</span><span class="nf">Sleep</span><span class="p">(</span><span class="nx">time</span><span class="p">.</span><span class="nf">Duration</span><span class="p">(</span><span class="nx">rand</span><span class="p">.</span><span class="nf">Intn</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span> <span class="o">*</span> <span class="nx">time</span><span class="p">.</span><span class="nx">Microsecond</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">	<span class="p">}</span>
+</span></span><span class="line"><span class="cl">	<span class="k">return</span> <span class="nx">errors</span><span class="p">.</span><span class="nf">New</span><span class="p">(</span><span class="s">&#34;không lấy được khoá sau 50 lần thử&#34;</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Cách này phá điều kiện <strong>giữ-và-chờ</strong> thay vì phá chu trình. Đổi lại là rủi ro <strong>livelock</strong> — hai goroutine liên tục nhường nhau mà không ai tiến được. Đó là lý do bắt buộc phải có <strong>lùi ngẫu nhiên</strong> và <strong>giới hạn số lần thử</strong>.</p>
+<h2 id="so-sánh-ba-cách">So sánh ba cách<a hidden class="anchor" aria-hidden="true" href="#so-sánh-ba-cách">¶</a></h2>
+<table>
+<thead>
+<tr>
+<th>Cách</th>
+<th>Phá điều kiện nào</th>
+<th>Ưu</th>
+<th>Nhược</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Thứ tự toàn cục</strong></td>
+<td>chờ vòng tròn</td>
+<td>không treo, giữ được song song</td>
+<td>cần một thứ tự ổn định cho mọi tài nguyên</td>
+</tr>
+<tr>
+<td><strong>Một khoá chung</strong></td>
+<td>chờ vòng tròn (chỉ còn 1 khoá)</td>
+<td>đơn giản nhất, không thể sai</td>
+<td>mọi thao tác nối đuôi nhau</td>
+</tr>
+<tr>
+<td><strong><code>TryLock</code> + retry</strong></td>
+<td>giữ và chờ</td>
+<td>dùng được khi không áp được thứ tự</td>
+<td>phức tạp, có thể livelock, cần backoff</td>
+</tr>
+</tbody>
+</table>
+<h2 id="checklist-chống-deadlock">Checklist chống deadlock<a hidden class="anchor" aria-hidden="true" href="#checklist-chống-deadlock">¶</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span><span class="lnt">9
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">□ Có chỗ nào giữ 2 khoá cùng lúc không? (nếu không — bạn an toàn)
+</span></span><span class="line"><span class="cl">□ Thứ tự khoá có PHỤ THUỘC THAM SỐ không? ← dấu hiệu nguy hiểm nhất
+</span></span><span class="line"><span class="cl">□ Đã áp một thứ tự toàn cục (id / địa chỉ / tên) cho mọi khoá chưa?
+</span></span><span class="line"><span class="cl">□ Đã chặn trường hợp hai tài nguyên trùng nhau chưa? (Mutex không tái nhập)
+</span></span><span class="line"><span class="cl">□ Có gọi hàm bên ngoài / callback trong lúc đang GIỮ khoá không?
+</span></span><span class="line"><span class="cl">  (hàm đó có thể xin thêm khoá khác mà bạn không biết)
+</span></span><span class="line"><span class="cl">□ Có gửi/nhận channel trong lúc đang giữ khoá không?
+</span></span><span class="line"><span class="cl">□ Đã viết test chạy hai chiều ngược nhau ĐỒNG THỜI, có timeout chưa?
+</span></span><span class="line"><span class="cl">□ Nhớ: go run -race KHÔNG phát hiện deadlock — nó chỉ tìm data race
+</span></span></code></pre></td></tr></table>
+</div>
+</div><blockquote>
+<p>★ Bài test duy nhất bắt được lớp lỗi này: chạy hai thao tác <strong>ngược chiều nhau</strong> thật sự đồng thời, bọc trong <code>select</code> với <code>time.After</code>. Deadlock không bao giờ xuất hiện trong test tuần tự, và cũng gần như không xuất hiện khi chỉ chạy một chiều.</p>
+</blockquote>
+<h1 id="go-scheduler">Go Scheduler<a hidden class="anchor" aria-hidden="true" href="#go-scheduler">¶</a></h1>
 <p><strong>Go Runtime</strong> quản lý goroutine thông qua:</p>
 <ul>
 <li><strong>M (Machine)</strong>: OS thread.</li>
